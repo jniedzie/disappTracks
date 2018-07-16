@@ -13,16 +13,15 @@ const int colors[nColors] = {kGreen, kBlue, kRed, kOrange, kBlack, kMagenta, kCy
 //double minDeDxOfChargino = 89500;  // minimizes 1-frac_signal+frac_back
 double minDeDxOfChargino = 163000;   // minimizes 1-frac_signal+2*frac_back
 
-vector<TH1D*> GetHistsFromEvents(vector<Event*> events)
+vector<TH1D*> GetHistsFromEvents(Events &events)
 {
   static int iter = 0;
   
   vector<TH1D*> hists;
-  int iEvent = 0;
-  for(auto event : events){
-    
-    for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
-      Track *track = event->GetTrack(iTrack);
+  
+  for(int iEvent=0;iEvent<events.size();iEvent++){
+    for(int iTrack=0;iTrack<events[iEvent]->GetNtracks();iTrack++){
+      Track *track = events[iEvent]->GetTrack(iTrack);
       TH1D *dedxHist = new TH1D(Form("%i_dedx_ev%i",iter,iEvent),Form("%i_dedx_ev%i",iter,iEvent),nLayers,0,nLayers-1);
       
       for(int iLayer=0;iLayer<nLayers;iLayer++){
@@ -32,13 +31,12 @@ vector<TH1D*> GetHistsFromEvents(vector<Event*> events)
       dedxHist->SetLineColor(colors[iEvent % nColors]);
       hists.push_back(dedxHist);
     }
-    iEvent++;
   }
   iter++;
   return hists;
 }
 
-vector<TH1D*> GetDedxPerLayerHists(vector<Event*> events)
+vector<TH1D*> GetDedxPerLayerHists(Events &events)
 {
   vector<TH1D*> hists;
   
@@ -47,9 +45,9 @@ vector<TH1D*> GetDedxPerLayerHists(vector<Event*> events)
     hists.push_back(dedxHist);
   }
   
-  for(auto event : events){
-    for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
-      Track *track = event->GetTrack(iTrack);
+  for(int iEvent=0;iEvent<events.size();iEvent++){
+    for(int iTrack=0;iTrack<events[iEvent]->GetNtracks();iTrack++){
+      Track *track = events[iEvent]->GetTrack(iTrack);
       
       for(int iLayer=0;iLayer<nLayers;iLayer++){
         if(track->GetDeDxInLayer(iLayer) > 0.0001){
@@ -62,45 +60,42 @@ vector<TH1D*> GetDedxPerLayerHists(vector<Event*> events)
   return hists;
 }
 
-int GetNtracks(vector<Event*> events, int maxEvent=9999999)
+int GetNtracks(Events &events, int maxEvent=9999999)
 {
   int nTracks = 0;
-  int iEvent = 0;
-  for(auto event : events){
+  
+  for(int iEvent=0;iEvent < events.size();iEvent++){
     if(iEvent > maxEvent) break;
-    nTracks+= event->GetNtracks();
-    iEvent++;
+    nTracks+= events[iEvent]->GetNtracks();
+    
   }
   return nTracks;
 }
 
-int GetNshortTracks(vector<Event*> events, int maxEvent=9999999)
+int GetNshortTracks(Events &events, int maxEvent=9999999)
 {
   int nShortTracks = 0;
-  int iEvent = 0;
-  for(auto event : events){
+  
+  for(int iEvent=0;iEvent < events.size();iEvent++){
     if(iEvent > maxEvent) break;
-    for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
-      Track *track = event->GetTrack(iTrack);
+    for(int iTrack=0;iTrack<events[iEvent]->GetNtracks();iTrack++){
+      Track *track = events[iEvent]->GetTrack(iTrack);
       if(track->GetIsShort()) nShortTracks++;
     }
-    iEvent++;
   }
   return nShortTracks;
 }
 
-int GetNshortTracksAboveThreshold(vector<Event*> events, int maxEvent=9999999)
+int GetNshortTracksAboveThreshold(Events &events, int maxEvent=9999999)
 {
   int nShortTracksAboveThreshold = 0;
-  int iEvent = 0;
-  for(auto event : events){
+  
+  for(int iEvent=0;iEvent<events.size();iEvent++){
     if(iEvent > maxEvent) break;
-    for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
-      Track *track = event->GetTrack(iTrack);
+    for(int iTrack=0;iTrack<events[iEvent]->GetNtracks();iTrack++){
+      Track *track = events[iEvent]->GetTrack(iTrack);
       if(!track->GetIsShort()) continue;
       
-      int nPointsAboveThreshold=0;
-    
       double totalDeDx = 0;
       for(int iLayer=0;iLayer<nLayers;iLayer++){
         totalDeDx += track->GetDeDxInLayer(iLayer);
@@ -109,7 +104,6 @@ int GetNshortTracksAboveThreshold(vector<Event*> events, int maxEvent=9999999)
 //      if(nPointsAboveThreshold == 3) nShortTracksAboveThreshold++;
       if(totalDeDx > minDeDxOfChargino) nShortTracksAboveThreshold++;
     }
-    iEvent++;
   }
   return nShortTracksAboveThreshold;
 }
@@ -121,18 +115,18 @@ int main(int argc, char* argv[])
   
   TLegend *leg = GetLegend(0.15,0.5,0.75,0.25,"Data type");
   
-  const char *inFileNameSignal = "../jniedzie/mcSignal/tree.root";
-  const char *inFileNameBackground = "../jniedzie/mcBackground/tree.root";
+  string inFileNameSignal = "../jniedzie/mcSignal/tree.root";
+  string inFileNameBackground = "../jniedzie/mcBackground/tree.root";
 
 //  const char *inFileNameSignal = "../adish/Signal/tree.root";
 //  const char *inFileNameBackground = "../adish/Background/tree.root";
   const char *inFileNameData = "../adish/Data/tree.root";
   
   cout<<"Reading signal events"<<endl;
-  vector<Event*> eventsSignal = Event::GetEventsVectorFromFile(inFileNameSignal);
+  Events eventsSignal(inFileNameSignal);
   
   cout<<"Reading background events"<<endl;
-  vector<Event*> eventsBackground = Event::GetEventsVectorFromFile(inFileNameBackground);
+  Events eventsBackground(inFileNameBackground);
   
   eventsBackground[0]->Print();
   
@@ -153,7 +147,7 @@ int main(int argc, char* argv[])
   
   if(analyzeData){
     cout<<"Reading data events"<<endl;
-    vector<Event*> eventsData = Event::GetEventsVectorFromFile(inFileNameData);
+    Events eventsData(inFileNameData);
 
     nTracksData = GetNtracks(eventsData);
     nShortTracksData = GetNshortTracks(eventsData);
@@ -238,9 +232,9 @@ int main(int argc, char* argv[])
   totalDeDxByNclustersSignal->Sumw2();
   totalDeDxByNclustersBackground->Sumw2();
   
-  for(Event *event : eventsSignal){
-    for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
-      Track *track = event->GetTrack(iTrack);
+  for(int iEvent=0;iEvent<eventsSignal.size();iEvent++){
+    for(int iTrack=0;iTrack<eventsSignal[iEvent]->GetNtracks();iTrack++){
+      Track *track = eventsSignal[iEvent]->GetTrack(iTrack);
       
       nClustersPerTrackSignal->Fill(track->GetNclusters());
       totalDeDxSignal->Fill(track->GetTotalDedx());
@@ -253,9 +247,9 @@ int main(int argc, char* argv[])
       }
     }
   }
-  for(Event *event : eventsBackground){
-    for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
-      Track *track = event->GetTrack(iTrack);
+  for(int iEvent=0;iEvent<eventsBackground.size();iEvent++){
+    for(int iTrack=0;iTrack<eventsBackground[iEvent]->GetNtracks();iTrack++){
+      Track *track = eventsBackground[iEvent]->GetTrack(iTrack);
       
       nClustersPerTrackBackground->Fill(track->GetNclusters());
       totalDeDxBackground->Fill(track->GetTotalDedx());

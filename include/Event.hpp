@@ -11,13 +11,32 @@
 #include "Helpers.hpp"
 #include "Track.hpp"
 
+class Event;
+
+class Events {
+public:
+  Events(std::string fileName);
+  ~Events();
+  
+  inline unsigned long size(){return events.size();}
+  Event* operator[] (const int index);
+  
+private:
+  std::vector<Event*> events;
+  std::map<unsigned long long,Event*> GetEventsFromFile(std::string fileName);
+};
+
+//---------------------------------------------------------------------------------------
+// Single event class
+//---------------------------------------------------------------------------------------
+
 class Event{
 public:
   Event(){};
   ~Event(){};
   
   void AddTrack(Track *track){tracks.push_back(track);}
-  int GetNtracks(){return tracks.size(); }
+  unsigned long GetNtracks(){return tracks.size(); }
   Track* GetTrack(int i){return tracks[i];}
   
   void Print();
@@ -25,11 +44,9 @@ public:
   Event* FilterShortTracksAboveThreshold(double threshold);
   Event* FilterShortTracks();
   
-  static map<unsigned long long,Event*> GetEventsFromFile(const char *fileName);
-  static vector<Event*> GetEventsVectorFromFile(const char *fileName);
-
 private:
   vector<Track*> tracks; // vector of isolated tracks
+  
   
 };
 

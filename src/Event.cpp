@@ -8,55 +8,29 @@
 
 #include "Event.hpp"
 
-void Event::Print(){
-  for(auto t : tracks){
-    t->Print();
+Events::Events(string fileName)
+{
+  
+  map<unsigned long long,Event*> eventsMap =  GetEventsFromFile(fileName);
+  
+  for(auto ev : eventsMap){
+    events.push_back(ev.second);
   }
 }
 
-Event* Event::FilterShortTracksAboveThreshold(double threshold)
+Events::~Events()
 {
-  Event *outputEvent = new Event();
   
-  for(int iTrack=0;iTrack<GetNtracks();iTrack++){
-    Track *track = GetTrack(iTrack);
-    if(!track->GetIsShort()) continue;
-    
-    double totalDeDx = 0;
-    for(int iLayer=0;iLayer<nLayers;iLayer++){
-      totalDeDx += track->GetDeDxInLayer(iLayer);
-    }
-    if(totalDeDx > threshold) outputEvent->AddTrack(track);
-  }
-  return outputEvent;
 }
 
-Event* Event::FilterShortTracks()
+Event* Events::operator[](const int index)
 {
-  Event *outputEvent = new Event();
-  
-  for(int iTrack=0;iTrack<GetNtracks();iTrack++){
-    Track *track = GetTrack(iTrack);
-    if(track->GetIsShort()) outputEvent->AddTrack(track);
-  }
-  return outputEvent;
-  }
-
-
-vector<Event*> Event::GetEventsVectorFromFile(const char *fileName)
-{
-  vector<Event*> output;
-  map<unsigned long long,Event*> events =  GetEventsFromFile(fileName);
-  
-  for(auto ev : events){
-    output.push_back(ev.second);
-  }
-  return output;
+  return events[index];
 }
 
-map<unsigned long long,Event*> Event::GetEventsFromFile(const char *fileName)
+map<unsigned long long,Event*> Events::GetEventsFromFile(string fileName)
 {
-  TFile *inFile = TFile::Open(fileName);
+  TFile *inFile = TFile::Open(fileName.c_str());
   TTreeReader reader("tree", inFile);
   
   //  inFile->Get("tree")->Print();
@@ -101,4 +75,48 @@ map<unsigned long long,Event*> Event::GetEventsFromFile(const char *fileName)
     }
   }
   return events;
+}
+
+//---------------------------------------------------------------------------------------
+// Single event class
+//---------------------------------------------------------------------------------------
+
+void Event::Print(){
+  for(auto t : tracks){
+    t->Print();
   }
+}
+
+Event* Event::FilterShortTracksAboveThreshold(double threshold)
+{
+  Event *outputEvent = new Event();
+  
+  for(int iTrack=0;iTrack<GetNtracks();iTrack++){
+    Track *track = GetTrack(iTrack);
+    if(!track->GetIsShort()) continue;
+    
+    double totalDeDx = 0;
+    for(int iLayer=0;iLayer<nLayers;iLayer++){
+      totalDeDx += track->GetDeDxInLayer(iLayer);
+    }
+    if(totalDeDx > threshold) outputEvent->AddTrack(track);
+  }
+  return outputEvent;
+}
+
+Event* Event::FilterShortTracks()
+{
+  Event *outputEvent = new Event();
+  
+  for(int iTrack=0;iTrack<GetNtracks();iTrack++){
+    Track *track = GetTrack(iTrack);
+    if(track->GetIsShort()) outputEvent->AddTrack(track);
+  }
+  return outputEvent;
+  }
+
+
+
+
+
+
