@@ -1,5 +1,7 @@
 #include "Helpers.hpp"
+#include "Event.hpp"
 
+#include <TApplication.h>
 
 const bool drawPlots = true;
 const bool analyzeData = false;
@@ -112,10 +114,10 @@ int GetNshortTracksAboveThreshold(vector<Event*> events, int maxEvent=9999999)
   return nShortTracksAboveThreshold;
 }
 
-int plotDeDx()
-//int main()
-{
 
+int main(int argc, char* argv[])
+{
+  TApplication theApp("App", &argc, argv);
   
   TLegend *leg = GetLegend(0.15,0.5,0.75,0.25,"Data type");
   
@@ -127,10 +129,10 @@ int plotDeDx()
   const char *inFileNameData = "../adish/Data/tree.root";
   
   cout<<"Reading signal events"<<endl;
-  vector<Event*> eventsSignal = GetEventsVectorFromFile(inFileNameSignal);
+  vector<Event*> eventsSignal = Event::GetEventsVectorFromFile(inFileNameSignal);
   
   cout<<"Reading background events"<<endl;
-  vector<Event*> eventsBackground = GetEventsVectorFromFile(inFileNameBackground);
+  vector<Event*> eventsBackground = Event::GetEventsVectorFromFile(inFileNameBackground);
   
   eventsBackground[0]->Print();
   
@@ -151,7 +153,7 @@ int plotDeDx()
   
   if(analyzeData){
     cout<<"Reading data events"<<endl;
-    vector<Event*> eventsData = GetEventsVectorFromFile(inFileNameData);
+    vector<Event*> eventsData = Event::GetEventsVectorFromFile(inFileNameData);
 
     nTracksData = GetNtracks(eventsData);
     nShortTracksData = GetNshortTracks(eventsData);
@@ -292,6 +294,11 @@ int plotDeDx()
   totalDeDxByNclustersBackground->SetLineColor(kRed);
   totalDeDxByNclustersBackground->Draw("same");
   leg->Draw();
+  
+  
+  c1->Update();
+  c2->Update();
+  theApp.Run();
   
   
 //  TH1D *dedxMeanSignal = new TH1D("dedxMeanSignal","dedxMeanSignal",20,0,2.5);
