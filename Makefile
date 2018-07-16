@@ -7,7 +7,7 @@ TMP_DIR = tmp
 
 all: plotDeDx
 
-plotDeDx: ${TMP_DIR}/plotDeDx.o ${TMP_DIR}/Event.o ${TMP_DIR}/Track.o
+plotDeDx: ${TMP_DIR}/plotDeDx.o ${TMP_DIR}/Event.o ${TMP_DIR}/Track.o ${TMP_DIR}/TrackCut.o
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 ${TMP_DIR}/plotDeDx.o: plotDeDx.cpp

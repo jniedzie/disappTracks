@@ -10,20 +10,25 @@
 
 #include "Helpers.hpp"
 #include "Track.hpp"
+#include "TrackCut.hpp"
 
 class Event;
 
 class Events {
 public:
   Events(std::string fileName);
+  Events();
   ~Events();
   
+  void AddEvent(Event *event){events.push_back(event);}
+  Events* ApplyTrackCut(TrackCut *cut);
+  
   inline unsigned long size(){return events.size();}
-  Event* operator[] (const int index);
+  Event* At(int index){return events[index];}
+  int GetNtracks();
   
 private:
   std::vector<Event*> events;
-  std::map<unsigned long long,Event*> GetEventsFromFile(std::string fileName);
 };
 
 //---------------------------------------------------------------------------------------
@@ -40,13 +45,16 @@ public:
   Track* GetTrack(int i){return tracks[i];}
   
   void Print();
+//  
+//  Event* FilterShortTracksAboveThreshold(double threshold);
+//  Event* FilterShortTracks();
   
-  Event* FilterShortTracksAboveThreshold(double threshold);
-  Event* FilterShortTracks();
+  Event* ApplyTrackCut(TrackCut *cut);
+  
+  vector<Track*> GetTracksPassingCut(TrackCut *cut);
   
 private:
   vector<Track*> tracks; // vector of isolated tracks
-  
   
 };
 

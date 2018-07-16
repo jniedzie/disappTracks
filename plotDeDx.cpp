@@ -1,111 +1,39 @@
 #include "Helpers.hpp"
 #include "Event.hpp"
+#include "TrackCut.hpp"
 
 #include <TApplication.h>
 
 const bool drawPlots = true;
 const bool analyzeData = false;
 
-const int nColors = 7;
-const int colors[nColors] = {kGreen, kBlue, kRed, kOrange, kBlack, kMagenta, kCyan};
+TrackCut* GetShortTrackCut();
+TrackCut* GetShortAboveThresholdTrackCut();
 
-//double minDeDxOfChargino = 120000; // random
-//double minDeDxOfChargino = 89500;  // minimizes 1-frac_signal+frac_back
-double minDeDxOfChargino = 163000;   // minimizes 1-frac_signal+2*frac_back
-
-vector<TH1D*> GetHistsFromEvents(Events &events)
-{
-  static int iter = 0;
-  
-  vector<TH1D*> hists;
-  
-  for(int iEvent=0;iEvent<events.size();iEvent++){
-    for(int iTrack=0;iTrack<events[iEvent]->GetNtracks();iTrack++){
-      Track *track = events[iEvent]->GetTrack(iTrack);
-      TH1D *dedxHist = new TH1D(Form("%i_dedx_ev%i",iter,iEvent),Form("%i_dedx_ev%i",iter,iEvent),nLayers,0,nLayers-1);
-      
-      for(int iLayer=0;iLayer<nLayers;iLayer++){
-        dedxHist->SetBinContent(iLayer,track->GetDeDxInLayer(iLayer));
-      }
-      
-      dedxHist->SetLineColor(colors[iEvent % nColors]);
-      hists.push_back(dedxHist);
-    }
-  }
-  iter++;
-  return hists;
-}
-
-vector<TH1D*> GetDedxPerLayerHists(Events &events)
+vector<TH1D*> GetDedxPerLayerHists(Events *events)
 {
   vector<TH1D*> hists;
+  static int iter=0;
+  
   
   for(int iLayer=0;iLayer<nLayers;iLayer++){
-    TH1D *dedxHist = new TH1D(Form("dedx_layer[%i]",iLayer),Form("dedx_layer[%i]",iLayer),50,0,10);
+    TH1D *dedxHist = new TH1D(Form("dedx_layer[%i]_%i",iLayer,iter),Form("dedx_layer[%i]_%i",iLayer,iter),50,0,10);
     hists.push_back(dedxHist);
   }
   
-  for(int iEvent=0;iEvent<events.size();iEvent++){
-    for(int iTrack=0;iTrack<events[iEvent]->GetNtracks();iTrack++){
-      Track *track = events[iEvent]->GetTrack(iTrack);
+  for(int iEvent=0;iEvent<events->size();iEvent++){
+    for(int iTrack=0;iTrack<events->At(iEvent)->GetNtracks();iTrack++){
+      Track *track = events->At(iEvent)->GetTrack(iTrack);
       
       for(int iLayer=0;iLayer<nLayers;iLayer++){
         if(track->GetDeDxInLayer(iLayer) > 0.0001){
-//          cout<<"Layer:"<<iLayer<<"\t"<<track->dedx[iLayer]<<endl;
           hists[iLayer]->Fill(track->GetDeDxInLayer(iLayer));
         }
       }
     }
   }
+  iter++;
   return hists;
-}
-
-int GetNtracks(Events &events, int maxEvent=9999999)
-{
-  int nTracks = 0;
-  
-  for(int iEvent=0;iEvent < events.size();iEvent++){
-    if(iEvent > maxEvent) break;
-    nTracks+= events[iEvent]->GetNtracks();
-    
-  }
-  return nTracks;
-}
-
-int GetNshortTracks(Events &events, int maxEvent=9999999)
-{
-  int nShortTracks = 0;
-  
-  for(int iEvent=0;iEvent < events.size();iEvent++){
-    if(iEvent > maxEvent) break;
-    for(int iTrack=0;iTrack<events[iEvent]->GetNtracks();iTrack++){
-      Track *track = events[iEvent]->GetTrack(iTrack);
-      if(track->GetIsShort()) nShortTracks++;
-    }
-  }
-  return nShortTracks;
-}
-
-int GetNshortTracksAboveThreshold(Events &events, int maxEvent=9999999)
-{
-  int nShortTracksAboveThreshold = 0;
-  
-  for(int iEvent=0;iEvent<events.size();iEvent++){
-    if(iEvent > maxEvent) break;
-    for(int iTrack=0;iTrack<events[iEvent]->GetNtracks();iTrack++){
-      Track *track = events[iEvent]->GetTrack(iTrack);
-      if(!track->GetIsShort()) continue;
-      
-      double totalDeDx = 0;
-      for(int iLayer=0;iLayer<nLayers;iLayer++){
-        totalDeDx += track->GetDeDxInLayer(iLayer);
-//        if(track->dedx[iLayer] > minDeDxOfChargino) nPointsAboveThreshold++;
-      }
-//      if(nPointsAboveThreshold == 3) nShortTracksAboveThreshold++;
-      if(totalDeDx > minDeDxOfChargino) nShortTracksAboveThreshold++;
-    }
-  }
-  return nShortTracksAboveThreshold;
 }
 
 
@@ -113,88 +41,62 @@ int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
   
-  TLegend *leg = GetLegend(0.15,0.5,0.75,0.25,"Data type");
-  
   string inFileNameSignal = "../jniedzie/mcSignal/tree.root";
   string inFileNameBackground = "../jniedzie/mcBackground/tree.root";
-
 //  const char *inFileNameSignal = "../adish/Signal/tree.root";
 //  const char *inFileNameBackground = "../adish/Background/tree.root";
-  const char *inFileNameData = "../adish/Data/tree.root";
-  
-  cout<<"Reading signal events"<<endl;
-  Events eventsSignal(inFileNameSignal);
-  
-  cout<<"Reading background events"<<endl;
-  Events eventsBackground(inFileNameBackground);
-  
-  eventsBackground[0]->Print();
-  
-//  for(minDeDxOfChargino = 161000;minDeDxOfChargino<166000;minDeDxOfChargino+=500){
-  
-  cout<<"minDeDxOfChargino:"<<minDeDxOfChargino<<endl;
+  string inFileNameData = "../adish/Data/tree.root";
   
   
-  int nTracksSignal = GetNtracks(eventsSignal);
-  int nShortTracksSignal = GetNshortTracks(eventsSignal);
-  int nShortTracksAboveThresholdSignal = GetNshortTracksAboveThreshold(eventsSignal);
+  TrackCut *shortTrackCut = GetShortTrackCut();
+  TrackCut *shortAboveTrasholdTrackCut = GetShortAboveThresholdTrackCut();
   
-  int nTracksBackground = GetNtracks(eventsBackground);
-  int nShortTracksBackground = GetNshortTracks(eventsBackground);
-  int nShortTracksAboveThresholdBackground = GetNshortTracksAboveThreshold(eventsBackground);
+  Events *eventsSignal = new Events(inFileNameSignal);
+  int nTracksSignal = eventsSignal->GetNtracks();
+  int nShortTracksSignal = eventsSignal->ApplyTrackCut(shortTrackCut)->GetNtracks();
+  int nShortTracksAboveThresholdSignal = eventsSignal->ApplyTrackCut(shortAboveTrasholdTrackCut)->GetNtracks();
+  
+  Events *eventsBackground = new Events(inFileNameBackground);
+  int nTracksBackground = eventsBackground->GetNtracks();
+  int nShortTracksBackground = eventsBackground->ApplyTrackCut(shortTrackCut)->GetNtracks();
+  int nShortTracksAboveThresholdBackground = eventsBackground->ApplyTrackCut(shortAboveTrasholdTrackCut)->GetNtracks();
   
   int nTracksData, nShortTracksData, nShortTracksAboveThresholdData;
-  
   if(analyzeData){
-    cout<<"Reading data events"<<endl;
-    Events eventsData(inFileNameData);
-
-    nTracksData = GetNtracks(eventsData);
-    nShortTracksData = GetNshortTracks(eventsData);
-    nShortTracksAboveThresholdData = GetNshortTracksAboveThreshold(eventsData);
+    Events *eventsData = new Events(inFileNameData);
+    nTracksData = eventsData->GetNtracks();
+    nShortTracksData = eventsData->ApplyTrackCut(shortTrackCut)->GetNtracks();
+    nShortTracksAboveThresholdData = eventsData->ApplyTrackCut(shortAboveTrasholdTrackCut)->GetNtracks();
   }
-    
-  cout<<"Total number of tracks in signal events:"<<nTracksSignal<<endl;
-  cout<<"Total number of tracks in background events:"<<nTracksBackground<<endl;
-  if(analyzeData) cout<<"Total number of tracks in data events:"<<nTracksData<<endl;
   
-  cout<<"Total number of short (max 3 dedx points) tracks in signal events:"<<nShortTracksSignal<<endl;
-  cout<<"Total number of short (max 3 dedx points) tracks in background events:"<<nShortTracksBackground<<endl;
-  if(analyzeData) cout<<"Total number of short (max 3 dedx points) tracks in data events:"<<nShortTracksData<<endl;
+  cout<<"Total number of tracks (signal):"<<nTracksSignal<<endl;
+  cout<<"Total number of tracks (background):"<<nTracksBackground<<endl;
+  if(analyzeData) cout<<"Total number of tracks (data):"<<nTracksData<<endl;
   
-  cout<<"Total number of short (max 3 dedx points) tracks above threshold in signal events:"<<nShortTracksAboveThresholdSignal<<endl;
-  cout<<"Total number of short (max 3 dedx points) tracks above threshold in background events:"<<nShortTracksAboveThresholdBackground<<endl;
-  if(analyzeData) cout<<"Total number of short (max 3 dedx points) tracks above threshold in data events:"<<nShortTracksAboveThresholdData<<endl;
+  cout<<"Total number of short tracks (signal):"<<nShortTracksSignal<<endl;
+  cout<<"Total number of short tracks (background):"<<nShortTracksBackground<<endl;
+  if(analyzeData) cout<<"Total number of short tracks (data):"<<nShortTracksData<<endl;
   
-  cout<<"% or short tracks in signal:"<<nShortTracksSignal/(double)nTracksSignal<<endl;
-  cout<<"% or short tracks in background:"<<nShortTracksBackground/(double)nTracksBackground<<endl;
-  if(analyzeData) cout<<"% or short tracks in data:"<<nShortTracksData/(double)nTracksData<<endl;
+  cout<<"Total number of short tracks above threshold (signal):"<<nShortTracksAboveThresholdSignal<<endl;
+  cout<<"Total number of short tracks above threshold (background):"<<nShortTracksAboveThresholdBackground<<endl;
+  if(analyzeData) cout<<"Total number of short tracks above threshold (data):"<<nShortTracksAboveThresholdData<<endl;
   
-  cout<<"% or short tracks above threshold in signal:"<<nShortTracksAboveThresholdSignal/(double)nTracksSignal<<endl;
-  cout<<"% or short tracks above threshold in background:"<<nShortTracksAboveThresholdBackground/(double)nTracksBackground<<endl;
-  if(analyzeData) cout<<"% or short tracks above threshold in data:"<<nShortTracksAboveThresholdData/(double)nTracksData<<endl;
+  cout<<"% or short tracks (signal):"<<nShortTracksSignal/(double)nTracksSignal<<endl;
+  cout<<"% or short tracks (background):"<<nShortTracksBackground/(double)nTracksBackground<<endl;
+  if(analyzeData) cout<<"% or short tracks (data):"<<nShortTracksData/(double)nTracksData<<endl;
+  
+  cout<<"% or short tracks above threshold (signal):"<<nShortTracksAboveThresholdSignal/(double)nTracksSignal<<endl;
+  cout<<"% or short tracks above threshold (background):"<<nShortTracksAboveThresholdBackground/(double)nTracksBackground<<endl;
+  if(analyzeData) cout<<"% or short tracks above threshold (data):"<<nShortTracksAboveThresholdData/(double)nTracksData<<endl;
   
   cout<<"\t\tchi:"<<1-nShortTracksAboveThresholdSignal/(double)nTracksSignal+2*nShortTracksAboveThresholdBackground/(double)nTracksBackground;
   cout<<"\t\tsignal:"<<nShortTracksAboveThresholdSignal/(double)nTracksSignal<<"\t\tback:"<<nShortTracksAboveThresholdBackground/(double)nTracksBackground<<endl;
   
-//  }
-//  cout<<"S/B corected (short tracks) = "<<eventsBackground.GetNtracks()/(double)eventsSignal.size()*nShortTracksSignal/(double)nShortTracksBackground<<endl;
-//  cout<<"S/B corected (short tracks above threshold) = "<<eventsBackground.size()/(double)eventsSignal.size()*nShortTracksAboveThresholdSignal/(double)nShortTracksAboveThresholdBackground<<endl;
-
-  
-  // Plotting part
-  
   if(!drawPlots) return 0;
-
-//  vector<TH1D*> histsSignal = GetHistsFromEvents(eventsSignal);
-//  vector<TH1D*> histsBackground = GetHistsFromEvents(eventsBackground);
-//  if(analyzeData) vector<TH1D*> histsData = GetHistsFromEvents(eventsBackground);
   
-//  cout<<"Dedx:"<<eventsSignal[0]->GetTrack(0)->dedx[0]<<endl;
-  
+  // Per layer plots
   vector<TH1D*> dedxPerLayerSignal = GetDedxPerLayerHists(eventsSignal);
   vector<TH1D*> dedxPerLayerBackground = GetDedxPerLayerHists(eventsBackground);
-  
   
   TCanvas *c1 = new TCanvas("c1","c1",2880,1800);
   c1->Divide(4,4);
@@ -209,36 +111,55 @@ int main(int argc, char* argv[])
     dedxPerLayerBackground[iLayer]->Draw("same");
   }
   
-  TCanvas *c2 = new TCanvas("c2","c2",2880,1800);
-  c2->Divide(2,2);
-  
-  TH1D *nClustersPerTrackSignal = new TH1D("N clusters per track","N clusters per track",20,0,20);
+  // Global plots
+  TH1D *nClustersPerTrackSignal = new TH1D("N clusters per track (signal)","N clusters per track (signal)",20,0,20);
   TH1D *nClustersPerTrackBackground = new TH1D("N clusters per track","N clusters per track",20,0,20);
   nClustersPerTrackSignal->Sumw2();
   nClustersPerTrackBackground->Sumw2();
   
-  TH1D *totalDeDxSignal = new TH1D("total dedx per track","total dedx per track",50,0,200);
+  TH1D *totalDeDxSignal = new TH1D("total dedx per track (signal)","total dedx per track (signal)",50,0,200);
   TH1D *totalDeDxBackground = new TH1D("total dedx per track","total dedx per track",50,0,200);
   totalDeDxSignal->Sumw2();
   totalDeDxBackground->Sumw2();
   
-  TH1D *dedxPerClusterSignal = new TH1D("dedx per cluster","dedx per cluster",50,0,20);
+  TH1D *dedxPerClusterSignal = new TH1D("dedx per cluster (signal)","dedx per cluster (signal)",50,0,20);
   TH1D *dedxPerClusterBackground = new TH1D("dedx per cluster","dedx per cluster",50,0,20);
   dedxPerClusterSignal->Sumw2();
   dedxPerClusterBackground->Sumw2();
   
-  TH1D *totalDeDxByNclustersSignal = new TH1D("total dedx per track / n clusters","total dedx per track / n clusters",50,0,20);
+  TH1D *totalDeDxByNclustersSignal = new TH1D("total dedx per track / n clusters (signal)","total dedx per track / n clusters (signal)",50,0,20);
   TH1D *totalDeDxByNclustersBackground = new TH1D("total dedx per track / n clusters","total dedx per track / n clusters",50,0,20);
   totalDeDxByNclustersSignal->Sumw2();
   totalDeDxByNclustersBackground->Sumw2();
   
-  for(int iEvent=0;iEvent<eventsSignal.size();iEvent++){
-    for(int iTrack=0;iTrack<eventsSignal[iEvent]->GetNtracks();iTrack++){
-      Track *track = eventsSignal[iEvent]->GetTrack(iTrack);
+  TH1D *ptSignal = new TH1D("pt dist (signal)","pt dist (signal)",50,0,1000);
+  TH1D *ptBackground = new TH1D("pt dist","pt dist",50,0,1000);
+  ptSignal->Sumw2();
+  ptBackground->Sumw2();
+
+  TH1D *etaSignal = new TH1D("eta dist (signal)","eta dist (signal)",50,-3,3);
+  TH1D *etaBackground = new TH1D("eta dist","eta dist",50,-3,3);
+  etaSignal->Sumw2();
+  etaBackground->Sumw2();
+  
+  TH1D *phiSignal = new TH1D("phi dist (signal)","phi dist (signal)",50,-3.5,3.5);
+  TH1D *phiBackground = new TH1D("phi dist","phi dist",50,-3.5,3.5);
+  phiSignal->Sumw2();
+  phiBackground->Sumw2();
+  
+  // Fill signal histograms
+  for(int iEvent=0;iEvent<eventsSignal->size();iEvent++){
+    Event *event = eventsSignal->At(iEvent);
+    
+    for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
+      Track *track = event->GetTrack(iTrack);
       
       nClustersPerTrackSignal->Fill(track->GetNclusters());
       totalDeDxSignal->Fill(track->GetTotalDedx());
       totalDeDxByNclustersSignal->Fill(track->GetTotalDedx()/track->GetNclusters());
+      ptSignal->Fill(track->GetPt());
+      etaSignal->Fill(track->GetEta());
+      phiSignal->Fill(track->GetPhi());
       
       for(int iLayer=0;iLayer<nLayers;iLayer++){
         if(track->GetDeDxInLayer(iLayer) > 0.0000001){
@@ -247,13 +168,20 @@ int main(int argc, char* argv[])
       }
     }
   }
-  for(int iEvent=0;iEvent<eventsBackground.size();iEvent++){
-    for(int iTrack=0;iTrack<eventsBackground[iEvent]->GetNtracks();iTrack++){
-      Track *track = eventsBackground[iEvent]->GetTrack(iTrack);
+  
+  // Fill background histograms
+  for(int iEvent=0;iEvent<eventsBackground->size();iEvent++){
+    Event *event = eventsBackground->At(iEvent);
+    
+    for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
+      Track *track = event->GetTrack(iTrack);
       
       nClustersPerTrackBackground->Fill(track->GetNclusters());
       totalDeDxBackground->Fill(track->GetTotalDedx());
       totalDeDxByNclustersBackground->Fill(track->GetTotalDedx()/track->GetNclusters());
+      ptBackground->Fill(track->GetPt());
+      etaBackground->Fill(track->GetEta());
+      phiBackground->Fill(track->GetPhi());
       
       for(int iLayer=0;iLayer<nLayers;iLayer++){
         if(track->GetDeDxInLayer(iLayer) > 0.0000001){
@@ -262,6 +190,11 @@ int main(int argc, char* argv[])
       }
     }
   }
+  
+  // Plot histograms
+  TCanvas *c2 = new TCanvas("c2","c2",2880,1800);
+  c2->Divide(3,3);
+  TLegend *leg = GetLegend(0.15,0.5,0.75,0.25,"Data type");
   
   c2->cd(1);
   nClustersPerTrackSignal->Draw();
@@ -273,85 +206,72 @@ int main(int argc, char* argv[])
   
   c2->cd(2);
   totalDeDxSignal->Draw();
+  totalDeDxSignal->GetXaxis()->SetTitle("#sum dE/dx (MeV)");
   totalDeDxBackground->SetLineColor(kRed);
   totalDeDxBackground->Draw("same");
   leg->Draw();
   
   c2->cd(3);
   dedxPerClusterSignal->Draw();
+  dedxPerClusterSignal->GetXaxis()->SetTitle("dE/dx (MeV)");
   dedxPerClusterBackground->SetLineColor(kRed);
   dedxPerClusterBackground->Draw("same");
   leg->Draw();
   
   c2->cd(4);
   totalDeDxByNclustersSignal->Draw();
+  totalDeDxByNclustersSignal->GetXaxis()->SetTitle("dE/dx (MeV)");
   totalDeDxByNclustersBackground->SetLineColor(kRed);
   totalDeDxByNclustersBackground->Draw("same");
   leg->Draw();
   
+  c2->cd(5);
+  ptSignal->Draw();
+  ptSignal->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+  ptBackground->SetLineColor(kRed);
+  ptBackground->Draw("same");
+  leg->Draw();
+  
+  c2->cd(6);
+  etaSignal->Draw();
+  etaSignal->GetXaxis()->SetTitle("#eta");
+  etaBackground->SetLineColor(kRed);
+  etaBackground->Draw("same");
+  leg->Draw();
+  
+  c2->cd(7);
+  phiSignal->Draw();
+  phiSignal->GetXaxis()->SetTitle("#phi");
+  phiBackground->SetLineColor(kRed);
+  phiBackground->Draw("same");
+  leg->Draw();
   
   c1->Update();
   c2->Update();
   theApp.Run();
   
-  
-//  TH1D *dedxMeanSignal = new TH1D("dedxMeanSignal","dedxMeanSignal",20,0,2.5);
-//  dedxMeanSignal->Sumw2();
-//  TH1D *dedxWidthSignal = new TH1D("dedxWidthSignal","dedxWidthSignal",20,0,2.5);
-//  dedxWidthSignal->Sumw2();
-//  TH1D *dedxIntegralSignal = new TH1D("dedxIntegralSignal","dedxIntegralSignal",20,0,300e3);
-//  dedxIntegralSignal->Sumw2();
-//
-//  TH1D *dedxMeanBackgrund = new TH1D("dedxMeanBackgrund","dedxMeanBackgrund",20,0,2.5);
-//  dedxMeanBackgrund->Sumw2();
-//  TH1D *dedxWidthBackgrund = new TH1D("dedxWidthBackgrund","dedxWidthBackgrund",20,0,2.5);
-//  dedxWidthBackgrund->Sumw2();
-//  TH1D *dedxIntegralBackgrund = new TH1D("dedxIntegralBackgrund","dedxIntegralBackgrund",20,0,300e3);
-//  dedxIntegralBackgrund->Sumw2();
-//
-//  bool firstHist = true;
-//  c1->cd(1);
-//  for(TH1D *hist : histsSignal){
-//    dedxMeanSignal->Fill(hist->GetMean());
-//    dedxWidthSignal->Fill(hist->GetStdDev());
-//    dedxIntegralSignal->Fill(hist->Integral());
-//
-//    if(firstHist){
-//      hist->Draw();
-//      firstHist = false;
-//    }
-//    else{
-//      hist->Draw("same");
-//    }
-//
-//  }
-//
-//  for(TH1D *hist : histsBackground){
-//    dedxMeanBackgrund->Fill(hist->GetMean());
-//    dedxWidthBackgrund->Fill(hist->GetStdDev());
-//    dedxIntegralBackgrund->Fill(hist->Integral());
-//  }
-//
-//
-//  c1->cd(2);
-//  dedxMeanSignal->DrawNormalized();
-//  dedxMeanBackgrund->SetLineColor(kRed);
-//  dedxMeanBackgrund->DrawNormalized("same");
-//  leg->AddEntry(dedxMeanSignal,"Signal","lp");
-//  leg->AddEntry(dedxMeanBackgrund,"Background","lp");
-//  leg->Draw();
-//
-//  c1->cd(3);
-//  dedxWidthSignal->DrawNormalized();
-//  dedxWidthBackgrund->SetLineColor(kRed);
-//  dedxWidthBackgrund->DrawNormalized("same");
-//  leg->Draw();
-//
-//  c1->cd(4);
-//  dedxIntegralSignal->DrawNormalized();
-//  dedxIntegralBackgrund->SetLineColor(kRed);
-//  dedxIntegralBackgrund->DrawNormalized("same");
-//  leg->Draw();
-  
   return 0;
 }
+
+
+
+
+// Get different track cuts
+
+TrackCut* GetShortTrackCut()
+{
+  TrackCut *cut = new TrackCut();
+  cut->SetNdedxClusters(3, 3);
+  return cut;
+}
+
+TrackCut* GetShortAboveThresholdTrackCut()
+{
+  TrackCut *cut = new TrackCut();
+  cut->SetNdedxClusters(3, 3);
+  cut->SetMinDedxPerCluster(5.0);
+  return cut;
+}
+
+
+

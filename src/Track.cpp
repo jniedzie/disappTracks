@@ -33,3 +33,24 @@ void Track::Print()
     cout<<"Layer:"<<iLayer<<"\tsub-det ID:"<<subDetId[iLayer]<<"\tdEdx:"<<dedx[iLayer]<<endl;
   }
 }
+
+bool Track::IsPassingCut(TrackCut *cut)
+{
+  // check number of dedx clusters
+  if(GetNclusters() < cut->GetMinDedxClusters() || GetNclusters() > cut->GetMaxDedxClusters()){
+    return false;
+  }
+  
+  // check values of dedx along the track
+  if(GetTotalDedx() < cut->GetMinTotalDedx()){
+    return false;
+  }
+  
+  for(int iCluster=0;iCluster<GetNclusters();iCluster++){
+    if(dedx[iCluster] < cut->GetMinDedxPerCluster()){
+      return false;
+    }
+  }
+  
+  return true;
+}

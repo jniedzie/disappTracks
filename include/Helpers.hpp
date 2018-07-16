@@ -27,6 +27,10 @@ const double layerR[nLayers] = { 29, 68, 109, 160, 250, 340, 430, 520, 610, 696,
 
 const int shortTrackMaxNclusters = 3;
 
+//double minDeDxOfChargino = 120000; // random
+//double minDeDxOfChargino = 89500;  // minimizes 1-frac_signal+frac_back
+const double minDeDxOfChargino = 163000;   // minimizes 1-frac_signal+2*frac_back
+
 inline TLegend* GetLegend(double legendW = 0.15, double legendH = 0.5, double legendX = 0.75, double legendY = 0.25,const char* header="")
 {
   

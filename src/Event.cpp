@@ -8,28 +8,17 @@
 
 #include "Event.hpp"
 
+Events::Events()
+{
+  
+}
+
 Events::Events(string fileName)
 {
+  cout<<"Reading events from:"<<fileName<<endl;
   
-  map<unsigned long long,Event*> eventsMap =  GetEventsFromFile(fileName);
+  map<unsigned long long,Event*> eventsMap;
   
-  for(auto ev : eventsMap){
-    events.push_back(ev.second);
-  }
-}
-
-Events::~Events()
-{
-  
-}
-
-Event* Events::operator[](const int index)
-{
-  return events[index];
-}
-
-map<unsigned long long,Event*> Events::GetEventsFromFile(string fileName)
-{
   TFile *inFile = TFile::Open(fileName.c_str());
   TTreeReader reader("tree", inFile);
   
@@ -46,8 +35,16 @@ map<unsigned long long,Event*> Events::GetEventsFromFile(string fileName)
   
   TTreeReaderValue<float> _eta(reader, "IsoTrack_eta");
   TTreeReaderValue<float> _phi(reader, "IsoTrack_phi");
-  
-  map<unsigned long long,Event*> events;
+  TTreeReaderValue<float> _caloEmEnergy(reader, "IsoTrack_caloEmEnergy");
+  TTreeReaderValue<float> _caloHadEnergy(reader, "IsoTrack_caloHadEnergy");
+  TTreeReaderValue<float> _dxyErr(reader, "IsoTrack_edxy");
+  TTreeReaderValue<float> _dxy(reader, "IsoTrack_dxy");
+  TTreeReaderValue<float> _dzErr(reader, "IsoTrack_edz");
+  TTreeReaderValue<float> _dz(reader, "IsoTrack_dz");
+  TTreeReaderValue<int>   _charge(reader, "IsoTrack_charge");
+  TTreeReaderValue<float> _mass(reader, "IsoTrack_mass");
+  TTreeReaderValue<float> _pt(reader, "IsoTrack_pt");
+  TTreeReaderValue<int>   _pid(reader, "IsoTrack_pdgId");
   
   while (reader.Next()){
     Track *track = new Track();
@@ -58,6 +55,14 @@ map<unsigned long long,Event*> Events::GetEventsFromFile(string fileName)
     }
     track->SetEta(*_eta);
     track->SetPhi(*_phi);
+    track->SetCaloEmEnergy(*_caloEmEnergy);
+    track->SetCaloHadEnergy(*_caloHadEnergy);
+    track->SetDxy(*_dxy,*_dxyErr);
+    track->SetDz(*_dz,*_dzErr);
+    track->SetCharge(*_charge);
+    track->SetMass(*_mass);
+    track->SetPt(*_pt);
+    track->SetPid(*_pid);
     
     int nDeDxPoints = 0;
     for(int iLayer=0;iLayer<nLayers;iLayer++){
@@ -65,16 +70,44 @@ map<unsigned long long,Event*> Events::GetEventsFromFile(string fileName)
     }
     if(nDeDxPoints <= shortTrackMaxNclusters) track->SetIsShort(true);
     
-    if(events.find(*eventNumber) == events.end()){
+    if(eventsMap.find(*eventNumber) == eventsMap.end()){
       Event *newEvent = new Event();
       newEvent->AddTrack(track);
-      events.insert(pair<unsigned long long,Event*>(*eventNumber,newEvent));
+      eventsMap.insert(pair<unsigned long long,Event*>(*eventNumber,newEvent));
     }
     else{
-      events[*eventNumber]->AddTrack(track);
+      eventsMap[*eventNumber]->AddTrack(track);
     }
   }
-  return events;
+  
+  for(auto ev : eventsMap){
+    events.push_back(ev.second);
+  }
+}
+
+Events::~Events()
+{
+  
+}
+
+int Events::GetNtracks()
+{
+  int nTracks = 0;
+  
+  for(int iEvent=0;iEvent < events.size();iEvent++){
+    nTracks+= events[iEvent]->GetNtracks();
+  }
+  return nTracks;
+}
+
+Events* Events::ApplyTrackCut(TrackCut *cut)
+{
+  Events *outputEvents = new Events();
+  
+  for(int iEvent=0;iEvent<events.size();iEvent++){
+    outputEvents->AddEvent(events[iEvent]->ApplyTrackCut(cut));
+  }
+  return outputEvents;
 }
 
 //---------------------------------------------------------------------------------------
@@ -87,34 +120,31 @@ void Event::Print(){
   }
 }
 
-Event* Event::FilterShortTracksAboveThreshold(double threshold)
+Event* Event::ApplyTrackCut(TrackCut *cut)
 {
   Event *outputEvent = new Event();
   
-  for(int iTrack=0;iTrack<GetNtracks();iTrack++){
-    Track *track = GetTrack(iTrack);
-    if(!track->GetIsShort()) continue;
-    
-    double totalDeDx = 0;
-    for(int iLayer=0;iLayer<nLayers;iLayer++){
-      totalDeDx += track->GetDeDxInLayer(iLayer);
+  vector<Track*> tracksPassingCut;
+  
+  for(auto track : tracks){
+    if(track->IsPassingCut(cut)){
+      outputEvent->AddTrack(track);
     }
-    if(totalDeDx > threshold) outputEvent->AddTrack(track);
   }
   return outputEvent;
 }
 
-Event* Event::FilterShortTracks()
+vector<Track*> Event::GetTracksPassingCut(TrackCut *cut)
 {
-  Event *outputEvent = new Event();
+  vector<Track*> tracksPassingCut;
   
-  for(int iTrack=0;iTrack<GetNtracks();iTrack++){
-    Track *track = GetTrack(iTrack);
-    if(track->GetIsShort()) outputEvent->AddTrack(track);
+  for(auto track : tracks){
+    if(track->IsPassingCut(cut)){
+      tracksPassingCut.push_back(track);
+    }
   }
-  return outputEvent;
-  }
-
+  return tracksPassingCut;
+}
 
 
 
