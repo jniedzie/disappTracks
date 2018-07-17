@@ -11,6 +11,7 @@
 #include "Helpers.hpp"
 #include "Track.hpp"
 #include "TrackCut.hpp"
+#include "Jet.hpp"
 
 class Event;
 
@@ -54,7 +55,8 @@ public:
   vector<Track*> GetTracksPassingCut(TrackCut *cut);
   
 private:
-  vector<Track*> tracks; // vector of isolated tracks
+  vector<Track*> tracks;  // vector of isolated tracks
+  vector<Jet*>   jets;    // vector of jets
   
 };
 

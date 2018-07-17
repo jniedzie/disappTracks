@@ -1,4 +1,11 @@
 #include "Helpers.hpp"
+#include "Event.hpp"
+
+#include <TSystem.h>
+#include <TEveManager.h>
+#include <TEveScene.h>
+#include <TEvePointSet.h>
+#include <TApplication.h>
 
 const bool showUnderflowBins = false;
 const bool showOverflowBins = true;
@@ -66,8 +73,9 @@ void DrawEvent(Event *event, bool cleanView=true)
   DrawPoints(points);
 }
 
-void display()
+int main(int argc, char* argv[])
 {
+  TApplication theApp("App", &argc, argv);
   // create event display
   TEveManager::Create();
   
@@ -75,35 +83,27 @@ void display()
 //  const char *inFileNameBackground = "../adish/Background/tree.root";
   
     const char *inFileNameSignal = "../jniedzie/mcSignal/tree.root";
-    const char *inFileNameBackground = "../jniedzie/mcBackground/tree.root";
+//    const char *inFileNameBackground = "../jniedzie/mcBackground/tree.root";
   
-  vector<Event*> eventsSignal = GetEventsVectorFromFile(inFileNameSignal);
-  vector<Event*> eventsBackground = GetEventsVectorFromFile(inFileNameBackground);
-  
-  // interesing signal events: 0, 2
-  int iEvent = 15;
-//  DrawEvent(eventsSignal[iEvent]);
-//  DrawEvent(FilterShortTracks(eventsSignal[iEvent]));
-//  DrawEvent(FilterShortTracksAboveThreshold(eventsSignal[iEvent],163000));
+  Events *eventsSignal = new Events(inFileNameSignal);
+//  Events *eventsBackground = new Events(inFileNameBackground);
   
   
+  TrackCut *trackCut = new TrackCut(TrackCut::kShortAboveThreshold);
   
+  Events *filteredSignalEvents = eventsSignal->ApplyTrackCut(trackCut);
   
-  // interesing backgound events: 0, 3
-//  DrawEvent(eventsBackground[0]);
-  
-  int eventIter=-1;
-  for(Event* event : eventsSignal){
-    eventIter++;
-//    if(eventIter==5) continue;
-    Event *filteredEvent = FilterShortTracksAboveThreshold(event,10);
-//    Event *filteredEvent =event;
+  for(int iEvent=0;iEvent<filteredSignalEvents->size();iEvent++){
+    Event* event = filteredSignalEvents->At(iEvent);
     
-    if(filteredEvent->GetNtracks() < 1) continue;
-    cout<<"Event iter:"<<eventIter<<endl;
-    DrawEvent(filteredEvent);
+    if(event->GetNtracks() < 1) continue;
+
+    cout<<"Event iter:"<<iEvent<<endl;
+    DrawEvent(event);
     break;
   }
   
-  return;
+  theApp.Run();
+  
+  return 0;
 }

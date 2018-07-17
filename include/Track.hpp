@@ -22,6 +22,8 @@ public:
   // Setters
   void SetDeDxInLayer(int layer, float value){dedx[layer] = value;}
   void SetSubDetIdInLayer(int layer, int id){subDetId[layer] = id;}
+  void SetSizeXinLayer(int layer, int size){sizeX[layer] = size;}
+  void SetSizeYinLayer(int layer, int size){sizeY[layer] = size;}
   void SetEta(double _eta){eta=_eta;}
   void SetPhi(double _phi){phi=_phi;}
   void SetCaloEmEnergy(double _energy){caloEmEnergy = _energy;}
@@ -37,6 +39,8 @@ public:
   // Getters
   float   GetDeDxInLayer(int layer){return dedx[layer];}
   int     GetSubDetIdInLayer(int layer){return subDetId[layer];}
+  int     GetSizeXinLayer(int layer){return sizeX[layer];}
+  int     GetSizeYinLayer(int layer){return sizeY[layer];}
   double  GetEta(){return eta;}
   double  GetPhi(){return phi;}
   
@@ -61,6 +65,8 @@ public:
 private:
   std::vector<float> dedx;   // dedx in consecutive layers
   std::vector<int> subDetId; // sub-detector IDs for each layer
+  std::vector<int> sizeX;    // cluster size X in each layer
+  std::vector<int> sizeY;    // cluster size Y in each layer
   double eta;
   double phi;
   double caloEmEnergy;

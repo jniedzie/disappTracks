@@ -27,10 +27,14 @@ Events::Events(string fileName)
   TTreeReaderValue<unsigned long long> eventNumber(reader, "evt");
   TTreeReaderValue<float> *dedx[nLayers];
   TTreeReaderValue<int> *subDetId[nLayers];
+  TTreeReaderValue<int> *sizeX[nLayers];
+  TTreeReaderValue<int> *sizeY[nLayers];
   
   for(int iLayer=0;iLayer<nLayers;iLayer++){
     dedx[iLayer] =  new TTreeReaderValue<float>(reader,Form("IsoTrack_dedxByLayer%i",iLayer));
     subDetId[iLayer] =  new TTreeReaderValue<int>(reader,Form("IsoTrack_subDetIdByLayer%i",iLayer));
+    sizeX[iLayer] =  new TTreeReaderValue<int>(reader,Form("IsoTrack_sizeXbyLayer%i",iLayer));
+    sizeY[iLayer] =  new TTreeReaderValue<int>(reader,Form("IsoTrack_sizeYbyLayer%i",iLayer));
   }
   
   TTreeReaderValue<float> _eta(reader, "IsoTrack_eta");
@@ -52,6 +56,8 @@ Events::Events(string fileName)
     for(int iLayer=0;iLayer<nLayers;iLayer++){
       track->SetDeDxInLayer(iLayer, **dedx[iLayer]);
       track->SetSubDetIdInLayer(iLayer, **subDetId[iLayer]);
+      track->SetSizeXinLayer(iLayer, **sizeX[iLayer]);
+      track->SetSizeYinLayer(iLayer, **sizeY[iLayer]);
     }
     track->SetEta(*_eta);
     track->SetPhi(*_phi);
@@ -115,9 +121,8 @@ Events* Events::ApplyTrackCut(TrackCut *cut)
 //---------------------------------------------------------------------------------------
 
 void Event::Print(){
-  for(auto t : tracks){
-    t->Print();
-  }
+  for(auto t : tracks){ t->Print(); }
+  for(auto j : jets){   j->Print(); }
 }
 
 Event* Event::ApplyTrackCut(TrackCut *cut)

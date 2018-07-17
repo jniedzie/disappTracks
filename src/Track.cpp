@@ -14,6 +14,8 @@ Track::Track()
   for(int iLayer=0;iLayer<nLayers;iLayer++){
     dedx.push_back(0.0);
     subDetId.push_back(-1);
+    sizeX.push_back(-1);
+    sizeY.push_back(-1);
   }
 };
 

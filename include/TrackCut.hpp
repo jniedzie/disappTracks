@@ -11,7 +11,15 @@
 
 class TrackCut {
 public:
-  TrackCut();
+  
+  
+  enum ECut {
+    kEmpty,
+    kShort,
+    kShortAboveThreshold
+  };
+  
+  TrackCut(ECut cutType=kEmpty);
   ~TrackCut();
   
   int GetMinDedxClusters(){return minDedxClusters;}
@@ -22,7 +30,6 @@ public:
   void SetNdedxClusters(int min, int max){minDedxClusters=min;maxDedxClusters=max;}
   void SetMinDedxPerCluster(double min){minDedxPerCluster=min;}
   void SetMinTotalDedx(double min){minTotalDeDx=min;}
-  
   
 private:
   int minDedxClusters;      ///< min number of dedx clusters along the track

@@ -1,14 +1,12 @@
 #include "Helpers.hpp"
 #include "Event.hpp"
 #include "TrackCut.hpp"
+#include "HistSet.hpp"
 
 #include <TApplication.h>
 
 const bool drawPlots = true;
 const bool analyzeData = false;
-
-TrackCut* GetShortTrackCut();
-TrackCut* GetShortAboveThresholdTrackCut();
 
 vector<TH1D*> GetDedxPerLayerHists(Events *events)
 {
@@ -36,6 +34,37 @@ vector<TH1D*> GetDedxPerLayerHists(Events *events)
   return hists;
 }
 
+void GetSizeXperLayerHists(Events *events, vector<TH1D*> &histsX, vector<TH1D*> &histsY)
+{
+//  vector<TH1D*> hists;
+  static int iter=0;
+  
+  
+  for(int iLayer=0;iLayer<nLayers;iLayer++){
+    TH1D *sizeXhist = new TH1D(Form("sizeX_layer[%i]_%i",iLayer,iter),Form("sizeX_layer[%i]_%i",iLayer,iter),10,0,10);
+    histsX.push_back(sizeXhist);
+    
+    TH1D *sizeYhist = new TH1D(Form("sizeY_layer[%i]_%i",iLayer,iter),Form("sizeY_layer[%i]_%i",iLayer,iter),10,0,10);
+    histsY.push_back(sizeYhist);
+  }
+  
+  for(int iEvent=0;iEvent<events->size();iEvent++){
+    for(int iTrack=0;iTrack<events->At(iEvent)->GetNtracks();iTrack++){
+      Track *track = events->At(iEvent)->GetTrack(iTrack);
+      
+      for(int iLayer=0;iLayer<nLayers;iLayer++){
+        if(track->GetSizeXinLayer(iLayer) > 0.0001){
+          histsX[iLayer]->Fill(track->GetSizeXinLayer(iLayer));
+        }
+        if(track->GetSizeYinLayer(iLayer) > 0.0001){
+          histsY[iLayer]->Fill(track->GetSizeYinLayer(iLayer));
+        }
+      }
+    }
+  }
+  iter++;
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -48,8 +77,8 @@ int main(int argc, char* argv[])
   string inFileNameData = "../adish/Data/tree.root";
   
   
-  TrackCut *shortTrackCut = GetShortTrackCut();
-  TrackCut *shortAboveTrasholdTrackCut = GetShortAboveThresholdTrackCut();
+  TrackCut *shortTrackCut = new TrackCut(TrackCut::kShort);
+  TrackCut *shortAboveTrasholdTrackCut = new TrackCut(TrackCut::kShortAboveThreshold);
   
   Events *eventsSignal = new Events(inFileNameSignal);
   int nTracksSignal = eventsSignal->GetNtracks();
@@ -98,54 +127,60 @@ int main(int argc, char* argv[])
   vector<TH1D*> dedxPerLayerSignal = GetDedxPerLayerHists(eventsSignal);
   vector<TH1D*> dedxPerLayerBackground = GetDedxPerLayerHists(eventsBackground);
   
+  vector<TH1D*> sizeXperLayerSignal, sizeYperLayerSignal;
+  vector<TH1D*> sizeXperLayerBackground, sizeYperLayerBackground;
+  
+  GetSizeXperLayerHists(eventsSignal, sizeXperLayerSignal, sizeYperLayerSignal);
+  GetSizeXperLayerHists(eventsBackground, sizeXperLayerBackground, sizeYperLayerBackground);
+  
   TCanvas *c1 = new TCanvas("c1","c1",2880,1800);
   c1->Divide(4,4);
   
+  TCanvas *c4 = new TCanvas("c4","c4",2880,1800);
+  c4->Divide(4,2);
+  
   for(int iLayer=0;iLayer<nLayers;iLayer++){
     c1->cd(iLayer+1);
-    
     dedxPerLayerSignal[iLayer]->SetLineColor(kGreen+1);
     dedxPerLayerSignal[iLayer]->Draw();
     
     dedxPerLayerBackground[iLayer]->SetLineColor(kRed+1);
     dedxPerLayerBackground[iLayer]->Draw("same");
+    
+    if(iLayer > 3) continue;
+    
+    c4->cd(iLayer+1);
+    sizeXperLayerSignal[iLayer]->SetLineColor(kGreen+1);
+    sizeXperLayerSignal[iLayer]->Draw();
+    sizeXperLayerBackground[iLayer]->SetLineColor(kRed+1);
+    sizeXperLayerBackground[iLayer]->Draw("same");
+    
+    c4->cd(iLayer+1+4);
+    sizeYperLayerSignal[iLayer]->SetLineColor(kGreen+1);
+    sizeYperLayerSignal[iLayer]->Draw();
+    sizeYperLayerBackground[iLayer]->SetLineColor(kRed+1);
+    sizeYperLayerBackground[iLayer]->Draw("same");
+    
   }
+  c1->Update();
+  c4->Update();
   
   // Global plots
-  TH1D *nClustersPerTrackSignal = new TH1D("N clusters per track (signal)","N clusters per track (signal)",20,0,20);
-  TH1D *nClustersPerTrackBackground = new TH1D("N clusters per track","N clusters per track",20,0,20);
-  nClustersPerTrackSignal->Sumw2();
-  nClustersPerTrackBackground->Sumw2();
+  HistSet *nClustersPerTrack = new HistSet("N clusters per track",20,0,20);
+  HistSet *totalDeDx = new HistSet("total dedx per track",50,0,200);
+  HistSet *dedxPerCluster = new HistSet("dedx per cluster",50,0,20);
+  HistSet *totalDeDxByNclusters = new HistSet("total dedx per track / n clusters",50,0,20);
+  HistSet *pt = new HistSet("pt dist",50,0,1000);
+  HistSet *eta = new HistSet("eta dist",50,-3,3);
+  HistSet *phi = new HistSet("phi dist",50,-3.5,3.5);
+  HistSet *caloEm = new HistSet("EM calo energy",100,0,500);
+  HistSet *caloHad = new HistSet("Hadron calo energy",100,0,500);
   
-  TH1D *totalDeDxSignal = new TH1D("total dedx per track (signal)","total dedx per track (signal)",50,0,200);
-  TH1D *totalDeDxBackground = new TH1D("total dedx per track","total dedx per track",50,0,200);
-  totalDeDxSignal->Sumw2();
-  totalDeDxBackground->Sumw2();
-  
-  TH1D *dedxPerClusterSignal = new TH1D("dedx per cluster (signal)","dedx per cluster (signal)",50,0,20);
-  TH1D *dedxPerClusterBackground = new TH1D("dedx per cluster","dedx per cluster",50,0,20);
-  dedxPerClusterSignal->Sumw2();
-  dedxPerClusterBackground->Sumw2();
-  
-  TH1D *totalDeDxByNclustersSignal = new TH1D("total dedx per track / n clusters (signal)","total dedx per track / n clusters (signal)",50,0,20);
-  TH1D *totalDeDxByNclustersBackground = new TH1D("total dedx per track / n clusters","total dedx per track / n clusters",50,0,20);
-  totalDeDxByNclustersSignal->Sumw2();
-  totalDeDxByNclustersBackground->Sumw2();
-  
-  TH1D *ptSignal = new TH1D("pt dist (signal)","pt dist (signal)",50,0,1000);
-  TH1D *ptBackground = new TH1D("pt dist","pt dist",50,0,1000);
-  ptSignal->Sumw2();
-  ptBackground->Sumw2();
-
-  TH1D *etaSignal = new TH1D("eta dist (signal)","eta dist (signal)",50,-3,3);
-  TH1D *etaBackground = new TH1D("eta dist","eta dist",50,-3,3);
-  etaSignal->Sumw2();
-  etaBackground->Sumw2();
-  
-  TH1D *phiSignal = new TH1D("phi dist (signal)","phi dist (signal)",50,-3.5,3.5);
-  TH1D *phiBackground = new TH1D("phi dist","phi dist",50,-3.5,3.5);
-  phiSignal->Sumw2();
-  phiBackground->Sumw2();
+  HistSet *dxy = new HistSet("Displacement in XY",100,-0.02,0.02);
+  HistSet *dz = new HistSet("Displacement in Z",100,-0.02,0.02);
+  HistSet *charge = new HistSet("Charge",100,-10,10);
+  HistSet *mass = new HistSet("Mass",500,0,0.25);
+  HistSet *pid = new HistSet("PDG PID",441,-220,220);
   
   // Fill signal histograms
   for(int iEvent=0;iEvent<eventsSignal->size();iEvent++){
@@ -154,16 +189,23 @@ int main(int argc, char* argv[])
     for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
       Track *track = event->GetTrack(iTrack);
       
-      nClustersPerTrackSignal->Fill(track->GetNclusters());
-      totalDeDxSignal->Fill(track->GetTotalDedx());
-      totalDeDxByNclustersSignal->Fill(track->GetTotalDedx()/track->GetNclusters());
-      ptSignal->Fill(track->GetPt());
-      etaSignal->Fill(track->GetEta());
-      phiSignal->Fill(track->GetPhi());
+      nClustersPerTrack->FillSignal(track->GetNclusters());
+      totalDeDx->FillSignal(track->GetTotalDedx());
+      totalDeDxByNclusters->FillSignal(track->GetTotalDedx()/track->GetNclusters());
+      pt->FillSignal(track->GetPt());
+      eta->FillSignal(track->GetEta());
+      phi->FillSignal(track->GetPhi());
+      caloEm->FillSignal(track->GetCaloEmEnergy());
+      caloHad->FillSignal(track->GetCaloHadEnergy());
+      dxy->FillSignal(track->GetDxy());
+      dz->FillSignal(track->GetDz());
+      charge->FillSignal(track->GetCharge());
+      mass->FillSignal(track->GetMass());
+      pid->FillSignal(track->GetPid());
       
       for(int iLayer=0;iLayer<nLayers;iLayer++){
         if(track->GetDeDxInLayer(iLayer) > 0.0000001){
-          dedxPerClusterSignal->Fill(track->GetDeDxInLayer(iLayer));
+          dedxPerCluster->FillSignal(track->GetDeDxInLayer(iLayer));
         }
       }
     }
@@ -176,16 +218,24 @@ int main(int argc, char* argv[])
     for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
       Track *track = event->GetTrack(iTrack);
       
-      nClustersPerTrackBackground->Fill(track->GetNclusters());
-      totalDeDxBackground->Fill(track->GetTotalDedx());
-      totalDeDxByNclustersBackground->Fill(track->GetTotalDedx()/track->GetNclusters());
-      ptBackground->Fill(track->GetPt());
-      etaBackground->Fill(track->GetEta());
-      phiBackground->Fill(track->GetPhi());
+      nClustersPerTrack->FillBackground(track->GetNclusters());
+      totalDeDx->FillBackground(track->GetTotalDedx());
+      totalDeDxByNclusters->FillBackground(track->GetTotalDedx()/track->GetNclusters());
+      pt->FillBackground(track->GetPt());
+      eta->FillBackground(track->GetEta());
+      phi->FillBackground(track->GetPhi());
+      caloEm->FillBackground(track->GetCaloEmEnergy());
+      caloHad->FillBackground(track->GetCaloHadEnergy());
+      dxy->FillBackground(track->GetDxy());
+      dz->FillBackground(track->GetDz());
+      charge->FillBackground(track->GetCharge());
+      mass->FillBackground(track->GetMass());
+      pid->FillBackground(track->GetPid());
+      
       
       for(int iLayer=0;iLayer<nLayers;iLayer++){
         if(track->GetDeDxInLayer(iLayer) > 0.0000001){
-          dedxPerClusterBackground->Fill(track->GetDeDxInLayer(iLayer));
+          dedxPerCluster->FillBackground(track->GetDeDxInLayer(iLayer));
         }
       }
     }
@@ -194,83 +244,28 @@ int main(int argc, char* argv[])
   // Plot histograms
   TCanvas *c2 = new TCanvas("c2","c2",2880,1800);
   c2->Divide(3,3);
-  TLegend *leg = GetLegend(0.15,0.5,0.75,0.25,"Data type");
   
-  c2->cd(1);
-  nClustersPerTrackSignal->Draw();
-  nClustersPerTrackBackground->SetLineColor(kRed);
-  nClustersPerTrackBackground->Draw("same");
-  leg->AddEntry(nClustersPerTrackSignal,"Signal","lp");
-  leg->AddEntry(nClustersPerTrackBackground,"Background","lp");
-  leg->Draw();
+  nClustersPerTrack->Draw(c2,1);
+  totalDeDx->Draw(c2,2);
+  dedxPerCluster->Draw(c2,3);
+  totalDeDxByNclusters->Draw(c2,4);
+  pt->Draw(c2,5);
+  eta->Draw(c2,6);
+  phi->Draw(c2,7);
+  caloEm->Draw(c2,8);
+  caloHad->Draw(c2,9);
   
-  c2->cd(2);
-  totalDeDxSignal->Draw();
-  totalDeDxSignal->GetXaxis()->SetTitle("#sum dE/dx (MeV)");
-  totalDeDxBackground->SetLineColor(kRed);
-  totalDeDxBackground->Draw("same");
-  leg->Draw();
+  TCanvas *c3 = new TCanvas("c3","c3",2880,1800);
+  c3->Divide(2,3);
+  dxy->Draw(c3,1);
+  dz->Draw(c3,2);
+  charge->Draw(c3,3);
+  mass->Draw(c3,4);
+  pid->Draw(c3,5);
   
-  c2->cd(3);
-  dedxPerClusterSignal->Draw();
-  dedxPerClusterSignal->GetXaxis()->SetTitle("dE/dx (MeV)");
-  dedxPerClusterBackground->SetLineColor(kRed);
-  dedxPerClusterBackground->Draw("same");
-  leg->Draw();
-  
-  c2->cd(4);
-  totalDeDxByNclustersSignal->Draw();
-  totalDeDxByNclustersSignal->GetXaxis()->SetTitle("dE/dx (MeV)");
-  totalDeDxByNclustersBackground->SetLineColor(kRed);
-  totalDeDxByNclustersBackground->Draw("same");
-  leg->Draw();
-  
-  c2->cd(5);
-  ptSignal->Draw();
-  ptSignal->GetXaxis()->SetTitle("p_{T} (GeV/c)");
-  ptBackground->SetLineColor(kRed);
-  ptBackground->Draw("same");
-  leg->Draw();
-  
-  c2->cd(6);
-  etaSignal->Draw();
-  etaSignal->GetXaxis()->SetTitle("#eta");
-  etaBackground->SetLineColor(kRed);
-  etaBackground->Draw("same");
-  leg->Draw();
-  
-  c2->cd(7);
-  phiSignal->Draw();
-  phiSignal->GetXaxis()->SetTitle("#phi");
-  phiBackground->SetLineColor(kRed);
-  phiBackground->Draw("same");
-  leg->Draw();
-  
-  c1->Update();
-  c2->Update();
   theApp.Run();
   
   return 0;
-}
-
-
-
-
-// Get different track cuts
-
-TrackCut* GetShortTrackCut()
-{
-  TrackCut *cut = new TrackCut();
-  cut->SetNdedxClusters(3, 3);
-  return cut;
-}
-
-TrackCut* GetShortAboveThresholdTrackCut()
-{
-  TrackCut *cut = new TrackCut();
-  cut->SetNdedxClusters(3, 3);
-  cut->SetMinDedxPerCluster(5.0);
-  return cut;
 }
 
 
