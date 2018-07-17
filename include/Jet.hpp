@@ -14,11 +14,21 @@ public:
   Jet();
   ~Jet();
 
-  void Print();
+  inline void SetPt(double _pt){pt = _pt;}
+  inline void SetEta(double _eta){eta = _eta;}
+  inline void SetPhi(double _phi){phi = _phi;}
+  
+  inline double GetPt(){return pt;}
+  inline double GetEta(){return eta;}
+  inline double GetPhi(){return phi;}
   
   bool IsPassingCut(/*JetCut *cut*/);
-private:
+  void Print();
   
+private:
+  double pt;     ///< Transverse momentum
+  double eta;    ///< Pseudorapidity
+  double phi;    ///< Polar angle
 };
 
 #endif /* Jet_hpp */

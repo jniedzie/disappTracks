@@ -81,6 +81,7 @@ int main(int argc, char* argv[])
   TrackCut *shortAboveTrasholdTrackCut = new TrackCut(TrackCut::kShortAboveThreshold);
   
   Events *eventsSignal = new Events(inFileNameSignal);
+  
   int nTracksSignal = eventsSignal->GetNtracks();
   int nShortTracksSignal = eventsSignal->ApplyTrackCut(shortTrackCut)->GetNtracks();
   int nShortTracksAboveThresholdSignal = eventsSignal->ApplyTrackCut(shortAboveTrasholdTrackCut)->GetNtracks();
@@ -182,9 +183,18 @@ int main(int argc, char* argv[])
   HistSet *mass = new HistSet("Mass",500,0,0.25);
   HistSet *pid = new HistSet("PDG PID",441,-220,220);
   
+  HistSet *jet_pt = new HistSet("Jet pt",100,0,1000);
+  
+
   // Fill signal histograms
   for(int iEvent=0;iEvent<eventsSignal->size();iEvent++){
     Event *event = eventsSignal->At(iEvent);
+    
+    for(int iJet=0;iJet<event->GetNjets();iJet++){
+      Jet *jet = event->GetJet(iJet);
+      
+      jet_pt->FillSignal(jet->GetPt());
+    }
     
     for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
       Track *track = event->GetTrack(iTrack);
@@ -214,6 +224,12 @@ int main(int argc, char* argv[])
   // Fill background histograms
   for(int iEvent=0;iEvent<eventsBackground->size();iEvent++){
     Event *event = eventsBackground->At(iEvent);
+    
+    for(int iJet=0;iJet<event->GetNjets();iJet++){
+      Jet *jet = event->GetJet(iJet);
+      
+      jet_pt->FillBackground(jet->GetPt());
+    }
     
     for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
       Track *track = event->GetTrack(iTrack);
@@ -262,6 +278,7 @@ int main(int argc, char* argv[])
   charge->Draw(c3,3);
   mass->Draw(c3,4);
   pid->Draw(c3,5);
+  jet_pt->Draw(c3, 6);
   
   theApp.Run();
   

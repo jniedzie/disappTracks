@@ -8,7 +8,14 @@
 
 #include "Jet.hpp"
 
-Jet::Jet()
+#include <iostream>
+
+using namespace std;
+
+Jet::Jet() :
+pt(0),
+eta(0),
+phi(0)
 {
 
 };
@@ -20,7 +27,7 @@ Jet::~Jet()
 
 void Jet::Print()
 {
-
+  cout<<"Jet pt:"<<pt<<"\teta:"<<eta<<"\tphi:"<<phi<<endl;
 }
 
 bool Jet::IsPassingCut(/*JetCut *cut*/)

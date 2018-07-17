@@ -26,7 +26,9 @@ public:
   
   inline unsigned long size(){return events.size();}
   Event* At(int index){return events[index];}
+  
   int GetNtracks();
+  int GetNjets();
   
 private:
   std::vector<Event*> events;
@@ -41,18 +43,19 @@ public:
   Event(){};
   ~Event(){};
   
-  void AddTrack(Track *track){tracks.push_back(track);}
-  unsigned long GetNtracks(){return tracks.size(); }
-  Track* GetTrack(int i){return tracks[i];}
+  inline void AddTrack(Track *track){tracks.push_back(track);}
+  inline void AddJet(Jet *jet){jets.push_back(jet);}
+  
+  inline unsigned long GetNtracks(){return tracks.size(); }
+  inline unsigned long GetNjets(){return jets.size(); }
+  
+  inline Track*  GetTrack(int i){return tracks[i];}
+  inline Jet*    GetJet(int i){return jets[i];}
   
   void Print();
-//  
-//  Event* FilterShortTracksAboveThreshold(double threshold);
-//  Event* FilterShortTracks();
   
+  /// Returns a new event with only tracks passing the cut
   Event* ApplyTrackCut(TrackCut *cut);
-  
-  vector<Track*> GetTracksPassingCut(TrackCut *cut);
   
 private:
   vector<Track*> tracks;  // vector of isolated tracks

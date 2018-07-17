@@ -22,8 +22,6 @@ Events::Events(string fileName)
   TFile *inFile = TFile::Open(fileName.c_str());
   TTreeReader reader("tree", inFile);
   
-  //  inFile->Get("tree")->Print();
-  
   TTreeReaderValue<unsigned long long> eventNumber(reader, "evt");
   TTreeReaderValue<float> *dedx[nLayers];
   TTreeReaderValue<int> *subDetId[nLayers];
@@ -50,8 +48,13 @@ Events::Events(string fileName)
   TTreeReaderValue<float> _pt(reader, "IsoTrack_pt");
   TTreeReaderValue<int>   _pid(reader, "IsoTrack_pdgId");
   
+  TTreeReaderValue<float> _jet_pt(reader,  "Jet_pt");
+  TTreeReaderValue<float> _jet_eta(reader, "Jet_eta");
+  TTreeReaderValue<float> _jet_phi(reader, "Jet_phi");
+  
   while (reader.Next()){
     Track *track = new Track();
+    Jet *jet = new Jet();
     
     for(int iLayer=0;iLayer<nLayers;iLayer++){
       track->SetDeDxInLayer(iLayer, **dedx[iLayer]);
@@ -70,6 +73,10 @@ Events::Events(string fileName)
     track->SetPt(*_pt);
     track->SetPid(*_pid);
     
+    jet->SetPt(*_jet_pt);
+    jet->SetEta(*_jet_eta);
+    jet->SetPhi(*_jet_phi);
+    
     int nDeDxPoints = 0;
     for(int iLayer=0;iLayer<nLayers;iLayer++){
       if(track->GetDeDxInLayer(iLayer) > 0.000001) nDeDxPoints++;
@@ -79,10 +86,12 @@ Events::Events(string fileName)
     if(eventsMap.find(*eventNumber) == eventsMap.end()){
       Event *newEvent = new Event();
       newEvent->AddTrack(track);
+      newEvent->AddJet(jet);
       eventsMap.insert(pair<unsigned long long,Event*>(*eventNumber,newEvent));
     }
     else{
       eventsMap[*eventNumber]->AddTrack(track);
+      eventsMap[*eventNumber]->AddJet(jet);
     }
   }
   
@@ -99,11 +108,19 @@ Events::~Events()
 int Events::GetNtracks()
 {
   int nTracks = 0;
-  
   for(int iEvent=0;iEvent < events.size();iEvent++){
     nTracks+= events[iEvent]->GetNtracks();
   }
   return nTracks;
+}
+
+int Events::GetNjets()
+{
+  int nJets = 0;
+  for(int iEvent=0;iEvent < events.size();iEvent++){
+    nJets += events[iEvent]->GetNjets();
+  }
+  return nJets;
 }
 
 Events* Events::ApplyTrackCut(TrackCut *cut)
@@ -128,6 +145,7 @@ void Event::Print(){
 Event* Event::ApplyTrackCut(TrackCut *cut)
 {
   Event *outputEvent = new Event();
+  for(auto j : jets){outputEvent->AddJet(j);}
   
   vector<Track*> tracksPassingCut;
   
@@ -137,18 +155,6 @@ Event* Event::ApplyTrackCut(TrackCut *cut)
     }
   }
   return outputEvent;
-}
-
-vector<Track*> Event::GetTracksPassingCut(TrackCut *cut)
-{
-  vector<Track*> tracksPassingCut;
-  
-  for(auto track : tracks){
-    if(track->IsPassingCut(cut)){
-      tracksPassingCut.push_back(track);
-    }
-  }
-  return tracksPassingCut;
 }
 
 
