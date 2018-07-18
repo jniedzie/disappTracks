@@ -5,74 +5,17 @@
 
 #include <TApplication.h>
 
-const bool drawPlots = true;
 const bool analyzeData = false;
-
-vector<TH1D*> GetDedxPerLayerHists(Events *events)
-{
-  vector<TH1D*> hists;
-  static int iter=0;
-  
-  
-  for(int iLayer=0;iLayer<nLayers;iLayer++){
-    TH1D *dedxHist = new TH1D(Form("dedx_layer[%i]_%i",iLayer,iter),Form("dedx_layer[%i]_%i",iLayer,iter),50,0,10);
-    hists.push_back(dedxHist);
-  }
-  
-  for(int iEvent=0;iEvent<events->size();iEvent++){
-    for(int iTrack=0;iTrack<events->At(iEvent)->GetNtracks();iTrack++){
-      Track *track = events->At(iEvent)->GetTrack(iTrack);
-      
-      for(int iLayer=0;iLayer<nLayers;iLayer++){
-        if(track->GetDeDxInLayer(iLayer) > 0.0001){
-          hists[iLayer]->Fill(track->GetDeDxInLayer(iLayer));
-        }
-      }
-    }
-  }
-  iter++;
-  return hists;
-}
-
-void GetSizeXperLayerHists(Events *events, vector<TH1D*> &histsX, vector<TH1D*> &histsY)
-{
-//  vector<TH1D*> hists;
-  static int iter=0;
-  
-  
-  for(int iLayer=0;iLayer<nLayers;iLayer++){
-    TH1D *sizeXhist = new TH1D(Form("sizeX_layer[%i]_%i",iLayer,iter),Form("sizeX_layer[%i]_%i",iLayer,iter),10,0,10);
-    histsX.push_back(sizeXhist);
-    
-    TH1D *sizeYhist = new TH1D(Form("sizeY_layer[%i]_%i",iLayer,iter),Form("sizeY_layer[%i]_%i",iLayer,iter),10,0,10);
-    histsY.push_back(sizeYhist);
-  }
-  
-  for(int iEvent=0;iEvent<events->size();iEvent++){
-    for(int iTrack=0;iTrack<events->At(iEvent)->GetNtracks();iTrack++){
-      Track *track = events->At(iEvent)->GetTrack(iTrack);
-      
-      for(int iLayer=0;iLayer<nLayers;iLayer++){
-        if(track->GetSizeXinLayer(iLayer) > 0.0001){
-          histsX[iLayer]->Fill(track->GetSizeXinLayer(iLayer));
-        }
-        if(track->GetSizeYinLayer(iLayer) > 0.0001){
-          histsY[iLayer]->Fill(track->GetSizeYinLayer(iLayer));
-        }
-      }
-    }
-  }
-  iter++;
-}
 
 
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
   
-  string inFileNameSignal = "../jniedzie/mcSignal/tree.root";
+//  string inFileNameSignal = "../jniedzie/mcSignal/tree.root";
+  string inFileNameSignal = "../adish/Signal/tree.root";
+  
   string inFileNameBackground = "../jniedzie/mcBackground/tree.root";
-//  const char *inFileNameSignal = "../adish/Signal/tree.root";
 //  const char *inFileNameBackground = "../adish/Background/tree.root";
   string inFileNameData = "../adish/Data/tree.root";
   
@@ -81,7 +24,6 @@ int main(int argc, char* argv[])
   TrackCut *shortAboveTrasholdTrackCut = new TrackCut(TrackCut::kShortAboveThreshold);
   
   Events *eventsSignal = new Events(inFileNameSignal);
-  
   int nTracksSignal = eventsSignal->GetNtracks();
   int nShortTracksSignal = eventsSignal->ApplyTrackCut(shortTrackCut)->GetNtracks();
   int nShortTracksAboveThresholdSignal = eventsSignal->ApplyTrackCut(shortAboveTrasholdTrackCut)->GetNtracks();
@@ -91,7 +33,7 @@ int main(int argc, char* argv[])
   int nShortTracksBackground = eventsBackground->ApplyTrackCut(shortTrackCut)->GetNtracks();
   int nShortTracksAboveThresholdBackground = eventsBackground->ApplyTrackCut(shortAboveTrasholdTrackCut)->GetNtracks();
   
-  int nTracksData, nShortTracksData, nShortTracksAboveThresholdData;
+  int nTracksData=0, nShortTracksData=0, nShortTracksAboveThresholdData=0;
   if(analyzeData){
     Events *eventsData = new Events(inFileNameData);
     nTracksData = eventsData->GetNtracks();
@@ -99,72 +41,42 @@ int main(int argc, char* argv[])
     nShortTracksAboveThresholdData = eventsData->ApplyTrackCut(shortAboveTrasholdTrackCut)->GetNtracks();
   }
   
-  cout<<"Total number of tracks (signal):"<<nTracksSignal<<endl;
-  cout<<"Total number of tracks (background):"<<nTracksBackground<<endl;
-  if(analyzeData) cout<<"Total number of tracks (data):"<<nTracksData<<endl;
+  HistSet *nTracks = new HistSet("N tracks",10000,0,10000);
+  HistSet *nShortTracks = new HistSet("N short tracks (\%)",100,0,1.0);
+  HistSet *nShortTracksAbove = new HistSet("N short tracks above threshold (\%)",100,0,1.0);
   
-  cout<<"Total number of short tracks (signal):"<<nShortTracksSignal<<endl;
-  cout<<"Total number of short tracks (background):"<<nShortTracksBackground<<endl;
-  if(analyzeData) cout<<"Total number of short tracks (data):"<<nShortTracksData<<endl;
+  nTracks->FillSignal(nTracksSignal);
+  nTracks->FillBackground(nTracksBackground);
+  nTracks->FillData(nTracksData);
   
-  cout<<"Total number of short tracks above threshold (signal):"<<nShortTracksAboveThresholdSignal<<endl;
-  cout<<"Total number of short tracks above threshold (background):"<<nShortTracksAboveThresholdBackground<<endl;
-  if(analyzeData) cout<<"Total number of short tracks above threshold (data):"<<nShortTracksAboveThresholdData<<endl;
+  nShortTracks->FillSignal(nShortTracksSignal/(double)nTracksSignal);
+  nShortTracks->FillBackground(nShortTracksBackground/(double)nTracksBackground);
+  nShortTracks->FillData(nShortTracksData/(double)nTracksData);
   
-  cout<<"% or short tracks (signal):"<<nShortTracksSignal/(double)nTracksSignal<<endl;
-  cout<<"% or short tracks (background):"<<nShortTracksBackground/(double)nTracksBackground<<endl;
-  if(analyzeData) cout<<"% or short tracks (data):"<<nShortTracksData/(double)nTracksData<<endl;
+  nShortTracksAbove->FillSignal(nShortTracksAboveThresholdSignal/(double)nTracksSignal);
+  nShortTracksAbove->FillBackground(nShortTracksAboveThresholdBackground/(double)nTracksBackground);
+  nShortTracksAbove->FillData(nShortTracksAboveThresholdData/(double)nTracksData);
   
-  cout<<"% or short tracks above threshold (signal):"<<nShortTracksAboveThresholdSignal/(double)nTracksSignal<<endl;
-  cout<<"% or short tracks above threshold (background):"<<nShortTracksAboveThresholdBackground/(double)nTracksBackground<<endl;
-  if(analyzeData) cout<<"% or short tracks above threshold (data):"<<nShortTracksAboveThresholdData/(double)nTracksData<<endl;
+  TCanvas *canvasNtracks = new TCanvas("Number of tracks","Number of tracks",2880,1800);
+  canvasNtracks->Divide(2,2);
   
-  cout<<"\t\tchi:"<<1-nShortTracksAboveThresholdSignal/(double)nTracksSignal+2*nShortTracksAboveThresholdBackground/(double)nTracksBackground;
-  cout<<"\t\tsignal:"<<nShortTracksAboveThresholdSignal/(double)nTracksSignal<<"\t\tback:"<<nShortTracksAboveThresholdBackground/(double)nTracksBackground<<endl;
-  
-  if(!drawPlots) return 0;
+  nTracks->Draw(canvasNtracks, 1);
+  nShortTracks->Draw(canvasNtracks, 2);
+  nShortTracksAbove->Draw(canvasNtracks, 3);
   
   // Per layer plots
-  vector<TH1D*> dedxPerLayerSignal = GetDedxPerLayerHists(eventsSignal);
-  vector<TH1D*> dedxPerLayerBackground = GetDedxPerLayerHists(eventsBackground);
+  HistSet *dedxPerLayer = new HistSet();
+  dedxPerLayer->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kDedx);
+  dedxPerLayer->DrawPerLayer(HistSet::kDedx);
   
-  vector<TH1D*> sizeXperLayerSignal, sizeYperLayerSignal;
-  vector<TH1D*> sizeXperLayerBackground, sizeYperLayerBackground;
+  HistSet *sizeXperLayer = new HistSet();
+  sizeXperLayer->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kSizeX);
+  sizeXperLayer->DrawPerLayer(HistSet::kSizeX);
   
-  GetSizeXperLayerHists(eventsSignal, sizeXperLayerSignal, sizeYperLayerSignal);
-  GetSizeXperLayerHists(eventsBackground, sizeXperLayerBackground, sizeYperLayerBackground);
+  HistSet *sizeYperLayer = new HistSet();
+  sizeYperLayer->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kSizeY);
+  sizeYperLayer->DrawPerLayer(HistSet::kSizeY);
   
-  TCanvas *c1 = new TCanvas("c1","c1",2880,1800);
-  c1->Divide(4,4);
-  
-  TCanvas *c4 = new TCanvas("c4","c4",2880,1800);
-  c4->Divide(4,2);
-  
-  for(int iLayer=0;iLayer<nLayers;iLayer++){
-    c1->cd(iLayer+1);
-    dedxPerLayerSignal[iLayer]->SetLineColor(kGreen+1);
-    dedxPerLayerSignal[iLayer]->Draw();
-    
-    dedxPerLayerBackground[iLayer]->SetLineColor(kRed+1);
-    dedxPerLayerBackground[iLayer]->Draw("same");
-    
-    if(iLayer > 3) continue;
-    
-    c4->cd(iLayer+1);
-    sizeXperLayerSignal[iLayer]->SetLineColor(kGreen+1);
-    sizeXperLayerSignal[iLayer]->Draw();
-    sizeXperLayerBackground[iLayer]->SetLineColor(kRed+1);
-    sizeXperLayerBackground[iLayer]->Draw("same");
-    
-    c4->cd(iLayer+1+4);
-    sizeYperLayerSignal[iLayer]->SetLineColor(kGreen+1);
-    sizeYperLayerSignal[iLayer]->Draw();
-    sizeYperLayerBackground[iLayer]->SetLineColor(kRed+1);
-    sizeYperLayerBackground[iLayer]->Draw("same");
-    
-  }
-  c1->Update();
-  c4->Update();
   
   // Global plots
   HistSet *nClustersPerTrack = new HistSet("N clusters per track",20,0,20);
@@ -184,17 +96,16 @@ int main(int argc, char* argv[])
   HistSet *pid = new HistSet("PDG PID",441,-220,220);
   
   HistSet *jet_pt = new HistSet("Jet pt",100,0,1000);
+  HistSet *jet_eta = new HistSet("Jet eta",50,-3,3);
+  HistSet *jet_phi = new HistSet("Jet phi",50,-3.5,3.5);
   
-
+  jet_pt->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kJetPt);
+  jet_eta->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kJetEta);
+  jet_phi->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kJetPhi);
+  
   // Fill signal histograms
   for(int iEvent=0;iEvent<eventsSignal->size();iEvent++){
     Event *event = eventsSignal->At(iEvent);
-    
-    for(int iJet=0;iJet<event->GetNjets();iJet++){
-      Jet *jet = event->GetJet(iJet);
-      
-      jet_pt->FillSignal(jet->GetPt());
-    }
     
     for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
       Track *track = event->GetTrack(iTrack);
@@ -224,12 +135,6 @@ int main(int argc, char* argv[])
   // Fill background histograms
   for(int iEvent=0;iEvent<eventsBackground->size();iEvent++){
     Event *event = eventsBackground->At(iEvent);
-    
-    for(int iJet=0;iJet<event->GetNjets();iJet++){
-      Jet *jet = event->GetJet(iJet);
-      
-      jet_pt->FillBackground(jet->GetPt());
-    }
     
     for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
       Track *track = event->GetTrack(iTrack);
