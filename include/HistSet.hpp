@@ -20,7 +20,19 @@ class HistSet {
 public:
   enum EVar{
     // per track variables
-    
+    kTrackNclusters,
+    kTrackTotalDedx,
+    kTrackDedxPerCluster,
+    kTrackPt,
+    kTrackEta,
+    kTrackPhi,
+    kTrackCaloEm,
+    kTrackCaloHad,
+    kTrackDxy,
+    kTrackDz,
+    kTrackCharge,
+    kTrackMass,
+    kTrackPid,
     
     // per jet variables
     kJetPt,
@@ -35,6 +47,7 @@ public:
   
   HistSet();
   HistSet(const char* title, int nBins, double min, double max);
+  HistSet(EVar var);
   ~HistSet();
   
   void FillSignal(double value){signal->Fill(value);}
@@ -61,6 +74,11 @@ private:
   TLegend* GetLegend(double legendW = 0.15, double legendH = 0.5, double legendX = 0.75, double legendY = 0.25,const char* header="");
   
   const char* GetTitle(EVar var);
+  int GetNbins(EVar var);
+  double GetMin(EVar var);
+  double GetMax(EVar var);
+  
+  void Fill(TH1D* hist, Events *events, EVar var, int iLayer=-1);
 };
 
 #endif /* HistSet_hpp */
