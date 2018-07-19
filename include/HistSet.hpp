@@ -19,6 +19,8 @@
 class HistSet {
 public:
   enum EVar{
+    kCustom,
+    
     // per track variables
     kTrackNclusters,
     kTrackTotalDedx,
@@ -45,40 +47,44 @@ public:
     kSizeY  ///< Y cluster size in each layer
   };
   
-  HistSet();
   HistSet(const char* title, int nBins, double min, double max);
-  HistSet(EVar var);
+  HistSet(EVar _var);
   ~HistSet();
   
   void FillSignal(double value){signal->Fill(value);}
   void FillBackground(double value){background->Fill(value);}
   void FillData(double value){data->Fill(value);}
   
-  void FillFromEvents(Events *signalEvents, Events *backgroundEvents, Events *dataEvents, EVar var);
+  void FillFromEvents(Events *signalEvents, Events *backgroundEvents, Events *dataEvents);
   
   void Draw(TCanvas *c1, int pad);
-  void DrawPerLayer(EVar var);
+  void DrawPerLayer();
   
 private:
   TH1D *signal;
   TH1D *background;
   TH1D *data;
   
+  EVar var;
+  const char* customTitle;
+  
   std::vector<TH1D*> signalPerLayer;
   std::vector<TH1D*> backgroundPerLayer;
   std::vector<TH1D*> dataPerLayer;
   
-  void FillFromEventsPerLayer(Events *signalEvents, Events *backgroundEvents, Events *dataEvents, EVar var);
-  void FillFromEventsGlobal(Events *signalEvents, Events *backgroundEvents, Events *dataEvents, EVar var);
+  void FillFromEventsPerLayer(Events *signalEvents, Events *backgroundEvents, Events *dataEvents);
+  void FillFromEventsGlobal(Events *signalEvents, Events *backgroundEvents, Events *dataEvents);
   
   TLegend* GetLegend(double legendW = 0.15, double legendH = 0.5, double legendX = 0.75, double legendY = 0.25,const char* header="");
   
-  const char* GetTitle(EVar var);
-  int GetNbins(EVar var);
-  double GetMin(EVar var);
-  double GetMax(EVar var);
+  const char* GetTitle();
+  int GetNbins();
+  double GetMin();
+  double GetMax();
+  bool ShouldNormalize();
+  bool DoSumw2();
   
-  void Fill(TH1D* hist, Events *events, EVar var, int iLayer=-1);
+  void Fill(TH1D* hist, Events *events, int iLayer=-1);
 };
 
 #endif /* HistSet_hpp */

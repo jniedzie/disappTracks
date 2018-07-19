@@ -11,46 +11,42 @@
 #include "Track.hpp"
 
 #include <TLegend.h>
-
-HistSet::HistSet() :
-signal(nullptr),
-background(nullptr),
-data(nullptr)
-{
-  
-}
+#include <THStack.h>
 
 HistSet::HistSet(const char* title, int nBins, double min, double max) :
 signal(nullptr),
 background(nullptr),
-data(nullptr)
+data(nullptr),
+var(kCustom),
+customTitle(title)
 {
   signal     = new TH1D(Form("%s (signal)",title),Form("%s (signal)",title),nBins,min,max);
   background = new TH1D(Form("%s (background)",title),Form("%s (background)",title),nBins,min,max);
   data       = new TH1D(Form("%s (data)",title),Form("%s (data)",title),nBins,min,max);
   
-  signal->Sumw2();
-  background->Sumw2();
-  data->Sumw2();
+  signal->Sumw2(DoSumw2());
+  background->Sumw2(DoSumw2());
+  data->Sumw2(DoSumw2());
 }
 
-HistSet::HistSet(EVar var) :
+HistSet::HistSet(EVar _var) :
 signal(nullptr),
 background(nullptr),
-data(nullptr)
+data(nullptr),
+var(_var)
 {
-  const char* title = GetTitle(var);
-  int nBins = GetNbins(var);
-  double min = GetMin(var);
-  double max = GetMax(var);
+  const char* title = GetTitle();
+  int nBins = GetNbins();
+  double min = GetMin();
+  double max = GetMax();
   
   signal     = new TH1D(Form("%s (signal)",title),Form("%s (signal)",title),nBins,min,max);
   background = new TH1D(Form("%s (background)",title),Form("%s (background)",title),nBins,min,max);
   data       = new TH1D(Form("%s (data)",title),Form("%s (data)",title),nBins,min,max);
   
-  signal->Sumw2();
-  background->Sumw2();
-  data->Sumw2();
+  signal->Sumw2(DoSumw2());
+  background->Sumw2(DoSumw2());
+  data->Sumw2(DoSumw2());
 }
 
 HistSet::~HistSet()
@@ -59,47 +55,47 @@ HistSet::~HistSet()
   
 }
 
-void HistSet::FillFromEvents(Events *signalEvents, Events *backgroundEvents, Events *dataEvents, EVar var)
+void HistSet::FillFromEvents(Events *signalEvents, Events *backgroundEvents, Events *dataEvents)
 {
   if(var == kDedx || var == kSizeX || var == kSizeY){
-    FillFromEventsPerLayer(signalEvents, backgroundEvents, dataEvents, var);
+    FillFromEventsPerLayer(signalEvents, backgroundEvents, dataEvents);
   }
   else{
-    FillFromEventsGlobal(signalEvents, backgroundEvents, dataEvents, var);
+    FillFromEventsGlobal(signalEvents, backgroundEvents, dataEvents);
   }
 }
 
-void HistSet::FillFromEventsPerLayer(Events *signalEvents, Events *backgroundEvents, Events *dataEvents, EVar var)
+void HistSet::FillFromEventsPerLayer(Events *signalEvents, Events *backgroundEvents, Events *dataEvents)
 {
-  const char* title= GetTitle(var);
-  int nBins = GetNbins(var);
-  double min = GetMin(var);
-  double max = GetMax(var);
+  const char* title= GetTitle();
+  int nBins = GetNbins();
+  double min = GetMin();
+  double max = GetMax();
   
   for(int iLayer=0;iLayer<nLayers;iLayer++){
     TH1D *histSignal = new TH1D(Form("%s_layer[%i]_signal",title,iLayer),Form("%s_layer[%i]_signal",title, iLayer),nBins,min,max);
     
-    Fill(histSignal,signalEvents,var,iLayer);
+    Fill(histSignal,signalEvents,iLayer);
     signalPerLayer.push_back(histSignal);
     
     TH1D *histBackground = new TH1D(Form("%s_layer[%i]_background",title,iLayer),Form("%s_layer[%i]_background",title,iLayer),nBins,min,max);
-    Fill(histBackground,backgroundEvents,var,iLayer);
+    Fill(histBackground,backgroundEvents,iLayer);
     backgroundPerLayer.push_back(histBackground);
     
     TH1D *histData = new TH1D(Form("%s_layer[%i]_data",title,iLayer),Form("%s_layer[%i]_data",title,iLayer),nBins,min,max);
-    Fill(histData,dataEvents,var,iLayer);
+    Fill(histData,dataEvents,iLayer);
     dataPerLayer.push_back(histData);
   }
 }
 
-void HistSet::FillFromEventsGlobal(Events *signalEvents, Events *backgroundEvents, Events *dataEvents, EVar var)
+void HistSet::FillFromEventsGlobal(Events *signalEvents, Events *backgroundEvents, Events *dataEvents)
 {
   Fill(signal, signalEvents, var);
   Fill(background, backgroundEvents, var);
   Fill(data, dataEvents, var);
 }
 
-void HistSet::Fill(TH1D* hist, Events *events, EVar var, int iLayer)
+void HistSet::Fill(TH1D* hist, Events *events, int iLayer)
 {
   if(events){
     for(int iEvent=0;iEvent<events->size();iEvent++){
@@ -158,29 +154,24 @@ void HistSet::Draw(TCanvas *c1, int pad)
 {
   TLegend *leg = GetLegend(0.15,0.25,0.75,0.5,"Data type");
   
-  double maxYvalue = -9999999;
-  double minYvalue =  9999999;
-  
-  for(int i=0;i<signal->GetNbinsX();i++){
-    if(signal->GetBinContent(i) > maxYvalue) maxYvalue = signal->GetBinContent(i);
-    if(signal->GetBinContent(i) < minYvalue) minYvalue = signal->GetBinContent(i);
-  }
-  for(int i=0;i<background->GetNbinsX();i++){
-    if(background->GetBinContent(i) > maxYvalue) maxYvalue = background->GetBinContent(i);
-    if(background->GetBinContent(i) < minYvalue) minYvalue = background->GetBinContent(i);
-  }
-  if(minYvalue < 0) minYvalue *= 1.2;
-  else              minYvalue *= 0.8;
-  if(maxYvalue < 0) minYvalue *= 0.8;
-  else              minYvalue *= 1.2;
-  
-  
   c1->cd(pad);
-  signal->Draw();
-  background->SetLineColor(kRed);
-  background->Draw("same");
+  signal->SetLineColor(kBlue);
+  signal->SetFillStyle(1000);
+  signal->SetFillColorAlpha(kBlue, 0.3);
+  if(ShouldNormalize()) signal->Scale(1/signal->Integral());
+  if(!DoSumw2()) signal->Sumw2(false);
   
-  signal->GetYaxis()->SetRangeUser(minYvalue, maxYvalue);
+  background->SetLineColor(kRed);
+  background->SetFillStyle(1000);
+  background->SetFillColorAlpha(kRed, 0.3);
+  if(ShouldNormalize())  background->Scale(1/background->Integral());
+  if(!DoSumw2()) background->Sumw2(false);
+  
+  THStack *stack = new THStack(GetTitle(),GetTitle());
+  stack->Add(signal);
+  stack->Add(background);
+  
+  stack->Draw("nostack");
   
   leg->AddEntry(signal,"Signal","lp");
   leg->AddEntry(background,"Background","lp");
@@ -189,11 +180,13 @@ void HistSet::Draw(TCanvas *c1, int pad)
   c1->Update();
 }
 
-void HistSet::DrawPerLayer(EVar var)
+void HistSet::DrawPerLayer()
 {
   TLegend *leg = GetLegend(0.15,0.25,0.75,0.5,"Data type");
+  leg->AddEntry(signalPerLayer[0],"Signal","lp");
+  leg->AddEntry(backgroundPerLayer[0],"Background","lp");
   
-  TCanvas *c1 = new TCanvas(GetTitle(var),GetTitle(var),2880,1800);
+  TCanvas *c1 = new TCanvas(GetTitle(),GetTitle(),2880,1800);
   
   if(var == kDedx) c1->Divide(4,4);
   if(var == kSizeX || var == kSizeY) c1->Divide(2,2);
@@ -204,15 +197,27 @@ void HistSet::DrawPerLayer(EVar var)
     c1->cd(iLayer+1);
     
     signalPerLayer[iLayer]->SetLineColor(kGreen+1);
-    signalPerLayer[iLayer]->Draw();
+    signalPerLayer[iLayer]->SetFillStyle(1000);
+    signalPerLayer[iLayer]->SetFillColorAlpha(kGreen+1,0.2);
+    signalPerLayer[iLayer]->Scale(1/signalPerLayer[iLayer]->Integral());
+    signalPerLayer[iLayer]->Sumw2(DoSumw2());
     
     backgroundPerLayer[iLayer]->SetLineColor(kRed+1);
-    backgroundPerLayer[iLayer]->Draw("same");
+    backgroundPerLayer[iLayer]->SetFillStyle(1000);
+    backgroundPerLayer[iLayer]->SetFillColorAlpha(kRed, 0.2);
+    backgroundPerLayer[iLayer]->Scale(1/backgroundPerLayer[iLayer]->Integral());
+    backgroundPerLayer[iLayer]->Sumw2(DoSumw2());
+
+    THStack *stack = new THStack(GetTitle(),GetTitle());
+    stack->Add(signalPerLayer[iLayer]);
+    stack->Add(backgroundPerLayer[iLayer]);
+    
+    stack->Draw("nostack");
+    leg->Draw();
   }
   
-  leg->AddEntry(signalPerLayer[0],"Signal","lp");
-  leg->AddEntry(backgroundPerLayer[0],"Background","lp");
-  leg->Draw();
+
+  
   
   c1->Update();
 }
@@ -225,8 +230,10 @@ TLegend* HistSet::GetLegend(double legendW, double legendH, double legendX, doub
 }
 
 
-const char* HistSet::GetTitle(EVar var)
+const char* HistSet::GetTitle()
 {
+  if(var == kCustom) return customTitle;
+  
   if(var == kTrackNclusters) return "N clusters per track";
   if(var == kTrackTotalDedx) return "total dedx per track";
   if(var == kTrackDedxPerCluster) return "total dedx per track / n clusters";
@@ -252,7 +259,7 @@ const char* HistSet::GetTitle(EVar var)
   return "";
 }
 
-int HistSet::GetNbins(EVar var)
+int HistSet::GetNbins()
 {
   if(var == kTrackNclusters) return 20;
   if(var == kTrackTotalDedx) return 50;
@@ -279,7 +286,7 @@ int HistSet::GetNbins(EVar var)
   return 0;
 }
 
-double HistSet::GetMin(EVar var)
+double HistSet::GetMin()
 {
   if(var == kTrackNclusters) return 0.0;
   if(var == kTrackTotalDedx) return 0.0;
@@ -305,16 +312,16 @@ double HistSet::GetMin(EVar var)
   return 0.0;
 }
 
-double HistSet::GetMax(EVar var)
+double HistSet::GetMax()
 {
   if(var == kTrackNclusters) return 20;
-  if(var == kTrackTotalDedx) return 200;
-  if(var == kTrackDedxPerCluster) return 20;
+  if(var == kTrackTotalDedx) return 140;
+  if(var == kTrackDedxPerCluster) return 14;
   if(var == kTrackPt) return 1000.0;
   if(var == kTrackEta) return 3.0;
   if(var == kTrackPhi) return 3.5;
-  if(var == kTrackCaloEm) return 500.0;
-  if(var == kTrackCaloHad) return 500.0;
+  if(var == kTrackCaloEm) return 30.0;
+  if(var == kTrackCaloHad) return 30.0;
   if(var == kTrackDxy) return 0.02;
   if(var == kTrackDz) return 0.02;
   if(var == kTrackCharge) return 10.0;
@@ -329,6 +336,28 @@ double HistSet::GetMax(EVar var)
   if(var == kSizeX) return 10.0;
   if(var == kSizeY) return 10.0;
   return 1000.0;
+}
+
+bool HistSet::ShouldNormalize()
+{
+  if(var == kCustom) return false;
+  if(var == kJetPhi) return false;
+  
+  return true;
+}
+
+bool HistSet::DoSumw2()
+{
+  if(var == kCustom) return false;
+  
+  if(var == kTrackCaloEm)  return false;
+  if(var == kTrackCaloHad) return false;
+  
+  if(var == kDedx) return false;
+  if(var == kSizeX) return false;
+  if(var == kSizeY) return false;
+  
+  return true;
 }
 
 

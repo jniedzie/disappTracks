@@ -10,8 +10,9 @@ const bool analyzeData = false;
 //  string inFileNameSignal = "../jniedzie/mcSignal/tree.root";
 string inFileNameSignal = "../adish/Signal/tree.root";
 
-string inFileNameBackground = "../jniedzie/mcBackground/tree.root";
-//  const char *inFileNameBackground = "../adish/Background/tree.root";
+//string inFileNameBackground = "../jniedzie/mcBackground/tree.root";
+  const char *inFileNameBackground = "../adish/Background/tree.root";
+
 string inFileNameData = "../adish/Data/tree.root";
 
 
@@ -57,25 +58,25 @@ int main(int argc, char* argv[])
   HistSet *jet_phi = new HistSet(HistSet::kJetPhi);
   
   
-  nClustersPerTrack->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kTrackNclusters);
-  totalDeDx->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kTrackTotalDedx);
+  nClustersPerTrack->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  totalDeDx->FillFromEvents(eventsSignal, eventsBackground, nullptr);
   
-  totalDeDxByNclusters->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kTrackDedxPerCluster);
-  pt->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kTrackPt);
-  eta->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kTrackEta);
-  phi->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kTrackPhi);
-  caloEm->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kTrackCaloEm);
-  caloHad->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kTrackCaloHad);
+  totalDeDxByNclusters->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  pt->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  eta->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  phi->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  caloEm->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  caloHad->FillFromEvents(eventsSignal, eventsBackground, nullptr);
   
-  dxy->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kTrackDxy);
-  dz->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kTrackDz);
-  charge->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kTrackCharge);
-  mass->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kTrackMass);
-  pid->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kTrackPid);
+  dxy->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  dz->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  charge->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  mass->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  pid->FillFromEvents(eventsSignal, eventsBackground, nullptr);
   
-  jet_pt->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kJetPt);
-  jet_eta->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kJetEta);
-  jet_phi->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kJetPhi);
+  jet_pt->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  jet_eta->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  jet_phi->FillFromEvents(eventsSignal, eventsBackground, nullptr);
   
   
   // Plot histograms
@@ -84,7 +85,7 @@ int main(int argc, char* argv[])
   
   nClustersPerTrack->Draw(canvasTrack,1);
   totalDeDx->Draw(canvasTrack,2);
-  totalDeDxByNclusters->Draw(canvasTrack,2);
+  totalDeDxByNclusters->Draw(canvasTrack,3);
   pt->Draw(canvasTrack,4);
   eta->Draw(canvasTrack,5);
   phi->Draw(canvasTrack,6);
@@ -106,17 +107,17 @@ int main(int argc, char* argv[])
   // Create per layer plots
   //---------------------------------------------------------------------------
   
-  HistSet *dedxPerLayer = new HistSet();
-  dedxPerLayer->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kDedx);
-  dedxPerLayer->DrawPerLayer(HistSet::kDedx);
+  HistSet *dedxPerLayer = new HistSet(HistSet::kDedx);
+  dedxPerLayer->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  dedxPerLayer->DrawPerLayer();
   
-  HistSet *sizeXperLayer = new HistSet();
-  sizeXperLayer->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kSizeX);
-  sizeXperLayer->DrawPerLayer(HistSet::kSizeX);
+  HistSet *sizeXperLayer = new HistSet(HistSet::kSizeX);
+  sizeXperLayer->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  sizeXperLayer->DrawPerLayer();
   
-  HistSet *sizeYperLayer = new HistSet();
-  sizeYperLayer->FillFromEvents(eventsSignal, eventsBackground, nullptr, HistSet::kSizeY);
-  sizeYperLayer->DrawPerLayer(HistSet::kSizeY);
+  HistSet *sizeYperLayer = new HistSet(HistSet::kSizeY);
+  sizeYperLayer->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  sizeYperLayer->DrawPerLayer();
   
   //---------------------------------------------------------------------------
   // Create other custom plots
@@ -139,7 +140,7 @@ int main(int argc, char* argv[])
     nShortTracksAboveThresholdData = eventsData->ApplyTrackCut(shortAboveTrasholdTrackCut)->GetNtracks();
   }
   
-  HistSet *nTracks = new HistSet("N tracks",10000,0,10000);
+  HistSet *nTracks = new HistSet("N tracks",10000,0,100000);
   HistSet *nShortTracks = new HistSet("N short tracks (\%)",100,0,1.0);
   HistSet *nShortTracksAbove = new HistSet("N short tracks above threshold (\%)",100,0,1.0);
   
