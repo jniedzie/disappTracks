@@ -75,7 +75,7 @@ private:
   void FillFromEventsPerLayer(Events *signalEvents, Events *backgroundEvents, Events *dataEvents);
   void FillFromEventsGlobal(Events *signalEvents, Events *backgroundEvents, Events *dataEvents);
   
-  TLegend* GetLegend(double legendW = 0.15, double legendH = 0.5, double legendX = 0.75, double legendY = 0.25,const char* header="");
+  TLegend* GetLegend();
   
   const char* GetTitle();
   int GetNbins();

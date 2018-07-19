@@ -110,7 +110,7 @@ void HistSet::Fill(TH1D* hist, Events *events, int iLayer)
         if(var == kJetEta)  value = jet->GetEta();
         if(var == kJetPhi)  value = jet->GetPhi();
         
-        if(var == kJetPt || var == kJetEta || var == kJetPt){
+        if(var == kJetPt || var == kJetEta || var == kJetPhi){
           hist->Fill(value);
         }
       }
@@ -152,39 +152,46 @@ void HistSet::Fill(TH1D* hist, Events *events, int iLayer)
 
 void HistSet::Draw(TCanvas *c1, int pad)
 {
-  TLegend *leg = GetLegend(0.15,0.25,0.75,0.5,"Data type");
+  TLegend *leg = GetLegend();
+  leg->AddEntry(signal,"Signal","lp");
+  leg->AddEntry(background,"Background","lp");
+  leg->AddEntry(data,"Data","lp");
   
   c1->cd(pad);
   signal->SetLineColor(kBlue);
   signal->SetFillStyle(1000);
-  signal->SetFillColorAlpha(kBlue, 0.3);
+  signal->SetFillColorAlpha(kBlue, 0.2);
   if(ShouldNormalize()) signal->Scale(1/signal->Integral());
   if(!DoSumw2()) signal->Sumw2(false);
   
   background->SetLineColor(kRed);
   background->SetFillStyle(1000);
-  background->SetFillColorAlpha(kRed, 0.3);
+  background->SetFillColorAlpha(kRed, 0.2);
   if(ShouldNormalize())  background->Scale(1/background->Integral());
   if(!DoSumw2()) background->Sumw2(false);
+  
+  data->SetLineColor(kGreen);
+  data->SetFillStyle(1000);
+  data->SetFillColorAlpha(kGreen, 0.2);
+  if(ShouldNormalize())  data->Scale(1/data->Integral());
+  if(!DoSumw2()) data->Sumw2(false);
   
   THStack *stack = new THStack(GetTitle(),GetTitle());
   stack->Add(signal);
   stack->Add(background);
+  if(analyzeData) stack->Add(data);
   
   stack->Draw("nostack");
-  
-  leg->AddEntry(signal,"Signal","lp");
-  leg->AddEntry(background,"Background","lp");
   leg->Draw();
-  
   c1->Update();
 }
 
 void HistSet::DrawPerLayer()
 {
-  TLegend *leg = GetLegend(0.15,0.25,0.75,0.5,"Data type");
+  TLegend *leg = GetLegend();
   leg->AddEntry(signalPerLayer[0],"Signal","lp");
   leg->AddEntry(backgroundPerLayer[0],"Background","lp");
+  leg->AddEntry(dataPerLayer[0],"Data","lp");
   
   TCanvas *c1 = new TCanvas(GetTitle(),GetTitle(),2880,1800);
   
@@ -196,9 +203,9 @@ void HistSet::DrawPerLayer()
     
     c1->cd(iLayer+1);
     
-    signalPerLayer[iLayer]->SetLineColor(kGreen+1);
+    signalPerLayer[iLayer]->SetLineColor(kBlue);
     signalPerLayer[iLayer]->SetFillStyle(1000);
-    signalPerLayer[iLayer]->SetFillColorAlpha(kGreen+1,0.2);
+    signalPerLayer[iLayer]->SetFillColorAlpha(kBlue,0.2);
     signalPerLayer[iLayer]->Scale(1/signalPerLayer[iLayer]->Integral());
     signalPerLayer[iLayer]->Sumw2(DoSumw2());
     
@@ -207,25 +214,30 @@ void HistSet::DrawPerLayer()
     backgroundPerLayer[iLayer]->SetFillColorAlpha(kRed, 0.2);
     backgroundPerLayer[iLayer]->Scale(1/backgroundPerLayer[iLayer]->Integral());
     backgroundPerLayer[iLayer]->Sumw2(DoSumw2());
+    
+    dataPerLayer[iLayer]->SetLineColor(kGreen+1);
+    dataPerLayer[iLayer]->SetFillStyle(1000);
+    dataPerLayer[iLayer]->SetFillColorAlpha(kGreen, 0.2);
+    dataPerLayer[iLayer]->Scale(1/dataPerLayer[iLayer]->Integral());
+    dataPerLayer[iLayer]->Sumw2(DoSumw2());
 
-    THStack *stack = new THStack(GetTitle(),GetTitle());
+    THStack *stack = new THStack(Form("%s_layer[%i]",GetTitle(),iLayer),Form("%s_layer[%i]",GetTitle(),iLayer));
     stack->Add(signalPerLayer[iLayer]);
     stack->Add(backgroundPerLayer[iLayer]);
+    if(analyzeData) stack->Add(dataPerLayer[iLayer]);
     
     stack->Draw("nostack");
     leg->Draw();
   }
   
-
-  
-  
   c1->Update();
 }
 
-TLegend* HistSet::GetLegend(double legendW, double legendH, double legendX, double legendY,const char* header)
+TLegend* HistSet::GetLegend()
 {
+  double legendW=0.15, legendH=0.25, legendX=0.75, legendY=0.65;
   TLegend *leg = new TLegend(legendX,legendY,legendX+legendW,legendY+legendH);
-  leg->SetHeader(header);
+  leg->SetHeader("Sample type:");
   return leg;
 }
 
@@ -341,7 +353,6 @@ double HistSet::GetMax()
 bool HistSet::ShouldNormalize()
 {
   if(var == kCustom) return false;
-  if(var == kJetPhi) return false;
   
   return true;
 }

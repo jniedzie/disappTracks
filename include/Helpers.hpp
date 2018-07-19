@@ -22,6 +22,8 @@
 
 using namespace std;
 
+const bool analyzeData = true;
+
 const int nLayers = 14;
 const double layerR[nLayers] = { 29, 68, 109, 160, 250, 340, 430, 520, 610, 696, 782, 868, 965, 1080 };
 

@@ -5,16 +5,12 @@
 
 #include <TApplication.h>
 
-const bool analyzeData = false;
-
 //  string inFileNameSignal = "../jniedzie/mcSignal/tree.root";
-string inFileNameSignal = "../adish/Signal/tree.root";
-
 //string inFileNameBackground = "../jniedzie/mcBackground/tree.root";
-  const char *inFileNameBackground = "../adish/Background/tree.root";
 
+string inFileNameSignal = "../adish/Signal/tree.root";
+string inFileNameBackground = "../adish/Background/tree.root";
 string inFileNameData = "../adish/Data/tree.root";
-
 
 int main(int argc, char* argv[])
 {
@@ -58,25 +54,25 @@ int main(int argc, char* argv[])
   HistSet *jet_phi = new HistSet(HistSet::kJetPhi);
   
   
-  nClustersPerTrack->FillFromEvents(eventsSignal, eventsBackground, nullptr);
-  totalDeDx->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  nClustersPerTrack->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  totalDeDx->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   
-  totalDeDxByNclusters->FillFromEvents(eventsSignal, eventsBackground, nullptr);
-  pt->FillFromEvents(eventsSignal, eventsBackground, nullptr);
-  eta->FillFromEvents(eventsSignal, eventsBackground, nullptr);
-  phi->FillFromEvents(eventsSignal, eventsBackground, nullptr);
-  caloEm->FillFromEvents(eventsSignal, eventsBackground, nullptr);
-  caloHad->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  totalDeDxByNclusters->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  pt->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  eta->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  phi->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  caloEm->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  caloHad->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   
-  dxy->FillFromEvents(eventsSignal, eventsBackground, nullptr);
-  dz->FillFromEvents(eventsSignal, eventsBackground, nullptr);
-  charge->FillFromEvents(eventsSignal, eventsBackground, nullptr);
-  mass->FillFromEvents(eventsSignal, eventsBackground, nullptr);
-  pid->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  dxy->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  dz->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  charge->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  mass->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  pid->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   
-  jet_pt->FillFromEvents(eventsSignal, eventsBackground, nullptr);
-  jet_eta->FillFromEvents(eventsSignal, eventsBackground, nullptr);
-  jet_phi->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  jet_pt->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  jet_eta->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  jet_phi->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   
   
   // Plot histograms
@@ -108,15 +104,15 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   
   HistSet *dedxPerLayer = new HistSet(HistSet::kDedx);
-  dedxPerLayer->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  dedxPerLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   dedxPerLayer->DrawPerLayer();
   
   HistSet *sizeXperLayer = new HistSet(HistSet::kSizeX);
-  sizeXperLayer->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  sizeXperLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   sizeXperLayer->DrawPerLayer();
   
   HistSet *sizeYperLayer = new HistSet(HistSet::kSizeY);
-  sizeYperLayer->FillFromEvents(eventsSignal, eventsBackground, nullptr);
+  sizeYperLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   sizeYperLayer->DrawPerLayer();
   
   //---------------------------------------------------------------------------
