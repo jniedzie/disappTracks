@@ -10,7 +10,6 @@
 
 Track::Track()
 {
-  isShort = false;
   for(int iLayer=0;iLayer<nLayers;iLayer++){
     dedx.push_back(0.0);
     subDetId.push_back(-1);
@@ -44,7 +43,7 @@ bool Track::IsPassingCut(TrackCut *cut)
   }
   
   // check values of dedx along the track
-  if(GetTotalDedx() < cut->GetMinTotalDedx()){
+  if(GetTotalDedx() < cut->GetMinTotalDedx() || GetTotalDedx() > cut->GetMaxTotalDedx()){
     return false;
   }
   

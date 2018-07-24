@@ -30,8 +30,12 @@ void Jet::Print()
   cout<<"Jet pt:"<<pt<<"\teta:"<<eta<<"\tphi:"<<phi<<endl;
 }
 
-bool Jet::IsPassingCut(/*JetCut *cut*/)
+bool Jet::IsPassingCut(JetCut *cut)
 {
- 
+  // check jet's pT
+  if(pt < cut->GetMinPt() || pt > cut->GetMaxPt()){
+    return false;
+  }
+  
   return true;
 }

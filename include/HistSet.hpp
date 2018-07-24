@@ -21,6 +21,18 @@ public:
   enum EVar{
     kCustom,
     
+    // per event variables
+    kNvertices,
+    kNisoTracks,
+    kNjets,
+    kNjets30,
+    kNjets30a,
+    kMetSumEt,
+    kMetPt,
+    kMetMass,
+    kMetEta,
+    kMetPhi,
+    
     // per track variables
     kTrackNclusters,
     kTrackTotalDedx,
@@ -51,15 +63,16 @@ public:
   HistSet(EVar _var);
   ~HistSet();
   
-  void FillSignal(double value){signal->Fill(value);}
-  void FillBackground(double value){background->Fill(value);}
-  void FillData(double value){data->Fill(value);}
+  inline void FillSignal(double value){signal->Fill(value);}
+  inline void FillBackground(double value){background->Fill(value);}
+  inline void FillData(double value){data->Fill(value);}
   
   void FillFromEvents(Events *signalEvents, Events *backgroundEvents, Events *dataEvents);
   
   void Draw(TCanvas *c1, int pad);
   void DrawPerLayer();
   
+  inline void SetShowNonZerBinPosX(){showNonZeroBinPosX = true;}
 private:
   TH1D *signal;
   TH1D *background;
@@ -67,13 +80,13 @@ private:
   
   EVar var;
   const char* customTitle;
+  bool showNonZeroBinPosX;
   
   std::vector<TH1D*> signalPerLayer;
   std::vector<TH1D*> backgroundPerLayer;
   std::vector<TH1D*> dataPerLayer;
   
   void FillFromEventsPerLayer(Events *signalEvents, Events *backgroundEvents, Events *dataEvents);
-  void FillFromEventsGlobal(Events *signalEvents, Events *backgroundEvents, Events *dataEvents);
   
   TLegend* GetLegend();
   
@@ -85,6 +98,7 @@ private:
   bool DoSumw2();
   
   void Fill(TH1D* hist, Events *events, int iLayer=-1);
+  double GetNonZeroBinPosX(TH1D *hist);
 };
 
 #endif /* HistSet_hpp */

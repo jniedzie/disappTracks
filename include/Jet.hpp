@@ -9,6 +9,8 @@
 #ifndef Jet_hpp
 #define Jet_hpp
 
+#include "JetCut.hpp"
+
 class Jet{
 public:
   Jet();
@@ -22,7 +24,7 @@ public:
   inline double GetEta(){return eta;}
   inline double GetPhi(){return phi;}
   
-  bool IsPassingCut(/*JetCut *cut*/);
+  bool IsPassingCut(JetCut *cut);
   void Print();
   
 private:

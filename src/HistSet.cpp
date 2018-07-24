@@ -12,13 +12,15 @@
 
 #include <TLegend.h>
 #include <THStack.h>
+#include <TText.h>
 
 HistSet::HistSet(const char* title, int nBins, double min, double max) :
 signal(nullptr),
 background(nullptr),
 data(nullptr),
 var(kCustom),
-customTitle(title)
+customTitle(title),
+showNonZeroBinPosX(false)
 {
   signal     = new TH1D(Form("%s (signal)",title),Form("%s (signal)",title),nBins,min,max);
   background = new TH1D(Form("%s (background)",title),Form("%s (background)",title),nBins,min,max);
@@ -33,7 +35,8 @@ HistSet::HistSet(EVar _var) :
 signal(nullptr),
 background(nullptr),
 data(nullptr),
-var(_var)
+var(_var),
+showNonZeroBinPosX(false)
 {
   const char* title = GetTitle();
   int nBins = GetNbins();
@@ -61,7 +64,12 @@ void HistSet::FillFromEvents(Events *signalEvents, Events *backgroundEvents, Eve
     FillFromEventsPerLayer(signalEvents, backgroundEvents, dataEvents);
   }
   else{
-    FillFromEventsGlobal(signalEvents, backgroundEvents, dataEvents);
+//    cout<<"Filling signal"<<endl;
+    Fill(signal, signalEvents, var);
+//    cout<<"Filling background"<<endl;
+    Fill(background, backgroundEvents, var);
+//    cout<<"Filling data"<<endl;
+    Fill(data, dataEvents, var);
   }
 }
 
@@ -88,18 +96,37 @@ void HistSet::FillFromEventsPerLayer(Events *signalEvents, Events *backgroundEve
   }
 }
 
-void HistSet::FillFromEventsGlobal(Events *signalEvents, Events *backgroundEvents, Events *dataEvents)
-{
-  Fill(signal, signalEvents, var);
-  Fill(background, backgroundEvents, var);
-  Fill(data, dataEvents, var);
-}
-
 void HistSet::Fill(TH1D* hist, Events *events, int iLayer)
 {
   if(events){
     for(int iEvent=0;iEvent<events->size();iEvent++){
       Event *event = events->At(iEvent);
+      
+      double value = 0.0;
+      
+      if(var == kNvertices) value = event->GetNvertices();
+      else if(var == kNisoTracks){
+        value = event->GetNtracks();
+//        cout<<"N tracks:"<<value<<"\t in tree:"<<event->GetNisoTracksFromTree()<<endl;
+      }
+      else if(var == kNjets){
+        value = event->GetNjets();
+//        cout<<"N jets:"<<value<<"\t in tree:"<<event->GetNjetsFromTree()<<endl;
+      }
+      else if(var == kNjets30) value = event->GetNjet30();
+      else if(var == kNjets30a) value = event->GetNjet30a();
+      else if(var == kMetSumEt) value = event->GetMetSumEt();
+      else if(var == kMetPt) value = event->GetMetPt();
+      else if(var == kMetMass) value = event->GetMetMass();
+      else if(var == kMetEta) value = event->GetMetEta();
+      else if(var == kMetPhi) value = event->GetMetPhi();
+      
+//      if(var == kNjets) cout<<value<<endl;
+      
+      if(var == kNvertices || var == kNisoTracks || var == kNjets || var == kNjets30 || var == kNjets30a || var == kMetSumEt || var == kMetPt || var == kMetMass || var == kMetEta || var == kMetPhi){
+        hist->Fill(value);
+        continue;
+      }
       
       for(int iJet=0;iJet<event->GetNjets();iJet++){
         Jet *jet = event->GetJet(iJet);
@@ -107,8 +134,8 @@ void HistSet::Fill(TH1D* hist, Events *events, int iLayer)
         double value=0.0;
         
         if(var == kJetPt)   value = jet->GetPt();
-        if(var == kJetEta)  value = jet->GetEta();
-        if(var == kJetPhi)  value = jet->GetPhi();
+        else if(var == kJetEta)  value = jet->GetEta();
+        else if(var == kJetPhi)  value = jet->GetPhi();
         
         if(var == kJetPt || var == kJetEta || var == kJetPhi){
           hist->Fill(value);
@@ -153,10 +180,17 @@ void HistSet::Fill(TH1D* hist, Events *events, int iLayer)
 void HistSet::Draw(TCanvas *c1, int pad)
 {
   TLegend *leg = GetLegend();
-  leg->AddEntry(signal,"Signal","lp");
-  leg->AddEntry(background,"Background","lp");
-  leg->AddEntry(data,"Data","lp");
-  
+  if(showNonZeroBinPosX){
+    leg->AddEntry(signal,Form("Signal (%.2f %%)",100*GetNonZeroBinPosX(signal)),"lp");
+    leg->AddEntry(background,Form("Background (%.2f %%)",100*GetNonZeroBinPosX(background)),"lp");
+    leg->AddEntry(data,Form("Data (%.2f %%)",100*GetNonZeroBinPosX(data)),"lp");
+  }
+  else{
+    leg->AddEntry(signal,"Signal","lp");
+    leg->AddEntry(background,"Background","lp");
+    leg->AddEntry(data,"Data","lp");
+  }
+    
   c1->cd(pad);
   signal->SetLineColor(kBlue);
   signal->SetFillStyle(1000);
@@ -180,8 +214,8 @@ void HistSet::Draw(TCanvas *c1, int pad)
   stack->Add(signal);
   stack->Add(background);
   if(analyzeData) stack->Add(data);
-  
   stack->Draw("nostack");
+  
   leg->Draw();
   c1->Update();
 }
@@ -235,7 +269,7 @@ void HistSet::DrawPerLayer()
 
 TLegend* HistSet::GetLegend()
 {
-  double legendW=0.15, legendH=0.25, legendX=0.75, legendY=0.65;
+  double legendW=0.30, legendH=0.25, legendX=0.60, legendY=0.65;
   TLegend *leg = new TLegend(legendX,legendY,legendX+legendW,legendY+legendH);
   leg->SetHeader("Sample type:");
   return leg;
@@ -245,6 +279,17 @@ TLegend* HistSet::GetLegend()
 const char* HistSet::GetTitle()
 {
   if(var == kCustom) return customTitle;
+  
+  if(var == kNvertices) return "N good vertices";
+  if(var == kNisoTracks) return "N iso tracks";
+  if(var == kNjets) return "N jets";
+  if(var == kNjets30) return "N jets with pt > 30, |eta|<2.4";
+  if(var == kNjets30a) return "N jets with pt > 30, |eta|<4.7";
+  if(var == kMetSumEt) return "MET sum Et";
+  if(var == kMetPt) return "MET pT";
+  if(var == kMetMass) return "MET mass";
+  if(var == kMetEta) return "MET eta";
+  if(var == kMetPhi) return "MET phi";
   
   if(var == kTrackNclusters) return "N clusters per track";
   if(var == kTrackTotalDedx) return "total dedx per track";
@@ -273,80 +318,113 @@ const char* HistSet::GetTitle()
 
 int HistSet::GetNbins()
 {
-  if(var == kTrackNclusters) return 20;
-  if(var == kTrackTotalDedx) return 50;
+  if(var == kNvertices)   return 50;
+  if(var == kNisoTracks)  return 20;
+  if(var == kNjets)       return 20;
+  if(var == kNjets30)     return 20;
+  if(var == kNjets30a)    return 20;
+  if(var == kMetSumEt)    return 100;
+  if(var == kMetPt)       return 100;
+  if(var == kMetMass)     return 100;
+  if(var == kMetEta)      return 100;
+  if(var == kMetPhi)      return 100;
+  
+  if(var == kTrackNclusters)      return 20;
+  if(var == kTrackTotalDedx)      return 50;
   if(var == kTrackDedxPerCluster) return 50;
-  if(var == kTrackPt) return 50;
-  if(var == kTrackEta) return 50;
-  if(var == kTrackPhi) return 50;
-  if(var == kTrackCaloEm) return 100;
-  if(var == kTrackCaloHad) return 100;
-  if(var == kTrackDxy) return 100;
-  if(var == kTrackDz) return 100;
-  if(var == kTrackCharge) return 100;
-  if(var == kTrackMass) return 500;
-  if(var == kTrackPid) return 441;
+  if(var == kTrackPt)             return 50;
+  if(var == kTrackEta)            return 50;
+  if(var == kTrackPhi)            return 50;
+  if(var == kTrackCaloEm)         return 100;
+  if(var == kTrackCaloHad)        return 100;
+  if(var == kTrackDxy)            return 100;
+  if(var == kTrackDz)             return 100;
+  if(var == kTrackCharge)         return 100;
+  if(var == kTrackMass)           return 500;
+  if(var == kTrackPid)            return 441;
   
-  if(var == kJetPt) return 100;
-  if(var == kJetEta) return 50;
-  if(var == kJetPhi) return 50;
+  if(var == kJetPt)   return 100;
+  if(var == kJetEta)  return 50;
+  if(var == kJetPhi)  return 50;
   
-  if(var == kDedx) return 50;
-  if(var == kSizeX) return 10;
-  if(var == kSizeY) return 10;
+  if(var == kDedx)    return 50;
+  if(var == kSizeX)   return 10;
+  if(var == kSizeY)   return 10;
   
   return 0;
 }
 
 double HistSet::GetMin()
 {
-  if(var == kTrackNclusters) return 0.0;
-  if(var == kTrackTotalDedx) return 0.0;
+  if(var == kNvertices)   return 0;
+  if(var == kNisoTracks)  return 0;
+  if(var == kNjets)       return 0;
+  if(var == kNjets30)     return 0;
+  if(var == kNjets30a)    return 0;
+  if(var == kMetSumEt)    return -20;
+  if(var == kMetPt)       return 0;
+  if(var == kMetMass)     return -10e-6;
+  if(var == kMetEta)      return -3.5;
+  if(var == kMetPhi)      return -3.5;
+  
+  if(var == kTrackNclusters)      return 0.0;
+  if(var == kTrackTotalDedx)      return 0.0;
   if(var == kTrackDedxPerCluster) return 0.0;
-  if(var == kTrackPt) return 0.0;
-  if(var == kTrackEta) return -3.0;
-  if(var == kTrackPhi) return -3.5;
-  if(var == kTrackCaloEm) return 0.0;
-  if(var == kTrackCaloHad) return 0.0;
-  if(var == kTrackDxy) return -0.02;
-  if(var == kTrackDz) return -0.02;
-  if(var == kTrackCharge) return -10.0;
-  if(var == kTrackMass) return 0.0;
-  if(var == kTrackPid) return -220;
+  if(var == kTrackPt)             return 0.0;
+  if(var == kTrackEta)            return -3.0;
+  if(var == kTrackPhi)            return -3.5;
+  if(var == kTrackCaloEm)         return 0.0;
+  if(var == kTrackCaloHad)        return 0.0;
+  if(var == kTrackDxy)            return -0.02;
+  if(var == kTrackDz)             return -0.02;
+  if(var == kTrackCharge)         return -10.0;
+  if(var == kTrackMass)           return 0.0;
+  if(var == kTrackPid)            return -220;
   
-  if(var == kJetPt) return 0.0;
-  if(var == kJetEta) return -3.0;
-  if(var == kJetPhi) return -3.5;
+  if(var == kJetPt)   return 0.0;
+  if(var == kJetEta)  return -3.0;
+  if(var == kJetPhi)  return -3.5;
   
-  if(var == kDedx) return 0.0;
-  if(var == kSizeX) return 0.0;
-  if(var == kSizeY) return 0.0;
+  if(var == kDedx)    return 0.0;
+  if(var == kSizeX)   return 0.0;
+  if(var == kSizeY)   return 0.0;
   return 0.0;
 }
 
 double HistSet::GetMax()
 {
-  if(var == kTrackNclusters) return 20;
-  if(var == kTrackTotalDedx) return 140;
+  if(var == kNvertices)   return 100;
+  if(var == kNisoTracks)  return 20;
+  if(var == kNjets)       return 20;
+  if(var == kNjets30)     return 20;
+  if(var == kNjets30a)    return 20;
+  if(var == kMetSumEt)    return 5000;
+  if(var == kMetPt)       return 500;
+  if(var == kMetMass)     return 10e-6;
+  if(var == kMetEta)      return 3.5;
+  if(var == kMetPhi)      return 3.5;
+  
+  if(var == kTrackNclusters)      return 20;
+  if(var == kTrackTotalDedx)      return 140;
   if(var == kTrackDedxPerCluster) return 14;
-  if(var == kTrackPt) return 1000.0;
-  if(var == kTrackEta) return 3.0;
-  if(var == kTrackPhi) return 3.5;
-  if(var == kTrackCaloEm) return 30.0;
-  if(var == kTrackCaloHad) return 30.0;
-  if(var == kTrackDxy) return 0.02;
-  if(var == kTrackDz) return 0.02;
-  if(var == kTrackCharge) return 10.0;
-  if(var == kTrackMass) return 0.25;
-  if(var == kTrackPid) return 220;
+  if(var == kTrackPt)             return 1000.0;
+  if(var == kTrackEta)            return 3.0;
+  if(var == kTrackPhi)            return 3.5;
+  if(var == kTrackCaloEm)         return 30.0;
+  if(var == kTrackCaloHad)        return 30.0;
+  if(var == kTrackDxy) 	          return 0.02;
+  if(var == kTrackDz)             return 0.02;
+  if(var == kTrackCharge)         return 10.0;
+  if(var == kTrackMass)           return 0.25;
+  if(var == kTrackPid)            return 220;
   
-  if(var == kJetPt) return 1000.0;
-  if(var == kJetEta) return 3.0;
-  if(var == kJetPhi) return 3.5;
+  if(var == kJetPt)   return 1000.0;
+  if(var == kJetEta)  return 3.0;
+  if(var == kJetPhi)  return 3.5;
   
-  if(var == kDedx) return 10.0;
-  if(var == kSizeX) return 10.0;
-  if(var == kSizeY) return 10.0;
+  if(var == kDedx)    return 10.0;
+  if(var == kSizeX)   return 10.0;
+  if(var == kSizeY)   return 10.0;
   return 1000.0;
 }
 
@@ -361,14 +439,37 @@ bool HistSet::DoSumw2()
 {
   if(var == kCustom) return false;
   
-  if(var == kTrackCaloEm)  return false;
-  if(var == kTrackCaloHad) return false;
+  if(var == kNvertices)   return false;
+  if(var == kNisoTracks)  return false;
+  if(var == kNjets)       return false;
+  if(var == kNjets30)     return false;
+  if(var == kNjets30a)    return false;
+  if(var == kMetSumEt)    return false;
+  if(var == kMetPt)       return false;
+  if(var == kMetMass)     return false;
+  if(var == kMetEta)      return false;
+  if(var == kMetPhi)      return false;
   
-  if(var == kDedx) return false;
+  if(var == kTrackNclusters)  return false;
+  if(var == kTrackPt)         return false;
+  if(var == kTrackCaloEm)     return false;
+  if(var == kTrackCaloHad)    return false;
+  
+  if(var == kDedx)  return false;
   if(var == kSizeX) return false;
   if(var == kSizeY) return false;
   
   return true;
+}
+
+double HistSet::GetNonZeroBinPosX(TH1D *hist)
+{
+  for(int i=0;i<hist->GetNbinsX();i++){
+    if(hist->GetBinContent(i) != 0){
+      return hist->GetBinCenter(i);
+    }
+  }
+  return -1;
 }
 
 

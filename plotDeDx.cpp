@@ -1,6 +1,7 @@
 #include "Helpers.hpp"
 #include "Event.hpp"
 #include "TrackCut.hpp"
+#include "JetCut.hpp"
 #include "HistSet.hpp"
 
 #include <TApplication.h>
@@ -24,15 +25,30 @@ int main(int argc, char* argv[])
   Events *eventsData = analyzeData ? new Events(inFileNameData) : nullptr;
   
   //---------------------------------------------------------------------------
-  // Define track cuts
+  // Define event, track and jet cuts
   //---------------------------------------------------------------------------
+  EventCut *highMetEventCut = new EventCut(EventCut::kMet100GeV);
+  
   TrackCut *shortTrackCut = new TrackCut(TrackCut::kShort);
   TrackCut *shortAboveTrasholdTrackCut = new TrackCut(TrackCut::kShortAboveThreshold);
+  TrackCut *shortLowDedxTrackCut = new TrackCut(TrackCut::kShortLowTotalDEdx);
   
+  JetCut *highPtJetCut = new JetCut(JetCut::kHighPt);
   
   //---------------------------------------------------------------------------
-  // Create standard per track and per jet plots
+  // Create standard per event, per track and per jet plots
   //---------------------------------------------------------------------------
+  HistSet *nVertices = new HistSet(HistSet::kNvertices);
+  HistSet *nIsoTrack = new HistSet(HistSet::kNisoTracks);
+  HistSet *nJet      = new HistSet(HistSet::kNjets);
+  HistSet *nJet30    = new HistSet(HistSet::kNjets30);
+  HistSet *nJet30a   = new HistSet(HistSet::kNjets30a);
+  HistSet *nMetSumEt = new HistSet(HistSet::kMetSumEt);
+  HistSet *nMetPt    = new HistSet(HistSet::kMetPt);
+  HistSet *nMetMass  = new HistSet(HistSet::kMetMass);
+  HistSet *nMetEta   = new HistSet(HistSet::kMetEta);
+  HistSet *nMetPhi   = new HistSet(HistSet::kMetPhi);
+  
   HistSet *nClustersPerTrack = new HistSet(HistSet::kTrackNclusters);
   HistSet *totalDeDx = new HistSet(HistSet::kTrackTotalDedx);
   
@@ -53,6 +69,16 @@ int main(int argc, char* argv[])
   HistSet *jet_eta = new HistSet(HistSet::kJetEta);
   HistSet *jet_phi = new HistSet(HistSet::kJetPhi);
   
+  nVertices->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  nIsoTrack->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  nJet->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  nJet30->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  nJet30a->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  nMetSumEt->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  nMetPt->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  nMetMass->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  nMetEta->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  nMetPhi->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   
   nClustersPerTrack->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   totalDeDx->FillFromEvents(eventsSignal, eventsBackground, eventsData);
@@ -76,6 +102,20 @@ int main(int argc, char* argv[])
   
   
   // Plot histograms
+  TCanvas *canvasEvents = new TCanvas("Events","Events",2880,1800);
+  canvasEvents->Divide(3,4);
+  
+  nVertices->Draw(canvasEvents,1);
+  nIsoTrack->Draw(canvasEvents,2);
+  nJet->Draw(canvasEvents,3);
+  nJet30->Draw(canvasEvents,4);
+  nJet30a->Draw(canvasEvents,5);
+  nMetSumEt->Draw(canvasEvents,6);
+  nMetPt->Draw(canvasEvents,7);
+  nMetMass->Draw(canvasEvents,8);
+  nMetEta->Draw(canvasEvents,9);
+  nMetPhi->Draw(canvasEvents,10);
+  
   TCanvas *canvasTrack = new TCanvas("Tracks","Tracks",2880,1800);
   canvasTrack->Divide(3,3);
   
@@ -116,48 +156,79 @@ int main(int argc, char* argv[])
   sizeYperLayer->DrawPerLayer();
   
   //---------------------------------------------------------------------------
-  // Create other custom plots
+  // Number of tracks in events passing different cuts
   //---------------------------------------------------------------------------
   
+  int nSignal =                     eventsSignal->SizeNonEmpty();
+  int nShortSignal =                eventsSignal->ApplyTrackCut(shortTrackCut)->SizeNonEmpty();
+  int nShortAboveThresholdSignal =  eventsSignal->ApplyTrackCut(shortAboveTrasholdTrackCut)->SizeNonEmpty();
+  int nShortLowTotalSignal =        eventsSignal->ApplyTrackCut(shortLowDedxTrackCut)->SizeNonEmpty();
+  int nShortLowTotalHighJetSignal = eventsSignal->ApplyCuts(nullptr, shortLowDedxTrackCut, highPtJetCut)->SizeNonEmpty();
+  int nShortLowTotalHighMetSignal = eventsSignal->ApplyCuts(highMetEventCut, shortLowDedxTrackCut, nullptr)->SizeNonEmpty();
   
-  int nTracksSignal = eventsSignal->GetNtracks();
-  int nShortTracksSignal = eventsSignal->ApplyTrackCut(shortTrackCut)->GetNtracks();
-  int nShortTracksAboveThresholdSignal = eventsSignal->ApplyTrackCut(shortAboveTrasholdTrackCut)->GetNtracks();
+  int nBackground =                     eventsBackground->SizeNonEmpty();
+  int nShortBackground = 	              eventsBackground->ApplyTrackCut(shortTrackCut)->SizeNonEmpty();
+  int nShortAboveThresholdBackground =  eventsBackground->ApplyTrackCut(shortAboveTrasholdTrackCut)->SizeNonEmpty();
+  int nShortLowTotalBackground =        eventsBackground->ApplyTrackCut(shortLowDedxTrackCut)->SizeNonEmpty();
+  int nShortLowTotalHighJetBackground = eventsBackground->ApplyCuts(nullptr, shortLowDedxTrackCut, highPtJetCut)->SizeNonEmpty();
+  int nShortLowTotalHighMetBackground = eventsBackground->ApplyCuts(highMetEventCut, shortLowDedxTrackCut, nullptr)->SizeNonEmpty();
   
-  
-  int nTracksBackground = eventsBackground->GetNtracks();
-  int nShortTracksBackground = eventsBackground->ApplyTrackCut(shortTrackCut)->GetNtracks();
-  int nShortTracksAboveThresholdBackground = eventsBackground->ApplyTrackCut(shortAboveTrasholdTrackCut)->GetNtracks();
-  
-  int nTracksData=0, nShortTracksData=0, nShortTracksAboveThresholdData=0;
+  int nData=0, nShortData=0, nShortAboveThresholdData=0, nShortLowTotalData=0, nShortLowTotalHighJetData=0, nShortLowTotalHighMetData=0;
   if(analyzeData){
-    nTracksData = eventsData->GetNtracks();
-    nShortTracksData = eventsData->ApplyTrackCut(shortTrackCut)->GetNtracks();
-    nShortTracksAboveThresholdData = eventsData->ApplyTrackCut(shortAboveTrasholdTrackCut)->GetNtracks();
+    nData =                     eventsData->SizeNonEmpty();
+    nShortData =                eventsData->ApplyTrackCut(shortTrackCut)->SizeNonEmpty();
+    nShortAboveThresholdData =  eventsData->ApplyTrackCut(shortAboveTrasholdTrackCut)->SizeNonEmpty();
+    nShortLowTotalData =        eventsData->ApplyTrackCut(shortLowDedxTrackCut)->SizeNonEmpty();
+    nShortLowTotalHighJetData = eventsData->ApplyCuts(nullptr, shortLowDedxTrackCut, highPtJetCut)->SizeNonEmpty();
+    nShortLowTotalHighMetData = eventsData->ApplyCuts(highMetEventCut, shortLowDedxTrackCut, nullptr)->SizeNonEmpty();
   }
   
-  HistSet *nTracks = new HistSet("N tracks",10000,0,100000);
-  HistSet *nShortTracks = new HistSet("N short tracks (\%)",100,0,1.0);
-  HistSet *nShortTracksAbove = new HistSet("N short tracks above threshold (\%)",100,0,1.0);
+  HistSet *nEvents = new HistSet("N events",10000,0,10e6);
+  HistSet *nShortEvents = new HistSet("N events with short tracks (3 hits only) (\%)",100,0,1.0);
+  HistSet *nShortAboveEvents = new HistSet("N short tracks (3 hits) above threshold (2.5 MeV / cluster) (\%)",100,0,1.0);
+  HistSet *nShortLowTotalEvents = new HistSet("N events (cut set 1) (\%)",100,0,1.0);
+  HistSet *nShortLowTotalHighJetEvents = new HistSet("N events (cut set 1 + jet cut) (\%)",100,0,1.0);
+  HistSet *nShortLowTotalHighMetEvents = new HistSet("N events (cut set 1 + MET cut) (\%)",100,0,1.0);
   
-  nTracks->FillSignal(nTracksSignal);
-  nTracks->FillBackground(nTracksBackground);
-  nTracks->FillData(nTracksData);
+  nShortEvents->SetShowNonZerBinPosX();
+  nShortAboveEvents->SetShowNonZerBinPosX();
+  nShortLowTotalEvents->SetShowNonZerBinPosX();
+  nShortLowTotalHighJetEvents->SetShowNonZerBinPosX();
+  nShortLowTotalHighMetEvents->SetShowNonZerBinPosX();
   
-  nShortTracks->FillSignal(nShortTracksSignal/(double)nTracksSignal);
-  nShortTracks->FillBackground(nShortTracksBackground/(double)nTracksBackground);
-  nShortTracks->FillData(nShortTracksData/(double)nTracksData);
+  nEvents->FillSignal(nSignal);
+  nEvents->FillBackground(nBackground);
+  nEvents->FillData(nData);
   
-  nShortTracksAbove->FillSignal(nShortTracksAboveThresholdSignal/(double)nTracksSignal);
-  nShortTracksAbove->FillBackground(nShortTracksAboveThresholdBackground/(double)nTracksBackground);
-  nShortTracksAbove->FillData(nShortTracksAboveThresholdData/(double)nTracksData);
+  nShortEvents->FillSignal(nShortSignal/(double)nSignal);
+  nShortEvents->FillBackground(nShortBackground/(double)nBackground);
+  nShortEvents->FillData(nShortData/(double)nData);
+  
+  nShortAboveEvents->FillSignal(nShortAboveThresholdSignal/(double)nSignal);
+  nShortAboveEvents->FillBackground(nShortAboveThresholdBackground/(double)nBackground);
+  nShortAboveEvents->FillData(nShortAboveThresholdData/(double)nData);
+  
+  nShortLowTotalEvents->FillSignal(nShortLowTotalSignal/(double)nSignal);
+  nShortLowTotalEvents->FillBackground(nShortLowTotalBackground/(double)nBackground);
+  nShortLowTotalEvents->FillData(nShortLowTotalData/(double)nData);
+  
+  nShortLowTotalHighJetEvents->FillSignal(nShortLowTotalHighJetSignal/(double)nSignal);
+  nShortLowTotalHighJetEvents->FillBackground(nShortLowTotalHighJetBackground/(double)nBackground);
+  nShortLowTotalHighJetEvents->FillData(nShortLowTotalHighJetData/(double)nData);
+  
+  nShortLowTotalHighMetEvents->FillSignal(nShortLowTotalHighMetSignal/(double)nSignal);
+  nShortLowTotalHighMetEvents->FillBackground(nShortLowTotalHighMetBackground/(double)nBackground);
+  nShortLowTotalHighMetEvents->FillData(nShortLowTotalHighMetData/(double)nData);
   
   TCanvas *canvasNtracks = new TCanvas("Number of tracks","Number of tracks",2880,1800);
-  canvasNtracks->Divide(2,2);
+  canvasNtracks->Divide(2,3);
   
-  nTracks->Draw(canvasNtracks, 1);
-  nShortTracks->Draw(canvasNtracks, 2);
-  nShortTracksAbove->Draw(canvasNtracks, 3);
+//  nEvents->Draw(canvasNtracks, 1);
+  nShortEvents->Draw(canvasNtracks, 1);
+  nShortAboveEvents->Draw(canvasNtracks, 2);
+  nShortLowTotalEvents->Draw(canvasNtracks, 3);
+  nShortLowTotalHighJetEvents->Draw(canvasNtracks, 4);
+  nShortLowTotalHighMetEvents->Draw(canvasNtracks, 5);
   
   
   theApp.Run();

@@ -1,6 +1,5 @@
 //
 //  TrackCut.cpp
-//  disappTracksTarget
 //
 //  Created by Jeremi Niedziela on 16/07/2018.
 //  Copyright © 2018 Jeremi Niedziela. All rights reserved.
@@ -14,9 +13,10 @@ using namespace std;
 
 TrackCut::TrackCut(ECut cutType) :
 minDedxClusters(0),
-maxDedxClusters(9999),
+maxDedxClusters(999999),
 minDedxPerCluster(0.0),
-minTotalDeDx(0.0)
+minTotalDeDx(0.0),
+maxTotalDeDx(999999)
 {
   switch (cutType) {
     case kEmpty:
@@ -26,7 +26,13 @@ minTotalDeDx(0.0)
       break;
     case kShortAboveThreshold:
       SetNdedxClusters(3, 3);
-      SetMinDedxPerCluster(5.0);
+      minDedxPerCluster = 2.5;
+      break;
+    case kShortLowTotalDEdx:
+      minDedxClusters = 0;
+      maxDedxClusters = 10;
+//      minTotalDeDx = 0.0;
+//      maxTotalDeDx = 38.0;
       break;
     default:
       cout<<"ERROR -- no track cut specified... in case you want a blank cut to customize, use ECut::kEmpty."<<endl;

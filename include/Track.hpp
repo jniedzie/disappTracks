@@ -34,7 +34,6 @@ public:
   void SetMass(double _mass){mass = _mass;}
   void SetPt(double _pt){pt = _pt;}
   void SetPid(int _pid){pid = _pid;}
-  void SetIsShort(bool _isShort){isShort = _isShort;}
   
   // Getters
   float   GetDeDxInLayer(int layer){return dedx[layer];}
@@ -55,8 +54,7 @@ public:
   double  GetMass(){return mass;}
   double  GetPt(){return pt;}
   int     GetPid(){return pid;}
-  
-  bool    GetIsShort(){return isShort;}
+
   int     GetNclusters();
   
   // Other methods
@@ -79,8 +77,6 @@ private:
   double mass;
   double pt;
   int pid;
-  
-  bool isShort; // track is short if it has max 3 dedx points
 };
 
 #endif /* Track_hpp */
