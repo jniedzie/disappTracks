@@ -27,7 +27,10 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   // Define event, track and jet cuts
   //---------------------------------------------------------------------------
-  EventCut *highMetEventCut = new EventCut(EventCut::kMet100GeV);
+  EventCut *oneTrackEventCut = new EventCut(EventCut::kOneTrack);
+  EventCut *oneJetEventCut = new EventCut(EventCut::kOneJet);
+  EventCut *oneTrackOneJetEventCut = new EventCut(EventCut::kOneTrackOneJet);
+  EventCut *highMetEventCut = new EventCut(EventCut::kMet100GeVOneTrackOneJet);
   
   TrackCut *shortTrackCut = new TrackCut(TrackCut::kShort);
   TrackCut *shortAboveTrasholdTrackCut = new TrackCut(TrackCut::kShortAboveThreshold);
@@ -159,28 +162,28 @@ int main(int argc, char* argv[])
   // Number of tracks in events passing different cuts
   //---------------------------------------------------------------------------
   
-  int nSignal =                     eventsSignal->SizeNonEmpty();
-  int nShortSignal =                eventsSignal->ApplyTrackCut(shortTrackCut)->SizeNonEmpty();
-  int nShortAboveThresholdSignal =  eventsSignal->ApplyTrackCut(shortAboveTrasholdTrackCut)->SizeNonEmpty();
-  int nShortLowTotalSignal =        eventsSignal->ApplyTrackCut(shortLowDedxTrackCut)->SizeNonEmpty();
-  int nShortLowTotalHighJetSignal = eventsSignal->ApplyCuts(nullptr, shortLowDedxTrackCut, highPtJetCut)->SizeNonEmpty();
-  int nShortLowTotalHighMetSignal = eventsSignal->ApplyCuts(highMetEventCut, shortLowDedxTrackCut, nullptr)->SizeNonEmpty();
+  int nSignal =                     eventsSignal->ApplyCuts(oneTrackOneJetEventCut,nullptr,nullptr)->size();
+  int nShortSignal =                eventsSignal->ApplyCuts(oneTrackOneJetEventCut,shortTrackCut,nullptr)->size();
+  int nShortAboveThresholdSignal =  eventsSignal->ApplyCuts(oneTrackOneJetEventCut,shortAboveTrasholdTrackCut,nullptr)->size();
+  int nShortLowTotalSignal =        eventsSignal->ApplyCuts(oneTrackOneJetEventCut,shortLowDedxTrackCut,nullptr)->size();
+  int nShortLowTotalHighJetSignal = eventsSignal->ApplyCuts(oneTrackOneJetEventCut, shortLowDedxTrackCut, highPtJetCut)->size();
+  int nShortLowTotalHighMetSignal = eventsSignal->ApplyCuts(highMetEventCut, shortLowDedxTrackCut, nullptr)->size();
   
-  int nBackground =                     eventsBackground->SizeNonEmpty();
-  int nShortBackground = 	              eventsBackground->ApplyTrackCut(shortTrackCut)->SizeNonEmpty();
-  int nShortAboveThresholdBackground =  eventsBackground->ApplyTrackCut(shortAboveTrasholdTrackCut)->SizeNonEmpty();
-  int nShortLowTotalBackground =        eventsBackground->ApplyTrackCut(shortLowDedxTrackCut)->SizeNonEmpty();
-  int nShortLowTotalHighJetBackground = eventsBackground->ApplyCuts(nullptr, shortLowDedxTrackCut, highPtJetCut)->SizeNonEmpty();
-  int nShortLowTotalHighMetBackground = eventsBackground->ApplyCuts(highMetEventCut, shortLowDedxTrackCut, nullptr)->SizeNonEmpty();
+  int nBackground =                     eventsBackground->ApplyCuts(oneTrackOneJetEventCut,nullptr,nullptr)->size();
+  int nShortBackground = 	              eventsBackground->ApplyCuts(oneTrackOneJetEventCut,shortTrackCut,nullptr)->size();
+  int nShortAboveThresholdBackground =  eventsBackground->ApplyCuts(oneTrackOneJetEventCut,shortAboveTrasholdTrackCut,nullptr)->size();
+  int nShortLowTotalBackground =        eventsBackground->ApplyCuts(oneTrackOneJetEventCut,shortLowDedxTrackCut,nullptr)->size();
+  int nShortLowTotalHighJetBackground = eventsBackground->ApplyCuts(oneTrackOneJetEventCut, shortLowDedxTrackCut, highPtJetCut)->size();
+  int nShortLowTotalHighMetBackground = eventsBackground->ApplyCuts(highMetEventCut, shortLowDedxTrackCut, nullptr)->size();
   
   int nData=0, nShortData=0, nShortAboveThresholdData=0, nShortLowTotalData=0, nShortLowTotalHighJetData=0, nShortLowTotalHighMetData=0;
   if(analyzeData){
-    nData =                     eventsData->SizeNonEmpty();
-    nShortData =                eventsData->ApplyTrackCut(shortTrackCut)->SizeNonEmpty();
-    nShortAboveThresholdData =  eventsData->ApplyTrackCut(shortAboveTrasholdTrackCut)->SizeNonEmpty();
-    nShortLowTotalData =        eventsData->ApplyTrackCut(shortLowDedxTrackCut)->SizeNonEmpty();
-    nShortLowTotalHighJetData = eventsData->ApplyCuts(nullptr, shortLowDedxTrackCut, highPtJetCut)->SizeNonEmpty();
-    nShortLowTotalHighMetData = eventsData->ApplyCuts(highMetEventCut, shortLowDedxTrackCut, nullptr)->SizeNonEmpty();
+    nData =                     eventsData->ApplyCuts(oneTrackOneJetEventCut,nullptr,nullptr)->size();
+    nShortData =                eventsData->ApplyCuts(oneTrackOneJetEventCut,shortTrackCut,nullptr)->size();
+    nShortAboveThresholdData =  eventsData->ApplyCuts(oneTrackOneJetEventCut,shortAboveTrasholdTrackCut,nullptr)->size();
+    nShortLowTotalData =        eventsData->ApplyCuts(oneTrackOneJetEventCut,shortLowDedxTrackCut,nullptr)->size();
+    nShortLowTotalHighJetData = eventsData->ApplyCuts(oneTrackOneJetEventCut, shortLowDedxTrackCut, highPtJetCut)->size();
+    nShortLowTotalHighMetData = eventsData->ApplyCuts(highMetEventCut, shortLowDedxTrackCut, nullptr)->size();
   }
   
   HistSet *nEvents = new HistSet("N events",10000,0,10e6);

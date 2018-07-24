@@ -64,11 +64,8 @@ void HistSet::FillFromEvents(Events *signalEvents, Events *backgroundEvents, Eve
     FillFromEventsPerLayer(signalEvents, backgroundEvents, dataEvents);
   }
   else{
-//    cout<<"Filling signal"<<endl;
     Fill(signal, signalEvents, var);
-//    cout<<"Filling background"<<endl;
     Fill(background, backgroundEvents, var);
-//    cout<<"Filling data"<<endl;
     Fill(data, dataEvents, var);
   }
 }
@@ -104,22 +101,16 @@ void HistSet::Fill(TH1D* hist, Events *events, int iLayer)
       
       double value = 0.0;
       
-      if(var == kNvertices) value = event->GetNvertices();
-      else if(var == kNisoTracks){
-        value = event->GetNtracks();
-//        cout<<"N tracks:"<<value<<"\t in tree:"<<event->GetNisoTracksFromTree()<<endl;
-      }
-      else if(var == kNjets){
-        value = event->GetNjets();
-//        cout<<"N jets:"<<value<<"\t in tree:"<<event->GetNjetsFromTree()<<endl;
-      }
-      else if(var == kNjets30) value = event->GetNjet30();
-      else if(var == kNjets30a) value = event->GetNjet30a();
-      else if(var == kMetSumEt) value = event->GetMetSumEt();
-      else if(var == kMetPt) value = event->GetMetPt();
-      else if(var == kMetMass) value = event->GetMetMass();
-      else if(var == kMetEta) value = event->GetMetEta();
-      else if(var == kMetPhi) value = event->GetMetPhi();
+      if(var == kNvertices)       value = event->GetNvertices();
+      else if(var == kNisoTracks) value = event->GetNtracks();
+      else if(var == kNjets)      value = event->GetNjets();
+      else if(var == kNjets30)    value = event->GetNjet30();
+      else if(var == kNjets30a)   value = event->GetNjet30a();
+      else if(var == kMetSumEt)   value = event->GetMetSumEt();
+      else if(var == kMetPt)      value = event->GetMetPt();
+      else if(var == kMetMass)    value = event->GetMetMass();
+      else if(var == kMetEta)     value = event->GetMetEta();
+      else if(var == kMetPhi)     value = event->GetMetPhi();
       
 //      if(var == kNjets) cout<<value<<endl;
       

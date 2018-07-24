@@ -13,9 +13,9 @@
 using namespace std;
 
 Jet::Jet() :
-pt(0),
-eta(0),
-phi(0)
+pt(99999),
+eta(99999),
+phi(99999)
 {
 
 };

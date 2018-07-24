@@ -8,7 +8,19 @@
 
 #include "Track.hpp"
 
-Track::Track()
+Track::Track() :
+eta(99999),
+phi(99999),
+caloEmEnergy(-1.0),
+caloHadEnergy(-1.0),
+dxy(99999),
+dxyErr(99999),
+dz(99999),
+dzErr(99999),
+charge(99999),
+mass(99999),
+pt(99999),
+pid(99999)
 {
   for(int iLayer=0;iLayer<nLayers;iLayer++){
     dedx.push_back(0.0);

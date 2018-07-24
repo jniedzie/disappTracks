@@ -30,14 +30,12 @@ public:
   Events* ApplyTrackCut(TrackCut *cut);
   Events* ApplyJetCut(JetCut *cut);
   
-  inline unsigned long size(){return events.size();}
+  inline int size(){return (int)events.size();}
   Event* At(int index){return events[index];}
-  
-  int SizeNonEmpty();
-  int GetNtracks();
-  int GetNjets();
-  
+
 private:
+  Events(const Events &event);
+  
   std::vector<Event*> events;
 };
 
@@ -54,8 +52,6 @@ public:
   inline void AddTrack(Track *track){tracks.push_back(track);}
   inline void AddJet(Jet *jet){jets.push_back(jet);}
   
-  inline void SetNisoTracksFromTree(int n){nIsoTracks = n;}
-  inline void SetNjetsFromTree(int n){nJets = n;}
   inline void SetNvertices(int n){nVertices = n;}
   inline void SetNjet30(int n){nJet30 = n;}
   inline void SetNjet30a(int n){nJet30a = n;}
@@ -68,8 +64,6 @@ public:
   // getters
   inline unsigned long GetNtracks(){return tracks.size(); }
   inline unsigned long GetNjets(){return jets.size(); }
-  inline int GetNisoTracksFromTree(){return nIsoTracks;}
-  inline int GetNjetsFromTree(){return nJets;}
   inline int GetNvertices(){return nVertices;}
   inline int GetNjet30(){return nJet30;}
   inline int GetNjet30a(){return nJet30a;}
@@ -96,9 +90,6 @@ public:
 private:
   vector<Track*> tracks;  // vector of isolated tracks
   vector<Jet*>   jets;    // vector of jets
-  
-  int nIsoTracks;
-  int nJets;
   
   int nVertices;          // Number of good verices
   int nJet30;             // Number of jets with pt > 30, |eta|<2.4

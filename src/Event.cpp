@@ -15,6 +15,13 @@ Events::Events()
   
 }
 
+Events::Events(const Events &e)
+{
+  for(auto event : e.events){
+    events.push_back(event);
+  }
+}
+
 Events::Events(string fileName)
 {
   cout<<"Reading events from:"<<fileName<<endl;
@@ -24,21 +31,16 @@ Events::Events(string fileName)
   TFile *inFile = TFile::Open(fileName.c_str());
   TTreeReader reader("tree", inFile);
   
-  TTreeReaderValue<unsigned long long> eventNumber(reader, "evt");
   TTreeReaderValue<int> nJets(reader, "nJet");
   TTreeReaderValue<int> nTracks(reader, "nIsoTrack");
-  
-  TTreeReaderArray<float> *dedx[nLayers];
-  TTreeReaderArray<int> *subDetId[nLayers];
-  TTreeReaderArray<int> *sizeX[nLayers];
-  TTreeReaderArray<int> *sizeY[nLayers];
-  
-  for(int iLayer=0;iLayer<nLayers;iLayer++){
-    dedx[iLayer] =  new TTreeReaderArray<float>(reader,Form("IsoTrack_dedxByLayer%i",iLayer));
-    subDetId[iLayer] =  new TTreeReaderArray<int>(reader,Form("IsoTrack_subDetIdByLayer%i",iLayer));
-    sizeX[iLayer] =  new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeXbyLayer%i",iLayer));
-    sizeY[iLayer] =  new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeYbyLayer%i",iLayer));
-  }
+  TTreeReaderValue<int>   _nVert(reader, "nVert");
+  TTreeReaderValue<int>   _nJet30(reader, "nJet30");
+  TTreeReaderValue<int>   _nJet30a(reader, "nJet30a");
+  TTreeReaderValue<float> _met_sumEt(reader, "met_sumEt");
+  TTreeReaderValue<float> _met_pt(reader, "met_pt");
+  TTreeReaderValue<float> _met_mass(reader, "met_mass");
+  TTreeReaderValue<float> _met_phi(reader, "met_phi");
+  TTreeReaderValue<float> _met_eta(reader, "met_eta");
   
   TTreeReaderArray<float> _eta(reader, "IsoTrack_eta");
   TTreeReaderArray<float> _phi(reader, "IsoTrack_phi");
@@ -53,24 +55,24 @@ Events::Events(string fileName)
   TTreeReaderArray<float> _pt(reader, "IsoTrack_pt");
   TTreeReaderArray<int>   _pid(reader, "IsoTrack_pdgId");
   
+  TTreeReaderArray<float> *dedx[nLayers];
+  TTreeReaderArray<int> *subDetId[nLayers];
+  TTreeReaderArray<int> *sizeX[nLayers];
+  TTreeReaderArray<int> *sizeY[nLayers];
+  
+  for(int iLayer=0;iLayer<nLayers;iLayer++){
+    dedx[iLayer] =      new TTreeReaderArray<float>(reader,Form("IsoTrack_dedxByLayer%i",iLayer));
+    subDetId[iLayer] =  new TTreeReaderArray<int>(reader,Form("IsoTrack_subDetIdByLayer%i",iLayer));
+    sizeX[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeXbyLayer%i",iLayer));
+    sizeY[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeYbyLayer%i",iLayer));
+  }
+  
   TTreeReaderArray<float> _jet_pt(reader,  "Jet_pt");
   TTreeReaderArray<float> _jet_eta(reader, "Jet_eta");
   TTreeReaderArray<float> _jet_phi(reader, "Jet_phi");
-  
-  TTreeReaderValue<int>   _nVert(reader, "nVert");
-  TTreeReaderValue<int>   _nJet30(reader, "nJet30");
-  TTreeReaderValue<int>   _nJet30a(reader, "nJet30a");
-  TTreeReaderValue<float> _met_sumEt(reader, "met_sumEt");
-  TTreeReaderValue<float> _met_pt(reader, "met_pt");
-  TTreeReaderValue<float> _met_mass(reader, "met_mass");
-  TTreeReaderValue<float> _met_phi(reader, "met_phi");
-  TTreeReaderValue<float> _met_eta(reader, "met_eta");
 
   while (reader.Next()){
-    
-
     Event *newEvent = new Event();
-    
     
     for(int iTrack=0;iTrack<*nTracks;iTrack++){
       Track *track = new Track();
@@ -85,14 +87,12 @@ Events::Events(string fileName)
       track->SetPt(_pt[iTrack]);
       track->SetPid(_pid[iTrack]);
       
-      
       for(int iLayer=0;iLayer<nLayers;iLayer++){
         track->SetDeDxInLayer(iLayer, (*dedx[iLayer])[iTrack]);
         track->SetSubDetIdInLayer(iLayer, (*subDetId[iLayer])[iTrack]);
         track->SetSizeXinLayer(iLayer, (*sizeX[iLayer])[iTrack]);
         track->SetSizeYinLayer(iLayer, (*sizeY[iLayer])[iTrack]);
       }
-      
       newEvent->AddTrack(track);
     }
     
@@ -105,8 +105,6 @@ Events::Events(string fileName)
     }
     
     newEvent->SetNvertices(*_nVert);
-    newEvent->SetNjetsFromTree(*nJets);
-    newEvent->SetNisoTracksFromTree(*nTracks);
     newEvent->SetNjet30(*_nJet30);
     newEvent->SetNjet30a(*_nJet30a);
     newEvent->SetMetSumEt(*_met_sumEt);
@@ -116,12 +114,6 @@ Events::Events(string fileName)
     newEvent->SetMetPhi(*_met_phi);
   
     events.push_back(newEvent);
-    
-
-
-
-//
-
   }
 }
 
@@ -130,45 +122,14 @@ Events::~Events()
   
 }
 
-int Events::SizeNonEmpty()
-{
-  int n=0;
-  for(auto event : events){
-    if(event->GetNtracks() > 0 && event->GetNjets() > 0) n++;
-  }
-  return n;
-}
-
-int Events::GetNtracks()
-{
-  int nTracks = 0;
-  for(int iEvent=0;iEvent < events.size();iEvent++){
-    nTracks+= events[iEvent]->GetNtracks();
-  }
-  return nTracks;
-}
-
-int Events::GetNjets()
-{
-  int nJets = 0;
-  for(int iEvent=0;iEvent < events.size();iEvent++){
-    nJets += events[iEvent]->GetNjets();
-  }
-  return nJets;
-}
-
 Events* Events::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut)
 {
-  Events *outputEvents = new Events();
-  if(eventCut){
-    outputEvents = ApplyEventCut(eventCut);
-    if(trackCut)  outputEvents = outputEvents->ApplyTrackCut(trackCut);
-    if(jetCut)    outputEvents = outputEvents->ApplyJetCut(jetCut);
-  }
-  else{
-    if(trackCut)  outputEvents = ApplyTrackCut(trackCut);
-    if(jetCut)    outputEvents = outputEvents->ApplyJetCut(jetCut);
-  }
+  Events *outputEvents = new Events(*this);
+  
+  if(trackCut)  outputEvents = outputEvents->ApplyTrackCut(trackCut);
+  if(jetCut)    outputEvents = outputEvents->ApplyJetCut(jetCut);
+  if(eventCut)  outputEvents = outputEvents->ApplyEventCut(eventCut);
+  
   return outputEvents;
 }
 
@@ -218,6 +179,15 @@ Event* Event::ApplyTrackCut(TrackCut *cut)
   Event *outputEvent = new Event();
   for(auto j : jets){outputEvent->AddJet(j);}
   
+  outputEvent->SetNvertices(nVertices);
+  outputEvent->SetNjet30(nJet30);
+  outputEvent->SetNjet30a(nJet30a);
+  outputEvent->SetMetSumEt(metSumEt);
+  outputEvent->SetMetPt(metPt);
+  outputEvent->SetMetMass(metMass);
+  outputEvent->SetMetPhi(metPhi);
+  outputEvent->SetMetEta(metEta);
+  
   vector<Track*> tracksPassingCut;
   
   for(auto track : tracks){
@@ -233,6 +203,15 @@ Event* Event::ApplyJetCut(JetCut *cut)
   Event *outputEvent = new Event();
   for(auto t : tracks){outputEvent->AddTrack(t);}
   
+  outputEvent->SetNvertices(nVertices);
+  outputEvent->SetNjet30(nJet30);
+  outputEvent->SetNjet30a(nJet30a);
+  outputEvent->SetMetSumEt(metSumEt);
+  outputEvent->SetMetPt(metPt);
+  outputEvent->SetMetMass(metMass);
+  outputEvent->SetMetPhi(metPhi);
+  outputEvent->SetMetEta(metEta);
+  
   vector<Track*> jetPassingCuts;
   
   for(auto jet : jets){
@@ -247,6 +226,16 @@ bool Event::IsPassingCut(EventCut *cut)
 {
   // check MET properties
   if(metPt < cut->GetMinMetPt()){
+    return false;
+  }
+  
+  // check jets
+  if(GetNjets() < cut->GetMinNjets()){
+    return false;
+  }
+  
+  // check tracks
+  if(GetNtracks() < cut->GetMinNtracks()){
     return false;
   }
   
