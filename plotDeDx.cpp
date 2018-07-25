@@ -5,17 +5,6 @@
 
 #include <TApplication.h>
 
-//  string inFileNameSignal = "../jniedzie/mcSignal/tree.root";
-//string inFileNameBackground = "../jniedzie/mcBackground/tree.root";
-
-string inFileNameSignal = "../adish/Signal/tree.root";
-string inFileNameBackground[kNbackgrounds] = {
-  "../adish/Background/WW/tree.root",
-  "../adish/Background/WZ/tree.root",
-  "../adish/Background/ZZ/tree.root",
-};
-string inFileNameData = "../adish/Data/tree.root";
-
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);

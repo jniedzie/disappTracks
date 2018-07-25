@@ -206,20 +206,20 @@ void HistSet::Draw(TCanvas *c1, int pad)
   c1->cd(pad);
   signal->SetLineColor(kBlue);
   signal->SetFillStyle(1000);
-  signal->SetFillColorAlpha(kBlue, 0.2);
+  signal->SetFillColorAlpha(kBlue, fillOpacity);
   if(ShouldNormalize()) signal->Scale(1/signal->Integral());
   if(!DoSumw2()) signal->Sumw2(false);
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    background[iBck]->SetLineColor(kRed);
+    background[iBck]->SetLineColor(BackColor((EBackground)iBck));
     background[iBck]->SetFillStyle(1000);
-    background[iBck]->SetFillColorAlpha(kRed, 0.2);
+    background[iBck]->SetFillColorAlpha(BackColor((EBackground)iBck), fillOpacity);
     if(ShouldNormalize())  background[iBck]->Scale(1/background[iBck]->Integral());
     if(!DoSumw2()) background[iBck]->Sumw2(false);
   }
   data->SetLineColor(kGreen);
   data->SetFillStyle(1000);
-  data->SetFillColorAlpha(kGreen, 0.2);
+  data->SetFillColorAlpha(kGreen, fillOpacity);
   if(ShouldNormalize())  data->Scale(1/data->Integral());
   if(!DoSumw2()) data->Sumw2(false);
   
@@ -256,20 +256,20 @@ void HistSet::DrawPerLayer()
     
     signalPerLayer[iLayer]->SetLineColor(kBlue);
     signalPerLayer[iLayer]->SetFillStyle(1000);
-    signalPerLayer[iLayer]->SetFillColorAlpha(kBlue,0.2);
+    signalPerLayer[iLayer]->SetFillColorAlpha(kBlue,fillOpacity);
     signalPerLayer[iLayer]->Scale(1/signalPerLayer[iLayer]->Integral());
     signalPerLayer[iLayer]->Sumw2(DoSumw2());
     
     for(int iBck=0;iBck<kNbackgrounds;iBck++){
-      backgroundPerLayer[iBck][iLayer]->SetLineColor(kRed+1);
+      backgroundPerLayer[iBck][iLayer]->SetLineColor(BackColor((EBackground)iBck));
       backgroundPerLayer[iBck][iLayer]->SetFillStyle(1000);
-      backgroundPerLayer[iBck][iLayer]->SetFillColorAlpha(kRed, 0.2);
+      backgroundPerLayer[iBck][iLayer]->SetFillColorAlpha(BackColor((EBackground)iBck), fillOpacity);
       backgroundPerLayer[iBck][iLayer]->Scale(1/backgroundPerLayer[iBck][iLayer]->Integral());
       backgroundPerLayer[iBck][iLayer]->Sumw2(DoSumw2());
     }
     dataPerLayer[iLayer]->SetLineColor(kGreen+1);
     dataPerLayer[iLayer]->SetFillStyle(1000);
-    dataPerLayer[iLayer]->SetFillColorAlpha(kGreen, 0.2);
+    dataPerLayer[iLayer]->SetFillColorAlpha(kGreen, fillOpacity);
     dataPerLayer[iLayer]->Scale(1/dataPerLayer[iLayer]->Integral());
     dataPerLayer[iLayer]->Sumw2(DoSumw2());
 
