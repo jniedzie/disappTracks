@@ -12,13 +12,17 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   // Load MC and data files
   //---------------------------------------------------------------------------
-  Events *eventsSignal = new Events(inFileNameSignal);
+  Events *eventsSignal[kNsignals];
   Events *eventsBackground[kNbackgrounds];
+  Events *eventsData = analyzeData ? new Events(inFileNameData) : nullptr;
   
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    eventsSignal[iSig] = new Events(inFileNameSignal[iSig]);
+  }
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
    eventsBackground[iBck] = new Events(inFileNameBackground[iBck]);
   }
-  Events *eventsData = analyzeData ? new Events(inFileNameData) : nullptr;
+  
   
   //---------------------------------------------------------------------------
   // Define event, track and jet cuts
@@ -160,13 +164,23 @@ int main(int argc, char* argv[])
   // Number of tracks in events passing different cuts
   //---------------------------------------------------------------------------
   
-  int nSignal =                     eventsSignal->ApplyCuts(oneTrackOneJetEventCut,nullptr,nullptr)->size();
-  int nShortSignal =                eventsSignal->ApplyCuts(oneTrackOneJetEventCut,shortTrackCut,nullptr)->size();
-  int nShortAboveThresholdSignal =  eventsSignal->ApplyCuts(oneTrackOneJetEventCut,shortAboveTrasholdTrackCut,nullptr)->size();
-  int nShortLowTotalSignal =        eventsSignal->ApplyCuts(oneTrackOneJetEventCut,shortLowDedxTrackCut,nullptr)->size();
-  int nShortLowTotalHighJetSignal = eventsSignal->ApplyCuts(oneTrackOneJetEventCut, shortLowDedxTrackCut, highPtJetCut)->size();
-  int nShortLowTotalHighMetSignal = eventsSignal->ApplyCuts(highMetEventCut, shortLowDedxTrackCut, nullptr)->size();
-  int nBestSignal                 = eventsSignal->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut)->size();
+  int nSignal[kNsignals];
+  int nShortSignal[kNsignals];
+  int nShortAboveThresholdSignal[kNsignals];
+  int nShortLowTotalSignal[kNsignals];
+  int nShortLowTotalHighJetSignal[kNsignals];
+  int nShortLowTotalHighMetSignal[kNsignals];
+  int nBestSignal[kNsignals];
+  
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    nSignal[iSig] =                     eventsSignal[iSig]->ApplyCuts(oneTrackOneJetEventCut,nullptr,nullptr)->size();
+    nShortSignal[iSig] =                eventsSignal[iSig]->ApplyCuts(oneTrackOneJetEventCut,shortTrackCut,nullptr)->size();
+    nShortAboveThresholdSignal[iSig] =  eventsSignal[iSig]->ApplyCuts(oneTrackOneJetEventCut,shortAboveTrasholdTrackCut,nullptr)->size();
+    nShortLowTotalSignal[iSig] =        eventsSignal[iSig]->ApplyCuts(oneTrackOneJetEventCut,shortLowDedxTrackCut,nullptr)->size();
+    nShortLowTotalHighJetSignal[iSig] = eventsSignal[iSig]->ApplyCuts(oneTrackOneJetEventCut, shortLowDedxTrackCut, highPtJetCut)->size();
+    nShortLowTotalHighMetSignal[iSig] = eventsSignal[iSig]->ApplyCuts(highMetEventCut, shortLowDedxTrackCut, nullptr)->size();
+    nBestSignal[iSig]                 = eventsSignal[iSig]->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut)->size();
+  }
   
   int nBackground[kNbackgrounds];
   int nShortBackground[kNbackgrounds];
@@ -212,26 +226,23 @@ int main(int argc, char* argv[])
   nShortLowTotalHighMetEvents->SetShowNonZerBinPosX();
   nBest->SetShowNonZerBinPosX();
   
-  nEvents->FillSignal(nSignal);
   nEvents->FillData(nData);
-  
-  nShortEvents->FillSignal(nShortSignal/(double)nSignal);
   nShortEvents->FillData(nShortData/(double)nData);
-  
-  nShortAboveEvents->FillSignal(nShortAboveThresholdSignal/(double)nSignal);
   nShortAboveEvents->FillData(nShortAboveThresholdData/(double)nData);
-  
-  nShortLowTotalEvents->FillSignal(nShortLowTotalSignal/(double)nSignal);
   nShortLowTotalEvents->FillData(nShortLowTotalData/(double)nData);
-  
-  nShortLowTotalHighJetEvents->FillSignal(nShortLowTotalHighJetSignal/(double)nSignal);
   nShortLowTotalHighJetEvents->FillData(nShortLowTotalHighJetData/(double)nData);
-  
-  nShortLowTotalHighMetEvents->FillSignal(nShortLowTotalHighMetSignal/(double)nSignal);
   nShortLowTotalHighMetEvents->FillData(nShortLowTotalHighMetData/(double)nData);
-  
-  nBest->FillSignal(nBestSignal/(double)nSignal);
   nBest->FillData(nBestData/(double)nData);
+  
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    nEvents->FillSignal((ESignal)iSig,nSignal[iSig]);
+    nShortEvents->FillSignal((ESignal)iSig,nShortSignal[iSig]/(double)nSignal[iSig]);
+    nShortAboveEvents->FillSignal((ESignal)iSig,nShortAboveThresholdSignal[iSig]/(double)nSignal[iSig]);
+    nShortLowTotalEvents->FillSignal((ESignal)iSig,nShortLowTotalSignal[iSig]/(double)nSignal[iSig]);
+    nShortLowTotalHighJetEvents->FillSignal((ESignal)iSig,nShortLowTotalHighJetSignal[iSig]/(double)nSignal[iSig]);
+    nShortLowTotalHighMetEvents->FillSignal((ESignal)iSig,nShortLowTotalHighMetSignal[iSig]/(double)nSignal[iSig]);
+    nBest->FillSignal((ESignal)iSig,nBestSignal[iSig]/(double)nSignal[iSig]);
+  }
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     nEvents->FillBackground((EBackground)iBck, nBackground[iBck]);

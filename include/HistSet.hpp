@@ -24,18 +24,20 @@ public:
   HistSet(EVar _var);
   ~HistSet();
   
-  inline void FillSignal(double value){signal->Fill(value);}
+  inline void FillSignal(ESignal sig, double value){signal[sig]->Fill(value);}
   inline void FillBackground(EBackground bck, double value){background[bck]->Fill(value);}
   inline void FillData(double value){data->Fill(value);}
   
-  void FillFromEvents(Events *signalEvents, Events *backgroundEvents[kNbackgrounds], Events *dataEvents);
+  void FillFromEvents(Events *signalEvents[kNsignals],
+                      Events *backgroundEvents[kNbackgrounds],
+                      Events *dataEvents);
   
   void Draw(TCanvas *c1, int pad);
   void DrawPerLayer();
   
   inline void SetShowNonZerBinPosX(){showNonZeroBinPosX = true;}
 private:
-  TH1D *signal;
+  TH1D *signal[kNsignals];
   TH1D *data;
   
   TH1D *background[kNbackgrounds];
@@ -44,11 +46,11 @@ private:
   const char* customTitle;
   bool showNonZeroBinPosX;
   
-  std::vector<TH1D*> signalPerLayer;
+  std::vector<TH1D*> signalPerLayer[kNsignals];
   std::vector<TH1D*> backgroundPerLayer[kNbackgrounds];
   std::vector<TH1D*> dataPerLayer;
   
-  void FillFromEventsPerLayer(Events *signalEvents,
+  void FillFromEventsPerLayer(Events *signalEvents[kNsignals],
                               Events *backgroundEvents[kNbackgrounds],
                               Events *dataEvents);
   
