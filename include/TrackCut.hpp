@@ -14,9 +14,9 @@ public:
   
   enum ECut {
     kEmpty,
-    kShort,
-    kShortAboveThreshold,
-    kShortLowTotalDEdx
+    kShort,                 ///< 3 to 4 dE/dx clusters
+    kShortAboveThreshold,   ///< 3 to 4 dE/dx clusters, each cluster ≥ 2.5 MeV
+    kShortLowTotalDEdx      ///< max 10 dE/dx clusters, ΣdE/dx ≥ 38 MeV
   };
   
   TrackCut(ECut cutType=kEmpty);

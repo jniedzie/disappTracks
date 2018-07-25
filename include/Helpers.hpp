@@ -37,4 +37,59 @@ inline TLegend* GetLegend(double legendW = 0.15, double legendH = 0.5, double le
   return leg;
 }
 
+enum EVar{
+  kCustom,
+  
+  // per event variables
+  kNvertices,
+  kNisoTracks,
+  kNjets,
+  kNjets30,
+  kNjets30a,
+  kMetSumEt,
+  kMetPt,
+  kMetMass,
+  kMetEta,
+  kMetPhi,
+  
+  // per track variables
+  kTrackNclusters,
+  kTrackTotalDedx,
+  kTrackDedxPerCluster,
+  kTrackPt,
+  kTrackEta,
+  kTrackPhi,
+  kTrackCaloEm,
+  kTrackCaloHad,
+  kTrackDxy,
+  kTrackDz,
+  kTrackCharge,
+  kTrackMass,
+  kTrackPid,
+  
+  // per jet variables
+  kJetPt,
+  kJetEta,
+  kJetPhi,
+  
+  // per track per layer variables
+  kDedx,  ///< dE/dx per layer
+  kSizeX, ///< X cluster size in each layer
+  kSizeY  ///< Y cluster size in each layer
+};
+
+enum EBackground{
+  kWW,
+  kWZ,
+  kZZ,
+  
+  kNbackgrounds
+};
+
+inline const char* backgroundTitle[kNbackgrounds] = {
+  "WW",
+  "WZ",
+  "ZZ"
+};
+
 #endif /* Helpers_h */

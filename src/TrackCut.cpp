@@ -22,17 +22,19 @@ maxTotalDeDx(999999)
     case kEmpty:
       break;
     case kShort:
-      SetNdedxClusters(3, 3);
+      minDedxClusters = 3;
+      maxDedxClusters = 4;
       break;
     case kShortAboveThreshold:
-      SetNdedxClusters(3, 3);
+      minDedxClusters = 3;
+      maxDedxClusters = 4;
       minDedxPerCluster = 2.5;
       break;
     case kShortLowTotalDEdx:
       minDedxClusters = 0;
       maxDedxClusters = 10;
-//      minTotalDeDx = 0.0;
-//      maxTotalDeDx = 38.0;
+      minTotalDeDx = 0.0;
+      maxTotalDeDx = 38.0;
       break;
     default:
       cout<<"ERROR -- no track cut specified... in case you want a blank cut to customize, use ECut::kEmpty."<<endl;

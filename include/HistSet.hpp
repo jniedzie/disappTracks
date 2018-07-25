@@ -18,56 +18,17 @@
 
 class HistSet {
 public:
-  enum EVar{
-    kCustom,
-    
-    // per event variables
-    kNvertices,
-    kNisoTracks,
-    kNjets,
-    kNjets30,
-    kNjets30a,
-    kMetSumEt,
-    kMetPt,
-    kMetMass,
-    kMetEta,
-    kMetPhi,
-    
-    // per track variables
-    kTrackNclusters,
-    kTrackTotalDedx,
-    kTrackDedxPerCluster,
-    kTrackPt,
-    kTrackEta,
-    kTrackPhi,
-    kTrackCaloEm,
-    kTrackCaloHad,
-    kTrackDxy,
-    kTrackDz,
-    kTrackCharge,
-    kTrackMass,
-    kTrackPid,
-    
-    // per jet variables
-    kJetPt,
-    kJetEta,
-    kJetPhi,
-    
-    // per track per layer variables
-    kDedx,  ///< dE/dx per layer
-    kSizeX, ///< X cluster size in each layer
-    kSizeY  ///< Y cluster size in each layer
-  };
+ 
   
   HistSet(const char* title, int nBins, double min, double max);
   HistSet(EVar _var);
   ~HistSet();
   
   inline void FillSignal(double value){signal->Fill(value);}
-  inline void FillBackground(double value){background->Fill(value);}
+  inline void FillBackground(EBackground bck, double value){background[bck]->Fill(value);}
   inline void FillData(double value){data->Fill(value);}
   
-  void FillFromEvents(Events *signalEvents, Events *backgroundEvents, Events *dataEvents);
+  void FillFromEvents(Events *signalEvents, Events *backgroundEvents[kNbackgrounds], Events *dataEvents);
   
   void Draw(TCanvas *c1, int pad);
   void DrawPerLayer();
@@ -75,18 +36,21 @@ public:
   inline void SetShowNonZerBinPosX(){showNonZeroBinPosX = true;}
 private:
   TH1D *signal;
-  TH1D *background;
   TH1D *data;
+  
+  TH1D *background[kNbackgrounds];
   
   EVar var;
   const char* customTitle;
   bool showNonZeroBinPosX;
   
   std::vector<TH1D*> signalPerLayer;
-  std::vector<TH1D*> backgroundPerLayer;
+  std::vector<TH1D*> backgroundPerLayer[kNbackgrounds];
   std::vector<TH1D*> dataPerLayer;
   
-  void FillFromEventsPerLayer(Events *signalEvents, Events *backgroundEvents, Events *dataEvents);
+  void FillFromEventsPerLayer(Events *signalEvents,
+                              Events *backgroundEvents[kNbackgrounds],
+                              Events *dataEvents);
   
   TLegend* GetLegend();
   
