@@ -45,8 +45,8 @@ private:
 
 class Event{
 public:
-  Event(){};
-  ~Event(){};
+  Event();
+  ~Event();
   
   // setters
   inline void AddTrack(Track *track){tracks.push_back(track);}

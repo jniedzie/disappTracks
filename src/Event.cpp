@@ -9,6 +9,7 @@
 #include "Event.hpp"
 
 #include <TTreeReaderArray.h>
+//#include <ROOT/TTreeProcessorMT.hxx>
 
 Events::Events()
 {
@@ -30,9 +31,9 @@ Events::Events(string fileName)
   
   TFile *inFile = TFile::Open(fileName.c_str());
   TTreeReader reader("tree", inFile);
-  
-  TTreeReaderValue<int> nJets(reader, "nJet");
-  TTreeReaderValue<int> nTracks(reader, "nIsoTrack");
+
+  TTreeReaderValue<int>   nJets(reader, "nJet");
+  TTreeReaderValue<int>   nTracks(reader, "nIsoTrack");
   TTreeReaderValue<int>   _nVert(reader, "nVert");
   TTreeReaderValue<int>   _nJet30(reader, "nJet30");
   TTreeReaderValue<int>   _nJet30a(reader, "nJet30a");
@@ -41,7 +42,7 @@ Events::Events(string fileName)
   TTreeReaderValue<float> _met_mass(reader, "met_mass");
   TTreeReaderValue<float> _met_phi(reader, "met_phi");
   TTreeReaderValue<float> _met_eta(reader, "met_eta");
-  
+
   TTreeReaderArray<float> _eta(reader, "IsoTrack_eta");
   TTreeReaderArray<float> _phi(reader, "IsoTrack_phi");
   TTreeReaderArray<float> _caloEmEnergy(reader, "IsoTrack_caloEmEnergy");
@@ -54,26 +55,26 @@ Events::Events(string fileName)
   TTreeReaderArray<float> _mass(reader, "IsoTrack_mass");
   TTreeReaderArray<float> _pt(reader, "IsoTrack_pt");
   TTreeReaderArray<int>   _pid(reader, "IsoTrack_pdgId");
-  
+
   TTreeReaderArray<float> *dedx[nLayers];
   TTreeReaderArray<int> *subDetId[nLayers];
   TTreeReaderArray<int> *sizeX[nLayers];
   TTreeReaderArray<int> *sizeY[nLayers];
-  
+
   for(int iLayer=0;iLayer<nLayers;iLayer++){
     dedx[iLayer] =      new TTreeReaderArray<float>(reader,Form("IsoTrack_dedxByLayer%i",iLayer));
     subDetId[iLayer] =  new TTreeReaderArray<int>(reader,Form("IsoTrack_subDetIdByLayer%i",iLayer));
     sizeX[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeXbyLayer%i",iLayer));
     sizeY[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeYbyLayer%i",iLayer));
   }
-  
+
   TTreeReaderArray<float> _jet_pt(reader,  "Jet_pt");
   TTreeReaderArray<float> _jet_eta(reader, "Jet_eta");
   TTreeReaderArray<float> _jet_phi(reader, "Jet_phi");
 
   while (reader.Next()){
     Event *newEvent = new Event();
-    
+
     for(int iTrack=0;iTrack<*nTracks;iTrack++){
       Track *track = new Track();
       track->SetEta(_eta[iTrack]);
@@ -86,7 +87,7 @@ Events::Events(string fileName)
       track->SetMass(_mass[iTrack]);
       track->SetPt(_pt[iTrack]);
       track->SetPid(_pid[iTrack]);
-      
+
       for(int iLayer=0;iLayer<nLayers;iLayer++){
         track->SetDeDxInLayer(iLayer, (*dedx[iLayer])[iTrack]);
         track->SetSubDetIdInLayer(iLayer, (*subDetId[iLayer])[iTrack]);
@@ -95,7 +96,7 @@ Events::Events(string fileName)
       }
       newEvent->AddTrack(track);
     }
-    
+
     for(int iJet=0;iJet<*nJets;iJet++){
       Jet *jet = new Jet();
       jet->SetPt(_jet_pt[iJet]);
@@ -103,7 +104,7 @@ Events::Events(string fileName)
       jet->SetPhi(_jet_phi[iJet]);
       newEvent->AddJet(jet);
     }
-    
+
     newEvent->SetNvertices(*_nVert);
     newEvent->SetNjet30(*_nJet30);
     newEvent->SetNjet30a(*_nJet30a);
@@ -112,10 +113,118 @@ Events::Events(string fileName)
     newEvent->SetMetMass(*_met_mass);
     newEvent->SetMetEta(*_met_eta);
     newEvent->SetMetPhi(*_met_phi);
-  
+
     events.push_back(newEvent);
   }
 }
+
+//Events::Events(string fileName)
+//{
+//  cout<<"Reading events from:"<<fileName<<endl;
+//
+//  TFile *inFile = TFile::Open(fileName.c_str());
+//  TTree *tree = (TTree*)inFile->Get("tree");
+////  TTreeReader reader("tree", inFile);
+//
+//  ROOT::EnableImplicitMT(8);
+//  ROOT::TTreeProcessorMT treeProcessor(*tree);
+//
+//  ROOT::TThreadedObject<Events> eventsMT(new Events());
+//
+//  auto myFunction = [&](TTreeReader &reader)
+//  {
+//    TTreeReaderValue<int>   nJets(reader, "nJet");
+//    TTreeReaderValue<int>   nTracks(reader, "nIsoTrack");
+//    TTreeReaderValue<int>   _nVert(reader, "nVert");
+//    TTreeReaderValue<int>   _nJet30(reader, "nJet30");
+//    TTreeReaderValue<int>   _nJet30a(reader, "nJet30a");
+//    TTreeReaderValue<float> _met_sumEt(reader, "met_sumEt");
+//    TTreeReaderValue<float> _met_pt(reader, "met_pt");
+//    TTreeReaderValue<float> _met_mass(reader, "met_mass");
+//    TTreeReaderValue<float> _met_phi(reader, "met_phi");
+//    TTreeReaderValue<float> _met_eta(reader, "met_eta");
+//
+//    TTreeReaderArray<float> _eta(reader, "IsoTrack_eta");
+//    TTreeReaderArray<float> _phi(reader, "IsoTrack_phi");
+//    TTreeReaderArray<float> _caloEmEnergy(reader, "IsoTrack_caloEmEnergy");
+//    TTreeReaderArray<float> _caloHadEnergy(reader, "IsoTrack_caloHadEnergy");
+//    TTreeReaderArray<float> _dxyErr(reader, "IsoTrack_edxy");
+//    TTreeReaderArray<float> _dxy(reader, "IsoTrack_dxy");
+//    TTreeReaderArray<float> _dzErr(reader, "IsoTrack_edz");
+//    TTreeReaderArray<float> _dz(reader, "IsoTrack_dz");
+//    TTreeReaderArray<int>   _charge(reader, "IsoTrack_charge");
+//    TTreeReaderArray<float> _mass(reader, "IsoTrack_mass");
+//    TTreeReaderArray<float> _pt(reader, "IsoTrack_pt");
+//    TTreeReaderArray<int>   _pid(reader, "IsoTrack_pdgId");
+//
+//    TTreeReaderArray<float> *dedx[nLayers];
+//    TTreeReaderArray<int> *subDetId[nLayers];
+//    TTreeReaderArray<int> *sizeX[nLayers];
+//    TTreeReaderArray<int> *sizeY[nLayers];
+//
+//    for(int iLayer=0;iLayer<nLayers;iLayer++){
+//      dedx[iLayer] =      new TTreeReaderArray<float>(reader,Form("IsoTrack_dedxByLayer%i",iLayer));
+//      subDetId[iLayer] =  new TTreeReaderArray<int>(reader,Form("IsoTrack_subDetIdByLayer%i",iLayer));
+//      sizeX[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeXbyLayer%i",iLayer));
+//      sizeY[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeYbyLayer%i",iLayer));
+//    }
+//
+//    TTreeReaderArray<float> _jet_pt(reader,  "Jet_pt");
+//    TTreeReaderArray<float> _jet_eta(reader, "Jet_eta");
+//    TTreeReaderArray<float> _jet_phi(reader, "Jet_phi");
+//
+//    while (reader.Next()){
+//      Event *newEvent = new Event();
+//
+//      for(int iTrack=0;iTrack<*nTracks;iTrack++){
+//        Track *track = new Track();
+//        track->SetEta(_eta[iTrack]);
+//        track->SetPhi(_phi[iTrack]);
+//        track->SetCaloEmEnergy(_caloEmEnergy[iTrack]);
+//        track->SetCaloHadEnergy(_caloHadEnergy[iTrack]);
+//        track->SetDxy(_dxy[iTrack],_dxyErr[iTrack]);
+//        track->SetDz(_dz[iTrack],_dzErr[iTrack]);
+//        track->SetCharge(_charge[iTrack]);
+//        track->SetMass(_mass[iTrack]);
+//        track->SetPt(_pt[iTrack]);
+//        track->SetPid(_pid[iTrack]);
+//
+//        for(int iLayer=0;iLayer<nLayers;iLayer++){
+//          track->SetDeDxInLayer(iLayer, (*dedx[iLayer])[iTrack]);
+//          track->SetSubDetIdInLayer(iLayer, (*subDetId[iLayer])[iTrack]);
+//          track->SetSizeXinLayer(iLayer, (*sizeX[iLayer])[iTrack]);
+//          track->SetSizeYinLayer(iLayer, (*sizeY[iLayer])[iTrack]);
+//        }
+//        newEvent->AddTrack(track);
+//      }
+//
+//      for(int iJet=0;iJet<*nJets;iJet++){
+//        Jet *jet = new Jet();
+//        jet->SetPt(_jet_pt[iJet]);
+//        jet->SetEta(_jet_eta[iJet]);
+//        jet->SetPhi(_jet_phi[iJet]);
+//        newEvent->AddJet(jet);
+//      }
+//
+//      newEvent->SetNvertices(*_nVert);
+//      newEvent->SetNjet30(*_nJet30);
+//      newEvent->SetNjet30a(*_nJet30a);
+//      newEvent->SetMetSumEt(*_met_sumEt);
+//      newEvent->SetMetPt(*_met_pt);
+//      newEvent->SetMetMass(*_met_mass);
+//      newEvent->SetMetEta(*_met_eta);
+//      newEvent->SetMetPhi(*_met_phi);
+//
+//      eventsMT->AddEvent(newEvent);
+//    }
+//  };
+//  treeProcessor.Process(myFunction);
+//
+//  auto eventsMerged = eventsMT.Merge();
+//  Events *eventsList = eventsMerged.get();
+//
+//}
+
 
 Events::~Events()
 {
@@ -168,6 +277,16 @@ Events* Events::ApplyJetCut(JetCut *cut)
 //---------------------------------------------------------------------------------------
 // Single event class
 //---------------------------------------------------------------------------------------
+
+Event::Event()
+{
+  
+}
+
+Event::~Event()
+{
+  
+}
 
 void Event::Print(){
   for(auto t : tracks){ t->Print(); }

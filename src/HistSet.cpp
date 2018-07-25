@@ -240,7 +240,7 @@ void HistSet::DrawPerLayer()
   TLegend *leg = GetLegend();
   leg->AddEntry(signalPerLayer[0],"Signal","lp");
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    leg->AddEntry(backgroundPerLayer[0][iBck],Form("Background %s",backgroundTitle[iBck]),"lp");
+    leg->AddEntry(backgroundPerLayer[iBck][0],Form("Background %s",backgroundTitle[iBck]),"lp");
   }
   leg->AddEntry(dataPerLayer[0],"Data","lp");
   
@@ -289,7 +289,7 @@ void HistSet::DrawPerLayer()
 
 TLegend* HistSet::GetLegend()
 {
-  double legendW=0.30, legendH=0.25, legendX=0.60, legendY=0.65;
+  double legendW=0.25, legendH=0.80, legendX=0.65, legendY=0.1;
   TLegend *leg = new TLegend(legendX,legendY,legendX+legendW,legendY+legendH);
   leg->SetHeader("Sample type:");
   return leg;
@@ -424,7 +424,7 @@ double HistSet::GetMax()
   if(var == kMetEta)      return 3.5;
   if(var == kMetPhi)      return 3.5;
   
-  if(var == kTrackNclusters)      return 20;
+  if(var == kTrackNclusters)      return 22;
   if(var == kTrackTotalDedx)      return 140;
   if(var == kTrackDedxPerCluster) return 14;
   if(var == kTrackPt)             return 1000.0;
@@ -442,9 +442,9 @@ double HistSet::GetMax()
   if(var == kJetEta)  return 3.0;
   if(var == kJetPhi)  return 3.5;
   
-  if(var == kDedx)    return 10.0;
-  if(var == kSizeX)   return 10.0;
-  if(var == kSizeY)   return 10.0;
+  if(var == kDedx)    return 13.0;
+  if(var == kSizeX)   return 13.0;
+  if(var == kSizeY)   return 13.0;
   return 1000.0;
 }
 

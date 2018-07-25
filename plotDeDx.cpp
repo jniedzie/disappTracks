@@ -198,12 +198,12 @@ int main(int argc, char* argv[])
   }
   
   HistSet *nEvents = new HistSet("N events",10000,0,10e6);
-  HistSet *nShortEvents = new HistSet("N events with short tracks (3 hits only) (\%)",100,0,1.0);
-  HistSet *nShortAboveEvents = new HistSet("N short tracks (3 hits) above threshold (2.5 MeV / cluster) (\%)",100,0,1.0);
-  HistSet *nShortLowTotalEvents = new HistSet("N events (cut set 1) (\%)",100,0,1.0);
-  HistSet *nShortLowTotalHighJetEvents = new HistSet("N events (cut set 1 + jet cut) (\%)",100,0,1.0);
-  HistSet *nShortLowTotalHighMetEvents = new HistSet("N events (cut set 1 + MET cut) (\%)",100,0,1.0);
-  HistSet *nBest = new HistSet("N events (best cut set) (\%)",100,0,1.1);
+  HistSet *nShortEvents = new HistSet("N events with short tracks (3 hits only) (\%)",100,0,1.6);
+  HistSet *nShortAboveEvents = new HistSet("N short tracks (3 hits) above threshold (2.5 MeV / cluster) (\%)",100,0,1.6);
+  HistSet *nShortLowTotalEvents = new HistSet("N events (cut set 1) (\%)",100,0,1.6);
+  HistSet *nShortLowTotalHighJetEvents = new HistSet("N events (cut set 1 + jet cut) (\%)",100,0,1.6);
+  HistSet *nShortLowTotalHighMetEvents = new HistSet("N events (cut set 1 + MET cut) (\%)",100,0,1.6);
+  HistSet *nBest = new HistSet("N events (best cut set) (\%)",100,0,1.6);
   
   nShortEvents->SetShowNonZerBinPosX();
   nShortAboveEvents->SetShowNonZerBinPosX();
