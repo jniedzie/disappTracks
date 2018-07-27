@@ -34,6 +34,11 @@ maxHadCalo(999999)
     case kLowTotal:
       maxTotalDeDx = 38.0;
       break;
+    case kLowCaloLowDEdx:
+      maxEmCalo = 0.5;
+      maxHadCalo = 0.5;
+      maxTotalDeDx = 38.0;
+      break;
     case kShort:
       minDedxClusters = 3;
       maxDedxClusters = 4;

@@ -31,6 +31,7 @@ public:
   Events* ApplyJetCut(JetCut *cut);
   
   inline int size(){return (int)events.size();}
+  double WeightedSize();
   Event* At(int index){return events[index];}
 
 private:

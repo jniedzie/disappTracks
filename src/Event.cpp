@@ -113,7 +113,7 @@ Events::Events(string fileName, int dataType)
     double weight = lumi * (*_xsec) * (*_genwgt) / (*_wgtsum);
 
     if(dataType==1){
-      weight = 300; // just invented some number to make signal visible
+      weight = 182; // just invented some number to make S/B ~ 1
       weight *= 10000.0/reader.GetEntries(true); // correct for less entries in the tree than for background
     }
     else if(dataType==2){
@@ -180,6 +180,10 @@ Events* Events::ApplyJetCut(JetCut *cut)
     outputEvents->AddEvent(events[iEvent]->ApplyJetCut(cut));
   }
   return outputEvents;
+}
+
+double Events::WeightedSize(){
+  return events[0]->GetWeight()*events.size();
 }
 
 //---------------------------------------------------------------------------------------

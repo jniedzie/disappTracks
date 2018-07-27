@@ -17,6 +17,7 @@ public:
     kHighPt,                ///< pT ≥ 200 GeV
     kLowCalo,               ///< energy deposit in both EM and Had calo ≤ 0.5 GeV
     kLowTotal,              ///< ΣdE/dx ≤ 38 MeV
+    kLowCaloLowDEdx,        ///< calo ≤ 0.5 GeV, ΣdE/dx ≤ 38 MeV
     kShort,                 ///< 3-4 clusters
     kShortLowCalo,          ///< 3-4 clusters, calo ≤ 0.5 GeV
     kShortHighPt,           ///< 3-4 clusters, pT ≥ 200 GeV
