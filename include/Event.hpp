@@ -19,7 +19,7 @@ class Event;
 
 class Events {
 public:
-  Events(std::string fileName);
+  Events(std::string fileName, int dataType=0); // 0 - background, 1 - signal, 2 - data
   Events();
   ~Events();
   
@@ -52,6 +52,7 @@ public:
   inline void AddTrack(Track *track){tracks.push_back(track);}
   inline void AddJet(Jet *jet){jets.push_back(jet);}
   
+  inline void SetWeight(double val){weight = val;}
   inline void SetNvertices(int n){nVertices = n;}
   inline void SetNjet30(int n){nJet30 = n;}
   inline void SetNjet30a(int n){nJet30a = n;}
@@ -64,6 +65,7 @@ public:
   // getters
   inline unsigned long GetNtracks(){return tracks.size(); }
   inline unsigned long GetNjets(){return jets.size(); }
+  inline double GetWeight(){return weight;}
   inline int GetNvertices(){return nVertices;}
   inline int GetNjet30(){return nJet30;}
   inline int GetNjet30a(){return nJet30a;}
@@ -91,6 +93,7 @@ private:
   vector<Track*> tracks;  // vector of isolated tracks
   vector<Jet*>   jets;    // vector of jets
   
+  double weight;          // Weight for this event resulting from lumi, xsec and number of events generated
   int nVertices;          // Number of good verices
   int nJet30;             // Number of jets with pt > 30, |eta|<2.4
   int nJet30a;            // Number of jets with pt > 30, |eta|<4.7

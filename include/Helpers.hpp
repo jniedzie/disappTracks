@@ -141,10 +141,10 @@ const string inFileNameBackground[kNbackgrounds] = {
 };
 
 const string inFileNameSignal[kNsignals] = {
-  "../adish/Signal/Wino_M_300_cTau_10/tree.root",
-  "../adish/Signal/Wino_M_300_cTau_3/tree.root",
-  "../adish/Signal/Wino_M_300_cTau_30/tree.root",
-  "../adish/Signal/Wino_M_500_cTau_10/tree.root"
+  "../adish/Signal/Wino_M_300_cTau_10/treeProducerXtracks/tree.root",
+  "../adish/Signal/Wino_M_300_cTau_3/treeProducerXtracks/tree.root",
+  "../adish/Signal/Wino_M_300_cTau_30/treeProducerXtracks/tree.root",
+  "../adish/Signal/Wino_M_500_cTau_10/treeProducerXtracks/tree.root"
 };
 
 const int backColors[kNbackgrounds][3] = {{230, 25, 75},{60, 180, 75},{255, 225, 25},{0, 130, 200},{245, 130, 48},{145, 30, 180},{70, 240, 240},{240, 50, 230},{250, 190, 190},{0, 128, 128},{230, 190, 255}};

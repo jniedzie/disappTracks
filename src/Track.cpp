@@ -65,5 +65,19 @@ bool Track::IsPassingCut(TrackCut *cut)
     }
   }
   
+  // check pt
+  if(pt < cut->GetMinPt()){
+    return false;
+  }
+  
+  // check calo energy
+  if(caloEmEnergy > cut->GetMaxEmCalo()){
+    return false;
+  }
+  
+  if(caloHadEnergy > cut->GetMaxHadCalo()){
+    return false;
+  }
+  
   return true;
 }

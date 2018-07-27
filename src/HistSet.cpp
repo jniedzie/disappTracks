@@ -146,7 +146,7 @@ void HistSet::Fill(TH1D* hist, Events *events, int iLayer)
 //      if(var == kNjets) cout<<value<<endl;
       
       if(var == kNvertices || var == kNisoTracks || var == kNjets || var == kNjets30 || var == kNjets30a || var == kMetSumEt || var == kMetPt || var == kMetMass || var == kMetEta || var == kMetPhi){
-        hist->Fill(value);
+        hist->Fill(value, event->GetWeight());
         continue;
       }
       
@@ -160,7 +160,7 @@ void HistSet::Fill(TH1D* hist, Events *events, int iLayer)
         else if(var == kJetPhi)  value = jet->GetPhi();
         
         if(var == kJetPt || var == kJetEta || var == kJetPhi){
-          hist->Fill(value);
+          hist->Fill(value,event->GetWeight());
         }
       }
       
@@ -187,12 +187,12 @@ void HistSet::Fill(TH1D* hist, Events *events, int iLayer)
         else if(var == kSizeY)  value = track->GetSizeYinLayer(iLayer);
         
         if(var == kDedx || var == kSizeX || var == kSizeY){
-          if(value > 0.00001) hist->Fill(value);
+          if(value > 0.00001) hist->Fill(value, event->GetWeight());
         }
         else if(var == kTrackNclusters || var == kTrackTotalDedx || var == kTrackDedxPerCluster || var == kTrackPt
              || var == kTrackEta || var == kTrackPhi || var == kTrackCaloEm || var == kTrackCaloHad
              || var == kTrackDxy ||var == kTrackDz   || var == kTrackCharge || var == kTrackMass || var == kTrackPid){
-          hist->Fill(value);
+          hist->Fill(value, event->GetWeight());
         }
       }
     }
@@ -483,25 +483,27 @@ double HistSet::GetMax()
 
 bool HistSet::ShouldNormalize()
 {
-  if(var == kCustom) return false;
+//  if(var == kCustom) return false;
   
-  return true;
+//  if(var == kTrackTotalDedx) return false;
+  
+  return false;
 }
 
 bool HistSet::DoSumw2()
 {
   if(var == kCustom) return false;
   
-  if(var == kNvertices)   return false;
-  if(var == kNisoTracks)  return false;
-  if(var == kNjets)       return false;
-  if(var == kNjets30)     return false;
-  if(var == kNjets30a)    return false;
-  if(var == kMetSumEt)    return false;
-  if(var == kMetPt)       return false;
-  if(var == kMetMass)     return false;
-  if(var == kMetEta)      return false;
-  if(var == kMetPhi)      return false;
+//  if(var == kNvertices)   return false;
+//  if(var == kNisoTracks)  return false;
+//  if(var == kNjets)       return false;
+//  if(var == kNjets30)     return false;
+//  if(var == kNjets30a)    return false;
+//  if(var == kMetSumEt)    return false;
+//  if(var == kMetPt)       return false;
+//  if(var == kMetMass)     return false;
+//  if(var == kMetEta)      return false;
+//  if(var == kMetPhi)      return false;
   
 //  if(var == kTrackNclusters)  return false;
 //  if(var == kTrackPt)         return false;

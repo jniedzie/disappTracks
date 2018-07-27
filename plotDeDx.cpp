@@ -14,13 +14,13 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   Events *eventsSignal[kNsignals];
   Events *eventsBackground[kNbackgrounds];
-  Events *eventsData = analyzeData ? new Events(inFileNameData) : nullptr;
+  Events *eventsData = analyzeData ? new Events(inFileNameData,2) : nullptr;
   
   for(int iSig=0;iSig<kNsignals;iSig++){
-    eventsSignal[iSig] = new Events(inFileNameSignal[iSig]);
+    eventsSignal[iSig] = new Events(inFileNameSignal[iSig],1);
   }
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-   eventsBackground[iBck] = new Events(inFileNameBackground[iBck]);
+   eventsBackground[iBck] = new Events(inFileNameBackground[iBck],0);
   }
   
   
@@ -32,13 +32,21 @@ int main(int argc, char* argv[])
   
   TrackCut *shortTrackCut = new TrackCut(TrackCut::kShort);
   TrackCut *shortAboveTrasholdTrackCut = new TrackCut(TrackCut::kShortAboveThreshold);
-  TrackCut *shortLowDedxTrackCut = new TrackCut(TrackCut::kShortLowTotalDEdx);
+  TrackCut *shortLowDedxTrackCut = new TrackCut(TrackCut::kShortLowTotal);
   
   JetCut *highPtJetCut = new JetCut(JetCut::kHighPt);
   
-  EventCut  *bestEventCut = new EventCut(EventCut::kOneTrackOneJet);
-  TrackCut  *bestTrackCut = new TrackCut(TrackCut::kShort);
+  EventCut  *bestEventCut = new EventCut(EventCut::kOneTrack);
+  TrackCut  *bestTrackCut = new TrackCut(TrackCut::kEmpty);
   JetCut    *bestJetCut   = new JetCut(JetCut::kEmpty);
+  
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    eventsSignal[iSig] = eventsSignal[iSig]->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut);
+  }
+
+//  for(int iBck=0;iBck<kNbackgrounds;iBck++){
+//    eventsBackground[iBck] = eventsBackground[iBck]->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut);
+//  }
   
   //---------------------------------------------------------------------------
   // Create standard per event, per track and per jet plots

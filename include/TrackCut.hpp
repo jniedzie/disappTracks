@@ -14,9 +14,20 @@ public:
   
   enum ECut {
     kEmpty,
-    kShort,                 ///< 3 to 4 dE/dx clusters
+    kHighPt,                ///< pT ≥ 200 GeV
+    kLowCalo,               ///< energy deposit in both EM and Had calo ≤ 0.5 GeV
+    kLowTotal,              ///< ΣdE/dx ≤ 38 MeV
+    kShort,                 ///< 3-4 clusters
+    kShortLowCalo,          ///< 3-4 clusters, calo ≤ 0.5 GeV
+    kShortHighPt,           ///< 3-4 clusters, pT ≥ 200 GeV
+    kShortLowTotal,         ///< 3-4 clusters, ΣdE/dx ≤ 38 MeV
+    kShortLowTotalHighPt,   ///< 3-4 clusters, ΣdE/dx ≤ 38 MeV, pT ≥ 200 GeV
     kShortAboveThreshold,   ///< 3 to 4 dE/dx clusters, each cluster ≥ 2.5 MeV
-    kShortLowTotalDEdx      ///< max 10 dE/dx clusters, ΣdE/dx ≥ 38 MeV
+    kMedium,                ///< 3-8 clusters
+    kMediumLowCalo,         ///< 3-8 clusters, calo ≤ 0.5 GeV
+    kMediumHighPt,          ///< 3-8 clusters, pT ≥ 200 GeV
+    kMediumLowTotal,        ///< 3-8 clusters, ΣdE/dx ≤ 38 MeV
+    kMediumLowTotalHighPt,  ///< 3-8 clusters, ΣdE/dx ≤ 38 MeV, pT ≥ 200 GeV
   };
   
   TrackCut(ECut cutType=kEmpty);
@@ -27,10 +38,16 @@ public:
   inline double GetMinDedxPerCluster(){return minDedxPerCluster;}
   inline double GetMinTotalDedx(){return minTotalDeDx;}
   inline double GetMaxTotalDedx(){return maxTotalDeDx;}
+  inline double GetMinPt(){return minPt;}
+  inline double GetMaxEmCalo(){return maxEmCalo;}
+  inline double GetMaxHadCalo(){return maxHadCalo;}
   
   inline void SetNdedxClusters(int min, int max){minDedxClusters=min;maxDedxClusters=max;}
   inline void SetMinDedxPerCluster(double min){minDedxPerCluster=min;}
   inline void SetTotalDedx(double min, double max){minTotalDeDx=min; maxTotalDeDx=max;}
+  inline void SetMinPt(double min){minPt = min;}
+  inline void SetMaxEmCalo(double max){maxEmCalo = max;}
+  inline void SetMaxHadCalo(double max){maxHadCalo = max;}
   
 private:
   int minDedxClusters;      ///< min number of dedx clusters along the track
@@ -38,7 +55,9 @@ private:
   double minDedxPerCluster; ///< min dedx at each track's cluster
   double minTotalDeDx;      ///< min total dedx along the track
   double maxTotalDeDx;      ///< max total dedx along the track
-  
+  double minPt;             ///< min transverse momentum of the track
+  double maxEmCalo;         ///< max energy deposit in EM calorimeter
+  double maxHadCalo;        ///< max energy deposit in hadronic calorimeter
 };
 
 #endif /* TrackCut_hpp */
