@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
   JetCut    *initialJetCut   = new JetCut(JetCut::kEmpty);
   
   EventCut  *bestEventCut = new EventCut(EventCut::kOneTrackOneJet);
-  TrackCut  *bestTrackCut = new TrackCut(TrackCut::kLowCaloLowDEdx);
+  TrackCut  *bestTrackCut = new TrackCut((TrackCut::ECut)(TrackCut::kLowCalo|TrackCut::kLowDEdx));
   JetCut    *bestJetCut   = new JetCut(JetCut::kEmpty);
   
   for(int iSig=0;iSig<kNsignals;iSig++){

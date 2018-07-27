@@ -10,25 +10,13 @@
 
 class TrackCut {
 public:
-  
-  
   enum ECut {
-    kEmpty,
-    kHighPt,                ///< pT ≥ 200 GeV
-    kLowCalo,               ///< energy deposit in both EM and Had calo ≤ 0.5 GeV
-    kLowTotal,              ///< ΣdE/dx ≤ 38 MeV
-    kLowCaloLowDEdx,        ///< calo ≤ 0.5 GeV, ΣdE/dx ≤ 38 MeV
-    kShort,                 ///< 3-4 clusters
-    kShortLowCalo,          ///< 3-4 clusters, calo ≤ 0.5 GeV
-    kShortHighPt,           ///< 3-4 clusters, pT ≥ 200 GeV
-    kShortLowTotal,         ///< 3-4 clusters, ΣdE/dx ≤ 38 MeV
-    kShortLowTotalHighPt,   ///< 3-4 clusters, ΣdE/dx ≤ 38 MeV, pT ≥ 200 GeV
-    kShortAboveThreshold,   ///< 3 to 4 dE/dx clusters, each cluster ≥ 2.5 MeV
-    kMedium,                ///< 3-8 clusters
-    kMediumLowCalo,         ///< 3-8 clusters, calo ≤ 0.5 GeV
-    kMediumHighPt,          ///< 3-8 clusters, pT ≥ 200 GeV
-    kMediumLowTotal,        ///< 3-8 clusters, ΣdE/dx ≤ 38 MeV
-    kMediumLowTotalHighPt,  ///< 3-8 clusters, ΣdE/dx ≤ 38 MeV, pT ≥ 200 GeV
+    kEmpty    = 1,
+    kHighPt   = 1 << 1, ///< pT ≥ 200 GeV
+    kLowCalo  = 1 << 2, ///< energy deposit in both EM and Had calo ≤ 0.5 GeV
+    kLowDEdx  = 1 << 3, ///< ΣdE/dx ≤ 38 MeV
+    kShort    = 1 << 4, ///< 3-4 clusters
+    kMedium   = 1 << 5, ///< 3-8 clusters
   };
   
   TrackCut(ECut cutType=kEmpty);
