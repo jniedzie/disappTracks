@@ -14,6 +14,7 @@
 #include "TrackCut.hpp"
 #include "Jet.hpp"
 #include "JetCut.hpp"
+#include "Lepton.hpp"
 
 class Event;
 
@@ -25,10 +26,11 @@ public:
   
   void AddEvent(Event *event){events.push_back(event);}
   
-  Events* ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut);
+  Events* ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut/* LeptonCut *leptonCut*/);
   Events* ApplyEventCut(EventCut *cut);
   Events* ApplyTrackCut(TrackCut *cut);
   Events* ApplyJetCut(JetCut *cut);
+//  Events* ApplyLeptonCut(LeptonCut *cut);
   
   inline int size(){return (int)events.size();}
   double WeightedSize();
@@ -52,6 +54,7 @@ public:
   // setters
   inline void AddTrack(Track *track){tracks.push_back(track);}
   inline void AddJet(Jet *jet){jets.push_back(jet);}
+  inline void AddLepton(Lepton *lepton){leptons.push_back(lepton);}
   
   inline void SetWeight(double val){weight = val;}
   
@@ -98,6 +101,7 @@ public:
   
   inline Track*  GetTrack(int i){return tracks[i];}
   inline Jet*    GetJet(int i){return jets[i];}
+  inline Lepton* GetLepton(int i){return leptons[i];}
   
   // other methods
   void Print();
@@ -111,8 +115,9 @@ public:
   /// Check if event passes a cut
   bool IsPassingCut(EventCut *cut);
 private:
-  vector<Track*> tracks;  // vector of isolated tracks
-  vector<Jet*>   jets;    // vector of jets
+  vector<Track*>  tracks;   // vector of isolated tracks
+  vector<Jet*>    jets;     // vector of jets
+  vector<Lepton*> leptons;  // vector of leptons
   
   double weight;          // Weight for this event resulting from lumi, xsec and number of events generated
   int nVertices;          // Number of good verices

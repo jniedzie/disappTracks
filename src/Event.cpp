@@ -70,6 +70,11 @@ Events::Events(string fileName, int dataType)
   TTreeReaderArray<float> _pt(reader, "IsoTrack_pt");
   TTreeReaderArray<int>   _pid(reader, "IsoTrack_pdgId");
 
+  TTreeReaderArray<float> _lepton_pt(reader, "LepGood_pt");
+  TTreeReaderArray<float> _lepton_phi(reader, "LepGood_phi");
+  TTreeReaderArray<float> _lepton_eta(reader, "LepGood_eta");
+  TTreeReaderArray<float> _lepton_thight_pid(reader, "LepGood_tightId");
+  
   TTreeReaderArray<float> *dedx[nLayers];
   TTreeReaderArray<int> *subDetId[nLayers];
   TTreeReaderArray<int> *sizeX[nLayers];
@@ -119,6 +124,15 @@ Events::Events(string fileName, int dataType)
       newEvent->AddJet(jet);
     }
 
+    for(int iLepton=0;iLepton<*_nLepton;iLepton++){
+      Lepton *lepton = new Lepton();
+      lepton->SetPt(_lepton_pt[iLepton]);
+      lepton->SetEta(_lepton_eta[iLepton]);
+      lepton->SetPhi(_lepton_phi[iLepton]);
+      lepton->SetPid(_lepton_thight_pid[iLepton]);
+      newEvent->AddLepton(lepton);
+    }
+    
     double lumi = 41.37 * 1000.;
     double weight = lumi * (*_xsec) * (*_genwgt) / (*_wgtsum);
 

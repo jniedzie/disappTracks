@@ -49,9 +49,15 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   // Define event, track and jet cuts
   //---------------------------------------------------------------------------
-  unsigned int eventCutOptions =
-//  EventCut::kEmpty;
-  EventCut::kOneTrack
+  unsigned int eventCutOptionsZmm =
+    EventCut::kOneTrack
+  | EventCut::kOneJet
+  | EventCut::kMetNoMu100GeV
+  | EventCut::kMetNoMuTrigger
+  | EventCut::kNoTau;
+  
+  unsigned int eventCutOptionsZvv =
+    EventCut::kOneTrack
   | EventCut::kOneJet
   | EventCut::kMetNoMu100GeV
   | EventCut::kMetNoMuTrigger
@@ -70,7 +76,8 @@ int main(int argc, char* argv[])
     JetCut::kEmpty;
 //  JetCut::kPt100GeV;
   
-  EventCut  *eventCut = new EventCut((EventCut::ECut)eventCutOptions);
+  EventCut  *eventCutZmm = new EventCut((EventCut::ECut)eventCutOptionsZmm);
+  EventCut  *eventCutZvv = new EventCut((EventCut::ECut)eventCutOptionsZvv);
   TrackCut  *trackCut = new TrackCut((TrackCut::ECut)trackCutOptions);
   JetCut    *jetCut   = new JetCut((JetCut::ECut)jetCutOptions);
   
@@ -79,8 +86,8 @@ int main(int argc, char* argv[])
     ZmmData[iHT] = new Events(basePath+"/"+ZmmFilePaths[iHT]+"/tree.root",0);
     ZvvData[iHT] = new Events(basePath+"/"+ZvvFilePaths[iHT]+"/tree.root",0);
   
-    ZmmData[iHT] = ZmmData[iHT]->ApplyCuts(eventCut, trackCut, jetCut);
-    ZvvData[iHT] = ZvvData[iHT]->ApplyCuts(eventCut, trackCut, jetCut);
+    ZmmData[iHT] = ZmmData[iHT]->ApplyCuts(eventCutZmm, trackCut, jetCut);
+    ZvvData[iHT] = ZvvData[iHT]->ApplyCuts(eventCutZvv, trackCut, jetCut);
   
     nEventsZvv[iHT] = new TH1D(Form("N events Zvv (HT bin %i)",iHT),Form("N events Zvv (HT bin %i)",iHT), 10, 0, 1000);
     nEventsZmm[iHT] = new TH1D(Form("N events Zmm (HT bin %i)",iHT),Form("N events Zmm (HT bin %i)",iHT), 10, 0, 1000);
