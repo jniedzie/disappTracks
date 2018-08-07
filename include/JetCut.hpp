@@ -18,6 +18,8 @@ public:
     kEta2p4   = 1 << 3, ///< |eta| < 2.4
     kChHEF0p1 = 1 << 4, ///< charged hadron energy fraction ≥ 0.1
     kNeHEF0p8 = 1 << 5, ///< neutral hadron energy fraction ≤ 0.8
+    kFwdEta4p7= 1 << 6, ///< |eta| < 4.7 for forward jets
+    kPt30GeV  = 1 << 7, ///< pT ≥ 30 GeV
   };
   
   JetCut(ECut cutType=kEmpty);
@@ -26,11 +28,13 @@ public:
   inline double GetMinPt(){return minPt;}
   inline double GetMaxPt(){return maxPt;}
   inline double GetMaxEta(){return maxEta;}
+  inline double GetMaxEtaFwd(){return maxEtaFwd;}
   inline double GetMinChargedHadronEnergyFraction(){return minChargedHadronEnergyFraction;}
   inline double GetMaxNeutralHadronEnergyFraction(){return maxNeutralHadronEnergyFraction;}
   
   inline void SetPtRange(double min, double max){minPt=min;maxPt=max;}
   inline void SetMaxEta(double max){maxEta = max;}
+  inline void SetMaxEtaFwd(double max){maxEtaFwd = max;}
   inline void SetMinChargedHadronEnergyFraction(double min){minChargedHadronEnergyFraction = min;}
   inline void SetMaxNeutralHadronEnergyFraction(double max){maxNeutralHadronEnergyFraction = max;}
   
@@ -40,6 +44,7 @@ private:
   double maxEta;  ///< max pseudorapidity
   double minChargedHadronEnergyFraction; ///< min charged hadron energy fraction
   double maxNeutralHadronEnergyFraction; ///< max neutral hadron energy fraction
+  double maxEtaFwd; ///< max pseudorapidity for forward jets
   
 };
 

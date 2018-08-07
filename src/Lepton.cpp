@@ -22,7 +22,7 @@ bool Lepton::IsPassingCut(LeptonCut *cut)
   if(pt < cut->GetMinPt() || pt > cut->GetMaxPt()) return false;
 
   // check isolation
-  if(isolation > cut->GetMaxIsolation()) return false;
+  if(isolation >= cut->GetMaxIsolation()) return false;
   
   // check tight id requirement
   if(cut->RequiresTightID() && !tightID) return false;

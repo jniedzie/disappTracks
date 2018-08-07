@@ -12,9 +12,9 @@ vector<string> ZmmFilePaths = {
 //  "Zmm/DYJetsM50_HT100to200",
 //  "Zmm/DYJetsM50_HT200to400",
 //  "Zmm/DYJetsM50_HT400to600",
-  "Zmm/DYJetsM50_HT600to800",
+//  "Zmm/DYJetsM50_HT600to800",
 //  "Zmm/DYJetsM50_HT800to1200",
-//  "Zmm/DYJetsM50_HT1200to2500",
+  "Zmm/DYJetsM50_HT1200to2500",
 //  "Zmm/DYJetsM50_HT2500toInf"
 };
 
@@ -22,9 +22,9 @@ vector<string> ZvvFilePaths = {
 //  "Zvv/ZvvJets_HT100to200",
 //  "Zvv/ZvvJets_HT200to400",
 //  "Zvv/ZvvJets_HT400to600",
-  "Zvv/ZvvJets_HT600to800",
+//  "Zvv/ZvvJets_HT600to800",
 //  "Zvv/ZvvJets_HT800to1200",
-//  "Zvv/ZvvJets_HT1200to2500",
+  "Zvv/ZvvJets_HT1200to2500",
 //  "Zvv/ZvvJets_HT2500toInf"
 };
 
@@ -52,37 +52,44 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   unsigned int eventCutOptionsZmm =
 //    EventCut::kOneTrack
-//  | EventCut::kOneJet
-    EventCut::kMetNoMu200GeV
-  | EventCut::kMetNoMuTrigger
-  | EventCut::kNoTau
-  | EventCut::kMetNoMuJetPhi0p5
-  | EventCut::kMuonsFromZ
+    EventCut::kOneJet // ok
+  | EventCut::kMetNoMu200GeV // ok
+  | EventCut::kMetNoMuTrigger // ok
+  | EventCut::kNoTau  // ok
+  | EventCut::kMetNoMuJetPhi0p5 // ok
+  | EventCut::kMuonsFromZ // ok
+//  | EventCut::kMuJetR0p4
+  | EventCut::kHighJetPt100GeV // ok
+  | EventCut::kHighJetChHEF0p1 // ok
+  | EventCut::kHighJetNeHEF0p8 // ok
+  | EventCut::kHighJetEta2p4   // ok
   ;
   
   unsigned int eventCutOptionsZvv =
 //  EventCut::kEmpty
 //    EventCut::kOneTrack
-//  | EventCut::kOneJet
-    EventCut::kMet200GeV
-  | EventCut::kMetNoMuTrigger
-  | EventCut::kNoTau
-  | EventCut::kMetJetPhi0p5
-  | EventCut::kNoLepton
+    EventCut::kOneJet // ok
+  | EventCut::kMet200GeV // ok
+  | EventCut::kMetNoMuTrigger // ok
+  | EventCut::kNoTau // ok
+  | EventCut::kMetJetPhi0p5 // ok
+  | EventCut::kNoLepton // ok
+  | EventCut::kHighJetPt100GeV // ok
+  | EventCut::kHighJetChHEF0p1 // ok
+  | EventCut::kHighJetNeHEF0p8 // ok
+  | EventCut::kHighJetEta2p4 // ok
   ;
   
   unsigned int trackCutOptions =
-//    TrackCut::kEmpty;
-    TrackCut::kPt50GeV
-  | TrackCut::kEta2p4
+    TrackCut::kEmpty
+//    TrackCut::kPt50GeV
+//  | TrackCut::kEta2p4
   ;
   
   unsigned int jetCutOptions =
 //    JetCut::kEmpty
-    JetCut::kPt100GeV
-  | JetCut::kEta2p4
-  | JetCut::kChHEF0p1
-  | JetCut::kNeHEF0p8
+    JetCut::kPt30GeV // ok
+  | JetCut::kFwdEta4p7 // ok
   ;
   
   unsigned int leptonCutOptions =

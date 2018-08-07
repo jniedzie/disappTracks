@@ -33,9 +33,10 @@ Events::Events(string fileName, int dataType)
   TFile *inFile = TFile::Open(fileName.c_str());
   TTreeReader reader("tree", inFile);
 
-  TTreeReaderValue<int>   nJets(reader, "nJet");
   TTreeReaderValue<int>   nTracks(reader, "nIsoTrack");
   TTreeReaderValue<int>   _nVert(reader, "nVert");
+  TTreeReaderValue<int>   nJets(reader, "nJet");
+  TTreeReaderValue<int>   nJetsFwd(reader, "nJetFwd");
   TTreeReaderValue<int>   _nJet30(reader, "nJet30");
   TTreeReaderValue<int>   _nJet30a(reader, "nJet30a");
   TTreeReaderValue<int>   _nLepton(reader, "nLepGood");
@@ -84,6 +85,13 @@ Events::Events(string fileName, int dataType)
   TTreeReaderArray<float> _jet_mass(reader, "Jet_mass");
   TTreeReaderArray<float> _jet_chHEF(reader, "Jet_chHEF");
   TTreeReaderArray<float> _jet_neHEF(reader, "Jet_neHEF");
+  
+  TTreeReaderArray<float> _jetFwd_pt(reader,  "JetFwd_pt");
+  TTreeReaderArray<float> _jetFwd_eta(reader, "JetFwd_eta");
+  TTreeReaderArray<float> _jetFwd_phi(reader, "JetFwd_phi");
+  TTreeReaderArray<float> _jetFwd_mass(reader, "JetFwd_mass");
+  TTreeReaderArray<float> _jetFwd_chHEF(reader, "JetFwd_chHEF");
+  TTreeReaderArray<float> _jetFwd_neHEF(reader, "JetFwd_neHEF");
 
   
   TTreeReaderArray<float> *dedx[nLayers];
@@ -132,9 +140,22 @@ Events::Events(string fileName, int dataType)
       jet->SetMass(_jet_mass[iJet]);
       jet->SetChargedHadronEnergyFraction(_jet_chHEF[iJet]);
       jet->SetNeutralHadronEnergyFraction(_jet_neHEF[iJet]);
+      jet->SetIsForward(false);
       newEvent->AddJet(jet);
     }
 
+    for(int iJet=0;iJet<*nJetsFwd;iJet++){
+      Jet *jet = new Jet();
+      jet->SetPt(_jetFwd_pt[iJet]);
+      jet->SetEta(_jetFwd_eta[iJet]);
+      jet->SetPhi(_jetFwd_phi[iJet]);
+      jet->SetMass(_jetFwd_mass[iJet]);
+      jet->SetChargedHadronEnergyFraction(_jetFwd_chHEF[iJet]);
+      jet->SetNeutralHadronEnergyFraction(_jetFwd_neHEF[iJet]);
+      jet->SetIsForward(true);
+      newEvent->AddJet(jet);
+    }
+    
     for(int iLepton=0;iLepton<*_nLepton;iLepton++){
       Lepton *lepton = new Lepton();
       lepton->SetPt(_lepton_pt[iLepton]);
@@ -267,7 +288,7 @@ void Event::Print(){
 Event* Event::CopyThisEventProperties()
 {
   Event *outputEvent = new Event();
-  
+    
   outputEvent->SetWeight(weight);
   outputEvent->SetNvertices(nVertices);
   outputEvent->SetNjet30(nJet30);
@@ -364,6 +385,8 @@ bool Event::IsPassingCut(EventCut *cut)
     return false;
   }
   
+  TLorentzVector muon1vector, muon2vector;
+  
   // check muons invariant mass
   if(cut->RequiresMuonsFromZ()){
     // check that there are exactly two muons
@@ -376,22 +399,26 @@ bool Event::IsPassingCut(EventCut *cut)
     if(muon1->GetPid() != -muon2->GetPid()) return false;
       
     // apply tight muon cuts (tightID flag, pt > 20 GeV, isolation < 0.15
-    unsigned int leptonCutOptions = LeptonCut::kIsolated | LeptonCut::kTightID | LeptonCut::kPt20GeV;
+    unsigned int leptonCutOptions =
+      LeptonCut::kIsolated
+    | LeptonCut::kTightID
+    | LeptonCut::kPt20GeV
+    ;
     LeptonCut *tightMuonCut = new LeptonCut((LeptonCut::ECut)leptonCutOptions);
-    
+
     bool atLeastOneTightMuon = false;
     if(muon1->IsPassingCut(tightMuonCut)) atLeastOneTightMuon = true;
     if(muon2->IsPassingCut(tightMuonCut)) atLeastOneTightMuon = true;
     if(!atLeastOneTightMuon)  return false;
-      
+//
     // check that invariant mass of muons is close to Z mass
-    TLorentzVector muonVectorSum, muon1vector, muon2vector;
+    TLorentzVector muonVectorSum;
     muon1vector.SetPtEtaPhiM(muon1->GetPt(),muon1->GetEta(),muon1->GetPhi(), 0.1057);
     muon2vector.SetPtEtaPhiM(muon2->GetPt(),muon2->GetEta(),muon2->GetPhi(), 0.1057);
-    
+
     muonVectorSum += muon1vector;
     muonVectorSum += muon2vector;
-    
+
     if(muonVectorSum.M() < 60. || muonVectorSum.M() > 120.) return false;
   }
   
@@ -416,6 +443,34 @@ bool Event::IsPassingCut(EventCut *cut)
       if(fabs(metVector.DeltaPhi(jetVector)) < 0.5) return false;
     }
   }
+  
+  if(cut->RequiresMuJetR0p4()){
+    TLorentzVector jetVector;
+    
+    for(auto j : jets){
+      if(j->IsForward()) continue;
+      jetVector.SetPtEtaPhiM(j->GetPt(), j->GetEta(), j->GetPhi(), j->GetMass());
+      if(jetVector.DeltaR(muon1vector) < 0.4) return false;
+      if(jetVector.DeltaR(muon2vector) < 0.4) return false;
+    }
+  }
+  
+  // check properties of the jet with highest pt
+  
+  Jet *highJet = nullptr;
+  double highestPt = -1.0;
+  
+  for(int iJet=0;iJet<GetNjets();iJet++){
+    if(jets[iJet]->GetPt() > highestPt){
+      highestPt = jets[iJet]->GetPt();
+      highJet = jets[iJet];
+    }
+  }
+  
+  if(highJet->GetPt() < cut->GetHighJetMinPt()) return false;
+  if(fabs(highJet->GetEta()) > cut->GetHighJetMaxEta()) return false;
+  if(highJet->GetChargedHadronEnergyFraction() < cut->GetHighJetMinChHEF()) return false;
+  if(highJet->GetNeutralHadronEnergyFraction() > cut->GetHighJetMaxNeHEF()) return false;
   
   return true;
 }

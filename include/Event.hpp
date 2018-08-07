@@ -56,7 +56,7 @@ public:
   inline void AddTrack(Track *track){tracks.push_back(track);}
   inline void AddJet(Jet *jet){jets.push_back(jet);}
   inline void AddLepton(Lepton *lepton){leptons.push_back(lepton);}
-  
+    
   inline void SetWeight(double val){weight = val;}
   
   inline void SetNvertices(int n){nVertices = n;}

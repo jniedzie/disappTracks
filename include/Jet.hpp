@@ -22,6 +22,7 @@ public:
   inline void SetMass(double _mass){mass = _mass;}
   inline void SetChargedHadronEnergyFraction(double frac){chargedHadronEnergyFraction = frac;}
   inline void SetNeutralHadronEnergyFraction(double frac){neutralHadronEnergyFraction = frac;}
+  inline void SetIsForward(double val){isForward = val;}
   
   inline double GetPt(){return pt;}
   inline double GetEta(){return eta;}
@@ -29,6 +30,7 @@ public:
   inline double GetMass(){return mass;}
   inline double GetChargedHadronEnergyFraction(){return chargedHadronEnergyFraction;}
   inline double GetNeutralHadronEnergyFraction(){return neutralHadronEnergyFraction;}
+  inline bool   IsForward(){return isForward;}
   
   bool IsPassingCut(JetCut *cut);
   void Print();
@@ -40,6 +42,7 @@ private:
   double mass;   ///< Mass
   double chargedHadronEnergyFraction; ///< Energy fraction carried by charged hadrons
   double neutralHadronEnergyFraction; ///< Energy fraction carried by neutral hadrons
+  bool isForward;   ///< is this a forward jet, or a regular one
 };
 
 #endif /* Jet_hpp */

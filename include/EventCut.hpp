@@ -27,6 +27,11 @@ public:
     kMetNoMu200GeV    = 1 << 13,  ///< MET no mu pt ≥ 200 GeV
     kMetJetPhi0p5     = 1 << 14,  ///< Δφ(MET pt,jet pt) ≥ 0.5 for each jet
     kMetNoMuJetPhi0p5 = 1 << 15,  ///< Δφ(MET no mu pt,jet pt) ≥ 0.5 for each jet
+    kMuJetR0p4        = 1 << 16,  ///< ΔR(mu,jet) ≥ 0.4 for each jet and each muon
+    kHighJetPt100GeV  = 1 << 17,  ///< require highest pt jet to have pt ≥ 100 GeV
+    kHighJetChHEF0p1  = 1 << 18,  ///< require highest pt jet to have charged hadron energy fraction above 0.1
+    kHighJetNeHEF0p8  = 1 << 19,  ///< require highest pt jet to have neutral hadron energy fraction below 0.8
+    kHighJetEta2p4    = 1 << 20,  ///< require highest pt jet to have |eta| ≤ 2.4
   };
   
   EventCut(ECut cutType=kEmpty);
@@ -46,6 +51,11 @@ public:
   inline void SetRequireMuonsFromZ(bool val){muonsFromZ = val;}
   inline void SetRequireMetJetPhi0p5(bool val){metJetPhi = val;}
   inline void SetRequireMetNoMuJetPhi0p5(bool val){metNoMuJetPhi = val;}
+  inline void SetRequireMuJetR0p4(bool val){muJetR0p4 = val;}
+  inline void SetHighJetMinPt(double val){highJetMinPt = val;}
+  inline void SetHighJetMinChHEF(double val){highJetMinChHEF = val;}
+  inline void SetHighJetMaxNeHEF(double val){highJetMaxNeHEF = val;}
+  inline void SetHighJetMaxEta(double val){highJetMaxEta = val;}
   
   // getters
   inline double GetMinMetPt(){return minMetPt;}
@@ -61,6 +71,11 @@ public:
   inline bool   RequiresMuonsFromZ(){return muonsFromZ;}
   inline bool   RequiresMetJetPhi0p5(){return metJetPhi;}
   inline bool   RequiresMetNoMuJetPhi0p5(){return metNoMuJetPhi;}
+  inline bool   RequiresMuJetR0p4(){return muJetR0p4;}
+  inline double GetHighJetMinPt(){return highJetMinPt;}
+  inline double GetHighJetMinChHEF(){return highJetMinChHEF;}
+  inline double GetHighJetMaxNeHEF(){return highJetMaxNeHEF;}
+  inline double GetHighJetMaxEta(){return highJetMaxEta;}
   
 private:
   double minMetPt;      ///< min MET pT
@@ -71,11 +86,17 @@ private:
   int maxNleptons;      ///< max number of leptons
   int minNmuons;        ///< min number if muons
   int maxNmuons;        ///< max number if muons
-  int maxNtau;         ///< max number of tau
+  int maxNtau;          ///< max number of tau
   bool metNoMuTrigger;  ///< should require MET no mu trigger
   bool muonsFromZ;      ///< should require two muons in the event with invariant mass close to Z mass
   bool metJetPhi;       ///< should require Δφ(MET pt,jet pt) ≥ 0.5 for each jet
-  bool metNoMuJetPhi;       ///< should require Δφ(MET pt,jet pt) ≥ 0.5 for each jet
+  bool metNoMuJetPhi;   ///< should require Δφ(MET pt,jet pt) ≥ 0.5 for each jet
+  bool muJetR0p4;       ///< should require ΔR(mu,jet) ≥ 0.4 for each jet and each muon
+  double highJetMinPt;      ///< min pt of the highest pt jet
+  double highJetMinChHEF;   ///< min charged hadron energy fraction of the highest pt jet
+  double highJetMaxNeHEF;   ///< max neutral hadron energy fraction of the highest pt jet
+  double highJetMaxEta;     ///< max |eta| of the highest pt jet
+  
 };
 
 #endif /* EventCut_hpp */

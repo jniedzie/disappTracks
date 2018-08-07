@@ -23,7 +23,12 @@ maxNmuons(999999),
 maxNtau(999999),
 metNoMuTrigger(false),
 metJetPhi(false),
-metNoMuJetPhi(false)
+metNoMuJetPhi(false),
+muJetR0p4(false),
+highJetMinPt(0),
+highJetMinChHEF(0),
+highJetMaxNeHEF(999999),
+highJetMaxEta(999999)
 {
   if(cutType&kEmpty) return;
   if(cutType&kOneTrack)         minNtracks = 1;
@@ -41,7 +46,11 @@ metNoMuJetPhi(false)
   if(cutType&kMuonsFromZ)       muonsFromZ = true;
   if(cutType&kMetJetPhi0p5)     metJetPhi = true;
   if(cutType&kMetNoMuJetPhi0p5) metNoMuJetPhi = true;
-  
+  if(cutType&kMuJetR0p4)        muJetR0p4 = true;
+  if(cutType&kHighJetPt100GeV)  highJetMinPt = 100.0;
+  if(cutType&kHighJetChHEF0p1)  highJetMinChHEF = 0.1;
+  if(cutType&kHighJetNeHEF0p8)  highJetMaxNeHEF = 0.8;
+  if(cutType&kHighJetEta2p4)    highJetMaxEta = 2.4;
 }
 
 EventCut::~EventCut()

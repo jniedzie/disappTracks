@@ -8,6 +8,8 @@
 
 #include "Jet.hpp"
 
+#include <TMath.h>
+
 #include <iostream>
 
 using namespace std;
@@ -16,7 +18,8 @@ Jet::Jet() :
 pt(99999),
 eta(99999),
 phi(99999),
-mass(999999)
+mass(999999),
+isForward(false)
 {
 
 };
@@ -39,7 +42,9 @@ bool Jet::IsPassingCut(JetCut *cut)
   }
   
   // check eta
-  if(eta > cut->GetMaxEta()) return false;
+  if(fabs(eta) > cut->GetMaxEta()) return false;
+  
+  if(isForward && fabs(eta) > cut->GetMaxEtaFwd())
   
   // check hadron energy fractions
   if(chargedHadronEnergyFraction < cut->GetMinChargedHadronEnergyFraction()) return false;
