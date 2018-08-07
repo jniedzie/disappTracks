@@ -28,7 +28,14 @@ int main(int argc, char* argv[])
   // Define event, track and jet cuts
   //---------------------------------------------------------------------------
   
+  unsigned int eventCutOptions =
+  EventCut::kOneTrack
+  | EventCut::kOneJet;
   
+  unsigned int bestEventCutOptions =
+  EventCut::kOneTrack
+  | EventCut::kOneJet
+  | EventCut::kMet100GeV;
   
   unsigned int trackCutOptions =
     TrackCut::kLowCalo
@@ -36,23 +43,26 @@ int main(int argc, char* argv[])
 //  | TrackCut::kHighPt;
 //  | TrackCut::kMedium;
   
-  EventCut  *initialEventCut = new EventCut(EventCut::kOneTrackOneJet);
+  unsigned int jetCutOptions =
+  JetCut::kPt200GeV;
+  
+  EventCut  *initialEventCut = new EventCut((EventCut::ECut)eventCutOptions);
   TrackCut  *initialTrackCut = new TrackCut(TrackCut::kEmpty);
   JetCut    *initialJetCut   = new JetCut(JetCut::kEmpty);
   
-  EventCut  *bestEventCut = new EventCut(EventCut::kMet100GeVOneTrackOneJet);
+  EventCut  *bestEventCut = new EventCut((EventCut::ECut)bestEventCutOptions);
   TrackCut  *bestTrackCut = new TrackCut((TrackCut::ECut)trackCutOptions);
-  JetCut    *bestJetCut   = new JetCut(JetCut::kHighPt);
+  JetCut    *bestJetCut   = new JetCut((JetCut::ECut)jetCutOptions);
   
   for(int iSig=0;iSig<kNsignals;iSig++){
-    eventsSignal[iSig] = eventsSignal[iSig]->ApplyCuts(initialEventCut, initialTrackCut, initialJetCut);
+    eventsSignal[iSig] = eventsSignal[iSig]->ApplyCuts(initialEventCut, initialTrackCut, initialJetCut, nullptr);
   }
 
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    eventsBackground[iBck] = eventsBackground[iBck]->ApplyCuts(initialEventCut, initialTrackCut, initialJetCut);
+    eventsBackground[iBck] = eventsBackground[iBck]->ApplyCuts(initialEventCut, initialTrackCut, initialJetCut, nullptr);
   }
   
-  if(analyzeData) eventsData = eventsData->ApplyCuts(initialEventCut, initialTrackCut, initialJetCut);
+  if(analyzeData) eventsData = eventsData->ApplyCuts(initialEventCut, initialTrackCut, initialJetCut, nullptr);
   
   //---------------------------------------------------------------------------
   // Create standard per event, per track and per jet plots
@@ -188,7 +198,7 @@ int main(int argc, char* argv[])
   
   for(int iSig=0;iSig<kNsignals;iSig++){
     nEvents[iSig] = eventsSignal[iSig]->WeightedSize();
-    nSignal[iSig] = eventsSignal[iSig]->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut)->WeightedSize();
+    nSignal[iSig] = eventsSignal[iSig]->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut, nullptr)->WeightedSize();
     nSignalTotal += nSignal[iSig];
     
     for(int iBck=0;iBck<kNbackgrounds;iBck++){
@@ -200,7 +210,7 @@ int main(int argc, char* argv[])
   }
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    Events *backgroundAfterCuts = eventsBackground[iBck]->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut);
+    Events *backgroundAfterCuts = eventsBackground[iBck]->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut, nullptr);
     if(backgroundAfterCuts){
       nBackground[iBck] =   backgroundAfterCuts->WeightedSize();
       nBackgroundTotal +=   nBackground[iBck];
@@ -212,7 +222,7 @@ int main(int argc, char* argv[])
   
   int nData=0,nDataTotal=0;
   if(analyzeData){
-    nData = eventsData->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut)->WeightedSize();
+    nData = eventsData->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut, nullptr)->WeightedSize();
   }
   
   for(int iSig=0;iSig<kNsignals;iSig++){
