@@ -1,1 +1,7 @@
 xDisappTracks.xcodeproj/
+tmp/*
+display
+getFfactor
+plotDeDx
+*.o
+
