@@ -15,7 +15,8 @@ using namespace std;
 Jet::Jet() :
 pt(99999),
 eta(99999),
-phi(99999)
+phi(99999),
+mass(999999)
 {
 
 };
@@ -36,6 +37,14 @@ bool Jet::IsPassingCut(JetCut *cut)
   if(pt < cut->GetMinPt() || pt > cut->GetMaxPt()){
     return false;
   }
+  
+  // check eta
+  if(eta > cut->GetMaxEta()) return false;
+  
+  // check hadron energy fractions
+  if(chargedHadronEnergyFraction < cut->GetMinChargedHadronEnergyFraction()) return false;
+  
+  if(neutralHadronEnergyFraction > cut->GetMaxNeutralHadronEnergyFraction()) return false;
   
   return true;
 }

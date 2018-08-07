@@ -9,6 +9,7 @@
 #include "Event.hpp"
 
 #include <TTreeReaderArray.h>
+#include <TLorentzVector.h>
 //#include <ROOT/TTreeProcessorMT.hxx>
 
 Events::Events()
@@ -77,6 +78,14 @@ Events::Events(string fileName, int dataType)
   TTreeReaderArray<float> _lepton_isolation(reader, "LepGood_relIso04");
   TTreeReaderArray<int>   _lepton_pid(reader, "LepGood_pdgId");
   
+  TTreeReaderArray<float> _jet_pt(reader,  "Jet_pt");
+  TTreeReaderArray<float> _jet_eta(reader, "Jet_eta");
+  TTreeReaderArray<float> _jet_phi(reader, "Jet_phi");
+  TTreeReaderArray<float> _jet_mass(reader, "Jet_mass");
+  TTreeReaderArray<float> _jet_chHEF(reader, "Jet_chHEF");
+  TTreeReaderArray<float> _jet_neHEF(reader, "Jet_neHEF");
+
+  
   TTreeReaderArray<float> *dedx[nLayers];
   TTreeReaderArray<int> *subDetId[nLayers];
   TTreeReaderArray<int> *sizeX[nLayers];
@@ -89,9 +98,6 @@ Events::Events(string fileName, int dataType)
     sizeY[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeYbyLayer%i",iLayer));
   }
 
-  TTreeReaderArray<float> _jet_pt(reader,  "Jet_pt");
-  TTreeReaderArray<float> _jet_eta(reader, "Jet_eta");
-  TTreeReaderArray<float> _jet_phi(reader, "Jet_phi");
 
   while (reader.Next()){
     Event *newEvent = new Event();
@@ -123,6 +129,9 @@ Events::Events(string fileName, int dataType)
       jet->SetPt(_jet_pt[iJet]);
       jet->SetEta(_jet_eta[iJet]);
       jet->SetPhi(_jet_phi[iJet]);
+      jet->SetMass(_jet_mass[iJet]);
+      jet->SetChargedHadronEnergyFraction(_jet_chHEF[iJet]);
+      jet->SetNeutralHadronEnergyFraction(_jet_neHEF[iJet]);
       newEvent->AddJet(jet);
     }
 
@@ -335,21 +344,78 @@ Event* Event::ApplyLeptonCut(LeptonCut *cut)
 bool Event::IsPassingCut(EventCut *cut)
 {
   // check MET properties
-  if(metPt < cut->GetMinMetPt()) return false;
-  if(metNoMuPt < cut->GetMinMetNoMuPt()) return false;
-  if(cut->RequiresMetNoMuTrigger() && !metNoMuTrigger) return false;
+  if(metPt < cut->GetMinMetPt())  return false;
+  if(metNoMuPt < cut->GetMinMetNoMuPt())  return false;
+  if(cut->RequiresMetNoMuTrigger() && !metNoMuTrigger)  return false;
   
   // check number of objects
   if(GetNjets() < cut->GetMinNjets()) return false;
   if(GetNtracks() < cut->GetMinNtracks()) return false;
-  if(nLepton < cut->GetMinNleptons() || nLepton > cut->GetMaxNleptons()) return false;
+  if(nLepton < cut->GetMinNleptons() || nLepton > cut->GetMaxNleptons())  return false;
   if(nTau > cut->GetMaxNtau()) return false;
   
-  int nMuons = 0;
+  vector<Lepton*> muons;
   for(auto l : leptons){
-    if(l->GetPid() == 13) nMuons++;
+    if(abs(l->GetPid()) == 13) muons.push_back(l);
   }
-  if(nMuons < cut->GetMinNmuons()) return false;
+  
+  // check number of muons
+  if(muons.size() < cut->GetMinNmuons() || muons.size() > cut->GetMaxNmuons()){
+    return false;
+  }
+  
+  // check muons invariant mass
+  if(cut->RequiresMuonsFromZ()){
+    // check that there are exactly two muons
+    if(muons.size() != 2) return false;
+  
+    Lepton *muon1 = muons[0];
+    Lepton *muon2 = muons[1];
+    
+    // make sure they have an opposite sign
+    if(muon1->GetPid() != -muon2->GetPid()) return false;
+      
+    // apply tight muon cuts (tightID flag, pt > 20 GeV, isolation < 0.15
+    unsigned int leptonCutOptions = LeptonCut::kIsolated | LeptonCut::kTightID | LeptonCut::kPt20GeV;
+    LeptonCut *tightMuonCut = new LeptonCut((LeptonCut::ECut)leptonCutOptions);
+    
+    bool atLeastOneTightMuon = false;
+    if(muon1->IsPassingCut(tightMuonCut)) atLeastOneTightMuon = true;
+    if(muon2->IsPassingCut(tightMuonCut)) atLeastOneTightMuon = true;
+    if(!atLeastOneTightMuon)  return false;
+      
+    // check that invariant mass of muons is close to Z mass
+    TLorentzVector muonVectorSum, muon1vector, muon2vector;
+    muon1vector.SetPtEtaPhiM(muon1->GetPt(),muon1->GetEta(),muon1->GetPhi(), 0.1057);
+    muon2vector.SetPtEtaPhiM(muon2->GetPt(),muon2->GetEta(),muon2->GetPhi(), 0.1057);
+    
+    muonVectorSum += muon1vector;
+    muonVectorSum += muon2vector;
+    
+    if(muonVectorSum.M() < 60. || muonVectorSum.M() > 120.) return false;
+  }
+  
+  
+  
+  if(cut->RequiresMetJetPhi0p5()){
+    TLorentzVector metVector, jetVector;
+    metVector.SetPtEtaPhiM(metPt, metEta, metPhi, metMass);
+    
+    for(auto j : jets){
+      jetVector.SetPtEtaPhiM(j->GetPt(), j->GetEta(), j->GetPhi(), j->GetMass());
+      if(fabs(metVector.DeltaPhi(jetVector)) < 0.5) return false;
+    }
+  }
+  
+  if(cut->RequiresMetNoMuJetPhi0p5()){
+    TLorentzVector metVector, jetVector;
+    metVector.SetPtEtaPhiM(metNoMuPt, metNoMuEta, metNoMuPhi, metNoMuMass);
+    
+    for(auto j : jets){
+      jetVector.SetPtEtaPhiM(j->GetPt(), j->GetEta(), j->GetPhi(), j->GetMass());
+      if(fabs(metVector.DeltaPhi(jetVector)) < 0.5) return false;
+    }
+  }
   
   return true;
 }

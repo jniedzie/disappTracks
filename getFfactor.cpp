@@ -6,158 +6,126 @@
 
 #include <TApplication.h>
 
-const int nHTbins = 4;
-
 string basePath = "../ZnnStudy";
 
-string ZmmFilePaths[nHTbins] = {
+vector<string> ZmmFilePaths = {
 //  "Zmm/DYJetsM50_HT100to200",
 //  "Zmm/DYJetsM50_HT200to400",
 //  "Zmm/DYJetsM50_HT400to600",
   "Zmm/DYJetsM50_HT600to800",
-  "Zmm/DYJetsM50_HT800to1200",
-  "Zmm/DYJetsM50_HT1200to2500",
-  "Zmm/DYJetsM50_HT2500toInf"
+//  "Zmm/DYJetsM50_HT800to1200",
+//  "Zmm/DYJetsM50_HT1200to2500",
+//  "Zmm/DYJetsM50_HT2500toInf"
 };
 
-string ZvvFilePaths[nHTbins] = {
+vector<string> ZvvFilePaths = {
 //  "Zvv/ZvvJets_HT100to200",
 //  "Zvv/ZvvJets_HT200to400",
 //  "Zvv/ZvvJets_HT400to600",
   "Zvv/ZvvJets_HT600to800",
-  "Zvv/ZvvJets_HT800to1200",
-  "Zvv/ZvvJets_HT1200to2500",
-  "Zvv/ZvvJets_HT2500toInf"
+//  "Zvv/ZvvJets_HT800to1200",
+//  "Zvv/ZvvJets_HT1200to2500",
+//  "Zvv/ZvvJets_HT2500toInf"
 };
 
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
   
-  Events *ZmmData[nHTbins];
-  Events *ZvvData[nHTbins];
+  vector<Events*> ZmmData;
+  vector<Events*> ZvvData;
   
-  TH1D *nEventsZvv[nHTbins];
-  TH1D *nEventsZmm[nHTbins];
+  const int nBins = 11;
+  double bins[] = {200., 225., 250., 275., 300., 350., 400., 450., 500., 600., 800., 1000.};
   
-  TH1D *nEventsZvvHTsum = nullptr;
-  TH1D *nEventsZmmHTsum = nullptr;
-  TH1D *fFactorSum = nullptr;
+  TH1D *nEventsZvv = new TH1D("N events Zvv","N events Zvv", nBins, bins);
+  TH1D *nEventsZmm = new TH1D("N events Zmm","N events Zmm", nBins, bins);
+  
+  nEventsZvv->Sumw2();
+  nEventsZmm->Sumw2();
   
   TCanvas *canvas = new TCanvas("F factor","F factor",2880,1800);
-  canvas->Divide(3,3);
+  canvas->Divide(2,2);
   
   //---------------------------------------------------------------------------
   // Define event, track and jet cuts
   //---------------------------------------------------------------------------
   unsigned int eventCutOptionsZmm =
-    EventCut::kOneTrack
-  | EventCut::kOneJet
-  | EventCut::kOneMuon
-  | EventCut::kMetNoMu100GeV
+//    EventCut::kOneTrack
+//  | EventCut::kOneJet
+    EventCut::kMetNoMu200GeV
   | EventCut::kMetNoMuTrigger
-  | EventCut::kNoTau;
+  | EventCut::kNoTau
+  | EventCut::kMetNoMuJetPhi0p5
+  | EventCut::kMuonsFromZ
+  ;
   
   unsigned int eventCutOptionsZvv =
-    EventCut::kOneTrack
-  | EventCut::kOneJet
-  | EventCut::kMetNoMu100GeV
+//  EventCut::kEmpty
+//    EventCut::kOneTrack
+//  | EventCut::kOneJet
+    EventCut::kMet200GeV
   | EventCut::kMetNoMuTrigger
+  | EventCut::kNoTau
+  | EventCut::kMetJetPhi0p5
   | EventCut::kNoLepton
-  | EventCut::kNoTau;
+  ;
   
   unsigned int trackCutOptions =
-//  TrackCut::kEmpty;
-  TrackCut::kPt50GeV
-  | TrackCut::kEta2p4;
-//  | TrackCut::kLowDEdx;
-  //  | TrackCut::kHighPt;
-  //  | TrackCut::kMedium;
+//    TrackCut::kEmpty;
+    TrackCut::kPt50GeV
+  | TrackCut::kEta2p4
+  ;
   
   unsigned int jetCutOptions =
-    JetCut::kEmpty;
-//  JetCut::kPt100GeV;
+//    JetCut::kEmpty
+    JetCut::kPt100GeV
+  | JetCut::kEta2p4
+  | JetCut::kChHEF0p1
+  | JetCut::kNeHEF0p8
+  ;
   
   unsigned int leptonCutOptions =
-    LeptonCut::kIsolated
-  | LeptonCut::kTightID
-  | LeptonCut::kPt20GeV;
+    LeptonCut::kEmpty;
   
   
   EventCut  *eventCutZmm  = new EventCut((EventCut::ECut)eventCutOptionsZmm);
   EventCut  *eventCutZvv  = new EventCut((EventCut::ECut)eventCutOptionsZvv);
+  
   TrackCut  *trackCut     = new TrackCut((TrackCut::ECut)trackCutOptions);
   JetCut    *jetCut       = new JetCut((JetCut::ECut)jetCutOptions);
   LeptonCut *leptonCut    = new LeptonCut((LeptonCut::ECut)leptonCutOptions);
   
-  for(int iHT=0;iHT<nHTbins;iHT++){
+  for(int iHT=0;iHT<ZmmFilePaths.size();iHT++){
   
-    ZmmData[iHT] = new Events(basePath+"/"+ZmmFilePaths[iHT]+"/tree.root",0);
-    ZvvData[iHT] = new Events(basePath+"/"+ZvvFilePaths[iHT]+"/tree.root",0);
-  
+    ZmmData.push_back(new Events(basePath+"/"+ZmmFilePaths[iHT]+"/tree.root",0));
     ZmmData[iHT] = ZmmData[iHT]->ApplyCuts(eventCutZmm, trackCut, jetCut, leptonCut);
-    ZvvData[iHT] = ZvvData[iHT]->ApplyCuts(eventCutZvv, trackCut, jetCut, leptonCut);
-  
-    nEventsZvv[iHT] = new TH1D(Form("N events Zvv (HT bin %i)",iHT),Form("N events Zvv (HT bin %i)",iHT), 10, 0, 1000);
-    nEventsZmm[iHT] = new TH1D(Form("N events Zmm (HT bin %i)",iHT),Form("N events Zmm (HT bin %i)",iHT), 10, 0, 1000);
-    
-    nEventsZvv[iHT]->Sumw2();
-    nEventsZmm[iHT]->Sumw2();
-    
-    for(int iEvent=0;iEvent<ZvvData[iHT]->size();iEvent++){
-      nEventsZvv[iHT]->Fill(ZvvData[iHT]->At(iEvent)->GetMetNoMuPt(), ZvvData[iHT]->At(iEvent)->GetWeight());
-    }
     
     for(int iEvent=0;iEvent<ZmmData[iHT]->size();iEvent++){
-      nEventsZmm[iHT]->Fill(ZmmData[iHT]->At(iEvent)->GetMetNoMuPt(), ZmmData[iHT]->At(iEvent)->GetWeight());
+      nEventsZmm->Fill(ZmmData[iHT]->At(iEvent)->GetMetNoMuPt(),
+                       ZmmData[iHT]->At(iEvent)->GetWeight());
     }
+  }
     
-    if(iHT==0){
-      nEventsZvvHTsum = new TH1D(*nEventsZvv[iHT]);
-      nEventsZmmHTsum = new TH1D(*nEventsZmm[iHT]);
-      
-      nEventsZvvHTsum->SetTitle("N events Zvv (sum over all HT bins)");
-      nEventsZmmHTsum->SetTitle("N events Zmm (sum over all HT bins)");
+  for(int iHT=0;iHT<ZvvFilePaths.size();iHT++){
+    ZvvData.push_back(new Events(basePath+"/"+ZvvFilePaths[iHT]+"/tree.root",0));
+    ZvvData[iHT] = ZvvData[iHT]->ApplyCuts(eventCutZvv, trackCut, jetCut, leptonCut);
+    
+    for(int iEvent=0;iEvent<ZvvData[iHT]->size();iEvent++){
+      nEventsZvv->Fill(ZvvData[iHT]->At(iEvent)->GetMetNoMuPt(),
+                       ZvvData[iHT]->At(iEvent)->GetWeight());
     }
-    else{
-      nEventsZvvHTsum->Add(nEventsZvv[iHT]);
-      nEventsZmmHTsum->Add(nEventsZmm[iHT]);
-    }
- 
-  
-    canvas->cd(1);
-    nEventsZvv[iHT]->DrawCopy(iHT==0 ? "" : "same");
-    
-    canvas->cd(2);
-    nEventsZmm[iHT]->DrawCopy(iHT==0 ? "" : "same");
-    
-    canvas->cd(3);
-    nEventsZvv[iHT]->Divide(nEventsZmm[iHT]);
-    
-    if(iHT==0){
-      fFactorSum = new TH1D(*nEventsZvv[iHT]);
-      fFactorSum->SetTitle("f factor (sum over all HT bins)");
-    }
-    else{
-      fFactorSum->Add(nEventsZvv[iHT]);
-    }
-    
-    nEventsZvv[iHT]->Draw(iHT==0 ? "" : "same");
   }
   
-  canvas->cd(5);
-  nEventsZmmHTsum->DrawCopy();
+  canvas->cd(1);
+  nEventsZvv->DrawCopy();
   
-  canvas->cd(6);
-  nEventsZvvHTsum->DrawCopy();
+  canvas->cd(2);
+  nEventsZmm->DrawCopy();
   
-  canvas->cd(4);
-  nEventsZvvHTsum->Divide(nEventsZmmHTsum);
-  nEventsZvvHTsum->SetTitle("f factor (sum of num / sum of den)");
-  nEventsZvvHTsum->Draw();
-  
-  canvas->cd(7);
-  fFactorSum->Draw();
+  canvas->cd(3);
+  nEventsZvv->Divide(nEventsZmm);
+  nEventsZvv->Draw();
   
   cout<<"Finished"<<endl;
   
