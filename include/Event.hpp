@@ -15,6 +15,7 @@
 #include "Jet.hpp"
 #include "JetCut.hpp"
 #include "Lepton.hpp"
+#include "LeptonCut.hpp"
 
 class Event;
 
@@ -26,11 +27,11 @@ public:
   
   void AddEvent(Event *event){events.push_back(event);}
   
-  Events* ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut/* LeptonCut *leptonCut*/);
+  Events* ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut);
   Events* ApplyEventCut(EventCut *cut);
   Events* ApplyTrackCut(TrackCut *cut);
   Events* ApplyJetCut(JetCut *cut);
-//  Events* ApplyLeptonCut(LeptonCut *cut);
+  Events* ApplyLeptonCut(LeptonCut *cut);
   
   inline int size(){return (int)events.size();}
   double WeightedSize();
@@ -112,8 +113,15 @@ public:
   /// Returns a new event with only jets passing the cut
   Event* ApplyJetCut(JetCut *cut);
   
+  /// Returns a new event with only leptons passing the cut
+  Event* ApplyLeptonCut(LeptonCut *cut);
+  
   /// Check if event passes a cut
   bool IsPassingCut(EventCut *cut);
+  
+  /// Returns an event with global params copied (but no colletions of tracks, jets, leptons
+  Event* CopyThisEventProperties();
+  
 private:
   vector<Track*>  tracks;   // vector of isolated tracks
   vector<Jet*>    jets;     // vector of jets

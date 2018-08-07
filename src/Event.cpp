@@ -73,7 +73,9 @@ Events::Events(string fileName, int dataType)
   TTreeReaderArray<float> _lepton_pt(reader, "LepGood_pt");
   TTreeReaderArray<float> _lepton_phi(reader, "LepGood_phi");
   TTreeReaderArray<float> _lepton_eta(reader, "LepGood_eta");
-  TTreeReaderArray<float> _lepton_thight_pid(reader, "LepGood_tightId");
+  TTreeReaderArray<int>   _lepton_thight_pid(reader, "LepGood_tightId");
+  TTreeReaderArray<float> _lepton_isolation(reader, "LepGood_relIso04");
+  TTreeReaderArray<int>   _lepton_pid(reader, "LepGood_pdgId");
   
   TTreeReaderArray<float> *dedx[nLayers];
   TTreeReaderArray<int> *subDetId[nLayers];
@@ -129,7 +131,9 @@ Events::Events(string fileName, int dataType)
       lepton->SetPt(_lepton_pt[iLepton]);
       lepton->SetEta(_lepton_eta[iLepton]);
       lepton->SetPhi(_lepton_phi[iLepton]);
-      lepton->SetPid(_lepton_thight_pid[iLepton]);
+      lepton->SetTightID(_lepton_thight_pid[iLepton]);
+      lepton->SetIsolation(_lepton_isolation[iLepton]);
+      lepton->SetPid(_lepton_pid[iLepton]);
       newEvent->AddLepton(lepton);
     }
     
@@ -173,12 +177,13 @@ Events::~Events()
   
 }
 
-Events* Events::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut)
+Events* Events::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
 {
   Events *outputEvents = new Events(*this);
   
   if(trackCut)  outputEvents = outputEvents->ApplyTrackCut(trackCut);
   if(jetCut)    outputEvents = outputEvents->ApplyJetCut(jetCut);
+  if(leptonCut) outputEvents = outputEvents->ApplyLeptonCut(leptonCut);
   if(eventCut)  outputEvents = outputEvents->ApplyEventCut(eventCut);
   
   return outputEvents;
@@ -216,6 +221,16 @@ Events* Events::ApplyJetCut(JetCut *cut)
   return outputEvents;
 }
 
+Events* Events::ApplyLeptonCut(LeptonCut *cut)
+{
+  Events *outputEvents = new Events();
+  
+  for(int iEvent=0;iEvent<events.size();iEvent++){
+    outputEvents->AddEvent(events[iEvent]->ApplyLeptonCut(cut));
+  }
+  return outputEvents;
+}
+
 double Events::WeightedSize(){
   if(events.size()==0) return 0;
   return events[0]->GetWeight()*events.size();
@@ -240,10 +255,9 @@ void Event::Print(){
   for(auto j : jets){   j->Print(); }
 }
 
-Event* Event::ApplyTrackCut(TrackCut *cut)
+Event* Event::CopyThisEventProperties()
 {
   Event *outputEvent = new Event();
-  for(auto j : jets){outputEvent->AddJet(j);}
   
   outputEvent->SetWeight(weight);
   outputEvent->SetNvertices(nVertices);
@@ -263,6 +277,16 @@ Event* Event::ApplyTrackCut(TrackCut *cut)
   outputEvent->SetMetNoMuPhi(metNoMuPhi);
   outputEvent->SetMetNoMuEta(metNoMuEta);
   outputEvent->SetHasNoMuTrigger(metNoMuTrigger);
+  
+  return outputEvent;
+}
+
+Event* Event::ApplyTrackCut(TrackCut *cut)
+{
+  Event *outputEvent = CopyThisEventProperties();
+  
+  for(auto j : jets){outputEvent->AddJet(j);}
+  for(auto l : leptons){outputEvent->AddLepton(l);}
   
   vector<Track*> tracksPassingCut;
   
@@ -276,34 +300,33 @@ Event* Event::ApplyTrackCut(TrackCut *cut)
 
 Event* Event::ApplyJetCut(JetCut *cut)
 {
-  Event *outputEvent = new Event();
+  Event *outputEvent = CopyThisEventProperties();
+  
   for(auto t : tracks){outputEvent->AddTrack(t);}
-  
-  outputEvent->SetWeight(weight);
-  
-  outputEvent->SetNvertices(nVertices);
-  outputEvent->SetNjet30(nJet30);
-  outputEvent->SetNjet30a(nJet30a);
-  outputEvent->SetNlepton(nLepton);
-  outputEvent->SetNtau(nTau);
-  
-  outputEvent->SetMetSumEt(metSumEt);
-  outputEvent->SetMetPt(metPt);
-  outputEvent->SetMetMass(metMass);
-  outputEvent->SetMetPhi(metPhi);
-  outputEvent->SetMetEta(metEta);
-  
-  outputEvent->SetMetNoMuPt(metNoMuPt);
-  outputEvent->SetMetNoMuMass(metNoMuMass);
-  outputEvent->SetMetNoMuPhi(metNoMuPhi);
-  outputEvent->SetMetNoMuEta(metNoMuEta);
-  outputEvent->SetHasNoMuTrigger(metNoMuTrigger);
-  
+  for(auto l : leptons){outputEvent->AddLepton(l);}
+
   vector<Track*> jetPassingCuts;
   
   for(auto jet : jets){
     if(jet->IsPassingCut(cut)){
       outputEvent->AddJet(jet);
+    }
+  }
+  return outputEvent;
+}
+
+Event* Event::ApplyLeptonCut(LeptonCut *cut)
+{
+  Event *outputEvent = CopyThisEventProperties();
+  
+  for(auto t : tracks){outputEvent->AddTrack(t);}
+  for(auto j : jets){outputEvent->AddJet(j);}
+  
+  vector<Track*> leptonsPassingCuts;
+  
+  for(auto lepton : leptons){
+    if(lepton->IsPassingCut(cut)){
+      outputEvent->AddLepton(lepton);
     }
   }
   return outputEvent;
@@ -319,8 +342,14 @@ bool Event::IsPassingCut(EventCut *cut)
   // check number of objects
   if(GetNjets() < cut->GetMinNjets()) return false;
   if(GetNtracks() < cut->GetMinNtracks()) return false;
-  if(nLepton > cut->GetMaxNlepton()) return false;
+  if(nLepton < cut->GetMinNleptons() || nLepton > cut->GetMaxNleptons()) return false;
   if(nTau > cut->GetMaxNtau()) return false;
+  
+  int nMuons = 0;
+  for(auto l : leptons){
+    if(l->GetPid() == 13) nMuons++;
+  }
+  if(nMuons < cut->GetMinNmuons()) return false;
   
   return true;
 }

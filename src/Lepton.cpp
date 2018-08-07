@@ -10,37 +10,23 @@ Lepton::Lepton() :
 eta(99999),
 phi(99999),
 pt(99999),
-pid(99999)
+pid(99999),
+isolation(0)
 {
 
 };
 
-bool Lepton::IsPassingCut(/*LeptonCut *cut*/)
+bool Lepton::IsPassingCut(LeptonCut *cut)
 {
-  // check number of dedx clusters
-//  if(GetNclusters() < cut->GetMinDedxClusters() || GetNclusters() > cut->GetMaxDedxClusters()){
-//    return false;
-//  }
-//
-//  // check values of dedx along the Lepton
-//  if(GetTotalDedx() < cut->GetMinTotalDedx() || GetTotalDedx() > cut->GetMaxTotalDedx()){
-//    return false;
-//  }
-//
-//  for(int iCluster=0;iCluster<GetNclusters();iCluster++){
-//    if(dedx[iCluster] < cut->GetMinDedxPerCluster()) return false;
-//  }
-//
-//  // check pt
-//  if(pt < cut->GetMinPt()) return false;
-//
-//  // check calo energy
-//  if(caloEmEnergy > cut->GetMaxEmCalo()) return false;
-//  if(caloHadEnergy > cut->GetMaxHadCalo()) return false;
-//
-//  // check eta
-//  if(fabs(eta) > cut->GetMaxEta()) return false;
-//
+  // check pt
+  if(pt < cut->GetMinPt() || pt > cut->GetMaxPt()) return false;
+
+  // check isolation
+  if(isolation > cut->GetMaxIsolation()) return false;
+  
+  // check tight id requirement
+  if(cut->RequiresTightID() && !tightID) return false;
+  
   return true;
 }
 

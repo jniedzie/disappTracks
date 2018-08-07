@@ -1,9 +1,7 @@
 //
 //  JetCut.cpp
-//  xDisappTracks
 //
 //  Created by Jeremi Niedziela on 20/07/2018.
-//  Copyright © 2018 Jeremi Niedziela. All rights reserved.
 //
 
 #include "JetCut.hpp"

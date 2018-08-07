@@ -1,6 +1,7 @@
 #include "Event.hpp"
 #include "TrackCut.hpp"
 #include "JetCut.hpp"
+#include "LeptonCut.hpp"
 #include "HistSet.hpp"
 
 #include <TApplication.h>
@@ -52,6 +53,7 @@ int main(int argc, char* argv[])
   unsigned int eventCutOptionsZmm =
     EventCut::kOneTrack
   | EventCut::kOneJet
+  | EventCut::kOneMuon
   | EventCut::kMetNoMu100GeV
   | EventCut::kMetNoMuTrigger
   | EventCut::kNoTau;
@@ -76,18 +78,25 @@ int main(int argc, char* argv[])
     JetCut::kEmpty;
 //  JetCut::kPt100GeV;
   
-  EventCut  *eventCutZmm = new EventCut((EventCut::ECut)eventCutOptionsZmm);
-  EventCut  *eventCutZvv = new EventCut((EventCut::ECut)eventCutOptionsZvv);
-  TrackCut  *trackCut = new TrackCut((TrackCut::ECut)trackCutOptions);
-  JetCut    *jetCut   = new JetCut((JetCut::ECut)jetCutOptions);
+  unsigned int leptonCutOptions =
+    LeptonCut::kIsolated
+  | LeptonCut::kTightID
+  | LeptonCut::kPt20GeV;
+  
+  
+  EventCut  *eventCutZmm  = new EventCut((EventCut::ECut)eventCutOptionsZmm);
+  EventCut  *eventCutZvv  = new EventCut((EventCut::ECut)eventCutOptionsZvv);
+  TrackCut  *trackCut     = new TrackCut((TrackCut::ECut)trackCutOptions);
+  JetCut    *jetCut       = new JetCut((JetCut::ECut)jetCutOptions);
+  LeptonCut *leptonCut    = new LeptonCut((LeptonCut::ECut)leptonCutOptions);
   
   for(int iHT=0;iHT<nHTbins;iHT++){
   
     ZmmData[iHT] = new Events(basePath+"/"+ZmmFilePaths[iHT]+"/tree.root",0);
     ZvvData[iHT] = new Events(basePath+"/"+ZvvFilePaths[iHT]+"/tree.root",0);
   
-    ZmmData[iHT] = ZmmData[iHT]->ApplyCuts(eventCutZmm, trackCut, jetCut);
-    ZvvData[iHT] = ZvvData[iHT]->ApplyCuts(eventCutZvv, trackCut, jetCut);
+    ZmmData[iHT] = ZmmData[iHT]->ApplyCuts(eventCutZmm, trackCut, jetCut, leptonCut);
+    ZvvData[iHT] = ZvvData[iHT]->ApplyCuts(eventCutZvv, trackCut, jetCut, leptonCut);
   
     nEventsZvv[iHT] = new TH1D(Form("N events Zvv (HT bin %i)",iHT),Form("N events Zvv (HT bin %i)",iHT), 10, 0, 1000);
     nEventsZmm[iHT] = new TH1D(Form("N events Zmm (HT bin %i)",iHT),Form("N events Zmm (HT bin %i)",iHT), 10, 0, 1000);
