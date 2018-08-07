@@ -60,24 +60,21 @@ bool Track::IsPassingCut(TrackCut *cut)
   }
   
   for(int iCluster=0;iCluster<GetNclusters();iCluster++){
-    if(dedx[iCluster] < cut->GetMinDedxPerCluster()){
-      return false;
-    }
+    if(dedx[iCluster] < cut->GetMinDedxPerCluster()) return false;
   }
   
   // check pt
-  if(pt < cut->GetMinPt()){
-    return false;
-  }
+  if(pt < cut->GetMinPt()) return false;
   
   // check calo energy
-  if(caloEmEnergy > cut->GetMaxEmCalo()){
-    return false;
-  }
+  if(caloEmEnergy > cut->GetMaxEmCalo()) return false;
+  if(caloHadEnergy > cut->GetMaxHadCalo()) return false;
   
-  if(caloHadEnergy > cut->GetMaxHadCalo()){
-    return false;
-  }
+  // check eta
+  if(fabs(eta) > cut->GetMaxEta()) return false;
   
   return true;
 }
+
+
+

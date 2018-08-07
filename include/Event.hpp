@@ -54,27 +54,47 @@ public:
   inline void AddJet(Jet *jet){jets.push_back(jet);}
   
   inline void SetWeight(double val){weight = val;}
+  
   inline void SetNvertices(int n){nVertices = n;}
   inline void SetNjet30(int n){nJet30 = n;}
   inline void SetNjet30a(int n){nJet30a = n;}
+  inline void SetNlepton(int n){nLepton = n;}
+  inline void SetNtau(int n){nTau = n;}
+  
   inline void SetMetSumEt(double val){metSumEt = val;}
   inline void SetMetPt(double val){metPt = val;}
   inline void SetMetMass(double val){metMass = val;}
   inline void SetMetPhi(double val){metPhi = val;}
   inline void SetMetEta(double val){metEta = val;}
   
+  inline void SetMetNoMuPt(double val){metNoMuPt = val;}
+  inline void SetMetNoMuMass(double val){metNoMuMass = val;}
+  inline void SetMetNoMuPhi(double val){metNoMuPhi = val;}
+  inline void SetMetNoMuEta(double val){metNoMuEta = val;}
+  inline void SetHasNoMuTrigger(bool val){metNoMuTrigger = val;}
+  
   // getters
+  inline double GetWeight(){return weight;}
+  
   inline unsigned long GetNtracks(){return tracks.size(); }
   inline unsigned long GetNjets(){return jets.size(); }
-  inline double GetWeight(){return weight;}
   inline int GetNvertices(){return nVertices;}
   inline int GetNjet30(){return nJet30;}
   inline int GetNjet30a(){return nJet30a;}
+  inline int GetNlepton(){return nLepton;}
+  inline int GetNtau(){return nTau;}
+  
   inline double GetMetSumEt(){return metSumEt;}
   inline double GetMetPt(){return metPt;}
   inline double GetMetMass(){return metMass;}
   inline double GetMetPhi(){return metPhi;}
   inline double GetMetEta(){return metEta;}
+  
+  inline double GetMetNoMuPt(){return metNoMuPt;}
+  inline double GetMetNoMuMass(){return metNoMuMass;}
+  inline double GetMetNoMuPhi(){return metNoMuPhi;}
+  inline double GetMetNoMuEta(){return metNoMuEta;}
+  inline bool HetMetNoMuTrigger(){return metNoMuTrigger;}
   
   inline Track*  GetTrack(int i){return tracks[i];}
   inline Jet*    GetJet(int i){return jets[i];}
@@ -98,11 +118,21 @@ private:
   int nVertices;          // Number of good verices
   int nJet30;             // Number of jets with pt > 30, |eta|<2.4
   int nJet30a;            // Number of jets with pt > 30, |eta|<4.7
+  int nLepton;
+  int nTau;
+  
   double metSumEt;
   double metPt;
   double metMass;
   double metPhi;
   double metEta;
+  
+  bool metNoMuTrigger;
+  double metNoMuPt;
+  double metNoMuMass;
+  double metNoMuPhi;
+  double metNoMuEta;
+  
   
 };
 

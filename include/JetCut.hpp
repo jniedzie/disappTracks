@@ -12,8 +12,9 @@
 class JetCut {
 public:
   enum ECut {
-    kEmpty,
-    kHighPt,
+    kEmpty    = 1,
+    kPt100GeV = 1 << 1, ///< pT ≥ 100 GeV
+    kPt200GeV = 1 << 2, ///< pT ≥ 200 GeV
   };
   
   JetCut(ECut cutType=kEmpty);

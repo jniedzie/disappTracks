@@ -19,10 +19,12 @@ minTotalDeDx(0.0),
 maxTotalDeDx(999999),
 minPt(0.0),
 maxEmCalo(999999),
-maxHadCalo(999999)
+maxHadCalo(999999),
+maxEta(999999)
 {
   if(cutType&kEmpty) return;
-  if(cutType&kHighPt) minPt = 200.0;
+  if(cutType&kPt50GeV)  minPt = 50.0;
+  if(cutType&kPt200GeV) minPt = 200.0;
   if(cutType&kLowCalo){
       maxEmCalo = 0.5;
       maxHadCalo = 0.5;
@@ -36,6 +38,7 @@ maxHadCalo(999999)
       minDedxClusters = 3;
       maxDedxClusters = 8;
   }
+  if(cutType&kEta2p4) maxEta = 2.4;
 }
 
 TrackCut::~TrackCut()

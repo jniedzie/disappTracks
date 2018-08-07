@@ -158,8 +158,9 @@ void HistSet::Fill(TH1D* hist, Events *events, int iLayer)
         if(var == kJetPt)   value = jet->GetPt();
         else if(var == kJetEta)  value = jet->GetEta();
         else if(var == kJetPhi)  value = jet->GetPhi();
+        else if(var == kMetJetDphi) value = event->GetMetPhi() - jet->GetPhi();
         
-        if(var == kJetPt || var == kJetEta || var == kJetPhi){
+        if(var == kJetPt || var == kJetEta || var == kJetPhi || var == kMetJetDphi){
           hist->Fill(value,event->GetWeight());
         }
       }
@@ -343,6 +344,7 @@ const char* HistSet::GetTitle()
   if(var == kMetMass) return "MET mass";
   if(var == kMetEta) return "MET eta";
   if(var == kMetPhi) return "MET phi";
+  if(var == kMetJetDphi) return "#Delta #phi (p_{T}^{jet},p_{T}^{MET})";
   
   if(var == kTrackNclusters) return "N clusters per track";
   if(var == kTrackTotalDedx) return "total dedx per track";
@@ -381,6 +383,7 @@ int HistSet::GetNbins()
   if(var == kMetMass)     return 100;
   if(var == kMetEta)      return 100;
   if(var == kMetPhi)      return 100;
+  if(var == kMetJetDphi)  return 100;
   
   if(var == kTrackNclusters)      return 20;
   if(var == kTrackTotalDedx)      return 50;
@@ -419,6 +422,7 @@ double HistSet::GetMin()
   if(var == kMetMass)     return -10e-6;
   if(var == kMetEta)      return -3.5;
   if(var == kMetPhi)      return -3.5;
+  if(var == kMetJetDphi)  return -3.5;
   
   if(var == kTrackNclusters)      return 0.0;
   if(var == kTrackTotalDedx)      return 0.0;
@@ -456,6 +460,7 @@ double HistSet::GetMax()
   if(var == kMetMass)     return 10e-6;
   if(var == kMetEta)      return 3.5;
   if(var == kMetPhi)      return 3.5;
+  if(var == kMetJetDphi)  return 3.5;
   
   if(var == kTrackNclusters)      return 22;
   if(var == kTrackTotalDedx)      return 140;
@@ -510,9 +515,9 @@ bool HistSet::DoSumw2()
 //  if(var == kTrackCaloEm)     return false;
 //  if(var == kTrackCaloHad)    return false;
   
-  if(var == kDedx)  return false;
-  if(var == kSizeX) return false;
-  if(var == kSizeY) return false;
+//  if(var == kDedx)  return false;
+//  if(var == kSizeX) return false;
+//  if(var == kSizeY) return false;
   
   return true;
 }

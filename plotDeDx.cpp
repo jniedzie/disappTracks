@@ -27,13 +27,22 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   // Define event, track and jet cuts
   //---------------------------------------------------------------------------
+  
+  
+  
+  unsigned int trackCutOptions =
+    TrackCut::kLowCalo
+    | TrackCut::kLowDEdx;
+//  | TrackCut::kHighPt;
+//  | TrackCut::kMedium;
+  
   EventCut  *initialEventCut = new EventCut(EventCut::kOneTrackOneJet);
-  TrackCut  *initialTrackCut = new TrackCut(TrackCut::kHighPt);
+  TrackCut  *initialTrackCut = new TrackCut(TrackCut::kEmpty);
   JetCut    *initialJetCut   = new JetCut(JetCut::kEmpty);
   
-  EventCut  *bestEventCut = new EventCut(EventCut::kOneTrackOneJet);
-  TrackCut  *bestTrackCut = new TrackCut((TrackCut::ECut)(TrackCut::kLowCalo|TrackCut::kLowDEdx));
-  JetCut    *bestJetCut   = new JetCut(JetCut::kEmpty);
+  EventCut  *bestEventCut = new EventCut(EventCut::kMet100GeVOneTrackOneJet);
+  TrackCut  *bestTrackCut = new TrackCut((TrackCut::ECut)trackCutOptions);
+  JetCut    *bestJetCut   = new JetCut(JetCut::kHighPt);
   
   for(int iSig=0;iSig<kNsignals;iSig++){
     eventsSignal[iSig] = eventsSignal[iSig]->ApplyCuts(initialEventCut, initialTrackCut, initialJetCut);
@@ -43,39 +52,42 @@ int main(int argc, char* argv[])
     eventsBackground[iBck] = eventsBackground[iBck]->ApplyCuts(initialEventCut, initialTrackCut, initialJetCut);
   }
   
+  if(analyzeData) eventsData = eventsData->ApplyCuts(initialEventCut, initialTrackCut, initialJetCut);
+  
   //---------------------------------------------------------------------------
   // Create standard per event, per track and per jet plots
   //---------------------------------------------------------------------------
-  HistSet *nVertices = new HistSet(kNvertices);
-  HistSet *nIsoTrack = new HistSet(kNisoTracks);
-  HistSet *nJet      = new HistSet(kNjets);
-  HistSet *nJet30    = new HistSet(kNjets30);
-  HistSet *nJet30a   = new HistSet(kNjets30a);
-  HistSet *nMetSumEt = new HistSet(kMetSumEt);
-  HistSet *nMetPt    = new HistSet(kMetPt);
-  HistSet *nMetMass  = new HistSet(kMetMass);
-  HistSet *nMetEta   = new HistSet(kMetEta);
-  HistSet *nMetPhi   = new HistSet(kMetPhi);
+  HistSet *nVertices    = new HistSet(kNvertices);
+  HistSet *nIsoTrack    = new HistSet(kNisoTracks);
+  HistSet *nJet         = new HistSet(kNjets);
+  HistSet *nJet30       = new HistSet(kNjets30);
+  HistSet *nJet30a      = new HistSet(kNjets30a);
+  HistSet *nMetSumEt    = new HistSet(kMetSumEt);
+  HistSet *nMetPt       = new HistSet(kMetPt);
+  HistSet *nMetMass     = new HistSet(kMetMass);
+  HistSet *nMetEta      = new HistSet(kMetEta);
+  HistSet *nMetPhi      = new HistSet(kMetPhi);
+  HistSet *nMetJetDphi  = new HistSet(kMetPhi);
   
-  HistSet *nClustersPerTrack = new HistSet(kTrackNclusters);
-  HistSet *totalDeDx = new HistSet(kTrackTotalDedx);
+  HistSet *nClustersPerTrack  = new HistSet(kTrackNclusters);
+  HistSet *totalDeDx          = new HistSet(kTrackTotalDedx);
   
   HistSet *totalDeDxByNclusters = new HistSet(kTrackDedxPerCluster);
-  HistSet *pt = new HistSet(kTrackPt);
-  HistSet *eta = new HistSet(kTrackEta);
-  HistSet *phi = new HistSet(kTrackPhi);
-  HistSet *caloEm = new HistSet(kTrackCaloEm);
-  HistSet *caloHad = new HistSet(kTrackCaloHad);
+  HistSet *pt                   = new HistSet(kTrackPt);
+  HistSet *eta                  = new HistSet(kTrackEta);
+  HistSet *phi                  = new HistSet(kTrackPhi);
+  HistSet *caloEm               = new HistSet(kTrackCaloEm);
+  HistSet *caloHad              = new HistSet(kTrackCaloHad);
   
-  HistSet *dxy = new HistSet(kTrackDxy);
-  HistSet *dz = new HistSet(kTrackDz);
+  HistSet *dxy    = new HistSet(kTrackDxy);
+  HistSet *dz     = new HistSet(kTrackDz);
   HistSet *charge = new HistSet(kTrackCharge);
-  HistSet *mass = new HistSet(kTrackMass);
-  HistSet *pid = new HistSet(kTrackPid);
+  HistSet *mass   = new HistSet(kTrackMass);
+  HistSet *pid    = new HistSet(kTrackPid);
   
-  HistSet *jet_pt = new HistSet(kJetPt);
-  HistSet *jet_eta = new HistSet(kJetEta);
-  HistSet *jet_phi = new HistSet(kJetPhi);
+  HistSet *jet_pt   = new HistSet(kJetPt);
+  HistSet *jet_eta  = new HistSet(kJetEta);
+  HistSet *jet_phi  = new HistSet(kJetPhi);
   
   nVertices->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   nIsoTrack->FillFromEvents(eventsSignal, eventsBackground, eventsData);
@@ -87,6 +99,7 @@ int main(int argc, char* argv[])
   nMetMass->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   nMetEta->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   nMetPhi->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  nMetJetDphi->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   
   nClustersPerTrack->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   totalDeDx->FillFromEvents(eventsSignal, eventsBackground, eventsData);
@@ -111,7 +124,7 @@ int main(int argc, char* argv[])
   
   // Plot histograms
   TCanvas *canvasEvents = new TCanvas("Events","Events",2880,1800);
-  canvasEvents->Divide(2,3);
+  canvasEvents->Divide(3,3);
   
   nVertices->Draw(canvasEvents,1);
   nIsoTrack->Draw(canvasEvents,2);
@@ -121,6 +134,7 @@ int main(int argc, char* argv[])
   jet_pt->Draw(canvasEvents, 4);
   nMetSumEt->Draw(canvasEvents,5);
   nMetPt->Draw(canvasEvents,6);
+  nMetJetDphi->Draw(canvasEvents,7);
 //  nMetMass->Draw(canvasEvents,8);
 //  nMetEta->Draw(canvasEvents,9);
 //  nMetPhi->Draw(canvasEvents,10);
@@ -180,37 +194,46 @@ int main(int argc, char* argv[])
     for(int iBck=0;iBck<kNbackgrounds;iBck++){
       nEvents[iSig] += eventsBackground[iBck]->WeightedSize();
     }
+    if(analyzeData){
+      nEvents[iSig] +=  eventsData->WeightedSize();
+    }
   }
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-//    nEvents +=            eventsBackground[iBck]->WeightedSize();
-    nBackground[iBck] =   eventsBackground[iBck]->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut)->WeightedSize();
-    nBackgroundTotal +=   nBackground[iBck];
+    Events *backgroundAfterCuts = eventsBackground[iBck]->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut);
+    if(backgroundAfterCuts){
+      nBackground[iBck] =   backgroundAfterCuts->WeightedSize();
+      nBackgroundTotal +=   nBackground[iBck];
+    }
+    else{
+      nBackground[iBck] = 0;
+    }
   }
   
-  int nData=0,nBestData=0;
+  int nData=0,nDataTotal=0;
   if(analyzeData){
-//    nEvents +=  eventsData->WeightedSize();
-    nData     = eventsData->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut)->WeightedSize();
+    nData = eventsData->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut)->WeightedSize();
   }
-  
   
   for(int iSig=0;iSig<kNsignals;iSig++){
-//    cout<<signalTitle[iSig]<<"\t"<<nSignal[iSig]/(double)nEvents[iSig]<<endl;
-//    cout<<"S/B:\t"<<nSignal[iSig]/(double)nBackgroundTotal<<endl;
+    if(printHeaders) cout<<signalTitle[iSig]<<"\t";
     cout<<nSignal[iSig]/(double)nEvents[iSig]<<endl;
+    
+    if(printHeaders) cout<<"S/B:\t";
     cout<<nSignal[iSig]/(double)nBackgroundTotal<<endl;
   }
 
-  //    cout<<"Bck total:\t"<<nBackgroundTotal/(double)nEvents[iSig]<<endl;
+  if(printHeaders) cout<<"Bck total:\t";
   cout<<nBackgroundTotal/(double)nEvents[0]<<endl;
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    //      cout<<backgroundTitle[iBck]<<"\t"<<nBackground[iBck]/(double)nEvents[iSig]<<endl;
+    
+    if(printHeaders) cout<<backgroundTitle[iBck]<<"\t";
     cout<<nBackground[iBck]/(double)nEvents[0]<<endl;
   }
   
-  
+  if(printHeaders) cout<<"N data/total:";
+  cout<<nData/(double)nEvents[0]<<endl;
   
 
   

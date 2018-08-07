@@ -37,15 +37,25 @@ Events::Events(string fileName, int dataType)
   TTreeReaderValue<int>   _nVert(reader, "nVert");
   TTreeReaderValue<int>   _nJet30(reader, "nJet30");
   TTreeReaderValue<int>   _nJet30a(reader, "nJet30a");
+  TTreeReaderValue<int>   _nLepton(reader, "nLepGood");
+  TTreeReaderValue<int>   _nTau(reader, "nTauGood");
+  
   TTreeReaderValue<float> _xsec  (reader,(dataType==0 || dataType==1) ? "xsec" : "rho");
   TTreeReaderValue<float> _wgtsum(reader,(dataType==0 || dataType==1) ? "wgtsum" : "rho");
   TTreeReaderValue<float> _genwgt(reader,(dataType==0 || dataType==1) ? "genWeight" : "rho");
-  
+
   TTreeReaderValue<float> _met_sumEt(reader, "met_sumEt");
   TTreeReaderValue<float> _met_pt(reader, "met_pt");
   TTreeReaderValue<float> _met_mass(reader, "met_mass");
   TTreeReaderValue<float> _met_phi(reader, "met_phi");
   TTreeReaderValue<float> _met_eta(reader, "met_eta");
+  
+  TTreeReaderValue<int>   _metNoMuTrigger(reader, "HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight");
+  
+  TTreeReaderValue<float> _metNoMu_pt(reader, "metNoMu_pt");
+  TTreeReaderValue<float> _metNoMu_mass(reader, "metNoMu_mass");
+  TTreeReaderValue<float> _metNoMu_phi(reader, "metNoMu_phi");
+  TTreeReaderValue<float> _metNoMu_eta(reader, "metNoMu_eta");
 
   TTreeReaderArray<float> _eta(reader, "IsoTrack_eta");
   TTreeReaderArray<float> _phi(reader, "IsoTrack_phi");
@@ -121,15 +131,25 @@ Events::Events(string fileName, int dataType)
     }
     
     newEvent->SetWeight(weight);
+    
     newEvent->SetNvertices(*_nVert);
     newEvent->SetNjet30(*_nJet30);
     newEvent->SetNjet30a(*_nJet30a);
+    newEvent->SetNlepton(*_nLepton);
+    newEvent->SetNtau(*_nTau);
+    
     newEvent->SetMetSumEt(*_met_sumEt);
     newEvent->SetMetPt(*_met_pt);
     newEvent->SetMetMass(*_met_mass);
     newEvent->SetMetEta(*_met_eta);
     newEvent->SetMetPhi(*_met_phi);
-
+    
+    newEvent->SetHasNoMuTrigger(*_metNoMuTrigger);
+    newEvent->SetMetNoMuPt(*_metNoMu_pt);
+    newEvent->SetMetNoMuMass(*_metNoMu_mass);
+    newEvent->SetMetNoMuEta(*_metNoMu_eta);
+    newEvent->SetMetNoMuPhi(*_metNoMu_phi);
+    
     events.push_back(newEvent);
   }
 }
@@ -183,6 +203,7 @@ Events* Events::ApplyJetCut(JetCut *cut)
 }
 
 double Events::WeightedSize(){
+  if(events.size()==0) return 0;
   return events[0]->GetWeight()*events.size();
 }
 
@@ -214,11 +235,20 @@ Event* Event::ApplyTrackCut(TrackCut *cut)
   outputEvent->SetNvertices(nVertices);
   outputEvent->SetNjet30(nJet30);
   outputEvent->SetNjet30a(nJet30a);
+  outputEvent->SetNlepton(nLepton);
+  outputEvent->SetNtau(nTau);
+  
   outputEvent->SetMetSumEt(metSumEt);
   outputEvent->SetMetPt(metPt);
   outputEvent->SetMetMass(metMass);
   outputEvent->SetMetPhi(metPhi);
   outputEvent->SetMetEta(metEta);
+  
+  outputEvent->SetMetNoMuPt(metNoMuPt);
+  outputEvent->SetMetNoMuMass(metNoMuMass);
+  outputEvent->SetMetNoMuPhi(metNoMuPhi);
+  outputEvent->SetMetNoMuEta(metNoMuEta);
+  outputEvent->SetHasNoMuTrigger(metNoMuTrigger);
   
   vector<Track*> tracksPassingCut;
   
@@ -236,14 +266,24 @@ Event* Event::ApplyJetCut(JetCut *cut)
   for(auto t : tracks){outputEvent->AddTrack(t);}
   
   outputEvent->SetWeight(weight);
+  
   outputEvent->SetNvertices(nVertices);
   outputEvent->SetNjet30(nJet30);
   outputEvent->SetNjet30a(nJet30a);
+  outputEvent->SetNlepton(nLepton);
+  outputEvent->SetNtau(nTau);
+  
   outputEvent->SetMetSumEt(metSumEt);
   outputEvent->SetMetPt(metPt);
   outputEvent->SetMetMass(metMass);
   outputEvent->SetMetPhi(metPhi);
   outputEvent->SetMetEta(metEta);
+  
+  outputEvent->SetMetNoMuPt(metNoMuPt);
+  outputEvent->SetMetNoMuMass(metNoMuMass);
+  outputEvent->SetMetNoMuPhi(metNoMuPhi);
+  outputEvent->SetMetNoMuEta(metNoMuEta);
+  outputEvent->SetHasNoMuTrigger(metNoMuTrigger);
   
   vector<Track*> jetPassingCuts;
   
@@ -258,20 +298,21 @@ Event* Event::ApplyJetCut(JetCut *cut)
 bool Event::IsPassingCut(EventCut *cut)
 {
   // check MET properties
-  if(metPt < cut->GetMinMetPt()){
-    return false;
-  }
+  if(metPt < cut->GetMinMetPt()) return false;
+  if(metNoMuPt < cut->GetMinMetNoMuPt()) return false;
+  if(cut->RequiresMetNoMuTrigger() && !metNoMuTrigger) return false;
   
-  // check jets
-  if(GetNjets() < cut->GetMinNjets()){
-    return false;
-  }
-  
-  // check tracks
-  if(GetNtracks() < cut->GetMinNtracks()){
-    return false;
-  }
+  // check number of objects
+  if(GetNjets() < cut->GetMinNjets()) return false;
+  if(GetNtracks() < cut->GetMinNtracks()) return false;
+  if(nLepton > cut->GetMaxNlepton()) return false;
+  if(nTau > cut->GetMaxNtau()) return false;
   
   return true;
 }
+
+
+
+
+
 

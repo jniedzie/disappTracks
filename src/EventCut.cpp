@@ -12,44 +12,22 @@
 using namespace std;
 
 EventCut::EventCut(ECut cutType) :
-minMetPt(0),
+minMetPt(0.0),
+minMetNoMuPt(0.0),
 minNjets(0),
-minNtracks(0)
+minNtracks(0),
+maxNleptons(999999),
+maxNtau(999999),
+metNoMuTrigger(false)
 {
-  switch (cutType) {
-    case kEmpty:
-      break;
-    case kOneTrack:
-      minNtracks = 1;
-      break;
-    case kOneJet:
-      minNjets = 1;
-      break;
-    case kOneTrackOneJet:
-      minNtracks = 1;
-      minNjets = 1;
-      break;
-    case kMet100GeV:
-      minMetPt = 100.0;
-      break;
-    case kMet100GeVOneJet:
-      minMetPt = 100.0;
-      minNjets = 1;
-      break;
-    case kMet100GeVOneTrack:
-      minMetPt = 100.0;
-      minNtracks = 1;
-      break;
-    case kMet100GeVOneTrackOneJet:
-      minMetPt = 100.0;
-      minNtracks = 1;
-      minNjets = 1;
-      break;
-    default:
-      cout<<"ERROR -- no event cut specified... in case you want a blank cut to customize, use ECut::kEmpty."<<endl;
-      exit(0);
-      break;
-  }
+  if(cutType&kEmpty) return;
+  if(cutType&kOneTrack)       minNtracks = 1;
+  if(cutType&kOneJet)         minNjets = 1;
+  if(cutType&kMet100GeV)      minMetPt = 100.0;
+  if(cutType&kMetNoMu100GeV)  minMetNoMuPt = 100.0;
+  if(cutType&kMetNoMuTrigger) metNoMuTrigger = true;
+  if(cutType&kNoLepton)       maxNleptons = 0;
+  if(cutType&kNoTau)          maxNtau = 0;
 }
 
 EventCut::~EventCut()

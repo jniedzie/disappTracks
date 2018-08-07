@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
 //  Events *eventsBackground = new Events(inFileNameBackground);
   
   
-  TrackCut *trackCut = new TrackCut(TrackCut::kShortAboveThreshold);
+  TrackCut *trackCut = new TrackCut(TrackCut::kShort);
   
   Events *filteredSignalEvents = eventsSignal->ApplyTrackCut(trackCut);
   
