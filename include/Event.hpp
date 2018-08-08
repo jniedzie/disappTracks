@@ -82,6 +82,13 @@ public:
   
   inline unsigned long GetNtracks(){return tracks.size(); }
   inline unsigned long GetNjets(){return jets.size(); }
+  inline unsigned long GetNcentralJets(){
+    int n=0;
+    for(auto j : jets){
+      if(!j->IsForward()) n++;
+    }
+    return n;
+  }
   inline int GetNvertices(){return nVertices;}
   inline int GetNjet30(){return nJet30;}
   inline int GetNjet30a(){return nJet30a;}

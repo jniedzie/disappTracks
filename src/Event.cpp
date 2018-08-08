@@ -105,9 +105,11 @@ Events::Events(string fileName, int dataType)
     sizeX[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeXbyLayer%i",iLayer));
     sizeY[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeYbyLayer%i",iLayer));
   }
-
-
+  int iter=0;
   while (reader.Next()){
+//    if(iter>10000) break;
+    iter++;
+    
     Event *newEvent = new Event();
 
     for(int iTrack=0;iTrack<*nTracks;iTrack++){
@@ -131,7 +133,7 @@ Events::Events(string fileName, int dataType)
       }
       newEvent->AddTrack(track);
     }
-
+    
     for(int iJet=0;iJet<*nJets;iJet++){
       Jet *jet = new Jet();
       jet->SetPt(_jet_pt[iJet]);
@@ -143,7 +145,7 @@ Events::Events(string fileName, int dataType)
       jet->SetIsForward(false);
       newEvent->AddJet(jet);
     }
-
+    
     for(int iJet=0;iJet<*nJetsFwd;iJet++){
       Jet *jet = new Jet();
       jet->SetPt(_jetFwd_pt[iJet]);
@@ -364,14 +366,10 @@ Event* Event::ApplyLeptonCut(LeptonCut *cut)
 
 bool Event::IsPassingCut(EventCut *cut)
 {
-  // check MET properties
-  if(metPt < cut->GetMinMetPt())  return false;
-  if(metNoMuPt < cut->GetMinMetNoMuPt())  return false;
+  // check the trigger
   if(cut->RequiresMetNoMuTrigger() && !metNoMuTrigger)  return false;
   
   // check number of objects
-  if(GetNjets() < cut->GetMinNjets()) return false;
-  if(GetNtracks() < cut->GetMinNtracks()) return false;
   if(nLepton < cut->GetMinNleptons() || nLepton > cut->GetMaxNleptons())  return false;
   if(nTau > cut->GetMaxNtau()) return false;
   
@@ -385,92 +383,143 @@ bool Event::IsPassingCut(EventCut *cut)
     return false;
   }
   
-  TLorentzVector muon1vector, muon2vector;
-  
-  // check muons invariant mass
-  if(cut->RequiresMuonsFromZ()){
-    // check that there are exactly two muons
+  // make sure they have an opposite sign
+  if(cut->RequiresTwoOppositeMuons()){
     if(muons.size() != 2) return false;
+    if(muons[0]->GetPid() != -muons[1]->GetPid()) return false;
+  }
   
-    Lepton *muon1 = muons[0];
-    Lepton *muon2 = muons[1];
-    
-    // make sure they have an opposite sign
-    if(muon1->GetPid() != -muon2->GetPid()) return false;
-      
-    // apply tight muon cuts (tightID flag, pt > 20 GeV, isolation < 0.15
-    unsigned int leptonCutOptions =
-      LeptonCut::kIsolated
-    | LeptonCut::kTightID
-    | LeptonCut::kPt20GeV
-    ;
+  // apply tight muon cuts (tightID flag, pt > 20 GeV, isolation < 0.15
+  if(cut->RequiresTightMuon()){
+    unsigned int leptonCutOptions = LeptonCut::kIsolated | LeptonCut::kTightID | LeptonCut::kPt20GeV;
     LeptonCut *tightMuonCut = new LeptonCut((LeptonCut::ECut)leptonCutOptions);
 
     bool atLeastOneTightMuon = false;
-    if(muon1->IsPassingCut(tightMuonCut)) atLeastOneTightMuon = true;
-    if(muon2->IsPassingCut(tightMuonCut)) atLeastOneTightMuon = true;
+    if(muons[0]->IsPassingCut(tightMuonCut)) atLeastOneTightMuon = true;
+    if(muons[1]->IsPassingCut(tightMuonCut)) atLeastOneTightMuon = true;
     if(!atLeastOneTightMuon)  return false;
-//
-    // check that invariant mass of muons is close to Z mass
-    TLorentzVector muonVectorSum;
-    muon1vector.SetPtEtaPhiM(muon1->GetPt(),muon1->GetEta(),muon1->GetPhi(), 0.1057);
-    muon2vector.SetPtEtaPhiM(muon2->GetPt(),muon2->GetEta(),muon2->GetPhi(), 0.1057);
+  }
+  
+  // check that invariant mass of muons is close to Z mass
+  if(cut->RequiresMuonsFromZ()){
+    TLorentzVector muon1vector, muon2vector, muonVectorSum;
 
+    if(muons.size() != 2){
+      cout<<"ERROR -- requested muons to come from Z decay, but there is "<<muons.size()<<" muons in the event!!"<<endl;
+      cout<<"This event will be discarded!! Maybe you should require exactly two muons in the event?"<<endl;
+      return false;
+    }
+    
+    muon1vector.SetPtEtaPhiM(muons[0]->GetPt(),muons[0]->GetEta(),muons[0]->GetPhi(), 0.1057);
+    muon2vector.SetPtEtaPhiM(muons[1]->GetPt(),muons[1]->GetEta(),muons[1]->GetPhi(), 0.1057);
+    
     muonVectorSum += muon1vector;
     muonVectorSum += muon2vector;
 
     if(muonVectorSum.M() < 60. || muonVectorSum.M() > 120.) return false;
   }
   
+  if(metPt < cut->GetMinMetPt())  return false;
+  if(metNoMuPt < cut->GetMinMetNoMuPt())  return false;
   
-  
-  if(cut->RequiresMetJetPhi0p5()){
-    TLorentzVector metVector, jetVector;
-    metVector.SetPtEtaPhiM(metPt, metEta, metPhi, metMass);
-    
-    for(auto j : jets){
-      jetVector.SetPtEtaPhiM(j->GetPt(), j->GetEta(), j->GetPhi(), j->GetMass());
-      if(fabs(metVector.DeltaPhi(jetVector)) < 0.5) return false;
-    }
-  }
-  
-  if(cut->RequiresMetNoMuJetPhi0p5()){
-    TLorentzVector metVector, jetVector;
-    metVector.SetPtEtaPhiM(metNoMuPt, metNoMuEta, metNoMuPhi, metNoMuMass);
-    
-    for(auto j : jets){
-      jetVector.SetPtEtaPhiM(j->GetPt(), j->GetEta(), j->GetPhi(), j->GetMass());
-      if(fabs(metVector.DeltaPhi(jetVector)) < 0.5) return false;
-    }
-  }
-  
+  // Remove jets that are too close to muons (they will be permanently removed from the event)
   if(cut->RequiresMuJetR0p4()){
-    TLorentzVector jetVector;
+    vector<TLorentzVector> muonVectors;
     
-    for(auto j : jets){
-      if(j->IsForward()) continue;
-      jetVector.SetPtEtaPhiM(j->GetPt(), j->GetEta(), j->GetPhi(), j->GetMass());
-      if(jetVector.DeltaR(muon1vector) < 0.4) return false;
-      if(jetVector.DeltaR(muon2vector) < 0.4) return false;
+    for(auto m : muons){
+      TLorentzVector mv;
+      mv.SetPtEtaPhiM(m->GetPt(),m->GetEta(),m->GetPhi(), 0.1057);
+      muonVectors.push_back(mv);
+    }
+    
+    for(int iJet=0;iJet<GetNcentralJets();iJet++){
+      Jet *j = GetJet(iJet);
+      if(!j->IsForward()){
+        
+        TLorentzVector jetVector;
+        jetVector.SetPtEtaPhiM(j->GetPt(), j->GetEta(), j->GetPhi(), j->GetMass());
+        
+        for(auto muonVector : muonVectors){
+          if(jetVector.DeltaR(muonVector) < 0.4){
+            jets.erase(jets.begin()+iJet);
+            iJet--;
+          }
+        }
+      }
     }
   }
   
-  // check properties of the jet with highest pt
+  // Remove tracks that are too close to muons (they will be permanently removed from the event)
+  if(cut->RequiresMuTrackR0p4()){
+    vector<TLorentzVector> muonVectors;
+    
+    for(auto m : muons){
+      TLorentzVector mv;
+      mv.SetPtEtaPhiM(m->GetPt(),m->GetEta(),m->GetPhi(), 0.1057);
+      muonVectors.push_back(mv);
+    }
+    
+    for(int iTrack=0;iTrack<GetNtracks();iTrack++){
+      Track *t = tracks[iTrack];
+      
+      TLorentzVector trackVector;
+      trackVector.SetPtEtaPhiM(t->GetPt(), t->GetEta(), t->GetPhi(), t->GetMass());
+      
+      for(auto muonVector : muonVectors){
+        if(trackVector.DeltaR(muonVector) < 0.4){
+          tracks.erase(tracks.begin()+iTrack);
+          iTrack--;
+        }
+      }
+    }
+  }
   
+  // check number of tracks and jets after removing those that are too close to muons
+  if(GetNcentralJets() < cut->GetMinNjets()) return false;
+  if(GetNtracks() < cut->GetMinNtracks()) return false;
+  
+
+  // find the jet with the highest pt
   Jet *highJet = nullptr;
   double highestPt = -1.0;
-  
+
   for(int iJet=0;iJet<GetNjets();iJet++){
     if(jets[iJet]->GetPt() > highestPt){
       highestPt = jets[iJet]->GetPt();
       highJet = jets[iJet];
     }
   }
-  
+
+  // check properties of the highest pt jet
+  if(cut->RequiresHighJet() && !highJet) return false;
   if(highJet->GetPt() < cut->GetHighJetMinPt()) return false;
   if(fabs(highJet->GetEta()) > cut->GetHighJetMaxEta()) return false;
   if(highJet->GetChargedHadronEnergyFraction() < cut->GetHighJetMinChHEF()) return false;
   if(highJet->GetNeutralHadronEnergyFraction() > cut->GetHighJetMaxNeHEF()) return false;
+
+
+  
+  if(cut->RequiresMetJetPhi0p5()){
+    TLorentzVector metVector, jetVector;
+    metVector.SetPtEtaPhiM(metPt, metEta, metPhi, metMass);
+
+    for(auto j : jets){
+      jetVector.SetPtEtaPhiM(j->GetPt(), j->GetEta(), j->GetPhi(), j->GetMass());
+      if(fabs(metVector.DeltaPhi(jetVector)) < 0.5) return false;
+    }
+  }
+
+  if(cut->RequiresMetNoMuJetPhi0p5()){
+    TLorentzVector metVector, jetVector;
+    metVector.SetPtEtaPhiM(metNoMuPt, metNoMuEta, metNoMuPhi, metNoMuMass);
+
+    for(auto j : jets){
+      jetVector.SetPtEtaPhiM(j->GetPt(), j->GetEta(), j->GetPhi(), j->GetMass());
+      if(fabs(metVector.DeltaPhi(jetVector)) < 0.5) return false;
+    }
+  }
+  
+
   
   return true;
 }

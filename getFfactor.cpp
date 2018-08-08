@@ -9,23 +9,23 @@
 string basePath = "../ZnnStudy";
 
 vector<string> ZmmFilePaths = {
-//  "Zmm/DYJetsM50_HT100to200",
-//  "Zmm/DYJetsM50_HT200to400",
-//  "Zmm/DYJetsM50_HT400to600",
-//  "Zmm/DYJetsM50_HT600to800",
-//  "Zmm/DYJetsM50_HT800to1200",
+  "Zmm/DYJetsM50_HT100to200",
+  "Zmm/DYJetsM50_HT200to400",
+  "Zmm/DYJetsM50_HT400to600",
+  "Zmm/DYJetsM50_HT600to800",
+  "Zmm/DYJetsM50_HT800to1200",
   "Zmm/DYJetsM50_HT1200to2500",
-//  "Zmm/DYJetsM50_HT2500toInf"
+  "Zmm/DYJetsM50_HT2500toInf"
 };
 
 vector<string> ZvvFilePaths = {
-//  "Zvv/ZvvJets_HT100to200",
-//  "Zvv/ZvvJets_HT200to400",
-//  "Zvv/ZvvJets_HT400to600",
-//  "Zvv/ZvvJets_HT600to800",
-//  "Zvv/ZvvJets_HT800to1200",
+  "Zvv/ZvvJets_HT100to200",
+  "Zvv/ZvvJets_HT200to400",
+  "Zvv/ZvvJets_HT400to600",
+  "Zvv/ZvvJets_HT600to800",
+  "Zvv/ZvvJets_HT800to1200",
   "Zvv/ZvvJets_HT1200to2500",
-//  "Zvv/ZvvJets_HT2500toInf"
+  "Zvv/ZvvJets_HT2500toInf"
 };
 
 int main(int argc, char* argv[])
@@ -51,18 +51,23 @@ int main(int argc, char* argv[])
   // Define event, track and jet cuts
   //---------------------------------------------------------------------------
   unsigned int eventCutOptionsZmm =
-//    EventCut::kOneTrack
-    EventCut::kOneJet // ok
+//  EventCut::kEmpty
+    EventCut::kOneTrack
+//    EventCut::kOneJet // ok
   | EventCut::kMetNoMu200GeV // ok
   | EventCut::kMetNoMuTrigger // ok
   | EventCut::kNoTau  // ok
   | EventCut::kMetNoMuJetPhi0p5 // ok
   | EventCut::kMuonsFromZ // ok
-//  | EventCut::kMuJetR0p4
+  | EventCut::kMuJetR0p4
+  | EventCut::kMuTrackR0p4
+  | EventCut::kTwoMuon
+  | EventCut::kTightMuon
   | EventCut::kHighJetPt100GeV // ok
   | EventCut::kHighJetChHEF0p1 // ok
   | EventCut::kHighJetNeHEF0p8 // ok
   | EventCut::kHighJetEta2p4   // ok
+  | EventCut::kHighJet
   ;
   
   unsigned int eventCutOptionsZvv =
@@ -78,33 +83,33 @@ int main(int argc, char* argv[])
   | EventCut::kHighJetChHEF0p1 // ok
   | EventCut::kHighJetNeHEF0p8 // ok
   | EventCut::kHighJetEta2p4 // ok
+  | EventCut::kHighJet
   ;
   
   unsigned int trackCutOptions =
-    TrackCut::kEmpty
-//    TrackCut::kPt50GeV
-//  | TrackCut::kEta2p4
+//    TrackCut::kEmpty
+    TrackCut::kPt50GeV // ok
+  | TrackCut::kEta2p4  // ok
   ;
-  
+
   unsigned int jetCutOptions =
 //    JetCut::kEmpty
     JetCut::kPt30GeV // ok
   | JetCut::kFwdEta4p7 // ok
   ;
-  
+
   unsigned int leptonCutOptions =
     LeptonCut::kEmpty;
   
   
   EventCut  *eventCutZmm  = new EventCut((EventCut::ECut)eventCutOptionsZmm);
   EventCut  *eventCutZvv  = new EventCut((EventCut::ECut)eventCutOptionsZvv);
-  
+
   TrackCut  *trackCut     = new TrackCut((TrackCut::ECut)trackCutOptions);
   JetCut    *jetCut       = new JetCut((JetCut::ECut)jetCutOptions);
   LeptonCut *leptonCut    = new LeptonCut((LeptonCut::ECut)leptonCutOptions);
   
   for(int iHT=0;iHT<ZmmFilePaths.size();iHT++){
-  
     ZmmData.push_back(new Events(basePath+"/"+ZmmFilePaths[iHT]+"/tree.root",0));
     ZmmData[iHT] = ZmmData[iHT]->ApplyCuts(eventCutZmm, trackCut, jetCut, leptonCut);
     
@@ -117,7 +122,7 @@ int main(int argc, char* argv[])
   for(int iHT=0;iHT<ZvvFilePaths.size();iHT++){
     ZvvData.push_back(new Events(basePath+"/"+ZvvFilePaths[iHT]+"/tree.root",0));
     ZvvData[iHT] = ZvvData[iHT]->ApplyCuts(eventCutZvv, trackCut, jetCut, leptonCut);
-    
+
     for(int iEvent=0;iEvent<ZvvData[iHT]->size();iEvent++){
       nEventsZvv->Fill(ZvvData[iHT]->At(iEvent)->GetMetNoMuPt(),
                        ZvvData[iHT]->At(iEvent)->GetWeight());
