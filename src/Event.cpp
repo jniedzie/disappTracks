@@ -443,6 +443,7 @@ bool Event::IsPassingCut(EventCut *cut)
           if(jetVector.DeltaR(muonVector) < 0.4){
             jets.erase(jets.begin()+iJet);
             iJet--;
+            break;
           }
         }
       }
@@ -469,6 +470,7 @@ bool Event::IsPassingCut(EventCut *cut)
         if(trackVector.DeltaR(muonVector) < 0.4){
           tracks.erase(tracks.begin()+iTrack);
           iTrack--;
+          break;
         }
       }
     }

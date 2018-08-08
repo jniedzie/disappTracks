@@ -60,20 +60,20 @@ int main(int argc, char* argv[])
   | EventCut::kMetNoMuJetPhi0p5 // ok
   | EventCut::kMuonsFromZ // ok
   | EventCut::kMuJetR0p4
-  | EventCut::kMuTrackR0p4
-  | EventCut::kTwoMuon
+  | EventCut::kTwoOppositeMuons
   | EventCut::kTightMuon
   | EventCut::kHighJetPt100GeV // ok
   | EventCut::kHighJetChHEF0p1 // ok
   | EventCut::kHighJetNeHEF0p8 // ok
   | EventCut::kHighJetEta2p4   // ok
   | EventCut::kHighJet
+  | EventCut::kMuTrackR0p4
   ;
   
   unsigned int eventCutOptionsZvv =
 //  EventCut::kEmpty
-//    EventCut::kOneTrack
-    EventCut::kOneJet // ok
+    EventCut::kOneTrack
+//    EventCut::kOneJet // ok
   | EventCut::kMet200GeV // ok
   | EventCut::kMetNoMuTrigger // ok
   | EventCut::kNoTau // ok
