@@ -51,51 +51,45 @@ int main(int argc, char* argv[])
   // Define event, track and jet cuts
   //---------------------------------------------------------------------------
   unsigned int eventCutOptionsZmm =
-//  EventCut::kEmpty
     EventCut::kOneTrack
-//    EventCut::kOneJet // ok
-  | EventCut::kMetNoMu200GeV // ok
-  | EventCut::kMetNoMuTrigger // ok
-  | EventCut::kNoTau  // ok
-  | EventCut::kMetNoMuJetPhi0p5 // ok
-  | EventCut::kMuonsFromZ // ok
+  | EventCut::kMetNoMuTrigger
+  | EventCut::kNoTau
+  | EventCut::kHighJetPt100GeV
+  | EventCut::kHighJetChHEF0p1
+  | EventCut::kHighJetNeHEF0p8
+  | EventCut::kHighJetEta2p4
+  | EventCut::kHighJet
+  | EventCut::kMetNoMu200GeV
+  | EventCut::kMetNoMuJetPhi0p5
+  | EventCut::kMuonsFromZ
   | EventCut::kMuJetR0p4
+  | EventCut::kMuTrackR0p4
   | EventCut::kTwoOppositeMuons
   | EventCut::kTightMuon
-  | EventCut::kHighJetPt100GeV // ok
-  | EventCut::kHighJetChHEF0p1 // ok
-  | EventCut::kHighJetNeHEF0p8 // ok
-  | EventCut::kHighJetEta2p4   // ok
-  | EventCut::kHighJet
-  | EventCut::kMuTrackR0p4
   ;
   
   unsigned int eventCutOptionsZvv =
-//  EventCut::kEmpty
     EventCut::kOneTrack
-//    EventCut::kOneJet // ok
-  | EventCut::kMet200GeV // ok
-  | EventCut::kMetNoMuTrigger // ok
-  | EventCut::kNoTau // ok
-  | EventCut::kMetJetPhi0p5 // ok
-  | EventCut::kNoLepton // ok
-  | EventCut::kHighJetPt100GeV // ok
-  | EventCut::kHighJetChHEF0p1 // ok
-  | EventCut::kHighJetNeHEF0p8 // ok
-  | EventCut::kHighJetEta2p4 // ok
+  | EventCut::kMetNoMuTrigger
+  | EventCut::kNoTau
+  | EventCut::kHighJetPt100GeV
+  | EventCut::kHighJetChHEF0p1
+  | EventCut::kHighJetNeHEF0p8
+  | EventCut::kHighJetEta2p4
   | EventCut::kHighJet
+  | EventCut::kMet200GeV
+  | EventCut::kMetJetPhi0p5
+  | EventCut::kNoLepton
   ;
   
   unsigned int trackCutOptions =
-//    TrackCut::kEmpty
-    TrackCut::kPt50GeV // ok
-  | TrackCut::kEta2p4  // ok
+    TrackCut::kPt50GeV
+  | TrackCut::kEta2p4
   ;
 
   unsigned int jetCutOptions =
-//    JetCut::kEmpty
-    JetCut::kPt30GeV // ok
-  | JetCut::kFwdEta4p7 // ok
+    JetCut::kPt30GeV
+  | JetCut::kFwdEta4p7
   ;
 
   unsigned int leptonCutOptions =

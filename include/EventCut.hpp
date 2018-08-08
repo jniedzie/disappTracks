@@ -2,7 +2,6 @@
 //  EventCut.hpp
 //
 //  Created by Jeremi Niedziela on 23/07/2018.
-//  Copyright © 2018 Jeremi Niedziela. All rights reserved.
 //
 
 #ifndef EventCut_hpp

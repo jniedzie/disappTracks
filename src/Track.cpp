@@ -1,9 +1,7 @@
 //
 //  Track.cpp
-//  disappTracksTarget
 //
 //  Created by Jeremi Niedziela on 16/07/2018.
-//  Copyright © 2018 Jeremi Niedziela. All rights reserved.
 //
 
 #include "Track.hpp"

@@ -1,9 +1,7 @@
 //
 //  Event.cpp
-//  disappTracksTarget
 //
 //  Created by Jeremi Niedziela on 16/07/2018.
-//  Copyright © 2018 Jeremi Niedziela. All rights reserved.
 //
 
 #include "Event.hpp"
@@ -33,144 +31,143 @@ Events::Events(string fileName, int dataType)
   TFile *inFile = TFile::Open(fileName.c_str());
   TTreeReader reader("tree", inFile);
 
-  TTreeReaderValue<int>   nTracks(reader, "nIsoTrack");
+  TTreeReaderValue<int>   _nTracks(reader, "nIsoTrack");
   TTreeReaderValue<int>   _nVert(reader, "nVert");
-  TTreeReaderValue<int>   nJets(reader, "nJet");
-  TTreeReaderValue<int>   nJetsFwd(reader, "nJetFwd");
+  TTreeReaderValue<int>   _nJets(reader, "nJet");
+  TTreeReaderValue<int>   _nJetsFwd(reader, "nJetFwd");
   TTreeReaderValue<int>   _nJet30(reader, "nJet30");
   TTreeReaderValue<int>   _nJet30a(reader, "nJet30a");
   TTreeReaderValue<int>   _nLepton(reader, "nLepGood");
   TTreeReaderValue<int>   _nTau(reader, "nTauGood");
   
-  TTreeReaderValue<float> _xsec  (reader,(dataType==0 || dataType==1) ? "xsec" : "rho");
-  TTreeReaderValue<float> _wgtsum(reader,(dataType==0 || dataType==1) ? "wgtsum" : "rho");
-  TTreeReaderValue<float> _genwgt(reader,(dataType==0 || dataType==1) ? "genWeight" : "rho");
+  TTreeReaderValue<float> _xSec  (reader,(dataType==0 || dataType==1) ? "xsec" : "rho");
+  TTreeReaderValue<float> _sumWgt(reader,(dataType==0 || dataType==1) ? "wgtsum" : "rho");
+  TTreeReaderValue<float> _genWgt(reader,(dataType==0 || dataType==1) ? "genWeight" : "rho");
 
-  TTreeReaderValue<float> _met_sumEt(reader, "met_sumEt");
-  TTreeReaderValue<float> _met_pt(reader, "met_pt");
-  TTreeReaderValue<float> _met_mass(reader, "met_mass");
-  TTreeReaderValue<float> _met_phi(reader, "met_phi");
-  TTreeReaderValue<float> _met_eta(reader, "met_eta");
+  TTreeReaderValue<float> _metSumEt(reader, "met_sumEt");
+  TTreeReaderValue<float> _metPt(reader, "met_pt");
+  TTreeReaderValue<float> _metMass(reader, "met_mass");
+  TTreeReaderValue<float> _metPhi(reader, "met_phi");
+  TTreeReaderValue<float> _metEta(reader, "met_eta");
   
   TTreeReaderValue<int>   _metNoMuTrigger(reader, "HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight");
   
-  TTreeReaderValue<float> _metNoMu_pt(reader, "metNoMu_pt");
-  TTreeReaderValue<float> _metNoMu_mass(reader, "metNoMu_mass");
-  TTreeReaderValue<float> _metNoMu_phi(reader, "metNoMu_phi");
-  TTreeReaderValue<float> _metNoMu_eta(reader, "metNoMu_eta");
+  TTreeReaderValue<float> _metNoMuPt(reader, "metNoMu_pt");
+  TTreeReaderValue<float> _metNoMuMass(reader, "metNoMu_mass");
+  TTreeReaderValue<float> _metNoMuPhi(reader, "metNoMu_phi");
+  TTreeReaderValue<float> _metNoMuEta(reader, "metNoMu_eta");
 
-  TTreeReaderArray<float> _eta(reader, "IsoTrack_eta");
-  TTreeReaderArray<float> _phi(reader, "IsoTrack_phi");
-  TTreeReaderArray<float> _caloEmEnergy(reader, "IsoTrack_caloEmEnergy");
-  TTreeReaderArray<float> _caloHadEnergy(reader, "IsoTrack_caloHadEnergy");
-  TTreeReaderArray<float> _dxyErr(reader, "IsoTrack_edxy");
-  TTreeReaderArray<float> _dxy(reader, "IsoTrack_dxy");
-  TTreeReaderArray<float> _dzErr(reader, "IsoTrack_edz");
-  TTreeReaderArray<float> _dz(reader, "IsoTrack_dz");
-  TTreeReaderArray<int>   _charge(reader, "IsoTrack_charge");
-  TTreeReaderArray<float> _mass(reader, "IsoTrack_mass");
-  TTreeReaderArray<float> _pt(reader, "IsoTrack_pt");
-  TTreeReaderArray<int>   _pid(reader, "IsoTrack_pdgId");
+  TTreeReaderArray<float> _trackEta(reader, "IsoTrack_eta");
+  TTreeReaderArray<float> _trackPhi(reader, "IsoTrack_phi");
+  TTreeReaderArray<float> _trackCaloEmEnergy(reader, "IsoTrack_caloEmEnergy");
+  TTreeReaderArray<float> _trackCaloHadEnergy(reader, "IsoTrack_caloHadEnergy");
+  TTreeReaderArray<float> _trackDxyErr(reader, "IsoTrack_edxy");
+  TTreeReaderArray<float> _trackDxy(reader, "IsoTrack_dxy");
+  TTreeReaderArray<float> _trackDzErr(reader, "IsoTrack_edz");
+  TTreeReaderArray<float> _trackDz(reader, "IsoTrack_dz");
+  TTreeReaderArray<int>   _trackCharge(reader, "IsoTrack_charge");
+  TTreeReaderArray<float> _trackMass(reader, "IsoTrack_mass");
+  TTreeReaderArray<float> _trackPt(reader, "IsoTrack_pt");
+  TTreeReaderArray<int>   _trackPid(reader, "IsoTrack_pdgId");
 
-  TTreeReaderArray<float> _lepton_pt(reader, "LepGood_pt");
-  TTreeReaderArray<float> _lepton_phi(reader, "LepGood_phi");
-  TTreeReaderArray<float> _lepton_eta(reader, "LepGood_eta");
-  TTreeReaderArray<int>   _lepton_thight_pid(reader, "LepGood_tightId");
-  TTreeReaderArray<float> _lepton_isolation(reader, "LepGood_relIso04");
-  TTreeReaderArray<int>   _lepton_pid(reader, "LepGood_pdgId");
+  TTreeReaderArray<float> _leptonPt(reader, "LepGood_pt");
+  TTreeReaderArray<float> _leptonPhi(reader, "LepGood_phi");
+  TTreeReaderArray<float> _leptonEta(reader, "LepGood_eta");
+  TTreeReaderArray<int>   _leptonThightId(reader, "LepGood_tightId");
+  TTreeReaderArray<float> _leptonIsolation(reader, "LepGood_relIso04");
+  TTreeReaderArray<int>   _leptonPid(reader, "LepGood_pdgId");
   
-  TTreeReaderArray<float> _jet_pt(reader,  "Jet_pt");
-  TTreeReaderArray<float> _jet_eta(reader, "Jet_eta");
-  TTreeReaderArray<float> _jet_phi(reader, "Jet_phi");
-  TTreeReaderArray<float> _jet_mass(reader, "Jet_mass");
-  TTreeReaderArray<float> _jet_chHEF(reader, "Jet_chHEF");
-  TTreeReaderArray<float> _jet_neHEF(reader, "Jet_neHEF");
+  TTreeReaderArray<float> _jetPt(reader,  "Jet_pt");
+  TTreeReaderArray<float> _jetEta(reader, "Jet_eta");
+  TTreeReaderArray<float> _jetPhi(reader, "Jet_phi");
+  TTreeReaderArray<float> _jetMass(reader, "Jet_mass");
+  TTreeReaderArray<float> _jetChHEF(reader, "Jet_chHEF");
+  TTreeReaderArray<float> _jetNeHEF(reader, "Jet_neHEF");
   
-  TTreeReaderArray<float> _jetFwd_pt(reader,  "JetFwd_pt");
-  TTreeReaderArray<float> _jetFwd_eta(reader, "JetFwd_eta");
-  TTreeReaderArray<float> _jetFwd_phi(reader, "JetFwd_phi");
-  TTreeReaderArray<float> _jetFwd_mass(reader, "JetFwd_mass");
-  TTreeReaderArray<float> _jetFwd_chHEF(reader, "JetFwd_chHEF");
-  TTreeReaderArray<float> _jetFwd_neHEF(reader, "JetFwd_neHEF");
+  TTreeReaderArray<float> _jetFwdPt(reader,  "JetFwd_pt");
+  TTreeReaderArray<float> _jetFwdEta(reader, "JetFwd_eta");
+  TTreeReaderArray<float> _jetFwdPhi(reader, "JetFwd_phi");
+  TTreeReaderArray<float> _jetFwdMass(reader, "JetFwd_mass");
+  TTreeReaderArray<float> _jetFwdChHEF(reader, "JetFwd_chHEF");
+  TTreeReaderArray<float> _jetFwdNeHEF(reader, "JetFwd_neHEF");
 
-  
-  TTreeReaderArray<float> *dedx[nLayers];
-  TTreeReaderArray<int> *subDetId[nLayers];
-  TTreeReaderArray<int> *sizeX[nLayers];
-  TTreeReaderArray<int> *sizeY[nLayers];
+  TTreeReaderArray<float> *_dedx[nLayers];
+  TTreeReaderArray<int> *_subDetId[nLayers];
+  TTreeReaderArray<int> *_sizeX[nLayers];
+  TTreeReaderArray<int> *_sizeY[nLayers];
 
   for(int iLayer=0;iLayer<nLayers;iLayer++){
-    dedx[iLayer] =      new TTreeReaderArray<float>(reader,Form("IsoTrack_dedxByLayer%i",iLayer));
-    subDetId[iLayer] =  new TTreeReaderArray<int>(reader,Form("IsoTrack_subDetIdByLayer%i",iLayer));
-    sizeX[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeXbyLayer%i",iLayer));
-    sizeY[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeYbyLayer%i",iLayer));
+    _dedx[iLayer] =      new TTreeReaderArray<float>(reader,Form("IsoTrack_dedxByLayer%i",iLayer));
+    _subDetId[iLayer] =  new TTreeReaderArray<int>(reader,Form("IsoTrack_subDetIdByLayer%i",iLayer));
+    _sizeX[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeXbyLayer%i",iLayer));
+    _sizeY[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeYbyLayer%i",iLayer));
   }
-  int iter=0;
+  int iter=-1;
   while (reader.Next()){
-//    if(iter>10000) break;
     iter++;
+//    if(iter>10000) break;
     
     Event *newEvent = new Event();
 
-    for(int iTrack=0;iTrack<*nTracks;iTrack++){
+    for(int iTrack=0;iTrack<*_nTracks;iTrack++){
       Track *track = new Track();
-      track->SetEta(_eta[iTrack]);
-      track->SetPhi(_phi[iTrack]);
-      track->SetCaloEmEnergy(_caloEmEnergy[iTrack]);
-      track->SetCaloHadEnergy(_caloHadEnergy[iTrack]);
-      track->SetDxy(_dxy[iTrack],_dxyErr[iTrack]);
-      track->SetDz(_dz[iTrack],_dzErr[iTrack]);
-      track->SetCharge(_charge[iTrack]);
-      track->SetMass(_mass[iTrack]);
-      track->SetPt(_pt[iTrack]);
-      track->SetPid(_pid[iTrack]);
+      track->SetEta(_trackEta[iTrack]);
+      track->SetPhi(_trackPhi[iTrack]);
+      track->SetCaloEmEnergy(_trackCaloEmEnergy[iTrack]);
+      track->SetCaloHadEnergy(_trackCaloHadEnergy[iTrack]);
+      track->SetDxy(_trackDxy[iTrack],_trackDxyErr[iTrack]);
+      track->SetDz(_trackDz[iTrack],_trackDzErr[iTrack]);
+      track->SetCharge(_trackCharge[iTrack]);
+      track->SetMass(_trackMass[iTrack]);
+      track->SetPt(_trackPt[iTrack]);
+      track->SetPid(_trackPid[iTrack]);
 
       for(int iLayer=0;iLayer<nLayers;iLayer++){
-        track->SetDeDxInLayer(iLayer, (*dedx[iLayer])[iTrack]);
-        track->SetSubDetIdInLayer(iLayer, (*subDetId[iLayer])[iTrack]);
-        track->SetSizeXinLayer(iLayer, (*sizeX[iLayer])[iTrack]);
-        track->SetSizeYinLayer(iLayer, (*sizeY[iLayer])[iTrack]);
+        track->SetDeDxInLayer(iLayer, (*_dedx[iLayer])[iTrack]);
+        track->SetSubDetIdInLayer(iLayer, (*_subDetId[iLayer])[iTrack]);
+        track->SetSizeXinLayer(iLayer, (*_sizeX[iLayer])[iTrack]);
+        track->SetSizeYinLayer(iLayer, (*_sizeY[iLayer])[iTrack]);
       }
       newEvent->AddTrack(track);
     }
     
-    for(int iJet=0;iJet<*nJets;iJet++){
+    for(int iJet=0;iJet<*_nJets;iJet++){
       Jet *jet = new Jet();
-      jet->SetPt(_jet_pt[iJet]);
-      jet->SetEta(_jet_eta[iJet]);
-      jet->SetPhi(_jet_phi[iJet]);
-      jet->SetMass(_jet_mass[iJet]);
-      jet->SetChargedHadronEnergyFraction(_jet_chHEF[iJet]);
-      jet->SetNeutralHadronEnergyFraction(_jet_neHEF[iJet]);
+      jet->SetPt(_jetPt[iJet]);
+      jet->SetEta(_jetEta[iJet]);
+      jet->SetPhi(_jetPhi[iJet]);
+      jet->SetMass(_jetMass[iJet]);
+      jet->SetChargedHadronEnergyFraction(_jetChHEF[iJet]);
+      jet->SetNeutralHadronEnergyFraction(_jetNeHEF[iJet]);
       jet->SetIsForward(false);
       newEvent->AddJet(jet);
     }
     
-    for(int iJet=0;iJet<*nJetsFwd;iJet++){
+    for(int iJet=0;iJet<*_nJetsFwd;iJet++){
       Jet *jet = new Jet();
-      jet->SetPt(_jetFwd_pt[iJet]);
-      jet->SetEta(_jetFwd_eta[iJet]);
-      jet->SetPhi(_jetFwd_phi[iJet]);
-      jet->SetMass(_jetFwd_mass[iJet]);
-      jet->SetChargedHadronEnergyFraction(_jetFwd_chHEF[iJet]);
-      jet->SetNeutralHadronEnergyFraction(_jetFwd_neHEF[iJet]);
+      jet->SetPt(_jetFwdPt[iJet]);
+      jet->SetEta(_jetFwdEta[iJet]);
+      jet->SetPhi(_jetFwdPhi[iJet]);
+      jet->SetMass(_jetFwdMass[iJet]);
+      jet->SetChargedHadronEnergyFraction(_jetFwdChHEF[iJet]);
+      jet->SetNeutralHadronEnergyFraction(_jetFwdNeHEF[iJet]);
       jet->SetIsForward(true);
       newEvent->AddJet(jet);
     }
     
     for(int iLepton=0;iLepton<*_nLepton;iLepton++){
       Lepton *lepton = new Lepton();
-      lepton->SetPt(_lepton_pt[iLepton]);
-      lepton->SetEta(_lepton_eta[iLepton]);
-      lepton->SetPhi(_lepton_phi[iLepton]);
-      lepton->SetTightID(_lepton_thight_pid[iLepton]);
-      lepton->SetIsolation(_lepton_isolation[iLepton]);
-      lepton->SetPid(_lepton_pid[iLepton]);
+      lepton->SetPt(_leptonPt[iLepton]);
+      lepton->SetEta(_leptonEta[iLepton]);
+      lepton->SetPhi(_leptonPhi[iLepton]);
+      lepton->SetTightID(_leptonThightId[iLepton]);
+      lepton->SetIsolation(_leptonIsolation[iLepton]);
+      lepton->SetPid(_leptonPid[iLepton]);
       newEvent->AddLepton(lepton);
     }
     
     double lumi = 41.37 * 1000.;
-    double weight = lumi * (*_xsec) * (*_genwgt) / (*_wgtsum);
+    double weight = lumi * (*_xSec) * (*_genWgt) / (*_sumWgt);
 
     if(dataType==1){
       weight = 182; // just invented some number to make S/B ~ 1
@@ -188,17 +185,17 @@ Events::Events(string fileName, int dataType)
     newEvent->SetNlepton(*_nLepton);
     newEvent->SetNtau(*_nTau);
     
-    newEvent->SetMetSumEt(*_met_sumEt);
-    newEvent->SetMetPt(*_met_pt);
-    newEvent->SetMetMass(*_met_mass);
-    newEvent->SetMetEta(*_met_eta);
-    newEvent->SetMetPhi(*_met_phi);
+    newEvent->SetMetSumEt(*_metSumEt);
+    newEvent->SetMetPt(*_metPt);
+    newEvent->SetMetMass(*_metMass);
+    newEvent->SetMetEta(*_metEta);
+    newEvent->SetMetPhi(*_metPhi);
     
     newEvent->SetHasNoMuTrigger(*_metNoMuTrigger);
-    newEvent->SetMetNoMuPt(*_metNoMu_pt);
-    newEvent->SetMetNoMuMass(*_metNoMu_mass);
-    newEvent->SetMetNoMuEta(*_metNoMu_eta);
-    newEvent->SetMetNoMuPhi(*_metNoMu_phi);
+    newEvent->SetMetNoMuPt(*_metNoMuPt);
+    newEvent->SetMetNoMuMass(*_metNoMuMass);
+    newEvent->SetMetNoMuEta(*_metNoMuEta);
+    newEvent->SetMetNoMuPhi(*_metNoMuPhi);
     
     events.push_back(newEvent);
   }
