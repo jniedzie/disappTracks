@@ -20,12 +20,17 @@ class Event;
 
 class Events {
 public:
+  enum EDataType{
+    kBackground,
+    kSignal,
+    kData
+  };
   
   /// Default constructor. Loads events from ROOT tree
   /// \param fileName Path to the ROOT file with ntuples from which events will be loaded
-  /// \param dataType Event weigth will be calculated differently for: 0 - background, 1 - signal, 2 - data
+  /// \param dataType Event weigth will be calculated differently background, signal and data
   /// \param maxNevents Load just maxNevents from file and then stop
-  Events(std::string fileName, int dataType=0, int maxNevents=-1);
+  Events(std::string fileName, EDataType dataType=kBackground, int maxNevents=-1);
   
   /// Empty constructor. Creates an empty class with no events.
   Events();
@@ -39,9 +44,9 @@ public:
   
   /// Adds events from specified path to the existing events collection
   /// \param fileName Path to the ROOT file with ntuples from which events will be loaded
-  /// \param dataType Event weigth will be calculated differently for: 0 - background, 1 - signal, 2 - data
+  /// \param dataType Event weigth will be calculated differently for background, signal and data
   /// \param maxNevents Load just maxNevents from file and then stop
-  void AddEventsFromFile(std::string fileName, int dataType=0, int maxNevents=-1);
+  void AddEventsFromFile(std::string fileName, EDataType dataType=kBackground, int maxNevents=-1);
   
   /// Applies cuts in this order: track, jet, lepton, event
   /// \param eventCut   Cuts to be applied to events

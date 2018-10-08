@@ -17,18 +17,18 @@ int main(int argc, char* argv[])
   vector<Events*> eventsData;
   
   for(int iData=0;iData<kNdata;iData++){
-    eventsData.push_back(analyzeData ? new Events(inFileNameData[iData],2) : nullptr);
+    eventsData.push_back(analyzeData ? new Events(inFileNameData[iData], Events::kData, maxNeventsData) : nullptr);
   }
     
   for(int iSig=0;iSig<kNsignals;iSig++){
-    eventsSignal.push_back(new Events(inFileNameSignal[iSig],1));
+    eventsSignal.push_back(new Events(inFileNameSignal[iSig], Events::kSignal, maxNeventsSignal));
   }
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     eventsBackground.push_back(new Events());
     
     for(string path : inFileNameBackground[iBck]){
-      eventsBackground[iBck]->AddEventsFromFile(path,2,100000);
+      eventsBackground[iBck]->AddEventsFromFile(path, Events::kData, maxNeventsBackground);
     }
   }
   

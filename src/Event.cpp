@@ -15,7 +15,7 @@ Events::Events()
   
 }
 
-Events::Events(string fileName, int dataType, int maxNevents)
+Events::Events(string fileName, EDataType dataType, int maxNevents)
 {
   AddEventsFromFile(fileName,dataType,maxNevents);
 }
@@ -32,7 +32,7 @@ Events::~Events()
   
 }
 
-void Events::AddEventsFromFile(std::string fileName, int dataType, int maxNevents)
+void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int maxNevents)
 {
   cout<<"Reading events from:"<<fileName<<endl;
   TFile *inFile = TFile::Open(fileName.c_str());
@@ -47,9 +47,9 @@ void Events::AddEventsFromFile(std::string fileName, int dataType, int maxNevent
   TTreeReaderValue<int>   _nLepton(reader, "nLepGood");
   TTreeReaderValue<int>   _nTau(reader, "nTauGood");
   
-  TTreeReaderValue<float> _xSec  (reader,(dataType==0 || dataType==1) ? "xsec" : "rho");
-  TTreeReaderValue<float> _sumWgt(reader,(dataType==0 || dataType==1) ? "wgtsum" : "rho");
-  TTreeReaderValue<float> _genWgt(reader,(dataType==0 || dataType==1) ? "genWeight" : "rho");
+  TTreeReaderValue<float> _xSec  (reader,(dataType==kBackground || dataType==kSignal) ? "xsec" : "rho");
+  TTreeReaderValue<float> _sumWgt(reader,(dataType==kBackground || dataType==kSignal) ? "wgtsum" : "rho");
+  TTreeReaderValue<float> _genWgt(reader,(dataType==kBackground || dataType==kSignal) ? "genWeight" : "rho");
 
   TTreeReaderValue<float> _metSumEt(reader, "met_sumEt");
   TTreeReaderValue<float> _metPt(reader, "met_pt");
@@ -176,11 +176,11 @@ void Events::AddEventsFromFile(std::string fileName, int dataType, int maxNevent
     double lumi = 41.37 * 1000.;
     double weight = lumi * (*_xSec) * (*_genWgt) / (*_sumWgt);
 
-    if(dataType==1){
+    if(dataType==kSignal){
       weight = 182; // just invented some number to make S/B ~ 1
       weight *= 10000.0/reader.GetEntries(true); // correct for less entries in the tree than for background
     }
-    else if(dataType==2){
+    else if(dataType==kData){
       weight = 1.0;
     }
     

@@ -19,8 +19,8 @@ showNonZeroBinPosX(false)
 {
   
   for(int iSig=0;iSig<kNsignals;iSig++){
-    signal.push_back(new TH1D(Form("%s (signal %s)",title,signalTitle[iSig]),
-                              Form("%s (signal %s)",title,signalTitle[iSig]),
+    signal.push_back(new TH1D(Form("%s (signal %s)",title,signalTitle[iSig].c_str()),
+                              Form("%s (signal %s)",title,signalTitle[iSig].c_str()),
                               nBins,min,max));
     signal[iSig]->Sumw2(DoSumw2());
   }
@@ -33,8 +33,8 @@ showNonZeroBinPosX(false)
     background[iBck]->Sumw2(DoSumw2());
   }
   for(int iData=0;iData<kNdata;iData++){
-    data.push_back(new TH1D(Form("%s (data %s)",title,dataTitle[iData]),
-                            Form("%s (data %s)",title,dataTitle[iData]),
+    data.push_back(new TH1D(Form("%s (data %s)",title,dataTitle[iData].c_str()),
+                            Form("%s (data %s)",title,dataTitle[iData].c_str()),
                             nBins,min,max));
     
     data[iData]->Sumw2(DoSumw2());
@@ -51,8 +51,8 @@ showNonZeroBinPosX(false)
   double max = GetMax();
   
   for(int iSig=0;iSig<kNsignals;iSig++){
-    signal.push_back(new TH1D(Form("%s (signal %s)",title,signalTitle[iSig]),
-                              Form("%s (signal %s)",title,signalTitle[iSig]),
+    signal.push_back(new TH1D(Form("%s (signal %s)",title,signalTitle[iSig].c_str()),
+                              Form("%s (signal %s)",title,signalTitle[iSig].c_str()),
                               nBins,min,max));
     signal[iSig]->Sumw2(DoSumw2());
   }
@@ -65,8 +65,8 @@ showNonZeroBinPosX(false)
     background[iBck]->Sumw2(DoSumw2());
   }
   for(int iData=0;iData<kNdata;iData++){
-    data.push_back(new TH1D(Form("%s (data %s)",title,dataTitle[iData]),
-                            Form("%s (data %s)",title,dataTitle[iData]),
+    data.push_back(new TH1D(Form("%s (data %s)",title,dataTitle[iData].c_str()),
+                            Form("%s (data %s)",title,dataTitle[iData].c_str()),
                             nBins,min,max));
     data[iData]->Sumw2(DoSumw2());
   }
@@ -110,8 +110,8 @@ void HistSet::FillFromEventsPerLayer(std::vector<Events*> signalEvents,
   for(int iSig=0;iSig<signalEvents.size();iSig++){
     vector<TH1D*> signalVector;
     for(int iLayer=0;iLayer<nLayers;iLayer++){
-      TH1D *histSignal = new TH1D(Form("%s_layer[%i]_signal_%s",title,iLayer,signalTitle[iSig]),
-                                  Form("%s_layer[%i]_signal_%s",title,iLayer,signalTitle[iSig]),
+      TH1D *histSignal = new TH1D(Form("%s_layer[%i]_signal_%s",title,iLayer,signalTitle[iSig].c_str()),
+                                  Form("%s_layer[%i]_signal_%s",title,iLayer,signalTitle[iSig].c_str()),
                                   nBins,min,max);
       
       Fill(histSignal,signalEvents[iSig],iLayer);
@@ -229,7 +229,7 @@ void HistSet::Draw(TCanvas *c1, int pad)
   if(showNonZeroBinPosX){
     for(int iSig=0;iSig<signal.size();iSig++){
       leg->AddEntry(signal[iSig],
-                    Form("Signal %s (%.2f %%)",signalTitle[iSig], 100*GetNonZeroBinPosX(signal[iSig])),"lp");
+                    Form("Signal %s (%.2f %%)",signalTitle[iSig].c_str(), 100*GetNonZeroBinPosX(signal[iSig])),"lp");
     }
     for(int iBck=0;iBck<background.size();iBck++){
       leg->AddEntry(background[iBck],
@@ -242,7 +242,7 @@ void HistSet::Draw(TCanvas *c1, int pad)
   }
   else{
     for(int iSig=0;iSig<signal.size();iSig++){
-      leg->AddEntry(signal[iSig],Form("Signal %s",signalTitle[iSig]),"lp");
+      leg->AddEntry(signal[iSig],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
     }
     for(int iBck=0;iBck<background.size();iBck++){
       leg->AddEntry(background[iBck],Form("Background %s",backgroundTitle[iBck]),"lp");
@@ -300,7 +300,7 @@ void HistSet::DrawPerLayer()
 {
   TLegend *leg = GetLegend();
   for(int iSig=0;iSig<signalPerLayer.size();iSig++){
-    leg->AddEntry(signalPerLayer[iSig][0],Form("Signal %s",signalTitle[iSig]),"lp");
+    leg->AddEntry(signalPerLayer[iSig][0],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
   }
   for(int iBck=0;iBck<backgroundPerLayer.size();iBck++){
     leg->AddEntry(backgroundPerLayer[iBck][0],Form("Background %s",backgroundTitle[iBck]),"lp");

@@ -23,17 +23,23 @@
 
 using namespace std;
 
+// Analysis configuration
 const bool analyzeData = false;
-
 const bool printHeaders = true;
 
-const int nLayers = 14;
-const double layerR[nLayers] = { 29, 68, 109, 160, 250, 340, 430, 520, 610, 696, 782, 868, 965, 1080 };
+// Limit number of events loaded (-1 means - load all available)
+const int maxNeventsBackground  = 100000;
+const int maxNeventsSignal      = -1;
+const int maxNeventsData        = -1;
 
+// Plotting style
 const double fillOpacity = 0.1;
-
 const int fillStyleBack = 1000;
 const int fillStyleSignal = 3003;
+
+// Constants for tracker layers
+const int nLayers = 14;
+const double layerR[nLayers] = { 29, 68, 109, 160, 250, 340, 430, 520, 610, 696, 782, 868, 965, 1080 };
 
 enum EVar{
   kCustom,
@@ -79,25 +85,17 @@ enum EVar{
 
 enum EBackground{
   kDYJets,
-//  kDYJetsToLL_M50,
-//  kTBar_tWch_noFullyHad,
-//  kTBar_tch,
-//  kTTLep_pow,
-//  kTTSemi_pow,
-//  kT_tWch_noFullyHad,
-//  kT_tch,
-//  kWJetsToLNu_LO,
-//  kWW,
-//  kWZ,
-//  kZZ,
+  kTT,
+  kVV,
+  kWJetsToLNu_LO,
   kNbackgrounds
 };
 
 enum ESignal{
   kWino_M_300_cTau_10,
-  kWino_M_300_cTau_3,
-  kWino_M_300_cTau_30,
-  kWino_M_500_cTau_10,
+//  kWino_M_300_cTau_3,
+//  kWino_M_300_cTau_30,
+//  kWino_M_500_cTau_10,
   kNsignals
 };
 
@@ -108,31 +106,23 @@ enum EData{
 
 static const char* backgroundTitle[kNbackgrounds] = {
   "DYJets",
-//  "DYJetsToLL_M50",
-//  "TBar_tWch_noFullyHad",
-//  "TBar_tch",
-//  "TTLep_pow",
-//  "TTSemi_pow",
-//  "T_tWch_noFullyHad",
-//  "T_tch",
-//  "WJetsToLNu_LO",
-//  "WW",
-//  "WZ",
-//  "ZZ"
+  "tt",
+  "VV",
+  "W_{#mu#nu}",
 };
 
-static const char* signalTitle[kNsignals] = {
+const vector<string> signalTitle = {
   "Wino_M_300_cTau_10",
   "Wino_M_300_cTau_3",
   "Wino_M_300_cTau_30",
   "Wino_M_500_cTau_10"
 };
 
-static const char* dataTitle[kNdata] = {
+const vector<string> dataTitle = {
   "Single electron (2017B)",
 };
 
-const int signalMarkers[kNsignals] = {
+const vector<int> signalMarkers = {
   20,
   21,
   22,
@@ -141,34 +131,29 @@ const int signalMarkers[kNsignals] = {
 
 const vector<vector<string>> inFileNameBackground = {
   {"../adish/SR_MC/DYJetsM50_HT100to200/tree.root", "../adish/SR_MC/DYJetsM50_HT100to200e/tree.root"},
+  {"../adish/Background/TBar_tch/treeSmall.root","../adish/Background/T_tch/treeSmall.root",
+    "../adish/Background/TBar_tWch_noFullyHad/treeSmall.root","../adish/Background/T_tWch_noFullyHad/treeSmall.root",
+    "../adish/Background/TTLep_pow/treeSmall.root","../adish/Background/TTSemi_pow/treeSmall.root"},
+  {"../adish/Background/WW/treeSmall.root","../adish/Background/WZ/treeSmall.root","../adish/Background/ZZ/treeSmall.root"},
 //  {"../adish/Background/DYJetsToLL_M50/treeSmall.root",}
-//  {"../adish/Background/TBar_tWch_noFullyHad/treeSmall.root",}
-//  {"../adish/Background/TBar_tch/treeSmall.root",}
-//  {"../adish/Background/TTLep_pow/treeSmall.root",}
-//  {"../adish/Background/TTSemi_pow/treeSmall.root",}
-//  {"../adish/Background/T_tWch_noFullyHad/treeSmall.root",}
-//  {"../adish/Background/T_tch/treeSmall.root",}
-//  {"../adish/Background/WJetsToLNu_LO/treeSmall.root",}
-//  {"../adish/Background/WW/treeSmall.root",}
-//  {"../adish/Background/WZ/treeSmall.root",}
-//  {"../adish/Background/ZZ/treeSmall.root"}
+  {"../adish/Background/WJetsToLNu_LO/treeSmall.root",}
 };
 
-const string inFileNameSignal[kNsignals] = {
+const vector<string> inFileNameSignal = {
   "../adish/Signal/Wino_M_300_cTau_10/treeProducerXtracks/tree.root",
   "../adish/Signal/Wino_M_300_cTau_3/treeProducerXtracks/tree.root",
   "../adish/Signal/Wino_M_300_cTau_30/treeProducerXtracks/tree.root",
   "../adish/Signal/Wino_M_500_cTau_10/treeProducerXtracks/tree.root"
 };
 
-const string inFileNameData[kNdata] ={
+const vector<string> inFileNameData = {
   "../adish/Data/SingleElectron_Run2017B_17Nov2017/treeProducerXtracks/tree.root"
 };
 
-const int backColors[kNbackgrounds][3] = {{230, 25, 75}};
-//  ,{60, 180, 75},{255, 225, 25},{0, 130, 200},{245, 130, 48},{145, 30, 180},{70, 240, 240},{240, 50, 230},{250, 190, 190},{0, 128, 128},{230, 190, 255}};
+const vector<vector<int>> backColors = {{230, 25, 75},{60, 180, 75},{0, 130, 200},{245, 130, 48}};
+//  ,,{255, 225, 25},,{145, 30, 180},{70, 240, 240},{240, 50, 230},{250, 190, 190},{0, 128, 128},{230, 190, 255}};
 
-const int signalColors[kNsignals][3] = {{170, 110, 40},{128, 128, 0},{128, 0, 0},{170, 100, 195}};
+const vector<vector<int>> signalColors = {{170, 110, 40},{128, 128, 0},{128, 0, 0},{170, 100, 195}};
 
 inline int BackColor(EBackground bck){
   return TColor::GetColor(backColors[bck][0],backColors[bck][1],backColors[bck][2]);
