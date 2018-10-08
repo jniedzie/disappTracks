@@ -20,32 +20,78 @@ class Event;
 
 class Events {
 public:
-  Events(std::string fileName, int dataType=0); // 0 - background, 1 - signal, 2 - data
+  
+  /// Default constructor. Loads events from ROOT tree
+  /// \param fileName Path to the ROOT file with ntuples from which events will be loaded
+  /// \param dataType Event weigth will be calculated differently for: 0 - background, 1 - signal, 2 - data
+  /// \param maxNevents Load just maxNevents from file and then stop
+  Events(std::string fileName, int dataType=0, int maxNevents=-1);
+  
+  /// Empty constructor. Creates an empty class with no events.
   Events();
+  
+  /// Default destructor
   ~Events();
   
+  /// Adds event to the collection of events
+  /// \param event Event object to be added to the collection
   void AddEvent(Event *event){events.push_back(event);}
   
+  /// Adds events from specified path to the existing events collection
+  /// \param fileName Path to the ROOT file with ntuples from which events will be loaded
+  /// \param dataType Event weigth will be calculated differently for: 0 - background, 1 - signal, 2 - data
+  /// \param maxNevents Load just maxNevents from file and then stop
+  void AddEventsFromFile(std::string fileName, int dataType=0, int maxNevents=-1);
+  
+  /// Applies cuts in this order: track, jet, lepton, event
+  /// \param eventCut   Cuts to be applied to events
+  /// \param trackCut   Cuts to be applied to tracks
+  /// \param jetCut     Cuts to be applied to jets
+  /// \param leptonCut  Cuts to be applied to leptons
+  /// \return Returns collection of events passing cuts, containing only tracks, jets and leptons that passed all cuts
   Events* ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut);
+  
+  /// Applies cuts on events
+  /// \param cut   Cuts to be applied to events
+  /// \return Returns collection of events passing all cuts
   Events* ApplyEventCut(EventCut *cut);
+  
+  /// Applies cuts on tracks
+  /// \param cut   Cuts to be applied to tracks
+  /// \return Returns collection of events, containing only those tracks that passed all cuts
   Events* ApplyTrackCut(TrackCut *cut);
+  
+  /// Applies cuts on jets
+  /// \param cut   Cuts to be applied to jets
+  /// \return Returns collection of events, containing only those jets that passed all cuts
   Events* ApplyJetCut(JetCut *cut);
+  
+  /// Applies cuts on leptons
+  /// \param cut   Cuts to be applied to leptons
+  /// \return Returns collection of events, containing only those leptons that passed all cuts
   Events* ApplyLeptonCut(LeptonCut *cut);
   
+  /// Returns number of events in this collection
   inline int size(){return (int)events.size();}
-  double WeightedSize();
+  
+  /// Returns the event with given index
   Event* At(int index){return events[index];}
 
 private:
+  /// Copy constructor. Copies all events in the collection.
   Events(const Events &event);
   
-  std::vector<Event*> events;
+  std::vector<Event*> events; ///< Vector of events
 };
 
 //---------------------------------------------------------------------------------------
 // Single event class
 //---------------------------------------------------------------------------------------
 
+/// Representation of a single event.
+///
+/// This class contains global information about the event, as well as
+/// collection of tracks, jets and leptons belonging to this event.
 class Event{
 public:
   Event();
@@ -129,30 +175,29 @@ public:
   Event* CopyThisEventProperties();
   
 private:
-  vector<Track*>  tracks;   // vector of isolated tracks
-  vector<Jet*>    jets;     // vector of jets
-  vector<Lepton*> leptons;  // vector of leptons
+  vector<Track*>  tracks;   ///< Vector of isolated tracks
+  vector<Jet*>    jets;     ///< Vector of jets
+  vector<Lepton*> leptons;  ///< Vector of leptons
   
-  double weight;          // Weight for this event resulting from lumi, xsec and number of events generated
-  int nVertices;          // Number of good verices
-  int nJet30;             // Number of jets with pt > 30, |eta|<2.4
-  int nJet30a;            // Number of jets with pt > 30, |eta|<4.7
-  int nLepton;
-  int nTau;
+  double weight;          ///< Weight for this event resulting from lumi, cross section and generator weights
   
-  double metSumEt;
-  double metPt;
-  double metMass;
-  double metPhi;
-  double metEta;
+  int nVertices;          ///< Number of good verices
+  int nJet30;             ///< Number of jets with pt > 30, |eta|<2.4
+  int nJet30a;            ///< Number of jets with pt > 30, |eta|<4.7
+  int nLepton;            ///< Number of leptons
+  int nTau;               ///< Number of tau leptons
   
-  bool metNoMuTrigger;
-  double metNoMuPt;
-  double metNoMuMass;
-  double metNoMuPhi;
-  double metNoMuEta;
+  double  metSumEt;       ///< Sum of missing transverse energy
+  double  metPt;          ///< MET transverse momentum
+  double  metEta;         ///< MET pseudorapidity
+  double  metPhi;         ///< MET polar angle
+  double  metMass;        ///< MET mass
   
-  
+  bool    metNoMuTrigger; ///< Did HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight trigger fired for this event?
+  double  metNoMuPt;      ///< MET transverse momentum (calculated without muons)
+  double  metNoMuEta;     ///< MET pseudorapidity (calculated without muons)
+  double  metNoMuPhi;     ///< MET polar angle (calculated without muons)
+  double  metNoMuMass;    ///< MET mass (calculated without muons)
 };
 
 #endif /* Event_hpp */

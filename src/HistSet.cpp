@@ -13,34 +13,35 @@
 #include <TText.h>
 
 HistSet::HistSet(const char* title, int nBins, double min, double max) :
-data(nullptr),
 var(kCustom),
 customTitle(title),
 showNonZeroBinPosX(false)
 {
   
   for(int iSig=0;iSig<kNsignals;iSig++){
-    signal[iSig] = new TH1D(Form("%s (signal %s)",title,signalTitle[iSig]),
-                            Form("%s (signal %s)",title,signalTitle[iSig]),
-                            nBins,min,max);
+    signal.push_back(new TH1D(Form("%s (signal %s)",title,signalTitle[iSig]),
+                              Form("%s (signal %s)",title,signalTitle[iSig]),
+                              nBins,min,max));
     signal[iSig]->Sumw2(DoSumw2());
   }
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    background[iBck] = new TH1D(Form("%s (background %s)",title,backgroundTitle[iBck]),
-                                Form("%s (background %s)",title,backgroundTitle[iBck]),
-                                nBins,min,max);
+    background.push_back(new TH1D(Form("%s (background %s)",title,backgroundTitle[iBck]),
+                                  Form("%s (background %s)",title,backgroundTitle[iBck]),
+                                  nBins,min,max));
     
     background[iBck]->Sumw2(DoSumw2());
   }
-  
-  
-  data = new TH1D(Form("%s (data)",title),Form("%s (data)",title),nBins,min,max);
-  data->Sumw2(DoSumw2());
+  for(int iData=0;iData<kNdata;iData++){
+    data.push_back(new TH1D(Form("%s (data %s)",title,dataTitle[iData]),
+                            Form("%s (data %s)",title,dataTitle[iData]),
+                            nBins,min,max));
+    
+    data[iData]->Sumw2(DoSumw2());
+  }
 }
 
 HistSet::HistSet(EVar _var) :
-data(nullptr),
 var(_var),
 showNonZeroBinPosX(false)
 {
@@ -50,22 +51,25 @@ showNonZeroBinPosX(false)
   double max = GetMax();
   
   for(int iSig=0;iSig<kNsignals;iSig++){
-    signal[iSig] = new TH1D(Form("%s (signal %s)",title,signalTitle[iSig]),
-                            Form("%s (signal %s)",title,signalTitle[iSig]),
-                            nBins,min,max);
+    signal.push_back(new TH1D(Form("%s (signal %s)",title,signalTitle[iSig]),
+                              Form("%s (signal %s)",title,signalTitle[iSig]),
+                              nBins,min,max));
     signal[iSig]->Sumw2(DoSumw2());
   }
   
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    background[iBck] = new TH1D(Form("%s (background %s)",title,backgroundTitle[iBck]),
-                                Form("%s (background %s)",title,backgroundTitle[iBck]),
-                                nBins,min,max);
+    background.push_back(new TH1D(Form("%s (background %s)",title,backgroundTitle[iBck]),
+                                  Form("%s (background %s)",title,backgroundTitle[iBck]),
+                                  nBins,min,max));
     background[iBck]->Sumw2(DoSumw2());
   }
-  
-  data       = new TH1D(Form("%s (data)",title),Form("%s (data)",title),nBins,min,max);
-  data->Sumw2(DoSumw2());
+  for(int iData=0;iData<kNdata;iData++){
+    data.push_back(new TH1D(Form("%s (data %s)",title,dataTitle[iData]),
+                            Form("%s (data %s)",title,dataTitle[iData]),
+                            nBins,min,max));
+    data[iData]->Sumw2(DoSumw2());
+  }
 }
 
 HistSet::~HistSet()
@@ -74,51 +78,72 @@ HistSet::~HistSet()
   
 }
 
-void HistSet::FillFromEvents(Events *signalEvents[kNsignals], Events *backgroundEvents[kNbackgrounds], Events *dataEvents)
+void HistSet::FillFromEvents(std::vector<Events*> signalEvents,
+                             std::vector<Events*> backgroundEvents,
+                             std::vector<Events*> dataEvents)
 {
   if(var == kDedx || var == kSizeX || var == kSizeY){
     FillFromEventsPerLayer(signalEvents, backgroundEvents, dataEvents);
   }
   else{
-    for(int iSig=0;iSig<kNsignals;iSig++){
+    for(int iSig=0;iSig<signalEvents.size();iSig++){
       Fill(signal[iSig], signalEvents[iSig]);
     }
-    for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    for(int iBck=0;iBck<backgroundEvents.size();iBck++){
       Fill(background[iBck], backgroundEvents[iBck]);
     }
-    Fill(data, dataEvents);
+    for(int iData=0;iData<dataEvents.size();iData++){
+      Fill(data[iData], dataEvents[iData]);
+    }
   }
 }
 
-void HistSet::FillFromEventsPerLayer(Events *signalEvents[kNsignals], Events *backgroundEvents[kNbackgrounds], Events *dataEvents)
+void HistSet::FillFromEventsPerLayer(std::vector<Events*> signalEvents,
+                                     std::vector<Events*> backgroundEvents,
+                                     std::vector<Events*> dataEvents)
 {
   const char* title= GetTitle();
   int nBins = GetNbins();
   double min = GetMin();
   double max = GetMax();
   
-  for(int iLayer=0;iLayer<nLayers;iLayer++){
-    
-    for(int iSig=0;iSig<kNsignals;iSig++){
+  for(int iSig=0;iSig<signalEvents.size();iSig++){
+    vector<TH1D*> signalVector;
+    for(int iLayer=0;iLayer<nLayers;iLayer++){
       TH1D *histSignal = new TH1D(Form("%s_layer[%i]_signal_%s",title,iLayer,signalTitle[iSig]),
                                   Form("%s_layer[%i]_signal_%s",title,iLayer,signalTitle[iSig]),
                                   nBins,min,max);
       
       Fill(histSignal,signalEvents[iSig],iLayer);
-      signalPerLayer[iSig].push_back(histSignal);
+      signalVector.push_back(histSignal);
     }
-      
-    for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    signalPerLayer.push_back(signalVector);
+  }
+  
+  
+  for(int iBck=0;iBck<backgroundEvents.size();iBck++){
+    vector<TH1D*> backgroundVector;
+    for(int iLayer=0;iLayer<nLayers;iLayer++){
       TH1D *histBackground = new TH1D(Form("%s_layer[%i]_background_%s",title,iLayer,backgroundTitle[iBck]),
                                       Form("%s_layer[%i]_background_%s",title,iLayer,backgroundTitle[iBck]),
                                       nBins,min,max);
       
       Fill(histBackground,backgroundEvents[iBck],iLayer);
-      backgroundPerLayer[iBck].push_back(histBackground);
+      backgroundVector.push_back(histBackground);
     }
-    TH1D *histData = new TH1D(Form("%s_layer[%i]_data",title,iLayer),Form("%s_layer[%i]_data",title,iLayer),nBins,min,max);
-    Fill(histData,dataEvents,iLayer);
-    dataPerLayer.push_back(histData);
+    backgroundPerLayer.push_back(backgroundVector);
+  }
+  for(int iData=0;iData<dataEvents.size();iData++){
+    vector<TH1D*> dataVector;
+    for(int iLayer=0;iLayer<nLayers;iLayer++){
+      
+      TH1D *histData = new TH1D(Form("%s_layer[%i]_data",title,iLayer),
+                                Form("%s_layer[%i]_data",title,iLayer),
+                                nBins,min,max);
+      Fill(histData,dataEvents[iData],iLayer);
+      dataVector.push_back(histData);
+    }
+    dataPerLayer.push_back(dataVector);
   }
 }
 
@@ -202,25 +227,29 @@ void HistSet::Draw(TCanvas *c1, int pad)
 {
   TLegend *leg = GetLegend();
   if(showNonZeroBinPosX){
-    for(int iSig=0;iSig<kNsignals;iSig++){
+    for(int iSig=0;iSig<signal.size();iSig++){
       leg->AddEntry(signal[iSig],
                     Form("Signal %s (%.2f %%)",signalTitle[iSig], 100*GetNonZeroBinPosX(signal[iSig])),"lp");
     }
-    for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    for(int iBck=0;iBck<background.size();iBck++){
       leg->AddEntry(background[iBck],
                     Form("Background %s (%.2f %%)",backgroundTitle[iBck], 100*GetNonZeroBinPosX(background[iBck])),
                     "lp");
     }
-    leg->AddEntry(data,Form("Data (%.2f %%)",100*GetNonZeroBinPosX(data)),"lp");
+    for(int iData=0;iData<data.size();iData++){
+      leg->AddEntry(data[iData],Form("Data (%.2f %%)",100*GetNonZeroBinPosX(data[iData])),"lp");
+    }
   }
   else{
-    for(int iSig=0;iSig<kNsignals;iSig++){
+    for(int iSig=0;iSig<signal.size();iSig++){
       leg->AddEntry(signal[iSig],Form("Signal %s",signalTitle[iSig]),"lp");
     }
-    for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    for(int iBck=0;iBck<background.size();iBck++){
       leg->AddEntry(background[iBck],Form("Background %s",backgroundTitle[iBck]),"lp");
     }
-    leg->AddEntry(data,"Data","lp");
+    for(int iData=0;iData<data.size();iData++){
+      leg->AddEntry(data[iData],"Data","lp");
+    }
   }
     
   c1->cd(pad);
@@ -241,11 +270,13 @@ void HistSet::Draw(TCanvas *c1, int pad)
     if(ShouldNormalize())  background[iBck]->Scale(1/background[iBck]->Integral());
     if(!DoSumw2()) background[iBck]->Sumw2(false);
   }
-  data->SetLineColor(kGreen);
-  data->SetFillStyle(1000);
-  data->SetFillColorAlpha(kGreen, fillOpacity);
-  if(ShouldNormalize())  data->Scale(1/data->Integral());
-  if(!DoSumw2()) data->Sumw2(false);
+  for(int iData=0;iData<kNdata;iData++){
+    data[iData]->SetLineColor(kGreen);
+    data[iData]->SetFillStyle(1000);
+    data[iData]->SetFillColorAlpha(kGreen, fillOpacity);
+    if(ShouldNormalize())  data[iData]->Scale(1/data[iData]->Integral());
+    if(!DoSumw2()) data[iData]->Sumw2(false);
+  }
   
   THStack *stack = new THStack(GetTitle(),GetTitle());
   for(int iSig=0;iSig<kNsignals;iSig++){
@@ -254,7 +285,11 @@ void HistSet::Draw(TCanvas *c1, int pad)
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     stack->Add(background[iBck]);
   }
-  if(analyzeData) stack->Add(data);
+  if(analyzeData){
+    for(int iData=0;iData<kNdata;iData++){
+      stack->Add(data[iData]);
+    }
+  }
   stack->Draw("nostack");
   
   leg->Draw();
@@ -264,14 +299,16 @@ void HistSet::Draw(TCanvas *c1, int pad)
 void HistSet::DrawPerLayer()
 {
   TLegend *leg = GetLegend();
-  for(int iSig=0;iSig<kNsignals;iSig++){
+  for(int iSig=0;iSig<signalPerLayer.size();iSig++){
     leg->AddEntry(signalPerLayer[iSig][0],Form("Signal %s",signalTitle[iSig]),"lp");
   }
-  for(int iBck=0;iBck<kNbackgrounds;iBck++){
+  for(int iBck=0;iBck<backgroundPerLayer.size();iBck++){
     leg->AddEntry(backgroundPerLayer[iBck][0],Form("Background %s",backgroundTitle[iBck]),"lp");
   }
-  leg->AddEntry(dataPerLayer[0],"Data","lp");
-  
+  for(int iData=0;iData<dataPerLayer.size();iData++){
+    leg->AddEntry(dataPerLayer[iData][0],"Data","lp");
+  }
+    
   TCanvas *c1 = new TCanvas(GetTitle(),GetTitle(),2880,1800);
   
   if(var == kDedx) c1->Divide(4,4);
@@ -282,7 +319,7 @@ void HistSet::DrawPerLayer()
     
     c1->cd(iLayer+1);
     
-    for(int iSig=0;iSig<kNsignals;iSig++){
+    for(int iSig=0;iSig<signalPerLayer.size();iSig++){
       signalPerLayer[iSig][iLayer]->SetLineColor(SignalColor((ESignal)iSig));
       signalPerLayer[iSig][iLayer]->SetFillStyle(fillStyleSignal);
       signalPerLayer[iSig][iLayer]->SetFillColorAlpha(SignalColor((ESignal)iSig),fillOpacity);
@@ -290,27 +327,38 @@ void HistSet::DrawPerLayer()
       signalPerLayer[iSig][iLayer]->Sumw2(DoSumw2());
     }
       
-    for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    for(int iBck=0;iBck<backgroundPerLayer.size();iBck++){
+      cout<<"bck per layer size:"<<backgroundPerLayer.size()<<endl;
+      cout<<"iLayer:"<<iLayer<<endl;
+      cout<<"iBck:"<<iBck<<endl;
+      cout<<"bck:"<<backgroundPerLayer[iBck][iLayer]<<endl;
+      
       backgroundPerLayer[iBck][iLayer]->SetLineColor(BackColor((EBackground)iBck));
       backgroundPerLayer[iBck][iLayer]->SetFillStyle(fillStyleBack);
       backgroundPerLayer[iBck][iLayer]->SetFillColorAlpha(BackColor((EBackground)iBck), fillOpacity);
       backgroundPerLayer[iBck][iLayer]->Scale(1/backgroundPerLayer[iBck][iLayer]->Integral());
       backgroundPerLayer[iBck][iLayer]->Sumw2(DoSumw2());
     }
-    dataPerLayer[iLayer]->SetLineColor(kGreen+1);
-    dataPerLayer[iLayer]->SetFillStyle(1000);
-    dataPerLayer[iLayer]->SetFillColorAlpha(kGreen, fillOpacity);
-    dataPerLayer[iLayer]->Scale(1/dataPerLayer[iLayer]->Integral());
-    dataPerLayer[iLayer]->Sumw2(DoSumw2());
-
+    for(int iData=0;iData<dataPerLayer.size();iData++){
+      dataPerLayer[iData][iLayer]->SetLineColor(kGreen+1);
+      dataPerLayer[iData][iLayer]->SetFillStyle(1000);
+      dataPerLayer[iData][iLayer]->SetFillColorAlpha(kGreen, fillOpacity);
+      dataPerLayer[iData][iLayer]->Scale(1/dataPerLayer[iData][iLayer]->Integral());
+      dataPerLayer[iData][iLayer]->Sumw2(DoSumw2());
+    }
+      
     THStack *stack = new THStack(Form("%s_layer[%i]",GetTitle(),iLayer),Form("%s_layer[%i]",GetTitle(),iLayer));
-    for(int iSig=0;iSig<kNsignals;iSig++){
+    for(int iSig=0;iSig<signalPerLayer.size();iSig++){
       stack->Add(signalPerLayer[iSig][iLayer]);
     }
-    for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    for(int iBck=0;iBck<backgroundPerLayer.size();iBck++){
       stack->Add(backgroundPerLayer[iBck][iLayer]);
     }
-    if(analyzeData) stack->Add(dataPerLayer[iLayer]);
+    if(analyzeData){
+      for(int iData=0;iData<dataPerLayer.size();iData++){
+        stack->Add(dataPerLayer[iData][iLayer]);
+      }
+    }
     
     stack->Draw("nostack");
     leg->Draw();

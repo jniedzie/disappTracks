@@ -24,33 +24,32 @@ public:
   
   inline void FillSignal(ESignal sig, double value){signal[sig]->Fill(value);}
   inline void FillBackground(EBackground bck, double value){background[bck]->Fill(value);}
-  inline void FillData(double value){data->Fill(value);}
+  inline void FillData(EData iData, double value){data[iData]->Fill(value);}
   
-  void FillFromEvents(Events *signalEvents[kNsignals],
-                      Events *backgroundEvents[kNbackgrounds],
-                      Events *dataEvents);
+  void FillFromEvents(vector<Events*> signalEvents,
+                      vector<Events*> backgroundEvents,
+                      vector<Events*> dataEvents);
   
   void Draw(TCanvas *c1, int pad);
   void DrawPerLayer();
   
   inline void SetShowNonZerBinPosX(){showNonZeroBinPosX = true;}
 private:
-  TH1D *signal[kNsignals];
-  TH1D *data;
-  
-  TH1D *background[kNbackgrounds];
+  vector<TH1D*> signal;
+  vector<TH1D*> background;
+  vector<TH1D*> data;
   
   EVar var;
   const char* customTitle;
   bool showNonZeroBinPosX;
   
-  std::vector<TH1D*> signalPerLayer[kNsignals];
-  std::vector<TH1D*> backgroundPerLayer[kNbackgrounds];
-  std::vector<TH1D*> dataPerLayer;
+  vector<vector<TH1D*>> signalPerLayer;
+  vector<vector<TH1D*>> backgroundPerLayer;
+  vector<vector<TH1D*>> dataPerLayer;
   
-  void FillFromEventsPerLayer(Events *signalEvents[kNsignals],
-                              Events *backgroundEvents[kNbackgrounds],
-                              Events *dataEvents);
+  void FillFromEventsPerLayer(vector<Events*> signalEvents,
+                              vector<Events*> backgroundEvents,
+                              vector<Events*> dataEvents);
   
   TLegend* GetLegend();
   

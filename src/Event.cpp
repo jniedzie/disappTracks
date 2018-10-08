@@ -15,6 +15,11 @@ Events::Events()
   
 }
 
+Events::Events(string fileName, int dataType, int maxNevents)
+{
+  AddEventsFromFile(fileName,dataType,maxNevents);
+}
+
 Events::Events(const Events &e)
 {
   for(auto event : e.events){
@@ -22,12 +27,14 @@ Events::Events(const Events &e)
   }
 }
 
-Events::Events(string fileName, int dataType)
+Events::~Events()
+{
+  
+}
+
+void Events::AddEventsFromFile(std::string fileName, int dataType, int maxNevents)
 {
   cout<<"Reading events from:"<<fileName<<endl;
-  
-  map<unsigned long long,Event*> eventsMap;
-  
   TFile *inFile = TFile::Open(fileName.c_str());
   TTreeReader reader("tree", inFile);
 
@@ -105,7 +112,7 @@ Events::Events(string fileName, int dataType)
   int iter=-1;
   while (reader.Next()){
     iter++;
-//    if(iter>10000) break;
+    if(maxNevents>0 && iter>maxNevents) break;
     
     Event *newEvent = new Event();
 
@@ -201,11 +208,6 @@ Events::Events(string fileName, int dataType)
   }
 }
 
-Events::~Events()
-{
-  
-}
-
 Events* Events::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
 {
   Events *outputEvents = new Events(*this);
@@ -258,11 +260,6 @@ Events* Events::ApplyLeptonCut(LeptonCut *cut)
     outputEvents->AddEvent(events[iEvent]->ApplyLeptonCut(cut));
   }
   return outputEvents;
-}
-
-double Events::WeightedSize(){
-  if(events.size()==0) return 0;
-  return events[0]->GetWeight()*events.size();
 }
 
 //---------------------------------------------------------------------------------------
@@ -392,9 +389,10 @@ bool Event::IsPassingCut(EventCut *cut)
     LeptonCut *tightMuonCut = new LeptonCut((LeptonCut::ECut)leptonCutOptions);
 
     bool atLeastOneTightMuon = false;
-    if(muons[0]->IsPassingCut(tightMuonCut)) atLeastOneTightMuon = true;
-    if(muons[1]->IsPassingCut(tightMuonCut)) atLeastOneTightMuon = true;
-    if(!atLeastOneTightMuon)  return false;
+    for(auto muon : muons){
+      if(muon->IsPassingCut(tightMuonCut)) atLeastOneTightMuon = true;
+    }
+    if(!atLeastOneTightMuon) return false;
   }
   
   // check that invariant mass of muons is close to Z mass
