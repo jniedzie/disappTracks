@@ -26,8 +26,8 @@ showNonZeroBinPosX(false)
   }
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    background.push_back(new TH1D(Form("%s (background %s)",title,backgroundTitle[iBck]),
-                                  Form("%s (background %s)",title,backgroundTitle[iBck]),
+    background.push_back(new TH1D(Form("%s (background %s)",title,backgroundTitle[iBck].c_str()),
+                                  Form("%s (background %s)",title,backgroundTitle[iBck].c_str()),
                                   nBins,min,max));
     
     background[iBck]->Sumw2(DoSumw2());
@@ -59,8 +59,8 @@ showNonZeroBinPosX(false)
   
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    background.push_back(new TH1D(Form("%s (background %s)",title,backgroundTitle[iBck]),
-                                  Form("%s (background %s)",title,backgroundTitle[iBck]),
+    background.push_back(new TH1D(Form("%s (background %s)",title,backgroundTitle[iBck].c_str()),
+                                  Form("%s (background %s)",title,backgroundTitle[iBck].c_str()),
                                   nBins,min,max));
     background[iBck]->Sumw2(DoSumw2());
   }
@@ -124,8 +124,8 @@ void HistSet::FillFromEventsPerLayer(std::vector<Events*> signalEvents,
   for(int iBck=0;iBck<backgroundEvents.size();iBck++){
     vector<TH1D*> backgroundVector;
     for(int iLayer=0;iLayer<nLayers;iLayer++){
-      TH1D *histBackground = new TH1D(Form("%s_layer[%i]_background_%s",title,iLayer,backgroundTitle[iBck]),
-                                      Form("%s_layer[%i]_background_%s",title,iLayer,backgroundTitle[iBck]),
+      TH1D *histBackground = new TH1D(Form("%s_layer[%i]_background_%s",title,iLayer,backgroundTitle[iBck].c_str()),
+               Form("%s_layer[%i]_background_%s",title,iLayer,backgroundTitle[iBck].c_str()),
                                       nBins,min,max);
       
       Fill(histBackground,backgroundEvents[iBck],iLayer);
@@ -165,8 +165,6 @@ void HistSet::Fill(TH1D* hist, Events *events, int iLayer)
       else if(var == kMetMass)    value = event->GetMetMass();
       else if(var == kMetEta)     value = event->GetMetEta();
       else if(var == kMetPhi)     value = event->GetMetPhi();
-      
-//      if(var == kNjets) cout<<value<<endl;
       
       if(var == kNvertices || var == kNisoTracks || var == kNjets || var == kNjets30 || var == kNjets30a || var == kMetSumEt || var == kMetPt || var == kMetMass || var == kMetEta || var == kMetPhi){
         hist->Fill(value, event->GetWeight());
@@ -233,7 +231,7 @@ void HistSet::Draw(TCanvas *c1, int pad)
     }
     for(int iBck=0;iBck<background.size();iBck++){
       leg->AddEntry(background[iBck],
-                    Form("Background %s (%.2f %%)",backgroundTitle[iBck], 100*GetNonZeroBinPosX(background[iBck])),
+                    Form("Background %s (%.2f %%)",backgroundTitle[iBck].c_str(), 100*GetNonZeroBinPosX(background[iBck])),
                     "lp");
     }
     for(int iData=0;iData<data.size();iData++){
@@ -245,7 +243,7 @@ void HistSet::Draw(TCanvas *c1, int pad)
       leg->AddEntry(signal[iSig],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
     }
     for(int iBck=0;iBck<background.size();iBck++){
-      leg->AddEntry(background[iBck],Form("Background %s",backgroundTitle[iBck]),"lp");
+      leg->AddEntry(background[iBck],Form("Background %s",backgroundTitle[iBck].c_str()),"lp");
     }
     for(int iData=0;iData<data.size();iData++){
       leg->AddEntry(data[iData],"Data","lp");
@@ -303,7 +301,7 @@ void HistSet::DrawPerLayer()
     leg->AddEntry(signalPerLayer[iSig][0],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
   }
   for(int iBck=0;iBck<backgroundPerLayer.size();iBck++){
-    leg->AddEntry(backgroundPerLayer[iBck][0],Form("Background %s",backgroundTitle[iBck]),"lp");
+    leg->AddEntry(backgroundPerLayer[iBck][0],Form("Background %s",backgroundTitle[iBck].c_str()),"lp");
   }
   for(int iData=0;iData<dataPerLayer.size();iData++){
     leg->AddEntry(dataPerLayer[iData][0],"Data","lp");

@@ -7,6 +7,8 @@
 #ifndef Helpers_h
 #define Helpers_h
 
+#include "Config.hpp"
+
 #include <TFile.h>
 #include <TTree.h>
 #include <TTreeReader.h>
@@ -23,19 +25,97 @@
 
 using namespace std;
 
-// Analysis configuration
-const bool analyzeData = false;
-const bool printHeaders = true;
-
-// Limit number of events loaded (-1 means - load all available)
-const int maxNeventsBackground  = 100000;
-const int maxNeventsSignal      = -1;
-const int maxNeventsData        = -1;
-
 // Plotting style
 const double fillOpacity = 0.1;
 const int fillStyleBack = 1000;
 const int fillStyleSignal = 3003;
+
+const vector<int> signalMarkers = {
+  20, // wino m=300 cτ=10
+  21, // wino m=300 cτ=3
+  22, // wino m=300 cτ=30
+  23, // wino m=500 cτ=10
+};
+
+const vector<vector<int>> backColors = {
+  {230, 25,  75 },  // DY + jets
+  {60 , 180, 75 },  // tops
+  {0  , 130, 200},  // VV
+  {245, 130, 48 },  // W->μν + jets
+};
+//  ,,{255, 225, 25},,{145, 30, 180},{70, 240, 240},{240, 50, 230},{250, 190, 190},{0, 128, 128},{230, 190, 255}};
+
+const vector<vector<int>> signalColors = {
+  {170, 110, 40 },  // wino m=300 cτ=10
+  {128, 128, 0  },  // wino m=300 cτ=3
+  {128, 0  , 0  },  // wino m=300 cτ=30
+  {170, 100, 195},  // wino m=500 cτ=10
+};
+
+// Names of background, signal and data samples
+const vector<string> backgroundTitle = {
+  "DYJets",
+  "tt",
+  "VV",
+  "W_{#mu#nu}",
+};
+
+const vector<string> signalTitle = {
+  "Wino_M_300_cTau_10",
+  "Wino_M_300_cTau_3",
+  "Wino_M_300_cTau_30",
+  "Wino_M_500_cTau_10"
+};
+
+const vector<string> dataTitle = {
+  "Single electron (2017B)",
+};
+
+// Path to trees with background, signal and data samples (also determines which samples will be merged)
+const vector<vector<string>> inFileNameBackground = {
+  // DY + jets
+  {
+    "../adish/SR_MC/DYJetsM50_HT100to200/tree.root",
+    "../adish/SR_MC/DYJetsM50_HT100to200e/tree.root",
+    "../adish/SR_MC/DYJetsM50_HT200to400/tree.root",
+    "../adish/SR_MC/DYJetsM50_HT200to400e/tree.root",
+    "../adish/SR_MC/DYJetsM50_HT400to600/tree.root",
+    "../adish/SR_MC/DYJetsM50_HT400to600e/tree.root",
+    "../adish/SR_MC/DYJetsM50_HT600to800/tree.root",
+    "../adish/SR_MC/DYJetsM50_HT800to1200/tree.root",
+    "../adish/SR_MC/DYJetsM50_HT1200to2500/tree.root",
+    "../adish/SR_MC/DYJetsM50_HT2500toInf/tree.root",
+  },
+  // tops
+  {
+    "../adish/SR_MC/TTHad/tree.root",
+    "../adish/SR_MC/TTLep/tree.root",
+    "../adish/SR_MC/TTSemi/tree.root",
+    "../adish/SR_MC/T_tch/tree.root",
+    "../adish/SR_MC/T_tWch/tree.root",
+    "../adish/SR_MC/TBar_tch/tree.root",
+    "../adish/SR_MC/TBar_tWch/tree.root",
+  },
+  // VV
+  {
+    "../SR_MC/WW/treeProducerXtracks/tree.root",
+    "../SR_MC/WZ/treeProducerXtracks/tree.root",
+    "../SR_MC/ZZ/treeProducerXtracks/tree.root",
+  },
+  // W->μν + jets
+  {"../adish/Background/WJetsToLNu_LO/treeSmall.root",}
+};
+
+const vector<string> inFileNameSignal = {
+  "../adish/Signal/Wino_M_300_cTau_10/treeProducerXtracks/tree.root",
+  "../adish/Signal/Wino_M_300_cTau_3/treeProducerXtracks/tree.root",
+  "../adish/Signal/Wino_M_300_cTau_30/treeProducerXtracks/tree.root",
+  "../adish/Signal/Wino_M_500_cTau_10/treeProducerXtracks/tree.root"
+};
+
+const vector<string> inFileNameData = {
+  "../adish/Data/SingleElectron_Run2017B_17Nov2017/treeProducerXtracks/tree.root"
+};
 
 // Constants for tracker layers
 const int nLayers = 14;
@@ -82,78 +162,6 @@ enum EVar{
   kSizeX, ///< X cluster size in each layer
   kSizeY  ///< Y cluster size in each layer
 };
-
-enum EBackground{
-  kDYJets,
-  kTT,
-  kVV,
-  kWJetsToLNu_LO,
-  kNbackgrounds
-};
-
-enum ESignal{
-  kWino_M_300_cTau_10,
-//  kWino_M_300_cTau_3,
-//  kWino_M_300_cTau_30,
-//  kWino_M_500_cTau_10,
-  kNsignals
-};
-
-enum EData{
-  kElectron_Run2017B,
-  kNdata
-};
-
-static const char* backgroundTitle[kNbackgrounds] = {
-  "DYJets",
-  "tt",
-  "VV",
-  "W_{#mu#nu}",
-};
-
-const vector<string> signalTitle = {
-  "Wino_M_300_cTau_10",
-  "Wino_M_300_cTau_3",
-  "Wino_M_300_cTau_30",
-  "Wino_M_500_cTau_10"
-};
-
-const vector<string> dataTitle = {
-  "Single electron (2017B)",
-};
-
-const vector<int> signalMarkers = {
-  20,
-  21,
-  22,
-  23
-};
-
-const vector<vector<string>> inFileNameBackground = {
-  {"../adish/SR_MC/DYJetsM50_HT100to200/tree.root", "../adish/SR_MC/DYJetsM50_HT100to200e/tree.root"},
-  {"../adish/Background/TBar_tch/treeSmall.root","../adish/Background/T_tch/treeSmall.root",
-    "../adish/Background/TBar_tWch_noFullyHad/treeSmall.root","../adish/Background/T_tWch_noFullyHad/treeSmall.root",
-    "../adish/Background/TTLep_pow/treeSmall.root","../adish/Background/TTSemi_pow/treeSmall.root"},
-  {"../adish/Background/WW/treeSmall.root","../adish/Background/WZ/treeSmall.root","../adish/Background/ZZ/treeSmall.root"},
-//  {"../adish/Background/DYJetsToLL_M50/treeSmall.root",}
-  {"../adish/Background/WJetsToLNu_LO/treeSmall.root",}
-};
-
-const vector<string> inFileNameSignal = {
-  "../adish/Signal/Wino_M_300_cTau_10/treeProducerXtracks/tree.root",
-  "../adish/Signal/Wino_M_300_cTau_3/treeProducerXtracks/tree.root",
-  "../adish/Signal/Wino_M_300_cTau_30/treeProducerXtracks/tree.root",
-  "../adish/Signal/Wino_M_500_cTau_10/treeProducerXtracks/tree.root"
-};
-
-const vector<string> inFileNameData = {
-  "../adish/Data/SingleElectron_Run2017B_17Nov2017/treeProducerXtracks/tree.root"
-};
-
-const vector<vector<int>> backColors = {{230, 25, 75},{60, 180, 75},{0, 130, 200},{245, 130, 48}};
-//  ,,{255, 225, 25},,{145, 30, 180},{70, 240, 240},{240, 50, 230},{250, 190, 190},{0, 128, 128},{230, 190, 255}};
-
-const vector<vector<int>> signalColors = {{170, 110, 40},{128, 128, 0},{128, 0, 0},{170, 100, 195}};
 
 inline int BackColor(EBackground bck){
   return TColor::GetColor(backColors[bck][0],backColors[bck][1],backColors[bck][2]);
