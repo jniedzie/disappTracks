@@ -38,12 +38,13 @@ const vector<int> signalMarkers = {
 };
 
 const vector<vector<int>> backColors = {
-  {230, 25,  75 },  // DY + jets
+  {230, 25 , 75 },  // Z->μμ + jets
   {60 , 180, 75 },  // tops
   {0  , 130, 200},  // VV
   {245, 130, 48 },  // W->μν + jets
+  {145, 30 , 180},  // QCD
 };
-//  ,,{255, 225, 25},,{145, 30, 180},{70, 240, 240},{240, 50, 230},{250, 190, 190},{0, 128, 128},{230, 190, 255}};
+//  {255, 225, 25},{70, 240, 240},{240, 50, 230},{250, 190, 190},{0, 128, 128},{230, 190, 255}
 
 const vector<vector<int>> signalColors = {
   {170, 110, 40 },  // wino m=300 cτ=10
@@ -54,10 +55,11 @@ const vector<vector<int>> signalColors = {
 
 // Names of background, signal and data samples
 const vector<string> backgroundTitle = {
-  "DYJets",
+  "Z#rightarrow#mu#mu + jets",
   "tt",
   "VV",
-  "W_{#mu#nu}",
+  "W#rightarrow#mu#nu + jets",
+  "QCD",
 };
 
 const vector<string> signalTitle = {
@@ -75,26 +77,26 @@ const vector<string> dataTitle = {
 const vector<vector<string>> inFileNameBackground = {
   // DY + jets
   {
-    "../adish/SR_MC/DYJetsM50_HT100to200/tree.root",
-    "../adish/SR_MC/DYJetsM50_HT100to200e/tree.root",
-    "../adish/SR_MC/DYJetsM50_HT200to400/tree.root",
-    "../adish/SR_MC/DYJetsM50_HT200to400e/tree.root",
-    "../adish/SR_MC/DYJetsM50_HT400to600/tree.root",
-    "../adish/SR_MC/DYJetsM50_HT400to600e/tree.root",
-    "../adish/SR_MC/DYJetsM50_HT600to800/tree.root",
-    "../adish/SR_MC/DYJetsM50_HT800to1200/tree.root",
-    "../adish/SR_MC/DYJetsM50_HT1200to2500/tree.root",
-    "../adish/SR_MC/DYJetsM50_HT2500toInf/tree.root",
+    "../SR_MC/DYJetsM50_HT100to200/tree.root",
+    "../SR_MC/DYJetsM50_HT100to200e/tree.root",
+    "../SR_MC/DYJetsM50_HT200to400/tree.root",
+    "../SR_MC/DYJetsM50_HT200to400e/tree.root",
+    "../SR_MC/DYJetsM50_HT400to600/tree.root",
+    "../SR_MC/DYJetsM50_HT400to600e/tree.root",
+    "../SR_MC/DYJetsM50_HT600to800/tree.root",
+    "../SR_MC/DYJetsM50_HT800to1200/tree.root",
+    "../SR_MC/DYJetsM50_HT1200to2500/tree.root",
+    "../SR_MC/DYJetsM50_HT2500toInf/tree.root",
   },
   // tops
   {
-    "../adish/SR_MC/TTHad/tree.root",
-    "../adish/SR_MC/TTLep/tree.root",
-    "../adish/SR_MC/TTSemi/tree.root",
-    "../adish/SR_MC/T_tch/tree.root",
-    "../adish/SR_MC/T_tWch/tree.root",
-    "../adish/SR_MC/TBar_tch/tree.root",
-    "../adish/SR_MC/TBar_tWch/tree.root",
+    "../SR_MC/TTHad/tree.root",
+    "../SR_MC/TTLep/tree.root",
+    "../SR_MC/TTSemi/tree.root",
+    "../SR_MC/T_tch/tree.root",
+    "../SR_MC/T_tWch/tree.root",
+    "../SR_MC/TBar_tch/tree.root",
+    "../SR_MC/TBar_tWch/tree.root",
   },
   // VV
   {
@@ -103,7 +105,27 @@ const vector<vector<string>> inFileNameBackground = {
     "../SR_MC/ZZ/treeProducerXtracks/tree.root",
   },
   // W->μν + jets
-  {"../adish/Background/WJetsToLNu_LO/treeSmall.root",}
+  {
+    "../SR_MC/WJets_HT100to200/tree.root",
+    "../SR_MC/WJets_HT200to400/tree.root",
+    "../SR_MC/WJets_HT400to600/tree.root",
+    "../SR_MC/WJets_HT600to800/tree.root",
+    "../SR_MC/WJets_HT800to1200/tree.root",
+    "../SR_MC/WJets_HT1200to2500/tree.root",
+    "../SR_MC/WJets_HT2500toInf/tree.root",
+  },
+  // QCD
+  {
+    "../SR_MC/QCD_HT100to200/tree.root",
+    "../SR_MC/QCD_HT200to300/tree.root",
+    "../SR_MC/QCD_HT300to500/tree.root",
+    "../SR_MC/QCD_HT500to700/tree.root",
+    "../SR_MC/QCD_HT700to1000/tree.root",
+    "../SR_MC/QCD_HT1000to1500/tree.root",
+    "../SR_MC/QCD_HT1500to2000/tree.root",
+    "../SR_MC/QCD_HT2000toInf/tree.root",
+  },
+  
 };
 
 const vector<string> inFileNameSignal = {

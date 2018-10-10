@@ -326,11 +326,6 @@ void HistSet::DrawPerLayer()
     }
       
     for(int iBck=0;iBck<backgroundPerLayer.size();iBck++){
-      cout<<"bck per layer size:"<<backgroundPerLayer.size()<<endl;
-      cout<<"iLayer:"<<iLayer<<endl;
-      cout<<"iBck:"<<iBck<<endl;
-      cout<<"bck:"<<backgroundPerLayer[iBck][iLayer]<<endl;
-      
       backgroundPerLayer[iBck][iLayer]->SetLineColor(BackColor((EBackground)iBck));
       backgroundPerLayer[iBck][iLayer]->SetFillStyle(fillStyleBack);
       backgroundPerLayer[iBck][iLayer]->SetFillColorAlpha(BackColor((EBackground)iBck), fillOpacity);

@@ -6,36 +6,36 @@
 
 #include <TApplication.h>
 
-string basePath = "../ZvvStudy";
+string basePath = "../SR_MC";
 
 vector<string> ZmmFilePaths = {
-//  "Zmm/DYJetsM50_HT100to200",
-//  "Zmm/DYJetsM50_HT200to400",
-//  "Zmm/DYJetsM50_HT400to600",
-//  "Zmm/DYJetsM50_HT600to800",
-//  "Zmm/DYJetsM50_HT800to1200",
-//  "Zmm/DYJetsM50_HT1200to2500",
-//  "Zmm/DYJetsM50_HT2500toInf"
+//  "DYJetsM50_HT100to200",
+//  "DYJetsM50_HT200to400",
+//  "DYJetsM50_HT400to600",
+//  "DYJetsM50_HT600to800",
+//  "DYJetsM50_HT800to1200",
+//  "DYJetsM50_HT1200to2500",
+//  "DYJetsM50_HT2500toInf"
 };
 
 vector<string> WvlFilePaths = {
-  "Wvl/WJets_HT100to200",
-  "Wvl/WJets_HT200to400",
-  "Wvl/WJets_HT400to600",
-  "Wvl/WJets_HT600to800",
-  "Wvl/WJets_HT800to1200",
-  "Wvl/WJets_HT1200to2500",
-  "Wvl/WJets_HT2500toInf"
+  "WJets_HT100to200",
+  "WJets_HT200to400",
+  "WJets_HT400to600",
+  "WJets_HT600to800",
+  "WJets_HT800to1200",
+  "WJets_HT1200to2500",
+  "WJets_HT2500toInf"
 };
 
 vector<string> ZvvFilePaths = {
-  "Zvv/ZvvJets_HT100to200",
-  "Zvv/ZvvJets_HT200to400",
-  "Zvv/ZvvJets_HT400to600",
-  "Zvv/ZvvJets_HT600to800",
-  "Zvv/ZvvJets_HT800to1200",
-  "Zvv/ZvvJets_HT1200to2500",
-  "Zvv/ZvvJets_HT2500toInf"
+  "ZvvJets_HT100to200",
+  "ZvvJets_HT200to400",
+  "ZvvJets_HT400to600",
+  "ZvvJets_HT600to800",
+  "ZvvJets_HT800to1200",
+  "ZvvJets_HT1200to2500",
+  "ZvvJets_HT2500toInf"
 };
 
 int main(int argc, char* argv[])
