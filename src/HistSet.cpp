@@ -283,11 +283,10 @@ void HistSet::Draw(TCanvas *c1, int pad)
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     stack->Add(background[iBck]);
   }
-  if(analyzeData){
-    for(int iData=0;iData<kNdata;iData++){
-      stack->Add(data[iData]);
-    }
+  for(int iData=0;iData<kNdata;iData++){
+    stack->Add(data[iData]);
   }
+  
   stack->Draw("nostack");
   
   leg->Draw();
@@ -347,10 +346,9 @@ void HistSet::DrawPerLayer()
     for(int iBck=0;iBck<backgroundPerLayer.size();iBck++){
       stack->Add(backgroundPerLayer[iBck][iLayer]);
     }
-    if(analyzeData){
-      for(int iData=0;iData<dataPerLayer.size();iData++){
-        stack->Add(dataPerLayer[iData][iLayer]);
-      }
+    
+    for(int iData=0;iData<dataPerLayer.size();iData++){
+      stack->Add(dataPerLayer[iData][iLayer]);
     }
     
     stack->Draw("nostack");

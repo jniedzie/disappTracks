@@ -13,7 +13,6 @@
 using namespace std;
 
 // Analysis configuration
-const bool analyzeData = false;
 const bool printHeaders = true;
 
 // Limit number of events loaded (-1 means - load all available)
@@ -26,7 +25,7 @@ enum EBackground{
   kZmumuJets,
   kTT,
   kVV,
-  kWmunuJetsO,
+  kWmunuJets,
   kQCD,
   kZnunuJets,
   kNbackgrounds
@@ -41,7 +40,7 @@ enum ESignal{
 };
 
 enum EData{
-  kElectron_Run2017B,
+//  kElectron_Run2017B,
   kNdata
 };
 

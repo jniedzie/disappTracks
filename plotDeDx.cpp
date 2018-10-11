@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
   vector<Events*> eventsData;
   
   for(int iData=0;iData<kNdata;iData++){
-    eventsData.push_back(analyzeData ? new Events(inFileNameData[iData], Events::kData, maxNeventsData) : nullptr);
+    eventsData.push_back(new Events(inFileNameData[iData], Events::kData, maxNeventsData));
   }
     
   for(int iSig=0;iSig<kNsignals;iSig++){
@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
     eventsBackground.push_back(new Events());
     
     for(string path : inFileNameBackground[iBck]){
-      eventsBackground[iBck]->AddEventsFromFile(path, Events::kData, maxNeventsBackground);
+      eventsBackground[iBck]->AddEventsFromFile(path, Events::kBackground, maxNeventsBackground);
     }
   }
   
@@ -37,11 +37,11 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   
   unsigned int eventCutOptions =
-  EventCut::kOneTrack
+    EventCut::kOneTrack
   | EventCut::kOneJet;
   
   unsigned int bestEventCutOptions =
-  EventCut::kOneTrack
+    EventCut::kOneTrack
   | EventCut::kOneJet
   | EventCut::kMet100GeV;
   
@@ -70,7 +70,9 @@ int main(int argc, char* argv[])
     eventsBackground[iBck] = eventsBackground[iBck]->ApplyCuts(initialEventCut, initialTrackCut, initialJetCut, nullptr);
   }
  
-  if(analyzeData) eventsData[0] = eventsData[0]->ApplyCuts(initialEventCut, initialTrackCut, initialJetCut, nullptr);
+  for(int iData=0;iData<kNdata;iData++){
+    eventsData[iData] = eventsData[iData]->ApplyCuts(initialEventCut, initialTrackCut, initialJetCut, nullptr);
+  }
   
   //---------------------------------------------------------------------------
   // Create standard per event, per track and per jet plots
@@ -212,8 +214,8 @@ int main(int argc, char* argv[])
     for(int iBck=0;iBck<kNbackgrounds;iBck++){
       nEvents[iSig] += eventsBackground[iBck]->size();
     }
-    if(analyzeData){
-      nEvents[iSig] +=  eventsData[0]->size();
+    for(int iData=0;iData<kNdata;iData++){
+      nEvents[iSig] += eventsData[iData]->size();
     }
   }
   
@@ -229,8 +231,8 @@ int main(int argc, char* argv[])
   }
   
   int nData=0,nDataTotal=0;
-  if(analyzeData){
-    nData = eventsData[0]->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut, nullptr)->size();
+  for(int iData=0;iData<kNdata;iData++){
+    nData = eventsData[iData]->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut, nullptr)->size();
   }
   
   for(int iSig=0;iSig<kNsignals;iSig++){

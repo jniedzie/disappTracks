@@ -102,9 +102,9 @@ const vector<vector<string>> inFileNameBackground = {
   },
   // VV
   {
-    "../SR_MC/WW/treeProducerXtracks/tree.root",
-    "../SR_MC/WZ/treeProducerXtracks/tree.root",
-    "../SR_MC/ZZ/treeProducerXtracks/tree.root",
+    "../SR_MC/WW/tree.root",
+    "../SR_MC/WZ/tree.root",
+    "../SR_MC/ZZ/tree.root",
   },
   // W->μν + jets
   {
