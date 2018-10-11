@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
   HistSet *nMetMass     = new HistSet(kMetMass);
   HistSet *nMetEta      = new HistSet(kMetEta);
   HistSet *nMetPhi      = new HistSet(kMetPhi);
-  HistSet *nMetJetDphi  = new HistSet(kMetPhi);
+  HistSet *nMetJetDphi  = new HistSet(kMetJetDphi);
   
   HistSet *nClustersPerTrack  = new HistSet(kTrackNclusters);
   HistSet *totalDeDx          = new HistSet(kTrackTotalDedx);
@@ -186,9 +186,9 @@ int main(int argc, char* argv[])
   // Create per layer plots
   //---------------------------------------------------------------------------
   
-  HistSet *dedxPerLayer = new HistSet(kDedx);
-  dedxPerLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  dedxPerLayer->DrawPerLayer();
+//  HistSet *dedxPerLayer = new HistSet(kDedx);
+//  dedxPerLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+//  dedxPerLayer->DrawPerLayer();
   
 //  HistSet *sizeXperLayer = new HistSet(kSizeX);
 //  sizeXperLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);

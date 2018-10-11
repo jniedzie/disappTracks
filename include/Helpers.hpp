@@ -26,9 +26,10 @@
 using namespace std;
 
 // Plotting style
-const double fillOpacity = 0.1;
+const double fillOpacity = 1.0;
 const int fillStyleBack = 1000;
-const int fillStyleSignal = 3003;
+const int fillStyleSignal = 1000;
+const int fillStyleData = 1000;
 
 const vector<int> signalMarkers = {
   20, // wino m=300 cτ=10
@@ -54,29 +55,44 @@ const vector<vector<int>> signalColors = {
   {170, 100, 195},  // wino m=500 cτ=10
 };
 
+const vector<vector<int>> dataColors = {
+  {230, 190, 255},  // single electron (2017B)
+};
+
 // Names of background, signal and data samples
 const vector<string> backgroundTitle = {
+  "QCD",
   "Z#rightarrow#mu#mu + jets",
   "tt",
   "VV",
   "W#rightarrow#mu#nu + jets",
-  "QCD",
   "Z#rightarrow#nu#nu + jets",
 };
 
 const vector<string> signalTitle = {
-  "Wino_M_300_cTau_10",
-  "Wino_M_300_cTau_3",
-  "Wino_M_300_cTau_30",
-  "Wino_M_500_cTau_10"
+  "Wino m=300 c#tau=10",
+  "Wino m=300 c#tau=3",
+  "Wino m=300 c#tau=30",
+  "Wino m=500 c#tau=10"
 };
 
 const vector<string> dataTitle = {
-  "Single electron (2017B)",
+  "2017B",
 };
 
 // Path to trees with background, signal and data samples (also determines which samples will be merged)
 const vector<vector<string>> inFileNameBackground = {
+  // QCD
+  {
+    "../SR_MC/QCD_HT100to200/tree.root",
+    "../SR_MC/QCD_HT200to300/tree.root",
+    "../SR_MC/QCD_HT300to500/tree.root",
+    "../SR_MC/QCD_HT500to700/tree.root",
+    "../SR_MC/QCD_HT700to1000/tree.root",
+    "../SR_MC/QCD_HT1000to1500/tree.root",
+    "../SR_MC/QCD_HT1500to2000/tree.root",
+    "../SR_MC/QCD_HT2000toInf/tree.root",
+  },
   // DY + jets
   {
     "../SR_MC/DYJetsM50_HT100to200/tree.root",
@@ -116,17 +132,6 @@ const vector<vector<string>> inFileNameBackground = {
     "../SR_MC/WJets_HT1200to2500/tree.root",
     "../SR_MC/WJets_HT2500toInf/tree.root",
   },
-  // QCD
-  {
-    "../SR_MC/QCD_HT100to200/tree.root",
-    "../SR_MC/QCD_HT200to300/tree.root",
-    "../SR_MC/QCD_HT300to500/tree.root",
-    "../SR_MC/QCD_HT500to700/tree.root",
-    "../SR_MC/QCD_HT700to1000/tree.root",
-    "../SR_MC/QCD_HT1000to1500/tree.root",
-    "../SR_MC/QCD_HT1500to2000/tree.root",
-    "../SR_MC/QCD_HT2000toInf/tree.root",
-  },
   // Z->νν + jets
   {
     "../SR_MC/ZvvJets_HT100to200/tree.root",
@@ -147,7 +152,7 @@ const vector<string> inFileNameSignal = {
 };
 
 const vector<string> inFileNameData = {
-  "../adish/Data/SingleElectron_Run2017B_17Nov2017/treeProducerXtracks/tree.root"
+  "../SR_DATA/MET_Run2017B_31Mar2018/tree.root"
 };
 
 // Constants for tracker layers
@@ -202,6 +207,10 @@ inline int BackColor(EBackground bck){
 
 inline int SignalColor(ESignal sig){
   return TColor::GetColor(signalColors[sig][0],signalColors[sig][1],signalColors[sig][2]);
+}
+
+inline int DataColor(EData data){
+  return TColor::GetColor(dataColors[data][0],dataColors[data][1],dataColors[data][2]);
 }
 
 //,,,{255, 215, 180},{0, 0, 128},{128, 128, 128},{255, 255, 255},{0, 0, 0}

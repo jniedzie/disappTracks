@@ -22,7 +22,7 @@ showNonZeroBinPosX(false)
     signal.push_back(new TH1D(Form("%s (signal %s)",title,signalTitle[iSig].c_str()),
                               Form("%s (signal %s)",title,signalTitle[iSig].c_str()),
                               nBins,min,max));
-    signal[iSig]->Sumw2(DoSumw2());
+//    signal[iSig]->Sumw2(DoSumw2());
   }
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
@@ -30,14 +30,14 @@ showNonZeroBinPosX(false)
                                   Form("%s (background %s)",title,backgroundTitle[iBck].c_str()),
                                   nBins,min,max));
     
-    background[iBck]->Sumw2(DoSumw2());
+//    background[iBck]->Sumw2(DoSumw2());
   }
   for(int iData=0;iData<kNdata;iData++){
     data.push_back(new TH1D(Form("%s (data %s)",title,dataTitle[iData].c_str()),
                             Form("%s (data %s)",title,dataTitle[iData].c_str()),
                             nBins,min,max));
     
-    data[iData]->Sumw2(DoSumw2());
+//    data[iData]->Sumw2(DoSumw2());
   }
 }
 
@@ -54,7 +54,7 @@ showNonZeroBinPosX(false)
     signal.push_back(new TH1D(Form("%s (signal %s)",title,signalTitle[iSig].c_str()),
                               Form("%s (signal %s)",title,signalTitle[iSig].c_str()),
                               nBins,min,max));
-    signal[iSig]->Sumw2(DoSumw2());
+//    signal[iSig]->Sumw2(DoSumw2());
   }
   
   
@@ -62,13 +62,13 @@ showNonZeroBinPosX(false)
     background.push_back(new TH1D(Form("%s (background %s)",title,backgroundTitle[iBck].c_str()),
                                   Form("%s (background %s)",title,backgroundTitle[iBck].c_str()),
                                   nBins,min,max));
-    background[iBck]->Sumw2(DoSumw2());
+//    background[iBck]->Sumw2(DoSumw2());
   }
   for(int iData=0;iData<kNdata;iData++){
     data.push_back(new TH1D(Form("%s (data %s)",title,dataTitle[iData].c_str()),
                             Form("%s (data %s)",title,dataTitle[iData].c_str()),
                             nBins,min,max));
-    data[iData]->Sumw2(DoSumw2());
+//    data[iData]->Sumw2(DoSumw2());
   }
 }
 
@@ -224,32 +224,17 @@ void HistSet::Fill(TH1D* hist, Events *events, int iLayer)
 void HistSet::Draw(TCanvas *c1, int pad)
 {
   TLegend *leg = GetLegend();
-  if(showNonZeroBinPosX){
-    for(int iSig=0;iSig<signal.size();iSig++){
-      leg->AddEntry(signal[iSig],
-                    Form("Signal %s (%.2f %%)",signalTitle[iSig].c_str(), 100*GetNonZeroBinPosX(signal[iSig])),"lp");
-    }
-    for(int iBck=0;iBck<background.size();iBck++){
-      leg->AddEntry(background[iBck],
-                    Form("Background %s (%.2f %%)",backgroundTitle[iBck].c_str(), 100*GetNonZeroBinPosX(background[iBck])),
-                    "lp");
-    }
-    for(int iData=0;iData<data.size();iData++){
-      leg->AddEntry(data[iData],Form("Data (%.2f %%)",100*GetNonZeroBinPosX(data[iData])),"lp");
-    }
-  }
-  else{
-    for(int iSig=0;iSig<signal.size();iSig++){
+  
+  for(int iSig=0;iSig<signal.size();iSig++){
       leg->AddEntry(signal[iSig],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
-    }
-    for(int iBck=0;iBck<background.size();iBck++){
-      leg->AddEntry(background[iBck],Form("Background %s",backgroundTitle[iBck].c_str()),"lp");
-    }
-    for(int iData=0;iData<data.size();iData++){
-      leg->AddEntry(data[iData],"Data","lp");
-    }
   }
-    
+  for(int iBck=0;iBck<background.size();iBck++){
+      leg->AddEntry(background[iBck],Form("Background %s",backgroundTitle[iBck].c_str()),"lp");
+  }
+  for(int iData=0;iData<data.size();iData++){
+      leg->AddEntry(data[iData],Form("Data  %s",dataTitle[iData].c_str()),"lp");
+  }
+  
   c1->cd(pad);
   for(int iSig=0;iSig<kNsignals;iSig++){
     signal[iSig]->SetLineColor(SignalColor((ESignal)iSig));
@@ -259,35 +244,34 @@ void HistSet::Draw(TCanvas *c1, int pad)
     signal[iSig]->SetFillStyle(fillStyleSignal);
     signal[iSig]->SetFillColorAlpha(SignalColor((ESignal)iSig), fillOpacity);
     if(ShouldNormalize()) signal[iSig]->Scale(1/signal[iSig]->Integral());
-    if(!DoSumw2()) signal[iSig]->Sumw2(false);
   }
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     background[iBck]->SetLineColor(BackColor((EBackground)iBck));
     background[iBck]->SetFillStyle(fillStyleBack);
     background[iBck]->SetFillColorAlpha(BackColor((EBackground)iBck), fillOpacity);
-    if(ShouldNormalize())  background[iBck]->Scale(1/background[iBck]->Integral());
-    if(!DoSumw2()) background[iBck]->Sumw2(false);
+    if(ShouldNormalize()) background[iBck]->Scale(1/background[iBck]->Integral());
   }
   for(int iData=0;iData<kNdata;iData++){
-    data[iData]->SetLineColor(kGreen);
-    data[iData]->SetFillStyle(1000);
-    data[iData]->SetFillColorAlpha(kGreen, fillOpacity);
+    data[iData]->SetLineColor(DataColor((EData)iData));
+    data[iData]->SetMarkerColor(DataColor((EData)iData));
+    data[iData]->SetMarkerStyle(20);
+    data[iData]->SetMarkerSize(1.0);
+    data[iData]->SetFillStyle(fillStyleData);
+    data[iData]->SetFillColorAlpha(DataColor((EData)iData), fillOpacity);
     if(ShouldNormalize())  data[iData]->Scale(1/data[iData]->Integral());
-    if(!DoSumw2()) data[iData]->Sumw2(false);
   }
   
-  THStack *stack = new THStack(GetTitle(),GetTitle());
-  for(int iSig=0;iSig<kNsignals;iSig++){
-    stack->Add(signal[iSig]);
-  }
-  for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    stack->Add(background[iBck]);
-  }
-  for(int iData=0;iData<kNdata;iData++){
-    stack->Add(data[iData]);
-  }
+  THStack *backgroundStack = new THStack(GetTitle(),GetTitle());
+  THStack *signalStack = new THStack(GetTitle(),GetTitle());
+  THStack *dataStack = new THStack(GetTitle(),GetTitle());
   
-  stack->Draw("nostack");
+  for(int iBck=0;iBck<kNbackgrounds;iBck++){  backgroundStack->Add(background[iBck]);   }
+  for(int iSig=0;iSig<kNsignals;iSig++){      signalStack->Add(signal[iSig]);           }
+  for(int iData=0;iData<kNdata;iData++){      dataStack->Add(data[iData]);              }
+  
+  backgroundStack->Draw("HIST");
+  signalStack->Draw("nostack,HIST,same");
+  dataStack->Draw("nostack,same,p");
   
   leg->Draw();
   c1->Update();
@@ -321,7 +305,6 @@ void HistSet::DrawPerLayer()
       signalPerLayer[iSig][iLayer]->SetFillStyle(fillStyleSignal);
       signalPerLayer[iSig][iLayer]->SetFillColorAlpha(SignalColor((ESignal)iSig),fillOpacity);
       signalPerLayer[iSig][iLayer]->Scale(1/signalPerLayer[iSig][iLayer]->Integral());
-      signalPerLayer[iSig][iLayer]->Sumw2(DoSumw2());
     }
       
     for(int iBck=0;iBck<backgroundPerLayer.size();iBck++){
@@ -329,14 +312,12 @@ void HistSet::DrawPerLayer()
       backgroundPerLayer[iBck][iLayer]->SetFillStyle(fillStyleBack);
       backgroundPerLayer[iBck][iLayer]->SetFillColorAlpha(BackColor((EBackground)iBck), fillOpacity);
       backgroundPerLayer[iBck][iLayer]->Scale(1/backgroundPerLayer[iBck][iLayer]->Integral());
-      backgroundPerLayer[iBck][iLayer]->Sumw2(DoSumw2());
     }
     for(int iData=0;iData<dataPerLayer.size();iData++){
       dataPerLayer[iData][iLayer]->SetLineColor(kGreen+1);
       dataPerLayer[iData][iLayer]->SetFillStyle(1000);
       dataPerLayer[iData][iLayer]->SetFillColorAlpha(kGreen, fillOpacity);
       dataPerLayer[iData][iLayer]->Scale(1/dataPerLayer[iData][iLayer]->Integral());
-      dataPerLayer[iData][iLayer]->Sumw2(DoSumw2());
     }
       
     THStack *stack = new THStack(Form("%s_layer[%i]",GetTitle(),iLayer),Form("%s_layer[%i]",GetTitle(),iLayer));
@@ -536,25 +517,25 @@ bool HistSet::DoSumw2()
 {
   if(var == kCustom) return false;
   
-//  if(var == kNvertices)   return false;
-//  if(var == kNisoTracks)  return false;
-//  if(var == kNjets)       return false;
-//  if(var == kNjets30)     return false;
-//  if(var == kNjets30a)    return false;
-//  if(var == kMetSumEt)    return false;
-//  if(var == kMetPt)       return false;
-//  if(var == kMetMass)     return false;
-//  if(var == kMetEta)      return false;
-//  if(var == kMetPhi)      return false;
+  if(var == kNvertices)   return false;
+  if(var == kNisoTracks)  return false;
+  if(var == kNjets)       return false;
+  if(var == kNjets30)     return false;
+  if(var == kNjets30a)    return false;
+  if(var == kMetSumEt)    return false;
+  if(var == kMetPt)       return false;
+  if(var == kMetMass)     return false;
+  if(var == kMetEta)      return false;
+  if(var == kMetPhi)      return false;
   
-//  if(var == kTrackNclusters)  return false;
-//  if(var == kTrackPt)         return false;
-//  if(var == kTrackCaloEm)     return false;
-//  if(var == kTrackCaloHad)    return false;
+  if(var == kTrackNclusters)  return false;
+  if(var == kTrackPt)         return false;
+  if(var == kTrackCaloEm)     return false;
+  if(var == kTrackCaloHad)    return false;
   
-//  if(var == kDedx)  return false;
-//  if(var == kSizeX) return false;
-//  if(var == kSizeY) return false;
+  if(var == kDedx)  return false;
+  if(var == kSizeX) return false;
+  if(var == kSizeY) return false;
   
   return true;
 }
