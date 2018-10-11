@@ -28,6 +28,7 @@ enum EBackground{
   kVV,
   kWmunuJetsO,
   kQCD,
+  kZnunuJets,
   kNbackgrounds
 };
 

@@ -43,8 +43,9 @@ const vector<vector<int>> backColors = {
   {0  , 130, 200},  // VV
   {245, 130, 48 },  // W->μν + jets
   {145, 30 , 180},  // QCD
+  {70 , 240, 240},  // Z->νν + jets
 };
-//  {255, 225, 25},{70, 240, 240},{240, 50, 230},{250, 190, 190},{0, 128, 128},{230, 190, 255}
+//  {255, 225, 25},{240, 50, 230},{250, 190, 190},{0, 128, 128},{230, 190, 255}
 
 const vector<vector<int>> signalColors = {
   {170, 110, 40 },  // wino m=300 cτ=10
@@ -60,6 +61,7 @@ const vector<string> backgroundTitle = {
   "VV",
   "W#rightarrow#mu#nu + jets",
   "QCD",
+  "Z#rightarrow#nu#nu + jets",
 };
 
 const vector<string> signalTitle = {
@@ -125,7 +127,16 @@ const vector<vector<string>> inFileNameBackground = {
     "../SR_MC/QCD_HT1500to2000/tree.root",
     "../SR_MC/QCD_HT2000toInf/tree.root",
   },
-  
+  // Z->νν + jets
+  {
+    "../SR_MC/ZvvJets_HT100to200/tree.root",
+    "../SR_MC/ZvvJets_HT200to400/tree.root",
+    "../SR_MC/ZvvJets_HT400to600/tree.root",
+    "../SR_MC/ZvvJets_HT600to800/tree.root",
+    "../SR_MC/ZvvJets_HT800to1200/tree.root",
+    "../SR_MC/ZvvJets_HT1200to2500/tree.root",
+    "../SR_MC/ZvvJets_HT2500toInf/tree.root",
+  },
 };
 
 const vector<string> inFileNameSignal = {
