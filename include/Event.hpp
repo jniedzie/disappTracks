@@ -30,7 +30,9 @@ public:
   /// \param fileName Path to the ROOT file with ntuples from which events will be loaded
   /// \param dataType Event weigth will be calculated differently background, signal and data
   /// \param maxNevents Load just maxNevents from file and then stop
-  Events(std::string fileName, EDataType dataType=kBackground, int maxNevents=-1);
+  /// \param iSig Signal type for correct cross section assignment
+  Events(std::string fileName, EDataType dataType=kBackground, int maxNevents=-1,
+         ESignal iSig=kNsignals);
   
   /// Empty constructor. Creates an empty class with no events.
   Events();
@@ -46,7 +48,9 @@ public:
   /// \param fileName Path to the ROOT file with ntuples from which events will be loaded
   /// \param dataType Event weigth will be calculated differently for background, signal and data
   /// \param maxNevents Load just maxNevents from file and then stop
-  void AddEventsFromFile(std::string fileName, EDataType dataType=kBackground, int maxNevents=-1);
+  /// \param iSig Signal type for correct cross section assignment
+  void AddEventsFromFile(std::string fileName, EDataType dataType=kBackground, int maxNevents=-1,
+                         ESignal iSig=kNsignals);
   
   /// Applies cuts in this order: track, jet, lepton, event
   /// \param eventCut   Cuts to be applied to events

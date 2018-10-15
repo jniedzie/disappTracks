@@ -17,7 +17,12 @@ int main(int argc, char* argv[])
   vector<Events*> eventsData;
   
   for(int iData=0;iData<kNdata;iData++){
-    eventsData.push_back(new Events(inFileNameData[iData], Events::kData, maxNeventsData));
+    if(!runData[iData]){
+      eventsData.push_back(nullptr);
+    }
+    else{
+      eventsData.push_back(new Events(inFileNameData[iData], Events::kData, maxNeventsData));
+    }
   }
     
   for(int iSig=0;iSig<kNsignals;iSig++){
@@ -25,15 +30,20 @@ int main(int argc, char* argv[])
       eventsSignal.push_back(nullptr);
     }
     else{
-      eventsSignal.push_back(new Events(inFileNameSignal[iSig], Events::kSignal, maxNeventsSignal));
+      eventsSignal.push_back(new Events(inFileNameSignal[iSig], Events::kSignal, maxNeventsSignal,(ESignal)iSig));
     }
   }
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    eventsBackground.push_back(new Events());
-    
-    for(string path : inFileNameBackground[iBck]){
-      eventsBackground[iBck]->AddEventsFromFile(path, Events::kBackground, maxNeventsBackground);
+    if(!runBackground[iBck]){
+      eventsBackground.push_back(nullptr);
+    }
+    else{
+      eventsBackground.push_back(new Events());
+      
+      for(string path : inFileNameBackground[iBck]){
+        eventsBackground[iBck]->AddEventsFromFile(path, Events::kBackground, maxNeventsBackground);
+      }
     }
   }
   
@@ -73,10 +83,12 @@ int main(int argc, char* argv[])
   }
 
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    if(!runBackground[iBck]) continue;
     eventsBackground[iBck] = eventsBackground[iBck]->ApplyCuts(initialEventCut, initialTrackCut, initialJetCut, nullptr);
   }
  
   for(int iData=0;iData<kNdata;iData++){
+    if(!runData[iData]) continue;
     eventsData[iData] = eventsData[iData]->ApplyCuts(initialEventCut, initialTrackCut, initialJetCut, nullptr);
   }
   
@@ -219,14 +231,17 @@ int main(int argc, char* argv[])
     nSignalTotal += nSignal[iSig];
     
     for(int iBck=0;iBck<kNbackgrounds;iBck++){
+      if(!runBackground[iBck]) continue;
       nEvents[iSig] += eventsBackground[iBck]->size();
     }
     for(int iData=0;iData<kNdata;iData++){
+      if(!runData[iData]) continue;
       nEvents[iSig] += eventsData[iData]->size();
     }
   }
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    if(!runBackground[iBck]) continue;
     Events *backgroundAfterCuts = eventsBackground[iBck]->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut, nullptr);
     if(backgroundAfterCuts){
       nBackground[iBck] = backgroundAfterCuts->size();
@@ -239,6 +254,7 @@ int main(int argc, char* argv[])
   
   int nData=0,nDataTotal=0;
   for(int iData=0;iData<kNdata;iData++){
+    if(!runData[iData]) continue;
     nData = eventsData[iData]->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut, nullptr)->size();
   }
   
@@ -255,6 +271,7 @@ int main(int argc, char* argv[])
   cout<<nBackgroundTotal/(double)nEvents[0]<<endl;
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    if(!runBackground[iBck]) continue;
     
     if(printHeaders) cout<<backgroundTitle[iBck]<<"\t";
     cout<<nBackground[iBck]/(double)nEvents[0]<<endl;
@@ -262,7 +279,6 @@ int main(int argc, char* argv[])
   
   if(printHeaders) cout<<"N data/total:";
   cout<<nData/(double)nEvents[0]<<endl;
-  
 
   
   theApp.Run();

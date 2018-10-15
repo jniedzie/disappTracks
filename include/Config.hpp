@@ -21,48 +21,31 @@ const int maxNeventsSignal      = -1;
 const int maxNeventsData        = 10000;
 
 // turn on/off different backgrounds, signals and data samples
-enum EBackground{
-  kQCD,
-  kZmumuJets,
-  kTT,
-  kVV,
-  kWmunuJets,
-  kZnunuJets,
-  kNbackgrounds
+const vector<bool> runBackground = {
+  true,   // QCD
+  true,   // Z->μμ + jets
+  true,   // tops
+  true,   // VV
+  true,   // W->μν + jets
+  true,   // Z->νν + jets
 };
 
-enum ESignal{
-  kWino_M_300_cTau_3,
-  kWino_M_300_cTau_10,
-  kWino_M_300_cTau_30,
-  kWino_M_500_cTau_10,
-  kWino_M_500_cTau_20,
-  kWino_M_650_cTau_10,
-  kWino_M_650_cTau_20,
-  kWino_M_800_cTau_10,
-  kWino_M_800_cTau_20,
-  kWino_M_1000_cTau_10,
-  kWino_M_1000_cTau_20,
-  kNsignals
-};
-
-const bool runSignal[kNsignals] = {
+const vector<bool> runSignal = {
   false,  // wino m=300 cτ=3
-  false,  // wino m=300 cτ=10
-  true,   // wino m=300 cτ=30
-  false,  // wino m=500 cτ=10
+  true,   // wino m=300 cτ=10
+  false,  // wino m=300 cτ=30
+  true,  // wino m=500 cτ=10
   false,  // wino m=500 cτ=20
-  false,  // wino m=650 cτ=10
+  true,  // wino m=650 cτ=10
   false,  // wino m=650 cτ=20
-  false,  // wino m=800 cτ=10
+  true,  // wino m=800 cτ=10
   false,  // wino m=800 cτ=20
-  false,  // wino m=1000 cτ=10
+  true,  // wino m=1000 cτ=10
   false,  // wino m=1000 cτ=20
 };
 
-enum EData{
-  kElectron_Run2017B,
-  kNdata
+const vector<bool> runData = {
+  true,  // 2017B
 };
 
 #endif /* Config_h */

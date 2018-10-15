@@ -32,18 +32,25 @@ const int fillStyleSignal = 1000;
 const int fillStyleData = 1000;
 
 const vector<int> signalMarkers = {
-  20, // wino m=300 cτ=10
-  21, // wino m=300 cτ=3
+  20, // wino m=300 cτ=3
+  21, // wino m=300 cτ=10
   22, // wino m=300 cτ=30
   23, // wino m=500 cτ=10
+  24, // wino m=500 cτ=20
+  25, // wino m=650 cτ=10
+  26, // wino m=650 cτ=20
+  27, // wino m=800 cτ=10
+  28, // wino m=800 cτ=20
+  29, // wino m=1000 cτ=10
+  30, // wino m=1000 cτ=20
 };
 
 const vector<vector<int>> backColors = {
-  {230, 25 , 75 },  // Z->μμ + jets
-  {60 , 180, 75 },  // tops
-  {0  , 130, 200},  // VV
-  {245, 130, 48 },  // W->μν + jets
-  {145, 30 , 180},  // QCD
+  {230, 25 , 75 },  // QCD
+  {60 , 180, 75 },  // Z->μμ + jets
+  {0  , 130, 200},  // tops
+  {245, 130, 48 },  // VV
+  {145, 30 , 180},  // W->μν + jets
   {70 , 240, 240},  // Z->νν + jets
 };
 
@@ -62,7 +69,7 @@ const vector<vector<int>> signalColors = {
 };
 
 const vector<vector<int>> dataColors = {
-  {230, 190, 255},  // single electron (2017B)
+  {50 , 190, 255},  // single electron (2017B)
 };
 
 // Names of background, signal and data samples
@@ -173,6 +180,64 @@ const vector<string> inFileNameSignal = {
 
 const vector<string> inFileNameData = {
   "../SR_DATA/MET_Run2017B_31Mar2018/tree.root"
+};
+
+enum ESignal{
+  kWino_M_300_cTau_3,
+  kWino_M_300_cTau_10,
+  kWino_M_300_cTau_30,
+  kWino_M_500_cTau_10,
+  kWino_M_500_cTau_20,
+  kWino_M_650_cTau_10,
+  kWino_M_650_cTau_20,
+  kWino_M_800_cTau_10,
+  kWino_M_800_cTau_20,
+  kWino_M_1000_cTau_10,
+  kWino_M_1000_cTau_20,
+  kNsignals
+};
+
+const double signalCrossSectionTwoTracks[kNsignals] = { // (fb)
+  190,  // wino m=300 cτ=3
+  190,  // wino m=300 cτ=10
+  190,  // wino m=300 cτ=30
+  22,   // wino m=500 cτ=10
+  22,   // wino m=500 cτ=20
+  6.4,  // wino m=650 cτ=10
+  6.4,  // wino m=650 cτ=20
+  2.2,  // wino m=800 cτ=10
+  2.2,  // wino m=800 cτ=20
+  0.62, // wino m=1000 cτ=10
+  0.62, // wino m=1000 cτ=20
+};
+
+const double signalCrossSectionOneTrack[kNsignals] = { // (fb)
+  380,  // wino m=300 cτ=3
+  380,  // wino m=300 cτ=10
+  380,  // wino m=300 cτ=30
+  45,   // wino m=500 cτ=10
+  45,   // wino m=500 cτ=20
+  13,  // wino m=650 cτ=10
+  13,  // wino m=650 cτ=20
+  4.6,  // wino m=800 cτ=10
+  4.6,  // wino m=800 cτ=20
+  1.3, // wino m=1000 cτ=10
+  1.3, // wino m=1000 cτ=20
+};
+
+enum EBackground{
+  kQCD,
+  kZmumuJets,
+  kTT,
+  kVV,
+  kWmunuJets,
+  kZnunuJets,
+  kNbackgrounds
+};
+
+enum EData{
+  kElectron_Run2017B,
+  kNdata
 };
 
 // Constants for tracker layers

@@ -236,9 +236,11 @@ void HistSet::Draw(TCanvas *c1, int pad)
     leg->AddEntry(signal[iSig],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
   }
   for(int iBck=0;iBck<background.size();iBck++){
+    if(!runBackground[iBck]) continue;
     leg->AddEntry(background[iBck],Form("Background %s",backgroundTitle[iBck].c_str()),"lp");
   }
   for(int iData=0;iData<data.size();iData++){
+    if(!runData[iData]) continue;
     leg->AddEntry(data[iData],Form("Data  %s",dataTitle[iData].c_str()),"lp");
   }
   
@@ -253,12 +255,14 @@ void HistSet::Draw(TCanvas *c1, int pad)
     if(ShouldNormalize()) signal[iSig]->Scale(1/signal[iSig]->Integral());
   }
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    if(!runBackground[iBck]) continue;
     background[iBck]->SetLineColor(BackColor((EBackground)iBck));
     background[iBck]->SetFillStyle(fillStyleBack);
     background[iBck]->SetFillColorAlpha(BackColor((EBackground)iBck), fillOpacity);
     if(ShouldNormalize()) background[iBck]->Scale(1/background[iBck]->Integral());
   }
   for(int iData=0;iData<kNdata;iData++){
+    if(!runData[iData]) continue;
     data[iData]->SetLineColor(DataColor((EData)iData));
     data[iData]->SetMarkerColor(DataColor((EData)iData));
     data[iData]->SetMarkerStyle(20);
@@ -272,12 +276,18 @@ void HistSet::Draw(TCanvas *c1, int pad)
   THStack *signalStack = new THStack(GetTitle(),GetTitle());
   THStack *dataStack = new THStack(GetTitle(),GetTitle());
   
-  for(int iBck=0;iBck<kNbackgrounds;iBck++){  backgroundStack->Add(background[iBck]);   }
+  for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    if(!runBackground[iBck]) continue;
+    backgroundStack->Add(background[iBck]);
+  }
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]) continue;
     signalStack->Add(signal[iSig]);
   }
-  for(int iData=0;iData<kNdata;iData++){      dataStack->Add(data[iData]);              }
+  for(int iData=0;iData<kNdata;iData++){
+    if(!runData[iData]) continue;
+    dataStack->Add(data[iData]);
+  }
   
   backgroundStack->Draw("HIST");
   signalStack->Draw("nostack,same,p");
@@ -295,9 +305,11 @@ void HistSet::DrawPerLayer()
     leg->AddEntry(signalPerLayer[iSig][1],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
   }
   for(int iBck=0;iBck<backgroundPerLayer.size();iBck++){
+    if(!runBackground[iBck]) continue;
     leg->AddEntry(backgroundPerLayer[iBck][1],Form("Background %s",backgroundTitle[iBck].c_str()),"lp");
   }
   for(int iData=0;iData<dataPerLayer.size();iData++){
+    if(!runData[iData]) continue;
     leg->AddEntry(dataPerLayer[iData][1],Form("Data %s",dataTitle[iData].c_str()),"lp");
   }
   
@@ -367,16 +379,6 @@ TLegend* HistSet::GetLegend()
   double legendW=0.25, legendH=0.80, legendX=0.65, legendY=0.1;
   TLegend *leg = new TLegend(legendX,legendY,legendX+legendW,legendY+legendH);
   leg->SetHeader("Sample type:");
-//  for(int iSig=0;iSig<signalPerLayer.size();iSig++){
-//    if(!runSignal[iSig]) continue;
-//    leg->AddEntry(signal[iSig],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
-//  }
-//  for(int iBck=0;iBck<backgroundPerLayer.size();iBck++){
-//    leg->AddEntry(background[iBck],Form("Background %s",backgroundTitle[iBck].c_str()),"lp");
-//  }
-//  for(int iData=0;iData<dataPerLayer.size();iData++){
-//    leg->AddEntry(data[iData],Form("Data %s",dataTitle[iData].c_str()),"lp");
-//  }
   return leg;
 }
 

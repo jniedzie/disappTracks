@@ -15,9 +15,9 @@ Events::Events()
   
 }
 
-Events::Events(string fileName, EDataType dataType, int maxNevents)
+Events::Events(string fileName, EDataType dataType, int maxNevents, ESignal iSig)
 {
-  AddEventsFromFile(fileName,dataType,maxNevents);
+  AddEventsFromFile(fileName,dataType,maxNevents, iSig);
 }
 
 Events::Events(const Events &e)
@@ -32,7 +32,7 @@ Events::~Events()
   
 }
 
-void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int maxNevents)
+void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int maxNevents, ESignal iSig)
 {
   cout<<"Reading events from:"<<fileName<<endl;
   TFile *inFile = TFile::Open(fileName.c_str());
@@ -180,8 +180,8 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
       weight *= (*_xSec);
     }
     if(dataType==kSignal){
-      weight *= 100; // just invented some number to make S/B ~ 1
-      weight *= 10000.0/reader.GetEntries(true); // correct for less entries in the tree than for background
+      weight *= 0.001 * signalCrossSectionOneTrack[iSig]; // cross section for given signal (stored in fb, here transformed to pb to match background units
+      weight *= 10000.0; // scale up to make it visible
     }
     else if(dataType==kData){
       weight = 686.5;
