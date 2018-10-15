@@ -60,7 +60,7 @@ private:
   bool ShouldNormalize();
   bool DoSumw2();
   
-  void Fill(TH1D* hist, Events *events, int iLayer=-1);
+  void Fill(TH1D* hist, Events *events, int iDetId=-1);
   double GetNonZeroBinPosX(TH1D *hist);
 };
 

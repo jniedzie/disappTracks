@@ -109,12 +109,12 @@ void HistSet::FillFromEventsPerLayer(std::vector<Events*> signalEvents,
   
   for(int iSig=0;iSig<signalEvents.size();iSig++){
     vector<TH1D*> signalVector;
-    for(int iLayer=0;iLayer<nLayers;iLayer++){
-      TH1D *histSignal = new TH1D(Form("%s_layer[%i]_signal_%s",title,iLayer,signalTitle[iSig].c_str()),
-                                  Form("%s_layer[%i]_signal_%s",title,iLayer,signalTitle[iSig].c_str()),
+    for(int iDetId=0;iDetId<nLayers;iDetId++){
+      TH1D *histSignal = new TH1D(Form("%s_subDet[%i]_signal_%s",title,iDetId,signalTitle[iSig].c_str()),
+                                  Form("%s_subDet[%i]_signal_%s",title,iDetId,signalTitle[iSig].c_str()),
                                   nBins,min,max);
       
-      Fill(histSignal,signalEvents[iSig],iLayer);
+      Fill(histSignal,signalEvents[iSig],iDetId);
       signalVector.push_back(histSignal);
     }
     signalPerLayer.push_back(signalVector);
@@ -123,31 +123,31 @@ void HistSet::FillFromEventsPerLayer(std::vector<Events*> signalEvents,
   
   for(int iBck=0;iBck<backgroundEvents.size();iBck++){
     vector<TH1D*> backgroundVector;
-    for(int iLayer=0;iLayer<nLayers;iLayer++){
-      TH1D *histBackground = new TH1D(Form("%s_layer[%i]_background_%s",title,iLayer,backgroundTitle[iBck].c_str()),
-               Form("%s_layer[%i]_background_%s",title,iLayer,backgroundTitle[iBck].c_str()),
+    for(int iDetId=0;iDetId<nLayers;iDetId++){
+      TH1D *histBackground = new TH1D(Form("%s_subDet[%i]_background_%s",title,iDetId,backgroundTitle[iBck].c_str()),
+                                      Form("%s_subDet[%i]_background_%s",title,iDetId,backgroundTitle[iBck].c_str()),
                                       nBins,min,max);
       
-      Fill(histBackground,backgroundEvents[iBck],iLayer);
+      Fill(histBackground,backgroundEvents[iBck],iDetId);
       backgroundVector.push_back(histBackground);
     }
     backgroundPerLayer.push_back(backgroundVector);
   }
   for(int iData=0;iData<dataEvents.size();iData++){
     vector<TH1D*> dataVector;
-    for(int iLayer=0;iLayer<nLayers;iLayer++){
+    for(int iDetId=0;iDetId<nLayers;iDetId++){
       
-      TH1D *histData = new TH1D(Form("%s_layer[%i]_data",title,iLayer),
-                                Form("%s_layer[%i]_data",title,iLayer),
+      TH1D *histData = new TH1D(Form("%s_subDet[%i]_data",title,iDetId),
+                                Form("%s_subDet[%i]_data",title,iDetId),
                                 nBins,min,max);
-      Fill(histData,dataEvents[iData],iLayer);
+      Fill(histData,dataEvents[iData],iDetId);
       dataVector.push_back(histData);
     }
     dataPerLayer.push_back(dataVector);
   }
 }
 
-void HistSet::Fill(TH1D* hist, Events *events, int iLayer)
+void HistSet::Fill(TH1D* hist, Events *events, int iDetId)
 {
   if(events){
     for(int iEvent=0;iEvent<events->size();iEvent++){
@@ -204,14 +204,20 @@ void HistSet::Fill(TH1D* hist, Events *events, int iLayer)
         else if(var == kTrackMass)            value = track->GetMass();
         else if(var == kTrackPid)             value = track->GetPid();
         
-        else if(var == kDedx)   value = track->GetDeDxInLayer(iLayer);
-        else if(var == kSizeX)  value = track->GetSizeXinLayer(iLayer);
-        else if(var == kSizeY)  value = track->GetSizeYinLayer(iLayer);
-        
-        if(var == kDedx || var == kSizeX || var == kSizeY){
-          if(value > 0.00001) hist->Fill(value, event->GetWeight());
+        else if(var == kDedx || var == kSizeX || var == kSizeY){
+          for(int i=0;i<nLayers;i++){
+            int detId = track->GetSubDetIdInLayer(i);
+            if(detId == iDetId){
+              if(var == kDedx)        value = track->GetDeDxInLayer(i);
+              else if(var == kSizeX)  value = track->GetSizeXinLayer(i);
+              else if(var == kSizeY)  value = track->GetSizeYinLayer(i);
+              
+              if(value > 0.00001) hist->Fill(value, event->GetWeight());
+            }
+          }
         }
-        else if(var == kTrackNclusters || var == kTrackTotalDedx || var == kTrackDedxPerCluster || var == kTrackPt
+        
+        if(var == kTrackNclusters || var == kTrackTotalDedx || var == kTrackDedxPerCluster || var == kTrackPt
              || var == kTrackEta || var == kTrackPhi || var == kTrackCaloEm || var == kTrackCaloHad
              || var == kTrackDxy ||var == kTrackDz   || var == kTrackCharge || var == kTrackMass || var == kTrackPid){
           hist->Fill(value, event->GetWeight());
@@ -226,19 +232,20 @@ void HistSet::Draw(TCanvas *c1, int pad)
   TLegend *leg = GetLegend();
   
   for(int iSig=0;iSig<signal.size();iSig++){
-      leg->AddEntry(signal[iSig],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
+    if(!runSignal[iSig]) continue;
+    leg->AddEntry(signal[iSig],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
   }
   for(int iBck=0;iBck<background.size();iBck++){
-      leg->AddEntry(background[iBck],Form("Background %s",backgroundTitle[iBck].c_str()),"lp");
+    leg->AddEntry(background[iBck],Form("Background %s",backgroundTitle[iBck].c_str()),"lp");
   }
   for(int iData=0;iData<data.size();iData++){
-      leg->AddEntry(data[iData],Form("Data  %s",dataTitle[iData].c_str()),"lp");
+    leg->AddEntry(data[iData],Form("Data  %s",dataTitle[iData].c_str()),"lp");
   }
   
   c1->cd(pad);
   for(int iSig=0;iSig<kNsignals;iSig++){
+    if(!runSignal[iSig]) continue;
     signal[iSig]->SetLineColor(SignalColor((ESignal)iSig));
-//    signal[iSig]->SetLineStyle(3);
     signal[iSig]->SetMarkerStyle(signalMarkers[iSig]);
     signal[iSig]->SetMarkerColor(SignalColor((ESignal)iSig));
     signal[iSig]->SetFillStyle(fillStyleSignal);
@@ -266,11 +273,14 @@ void HistSet::Draw(TCanvas *c1, int pad)
   THStack *dataStack = new THStack(GetTitle(),GetTitle());
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){  backgroundStack->Add(background[iBck]);   }
-  for(int iSig=0;iSig<kNsignals;iSig++){      signalStack->Add(signal[iSig]);           }
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    if(!runSignal[iSig]) continue;
+    signalStack->Add(signal[iSig]);
+  }
   for(int iData=0;iData<kNdata;iData++){      dataStack->Add(data[iData]);              }
   
   backgroundStack->Draw("HIST");
-  signalStack->Draw("nostack,HIST,same");
+  signalStack->Draw("nostack,same,p");
   dataStack->Draw("nostack,same,p");
   
   leg->Draw();
@@ -281,58 +291,70 @@ void HistSet::DrawPerLayer()
 {
   TLegend *leg = GetLegend();
   for(int iSig=0;iSig<signalPerLayer.size();iSig++){
+    if(!runSignal[iSig]) continue;
     leg->AddEntry(signalPerLayer[iSig][0],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
   }
   for(int iBck=0;iBck<backgroundPerLayer.size();iBck++){
     leg->AddEntry(backgroundPerLayer[iBck][0],Form("Background %s",backgroundTitle[iBck].c_str()),"lp");
   }
   for(int iData=0;iData<dataPerLayer.size();iData++){
-    leg->AddEntry(dataPerLayer[iData][0],"Data","lp");
+    leg->AddEntry(dataPerLayer[iData][0],Form("Data %s",dataTitle[iData].c_str()),"lp");
   }
-    
+  
   TCanvas *c1 = new TCanvas(GetTitle(),GetTitle(),2880,1800);
   
   if(var == kDedx) c1->Divide(4,4);
   if(var == kSizeX || var == kSizeY) c1->Divide(2,2);
 
-  for(int iLayer=0;iLayer<nLayers;iLayer++){
-    if(iLayer > 3 && (var==kSizeX || var==kSizeY)) continue;
+  for(int iDetId=0;iDetId<nLayers;iDetId++){
+    if(iDetId > 3 && (var==kSizeX || var==kSizeY)) continue;
     
-    c1->cd(iLayer+1);
+    c1->cd(iDetId+1);
     
     for(int iSig=0;iSig<signalPerLayer.size();iSig++){
-      signalPerLayer[iSig][iLayer]->SetLineColor(SignalColor((ESignal)iSig));
-      signalPerLayer[iSig][iLayer]->SetFillStyle(fillStyleSignal);
-      signalPerLayer[iSig][iLayer]->SetFillColorAlpha(SignalColor((ESignal)iSig),fillOpacity);
-      signalPerLayer[iSig][iLayer]->Scale(1/signalPerLayer[iSig][iLayer]->Integral());
+      signalPerLayer[iSig][iDetId]->SetLineColor(SignalColor((ESignal)iSig));
+      signalPerLayer[iSig][iDetId]->SetMarkerStyle(signalMarkers[iSig]);
+      signalPerLayer[iSig][iDetId]->SetMarkerColor(SignalColor((ESignal)iSig));
+      signalPerLayer[iSig][iDetId]->SetFillStyle(fillStyleSignal);
+      signalPerLayer[iSig][iDetId]->SetFillColorAlpha(SignalColor((ESignal)iSig),fillOpacity);
+      signalPerLayer[iSig][iDetId]->Scale(1/signalPerLayer[iSig][iDetId]->Integral());
     }
       
     for(int iBck=0;iBck<backgroundPerLayer.size();iBck++){
-      backgroundPerLayer[iBck][iLayer]->SetLineColor(BackColor((EBackground)iBck));
-      backgroundPerLayer[iBck][iLayer]->SetFillStyle(fillStyleBack);
-      backgroundPerLayer[iBck][iLayer]->SetFillColorAlpha(BackColor((EBackground)iBck), fillOpacity);
-      backgroundPerLayer[iBck][iLayer]->Scale(1/backgroundPerLayer[iBck][iLayer]->Integral());
+      backgroundPerLayer[iBck][iDetId]->SetLineColor(BackColor((EBackground)iBck));
+      backgroundPerLayer[iBck][iDetId]->SetFillStyle(fillStyleBack);
+      backgroundPerLayer[iBck][iDetId]->SetFillColorAlpha(BackColor((EBackground)iBck), fillOpacity);
+      backgroundPerLayer[iBck][iDetId]->Scale(1/backgroundPerLayer[iBck][iDetId]->Integral());
     }
     for(int iData=0;iData<dataPerLayer.size();iData++){
-      dataPerLayer[iData][iLayer]->SetLineColor(kGreen+1);
-      dataPerLayer[iData][iLayer]->SetFillStyle(1000);
-      dataPerLayer[iData][iLayer]->SetFillColorAlpha(kGreen, fillOpacity);
-      dataPerLayer[iData][iLayer]->Scale(1/dataPerLayer[iData][iLayer]->Integral());
-    }
-      
-    THStack *stack = new THStack(Form("%s_layer[%i]",GetTitle(),iLayer),Form("%s_layer[%i]",GetTitle(),iLayer));
-    for(int iSig=0;iSig<signalPerLayer.size();iSig++){
-      stack->Add(signalPerLayer[iSig][iLayer]);
-    }
-    for(int iBck=0;iBck<backgroundPerLayer.size();iBck++){
-      stack->Add(backgroundPerLayer[iBck][iLayer]);
+      dataPerLayer[iData][iDetId]->SetLineColor(DataColor((EData)iData));
+      dataPerLayer[iData][iDetId]->SetMarkerColor(DataColor((EData)iData));
+      dataPerLayer[iData][iDetId]->SetMarkerStyle(20);
+      dataPerLayer[iData][iDetId]->SetMarkerSize(1.0);
+      dataPerLayer[iData][iDetId]->SetFillStyle(fillStyleData);
+      dataPerLayer[iData][iDetId]->SetFillColorAlpha(DataColor((EData)iData), fillOpacity);
+      dataPerLayer[iData][iDetId]->Scale(1/dataPerLayer[iData][iDetId]->Integral());
     }
     
-    for(int iData=0;iData<dataPerLayer.size();iData++){
-      stack->Add(dataPerLayer[iData][iLayer]);
-    }
+    THStack *backgroundStack  = new THStack(Form("%s_subDetId[%i]",GetTitle(),iDetId),
+                                            Form("%s_subDetId[%i]",GetTitle(),iDetId));
     
-    stack->Draw("nostack");
+    THStack *signalStack      = new THStack(Form("%s_subDetId[%i]",GetTitle(),iDetId),
+                                            Form("%s_subDetId[%i]",GetTitle(),iDetId));
+    
+    THStack *dataStack        = new THStack(Form("%s_subDetId[%i]",GetTitle(),iDetId),
+                                            Form("%s_subDetId[%i]",GetTitle(),iDetId));
+    
+    
+    
+    for(int iBck=0;iBck<backgroundPerLayer.size();iBck++){backgroundStack->Add(backgroundPerLayer[iBck][iDetId]);}
+    for(int iSig=0;iSig<signalPerLayer.size();iSig++){  signalStack->Add(signalPerLayer[iSig][iDetId]);}
+    for(int iData=0;iData<dataPerLayer.size();iData++){dataStack->Add(dataPerLayer[iData][iDetId]);}
+    
+    backgroundStack->Draw("nostack,p");
+    signalStack->Draw("nostack,same,p");
+    dataStack->Draw("nostack,same,p");
+    
     leg->Draw();
   }
   
@@ -344,6 +366,16 @@ TLegend* HistSet::GetLegend()
   double legendW=0.25, legendH=0.80, legendX=0.65, legendY=0.1;
   TLegend *leg = new TLegend(legendX,legendY,legendX+legendW,legendY+legendH);
   leg->SetHeader("Sample type:");
+//  for(int iSig=0;iSig<signalPerLayer.size();iSig++){
+//    if(!runSignal[iSig]) continue;
+//    leg->AddEntry(signal[iSig],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
+//  }
+//  for(int iBck=0;iBck<backgroundPerLayer.size();iBck++){
+//    leg->AddEntry(background[iBck],Form("Background %s",backgroundTitle[iBck].c_str()),"lp");
+//  }
+//  for(int iData=0;iData<dataPerLayer.size();iData++){
+//    leg->AddEntry(data[iData],Form("Data %s",dataTitle[iData].c_str()),"lp");
+//  }
   return leg;
 }
 

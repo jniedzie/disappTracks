@@ -21,7 +21,12 @@ int main(int argc, char* argv[])
   }
     
   for(int iSig=0;iSig<kNsignals;iSig++){
-    eventsSignal.push_back(new Events(inFileNameSignal[iSig], Events::kSignal, maxNeventsSignal));
+    if(!runSignal[iSig]){
+      eventsSignal.push_back(nullptr);
+    }
+    else{
+      eventsSignal.push_back(new Events(inFileNameSignal[iSig], Events::kSignal, maxNeventsSignal));
+    }
   }
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
@@ -63,6 +68,7 @@ int main(int argc, char* argv[])
   JetCut    *bestJetCut   = new JetCut((JetCut::ECut)jetCutOptions);
   
   for(int iSig=0;iSig<kNsignals;iSig++){
+    if(!runSignal[iSig]) continue;
     eventsSignal[iSig] = eventsSignal[iSig]->ApplyCuts(initialEventCut, initialTrackCut, initialJetCut, nullptr);
   }
 
@@ -186,9 +192,9 @@ int main(int argc, char* argv[])
   // Create per layer plots
   //---------------------------------------------------------------------------
   
-//  HistSet *dedxPerLayer = new HistSet(kDedx);
-//  dedxPerLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-//  dedxPerLayer->DrawPerLayer();
+  HistSet *dedxPerLayer = new HistSet(kDedx);
+  dedxPerLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  dedxPerLayer->DrawPerLayer();
   
 //  HistSet *sizeXperLayer = new HistSet(kSizeX);
 //  sizeXperLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
@@ -207,6 +213,7 @@ int main(int argc, char* argv[])
   int nSignal[kNsignals], nBackground[kNbackgrounds];
   
   for(int iSig=0;iSig<kNsignals;iSig++){
+    if(!runSignal[iSig]) continue;
     nEvents[iSig] = eventsSignal[iSig]->size();
     nSignal[iSig] = eventsSignal[iSig]->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut, nullptr)->size();
     nSignalTotal += nSignal[iSig];
@@ -236,6 +243,7 @@ int main(int argc, char* argv[])
   }
   
   for(int iSig=0;iSig<kNsignals;iSig++){
+    if(!runSignal[iSig]) continue;
     if(printHeaders) cout<<signalTitle[iSig]<<"\t";
     cout<<nSignal[iSig]/(double)nEvents[iSig]<<endl;
     

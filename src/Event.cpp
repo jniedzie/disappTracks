@@ -174,14 +174,17 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
     }
     
     double lumi = 41.37 * 1000.;
-    double weight = lumi * (*_xSec) * (*_genWgt) / (*_sumWgt);
+    double weight = lumi * (*_genWgt) / (*_sumWgt);
 
+    if(dataType==kBackground){
+      weight *= (*_xSec);
+    }
     if(dataType==kSignal){
-      weight = 182; // just invented some number to make S/B ~ 1
+      weight *= 100; // just invented some number to make S/B ~ 1
       weight *= 10000.0/reader.GetEntries(true); // correct for less entries in the tree than for background
     }
     else if(dataType==kData){
-      weight = 1.0;
+      weight = 686.5;
     }
     
     newEvent->SetWeight(weight);

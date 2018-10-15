@@ -46,13 +46,19 @@ const vector<vector<int>> backColors = {
   {145, 30 , 180},  // QCD
   {70 , 240, 240},  // Z->νν + jets
 };
-//  {255, 225, 25},{240, 50, 230},{250, 190, 190},{0, 128, 128},{230, 190, 255}
 
 const vector<vector<int>> signalColors = {
-  {170, 110, 40 },  // wino m=300 cτ=10
   {128, 128, 0  },  // wino m=300 cτ=3
+  {170, 110, 40 },  // wino m=300 cτ=10
   {128, 0  , 0  },  // wino m=300 cτ=30
   {170, 100, 195},  // wino m=500 cτ=10
+  {240, 50 , 230},  // wino m=500 cτ=20
+  {230, 190, 255},  // wino m=650 cτ=10
+  {0  , 128, 128},  // wino m=650 cτ=20
+  {255, 225, 25 },  // wino m=800 cτ=10
+  {240, 50 , 100},  // wino m=800 cτ=20
+  {170, 200, 195},  // wino m=1000 cτ=10
+  {140, 50 , 230},  // wino m=1000 cτ=20
 };
 
 const vector<vector<int>> dataColors = {
@@ -70,10 +76,17 @@ const vector<string> backgroundTitle = {
 };
 
 const vector<string> signalTitle = {
-  "Wino m=300 c#tau=10",
   "Wino m=300 c#tau=3",
+  "Wino m=300 c#tau=10",
   "Wino m=300 c#tau=30",
-  "Wino m=500 c#tau=10"
+  "Wino m=500 c#tau=10",
+  "Wino m=500 c#tau=20",
+  "Wino m=650 c#tau=10",
+  "Wino m=650 c#tau=20",
+  "Wino m=800 c#tau=10",
+  "Wino m=800 c#tau=20",
+  "Wino m=1000 c#tau=10",
+  "Wino m=1000 c#tau=20",
 };
 
 const vector<string> dataTitle = {
@@ -145,10 +158,17 @@ const vector<vector<string>> inFileNameBackground = {
 };
 
 const vector<string> inFileNameSignal = {
-  "../adish/Signal/Wino_M_300_cTau_10/treeProducerXtracks/tree.root",
-  "../adish/Signal/Wino_M_300_cTau_3/treeProducerXtracks/tree.root",
-  "../adish/Signal/Wino_M_300_cTau_30/treeProducerXtracks/tree.root",
-  "../adish/Signal/Wino_M_500_cTau_10/treeProducerXtracks/tree.root"
+  "../Signal/Wino_M_300_cTau_3/tree.root",
+  "../Signal/Wino_M_300_cTau_10/tree.root",
+  "../Signal/Wino_M_300_cTau_30/tree.root",
+  "../Signal/Wino_M_500_cTau_10/tree.root",
+  "../Signal/Wino_M_500_cTau_20/tree.root",
+  "../Signal/Wino_M_650_cTau_10/tree.root",
+  "../Signal/Wino_M_650_cTau_20/tree.root",
+  "../Signal/Wino_M_800_cTau_10/tree.root",
+  "../Signal/Wino_M_800_cTau_20/tree.root",
+  "../Signal/Wino_M_1000_cTau_10/tree.root",
+  "../Signal/Wino_M_1000_cTau_20/tree.root",
 };
 
 const vector<string> inFileNameData = {
