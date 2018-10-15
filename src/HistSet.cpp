@@ -292,24 +292,25 @@ void HistSet::DrawPerLayer()
   TLegend *leg = GetLegend();
   for(int iSig=0;iSig<signalPerLayer.size();iSig++){
     if(!runSignal[iSig]) continue;
-    leg->AddEntry(signalPerLayer[iSig][0],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
+    leg->AddEntry(signalPerLayer[iSig][1],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
   }
   for(int iBck=0;iBck<backgroundPerLayer.size();iBck++){
-    leg->AddEntry(backgroundPerLayer[iBck][0],Form("Background %s",backgroundTitle[iBck].c_str()),"lp");
+    leg->AddEntry(backgroundPerLayer[iBck][1],Form("Background %s",backgroundTitle[iBck].c_str()),"lp");
   }
   for(int iData=0;iData<dataPerLayer.size();iData++){
-    leg->AddEntry(dataPerLayer[iData][0],Form("Data %s",dataTitle[iData].c_str()),"lp");
+    leg->AddEntry(dataPerLayer[iData][1],Form("Data %s",dataTitle[iData].c_str()),"lp");
   }
   
   TCanvas *c1 = new TCanvas(GetTitle(),GetTitle(),2880,1800);
   
-  if(var == kDedx) c1->Divide(4,4);
+  if(var == kDedx) c1->Divide(2,3);
   if(var == kSizeX || var == kSizeY) c1->Divide(2,2);
 
   for(int iDetId=0;iDetId<nLayers;iDetId++){
     if(iDetId > 3 && (var==kSizeX || var==kSizeY)) continue;
+    if((iDetId == 0 || iDetId > 6) && var==kDedx) continue;
     
-    c1->cd(iDetId+1);
+    c1->cd(var==kDedx ? iDetId : iDetId+1);
     
     for(int iSig=0;iSig<signalPerLayer.size();iSig++){
       signalPerLayer[iSig][iDetId]->SetLineColor(SignalColor((ESignal)iSig));
