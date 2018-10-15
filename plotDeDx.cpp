@@ -5,17 +5,8 @@
 
 #include <TApplication.h>
 
-int main(int argc, char* argv[])
+void LoadEventsFromFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData)
 {
-  TApplication theApp("App", &argc, argv);
-  
-  //---------------------------------------------------------------------------
-  // Load MC and data files
-  //---------------------------------------------------------------------------
-  vector<Events*> eventsSignal;
-  vector<Events*> eventsBackground;
-  vector<Events*> eventsData;
-  
   for(int iData=0;iData<kNdata;iData++){
     if(!runData[iData]){
       eventsData.push_back(nullptr);
@@ -24,7 +15,7 @@ int main(int argc, char* argv[])
       eventsData.push_back(new Events(inFileNameData[iData], Events::kData, maxNeventsData));
     }
   }
-    
+  
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]){
       eventsSignal.push_back(nullptr);
@@ -46,55 +37,29 @@ int main(int argc, char* argv[])
       }
     }
   }
-  
-  //---------------------------------------------------------------------------
-  // Define event, track and jet cuts
-  //---------------------------------------------------------------------------
-  
-  unsigned int eventCutOptions =
-    EventCut::kOneTrack
-  | EventCut::kOneJet;
-  
-  unsigned int bestEventCutOptions =
-    EventCut::kOneTrack
-  | EventCut::kOneJet
-  | EventCut::kMet100GeV;
-  
-  unsigned int trackCutOptions =
-    TrackCut::kLowCalo
-    | TrackCut::kLowDEdx;
-//  | TrackCut::kHighPt;
-//  | TrackCut::kMedium;
-  
-  unsigned int jetCutOptions =
-  JetCut::kPt200GeV;
-  
-  EventCut  *initialEventCut = new EventCut((EventCut::ECut)eventCutOptions);
-  TrackCut  *initialTrackCut = new TrackCut(TrackCut::kEmpty);
-  JetCut    *initialJetCut   = new JetCut(JetCut::kEmpty);
-  
-  EventCut  *bestEventCut = new EventCut((EventCut::ECut)bestEventCutOptions);
-  TrackCut  *bestTrackCut = new TrackCut((TrackCut::ECut)trackCutOptions);
-  JetCut    *bestJetCut   = new JetCut((JetCut::ECut)jetCutOptions);
-  
+}
+
+void ApplyCuts(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData,
+               EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
+{
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]) continue;
-    eventsSignal[iSig] = eventsSignal[iSig]->ApplyCuts(initialEventCut, initialTrackCut, initialJetCut, nullptr);
+    eventsSignal[iSig] = eventsSignal[iSig]->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   }
-
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     if(!runBackground[iBck]) continue;
-    eventsBackground[iBck] = eventsBackground[iBck]->ApplyCuts(initialEventCut, initialTrackCut, initialJetCut, nullptr);
+    eventsBackground[iBck] = eventsBackground[iBck]->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   }
- 
   for(int iData=0;iData<kNdata;iData++){
     if(!runData[iData]) continue;
-    eventsData[iData] = eventsData[iData]->ApplyCuts(initialEventCut, initialTrackCut, initialJetCut, nullptr);
+    eventsData[iData] = eventsData[iData]->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   }
-  
-  //---------------------------------------------------------------------------
+}
+
+void DrawStandardPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData)
+{
   // Create standard per event, per track and per jet plots
-  //---------------------------------------------------------------------------
+  
   HistSet *nVertices    = new HistSet(kNvertices);
   HistSet *nIsoTrack    = new HistSet(kNisoTracks);
   HistSet *nJet         = new HistSet(kNjets);
@@ -167,15 +132,15 @@ int main(int argc, char* argv[])
   nVertices->Draw(canvasEvents,1);
   nIsoTrack->Draw(canvasEvents,2);
   nJet->Draw(canvasEvents,3);
-//  nJet30->Draw(canvasEvents,4);
-//  nJet30a->Draw(canvasEvents,5);
+  //  nJet30->Draw(canvasEvents,4);
+  //  nJet30a->Draw(canvasEvents,5);
   jet_pt->Draw(canvasEvents, 4);
   nMetSumEt->Draw(canvasEvents,5);
   nMetPt->Draw(canvasEvents,6);
   nMetJetDphi->Draw(canvasEvents,7);
-//  nMetMass->Draw(canvasEvents,8);
-//  nMetEta->Draw(canvasEvents,9);
-//  nMetPhi->Draw(canvasEvents,10);
+  //  nMetMass->Draw(canvasEvents,8);
+  //  nMetEta->Draw(canvasEvents,9);
+  //  nMetPhi->Draw(canvasEvents,10);
   
   TCanvas *canvasTrack = new TCanvas("Tracks","Tracks",2880,1800);
   canvasTrack->Divide(2,3);
@@ -186,48 +151,48 @@ int main(int argc, char* argv[])
   pt->Draw(canvasTrack,4);
   caloEm->Draw(canvasTrack,5);
   caloHad->Draw(canvasTrack,6);
-//  eta->Draw(canvasTrack,5);
-//  phi->Draw(canvasTrack,6);
-//  charge->Draw(canvasTrack,3);
-//  mass->Draw(canvasTrack,4);
-//  pid->Draw(canvasTrack,5);
-//  dxy->Draw(canvasTrack,1);
-//  dz->Draw(canvasTrack,2);
+  //  eta->Draw(canvasTrack,5);
+  //  phi->Draw(canvasTrack,6);
+  //  charge->Draw(canvasTrack,3);
+  //  mass->Draw(canvasTrack,4);
+  //  pid->Draw(canvasTrack,5);
+  //  dxy->Draw(canvasTrack,1);
+  //  dz->Draw(canvasTrack,2);
   
-//  TCanvas *canvasJets = new TCanvas("Jets","Jets",2880,1800);
-//  canvasJets->Divide(2,2);
+  //  TCanvas *canvasJets = new TCanvas("Jets","Jets",2880,1800);
+  //  canvasJets->Divide(2,2);
   
-//  jet_eta->Draw(canvasJets, 2);
-//  jet_phi->Draw(canvasJets, 3);
-  
-  //---------------------------------------------------------------------------
-  // Create per layer plots
-  //---------------------------------------------------------------------------
-  
+  //  jet_eta->Draw(canvasJets, 2);
+  //  jet_phi->Draw(canvasJets, 3);
+}
+
+void DrawPerLayerPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData)
+{
   HistSet *dedxPerLayer = new HistSet(kDedx);
   dedxPerLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   dedxPerLayer->DrawPerLayer();
   
-//  HistSet *sizeXperLayer = new HistSet(kSizeX);
-//  sizeXperLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-//  sizeXperLayer->DrawPerLayer();
-//
-//  HistSet *sizeYperLayer = new HistSet(kSizeY);
-//  sizeYperLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-//  sizeYperLayer->DrawPerLayer();
-  
-  //---------------------------------------------------------------------------
-  // Number of tracks in events passing different cuts
-  //---------------------------------------------------------------------------
-  
+  //  HistSet *sizeXperLayer = new HistSet(kSizeX);
+  //  sizeXperLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  //  sizeXperLayer->DrawPerLayer();
+  //
+  //  HistSet *sizeYperLayer = new HistSet(kSizeY);
+  //  sizeYperLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  //  sizeYperLayer->DrawPerLayer();
+}
+
+void PrintSignalToBackground(
+                  vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData,
+                  vector<int> initNsignal)
+{
   int nEvents[kNsignals];
   int nSignalTotal=0, nBackgroundTotal=0;
   int nSignal[kNsignals], nBackground[kNbackgrounds];
   
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]) continue;
-    nEvents[iSig] = eventsSignal[iSig]->size();
-    nSignal[iSig] = eventsSignal[iSig]->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut, nullptr)->size();
+    nEvents[iSig] = initNsignal[iSig];
+    nSignal[iSig] = eventsSignal[iSig]->size();
     nSignalTotal += nSignal[iSig];
     
     for(int iBck=0;iBck<kNbackgrounds;iBck++){
@@ -242,10 +207,10 @@ int main(int argc, char* argv[])
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     if(!runBackground[iBck]) continue;
-    Events *backgroundAfterCuts = eventsBackground[iBck]->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut, nullptr);
-    if(backgroundAfterCuts){
-      nBackground[iBck] = backgroundAfterCuts->size();
-      nBackgroundTotal +=   nBackground[iBck];
+    
+    if(eventsBackground[iBck]){
+      nBackground[iBck] = eventsBackground[iBck]->size();
+      nBackgroundTotal += nBackground[iBck];
     }
     else{
       nBackground[iBck] = 0;
@@ -255,7 +220,7 @@ int main(int argc, char* argv[])
   int nData=0,nDataTotal=0;
   for(int iData=0;iData<kNdata;iData++){
     if(!runData[iData]) continue;
-    nData = eventsData[iData]->ApplyCuts(bestEventCut, bestTrackCut, bestJetCut, nullptr)->size();
+    nData = eventsData[iData]->size();
   }
   
   for(int iSig=0;iSig<kNsignals;iSig++){
@@ -266,7 +231,7 @@ int main(int argc, char* argv[])
     if(printHeaders) cout<<"S/B:\t";
     cout<<nSignal[iSig]/(double)nBackgroundTotal<<endl;
   }
-
+  
   if(printHeaders) cout<<"Bck total:\t";
   cout<<nBackgroundTotal/(double)nEvents[0]<<endl;
   
@@ -279,6 +244,74 @@ int main(int argc, char* argv[])
   
   if(printHeaders) cout<<"N data/total:";
   cout<<nData/(double)nEvents[0]<<endl;
+}
+
+int main(int argc, char* argv[])
+{
+  TApplication theApp("App", &argc, argv);
+  
+  // All events with initial cuts only
+  vector<Events*> eventsSignal;
+  vector<Events*> eventsBackground;
+  vector<Events*> eventsData;
+  
+  LoadEventsFromFiles(eventsSignal, eventsBackground, eventsData);
+  
+  //---------------------------------------------------------------------------
+  // Define event, track and jet cuts
+  //---------------------------------------------------------------------------
+  
+  unsigned int eventCutOptions =
+    EventCut::kOneTrack
+  | EventCut::kOneJet;
+  
+  unsigned int trackCutOptions =
+    TrackCut::kLowCalo
+    | TrackCut::kLowDEdx;
+//  | TrackCut::kHighPt;
+//  | TrackCut::kMedium;
+  
+  unsigned int jetCutOptions =
+  JetCut::kPt200GeV;
+  
+  EventCut  *initialEventCut = new EventCut((EventCut::ECut)eventCutOptions);
+  TrackCut  *initialTrackCut = new TrackCut(TrackCut::kEmpty);
+  JetCut    *initialJetCut   = new JetCut(JetCut::kEmpty);
+  
+  ApplyCuts(eventsSignal, eventsBackground, eventsData,
+            initialEventCut, initialTrackCut, initialJetCut, nullptr);
+  
+  
+  
+  DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
+  DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
+  
+  vector<int> initNsignal;
+  
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    if(!runSignal[iSig])  initNsignal.push_back(0);
+    else                  initNsignal.push_back(eventsSignal[iSig]->size());
+  }
+  
+  PrintSignalToBackground(eventsSignal, eventsBackground, eventsData, initNsignal);
+  
+  unsigned int bestEventCutOptions =
+  EventCut::kOneTrack
+  | EventCut::kOneJet
+  | EventCut::kMet100GeV;
+  
+  EventCut  *bestEventCut = new EventCut((EventCut::ECut)bestEventCutOptions);
+  TrackCut  *bestTrackCut = new TrackCut((TrackCut::ECut)trackCutOptions);
+  JetCut    *bestJetCut   = new JetCut((JetCut::ECut)jetCutOptions);
+  
+  vector<Events*> eventsSignalBestCut = eventsSignal;
+  vector<Events*> eventsBackgroundBestCut = eventsBackground;
+  vector<Events*> eventsDataBestCut = eventsData;
+  
+  ApplyCuts(eventsSignalBestCut, eventsBackgroundBestCut,eventsDataBestCut , bestEventCut, bestTrackCut, bestJetCut, nullptr);
+  
+  PrintSignalToBackground(eventsSignalBestCut, eventsBackgroundBestCut, eventsDataBestCut, initNsignal);
+  
 
   
   theApp.Run();

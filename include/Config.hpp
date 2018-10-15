@@ -16,9 +16,9 @@ using namespace std;
 const bool printHeaders = true;
 
 // Limit number of events loaded (-1 means load all available)
-const int maxNeventsBackground  = 10000;
+const int maxNeventsBackground  = 1000;
 const int maxNeventsSignal      = -1;
-const int maxNeventsData        = 10000;
+const int maxNeventsData        = 1000;
 
 // turn on/off different backgrounds, signals and data samples
 const vector<bool> runBackground = {
@@ -34,13 +34,13 @@ const vector<bool> runSignal = {
   false,  // wino m=300 cτ=3
   true,   // wino m=300 cτ=10
   false,  // wino m=300 cτ=30
-  true,  // wino m=500 cτ=10
+  true,   // wino m=500 cτ=10
   false,  // wino m=500 cτ=20
-  true,  // wino m=650 cτ=10
+  true,   // wino m=650 cτ=10
   false,  // wino m=650 cτ=20
-  true,  // wino m=800 cτ=10
+  true,   // wino m=800 cτ=10
   false,  // wino m=800 cτ=20
-  true,  // wino m=1000 cτ=10
+  true,   // wino m=1000 cτ=10
   false,  // wino m=1000 cτ=20
 };
 
