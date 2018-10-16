@@ -48,7 +48,7 @@ public:
   
   /// Setters - allow to modify event cut options
   inline void SetMinNjets(int min){minNjets = min;}
-  inline void SetMinNtracks(int min){minNtracks = min;}
+  inline void SetNtracks(int min, int max){minNtracks = min;maxNtracks = max;}
   inline void SetMinNleptons(int min){minNleptons = min;}
   inline void SetMaxNlepton(int max){maxNleptons = max;}
   inline void SetMinNmuons(int min){minNmuons = min;}
@@ -73,6 +73,7 @@ public:
   // Getters - give access to options of this event cut
   inline int    GetMinNjets(){return minNjets;}
   inline int    GetMinNtracks(){return minNtracks;}
+  inline int    GetMaxNtracks(){return maxNtracks;}
   inline int    GetMinNleptons(){return minNleptons;}
   inline int    GetMaxNleptons(){return maxNleptons;}
   inline int    GetMinNmuons(){return minNmuons;}
@@ -98,6 +99,7 @@ public:
 private:
   int minNjets;           ///< min number of jets
   int minNtracks;         ///< min number of tracks
+  int maxNtracks;         ///< max number of tracks
   int minNleptons;        ///< min number of leptons
   int maxNleptons;        ///< max number of leptons
   int minNmuons;          ///< min number if muons

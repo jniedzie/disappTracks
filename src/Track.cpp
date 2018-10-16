@@ -38,6 +38,27 @@ int Track::GetNclusters()
   return nClusters;
 }
 
+int Track::GetNdetIDs()
+{
+  set<int> uniqueDets;
+  for(int d : subDetId){
+    uniqueDets.insert(d);
+  }
+  return (int)uniqueDets.size();
+}
+
+double Track::GetDedxInSubDet(int det)
+{
+  double dedxSum=0;
+  
+  for(int i=0;i<nLayers;i++){
+    if(subDetId[i] == det){
+      dedxSum += dedx[i];
+    }
+  }
+  return dedxSum;
+}
+
 void Track::Print()
 {
   for(int iLayer=0;iLayer<nLayers;iLayer++){
@@ -49,6 +70,10 @@ bool Track::IsPassingCut(TrackCut *cut)
 {
   // check number of dedx clusters
   if(GetNclusters() < cut->GetMinDedxClusters() || GetNclusters() > cut->GetMaxDedxClusters()){
+    return false;
+  }
+  
+  if(GetNdetIDs() < cut->GetMinDets() || GetNdetIDs() > cut->GetMaxDets()){
     return false;
   }
   

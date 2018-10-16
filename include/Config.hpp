@@ -14,11 +14,13 @@ using namespace std;
 
 // Analysis configuration
 const bool printHeaders = true;
+const bool interactive = false;
+const bool showPlots = true;
 
 // Limit number of events loaded (-1 means load all available)
-const int maxNeventsBackground  = 1000;
-const int maxNeventsSignal      = -1;
-const int maxNeventsData        = 1000;
+const int maxNeventsBackground  = 100000;
+const int maxNeventsSignal      = 100000;
+const int maxNeventsData        = 100000;
 
 // turn on/off different backgrounds, signals and data samples
 const vector<bool> runBackground = {

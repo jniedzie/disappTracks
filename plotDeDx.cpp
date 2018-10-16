@@ -2,6 +2,7 @@
 #include "TrackCut.hpp"
 #include "JetCut.hpp"
 #include "HistSet.hpp"
+#include "Helpers.hpp"
 
 #include <TApplication.h>
 
@@ -56,7 +57,7 @@ void ApplyCuts(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground,
   }
 }
 
-void DrawStandardPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData)
+void DrawStandardPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData, string prefix="")
 {
   // Create standard per event, per track and per jet plots
   
@@ -126,7 +127,7 @@ void DrawStandardPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBac
   
   
   // Plot histograms
-  TCanvas *canvasEvents = new TCanvas("Events","Events",2880,1800);
+  TCanvas *canvasEvents = new TCanvas((prefix+"Events").c_str(),(prefix+"Events").c_str(),2880,1800);
   canvasEvents->Divide(3,3);
   
   nVertices->Draw(canvasEvents,1);
@@ -142,7 +143,7 @@ void DrawStandardPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBac
   //  nMetEta->Draw(canvasEvents,9);
   //  nMetPhi->Draw(canvasEvents,10);
   
-  TCanvas *canvasTrack = new TCanvas("Tracks","Tracks",2880,1800);
+  TCanvas *canvasTrack = new TCanvas((prefix+"Tracks").c_str(),(prefix+"Tracks").c_str(),2880,1800);
   canvasTrack->Divide(2,3);
   
   nClustersPerTrack->Draw(canvasTrack,1);
@@ -166,6 +167,107 @@ void DrawStandardPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBac
   //  jet_phi->Draw(canvasJets, 3);
 }
 
+void MakeComparison(vector<Events*> &eventsSignal1, vector<Events*> &eventsBackground1, vector<Events*> &eventsData1,
+                    vector<Events*> &eventsSignal2, vector<Events*> &eventsBackground2, vector<Events*> &eventsData2)
+{
+  // Create standard per event, per track and per jet plots
+  
+  HistSet *nVertices1    = new HistSet(kNvertices);
+  HistSet *nIsoTrack1    = new HistSet(kNisoTracks);
+  HistSet *nJet1         = new HistSet(kNjets);
+  HistSet *nMetSumEt1    = new HistSet(kMetSumEt);
+  HistSet *nMetPt1       = new HistSet(kMetPt);
+  HistSet *nMetJetDphi1  = new HistSet(kMetJetDphi);
+  HistSet *nClustersPerTrack1  = new HistSet(kTrackNclusters);
+  HistSet *totalDeDx1          = new HistSet(kTrackTotalDedx);
+  HistSet *totalDeDxByNclusters1 = new HistSet(kTrackDedxPerCluster);
+  HistSet *pt1                   = new HistSet(kTrackPt);
+  HistSet *caloEm1               = new HistSet(kTrackCaloEm);
+  HistSet *caloHad1              = new HistSet(kTrackCaloHad);
+  HistSet *jet_pt1   = new HistSet(kJetPt);
+  
+  HistSet *nVertices2    = new HistSet(kNvertices);
+  HistSet *nIsoTrack2    = new HistSet(kNisoTracks);
+  HistSet *nJet2         = new HistSet(kNjets);
+  HistSet *nMetSumEt2    = new HistSet(kMetSumEt);
+  HistSet *nMetPt2       = new HistSet(kMetPt);
+  HistSet *nMetJetDphi2  = new HistSet(kMetJetDphi);
+  HistSet *nClustersPerTrack2  = new HistSet(kTrackNclusters);
+  HistSet *totalDeDx2          = new HistSet(kTrackTotalDedx);
+  HistSet *totalDeDxByNclusters2 = new HistSet(kTrackDedxPerCluster);
+  HistSet *pt2                   = new HistSet(kTrackPt);
+  HistSet *caloEm2               = new HistSet(kTrackCaloEm);
+  HistSet *caloHad2              = new HistSet(kTrackCaloHad);
+  HistSet *jet_pt2   = new HistSet(kJetPt);
+  
+  nIsoTrack1->FillFromEvents(eventsSignal1, eventsBackground1, eventsData1);
+  nJet1->FillFromEvents(eventsSignal1, eventsBackground1, eventsData1);
+  nMetSumEt1->FillFromEvents(eventsSignal1, eventsBackground1, eventsData1);
+  nMetPt1->FillFromEvents(eventsSignal1, eventsBackground1, eventsData1);
+  nMetJetDphi1->FillFromEvents(eventsSignal1, eventsBackground1, eventsData1);
+  nClustersPerTrack1->FillFromEvents(eventsSignal1, eventsBackground1, eventsData1);
+  pt1->FillFromEvents(eventsSignal1, eventsBackground1, eventsData1);
+  caloEm1->FillFromEvents(eventsSignal1, eventsBackground1, eventsData1);
+  caloHad1->FillFromEvents(eventsSignal1, eventsBackground1, eventsData1);
+  
+  nIsoTrack2->FillFromEvents(eventsSignal2, eventsBackground2, eventsData2);
+  nJet2->FillFromEvents(eventsSignal2, eventsBackground2, eventsData2);
+  nMetSumEt2->FillFromEvents(eventsSignal2, eventsBackground2, eventsData2);
+  nMetPt2->FillFromEvents(eventsSignal2, eventsBackground2, eventsData2);
+  nMetJetDphi2->FillFromEvents(eventsSignal2, eventsBackground2, eventsData2);
+  nClustersPerTrack2->FillFromEvents(eventsSignal2, eventsBackground2, eventsData2);
+  pt2->FillFromEvents(eventsSignal2, eventsBackground2, eventsData2);
+  caloEm2->FillFromEvents(eventsSignal2, eventsBackground2, eventsData2);
+  caloHad2->FillFromEvents(eventsSignal2, eventsBackground2, eventsData2);
+  
+  // Plot histograms
+  TCanvas *canvasEvents = new TCanvas("Events comp.","Events comp",2880,1800);
+  canvasEvents->Divide(4,4);
+  
+  nVertices1->Draw(canvasEvents,1);
+  nVertices2->Draw(canvasEvents,2);
+  
+  nIsoTrack1->Draw(canvasEvents,3);
+  nIsoTrack2->Draw(canvasEvents,4);
+  
+  nJet1->Draw(canvasEvents,5);
+  nJet2->Draw(canvasEvents,6);
+  
+  jet_pt1->Draw(canvasEvents, 7);
+  jet_pt2->Draw(canvasEvents, 8);
+  
+  nMetSumEt1->Draw(canvasEvents,9);
+  nMetSumEt2->Draw(canvasEvents,10);
+  
+  nMetPt1->Draw(canvasEvents,11);
+  nMetPt2->Draw(canvasEvents,12);
+  
+  nMetJetDphi1->Draw(canvasEvents,13);
+  nMetJetDphi2->Draw(canvasEvents,14);
+  
+  TCanvas *canvasTrack = new TCanvas("Tracks comp.","Tracks comp.",2880,1800);
+  canvasTrack->Divide(4,3);
+  
+  nClustersPerTrack1->Draw(canvasTrack,1);
+  nClustersPerTrack2->Draw(canvasTrack,2);
+  
+  totalDeDx1->Draw(canvasTrack,3);
+  totalDeDx2->Draw(canvasTrack,4);
+  
+  totalDeDxByNclusters1->Draw(canvasTrack,5);
+  totalDeDxByNclusters2->Draw(canvasTrack,6);
+  
+  pt1->Draw(canvasTrack,7);
+  pt2->Draw(canvasTrack,8);
+  
+  caloEm1->Draw(canvasTrack,9);
+  caloEm2->Draw(canvasTrack,10);
+  
+  caloHad1->Draw(canvasTrack,11);
+  caloHad2->Draw(canvasTrack,12);
+}
+
+
 void DrawPerLayerPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData)
 {
   HistSet *dedxPerLayer = new HistSet(kDedx);
@@ -182,79 +284,33 @@ void DrawPerLayerPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBac
 }
 
 void PrintSignalToBackground(
-                  vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData,
-                  vector<int> initNsignal)
+                  vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData)
 {
-  int nEvents[kNsignals];
-  int nSignalTotal=0, nBackgroundTotal=0;
-  int nSignal[kNsignals], nBackground[kNbackgrounds];
-  
-  for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig]) continue;
-    nEvents[iSig] = initNsignal[iSig];
-    nSignal[iSig] = eventsSignal[iSig]->size();
-    nSignalTotal += nSignal[iSig];
-    
-    for(int iBck=0;iBck<kNbackgrounds;iBck++){
-      if(!runBackground[iBck]) continue;
-      nEvents[iSig] += eventsBackground[iBck]->size();
-    }
-    for(int iData=0;iData<kNdata;iData++){
-      if(!runData[iData]) continue;
-      nEvents[iSig] += eventsData[iData]->size();
-    }
-  }
+  // sum up events from all background types
+  int nBackgroundTotal=0;
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    if(!runBackground[iBck]) continue;
-    
-    if(eventsBackground[iBck]){
-      nBackground[iBck] = eventsBackground[iBck]->size();
-      nBackgroundTotal += nBackground[iBck];
-    }
-    else{
-      nBackground[iBck] = 0;
-    }
-  }
-  
-  int nData=0,nDataTotal=0;
-  for(int iData=0;iData<kNdata;iData++){
-    if(!runData[iData]) continue;
-    nData = eventsData[iData]->size();
-  }
-  
-  for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig]) continue;
-    if(printHeaders) cout<<signalTitle[iSig]<<"\t";
-    cout<<nSignal[iSig]/(double)nEvents[iSig]<<endl;
-    
-    if(printHeaders) cout<<"S/B:\t";
-    cout<<nSignal[iSig]/(double)nBackgroundTotal<<endl;
-  }
-  
-  if(printHeaders) cout<<"Bck total:\t";
-  cout<<nBackgroundTotal/(double)nEvents[0]<<endl;
-  
-  for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    if(!runBackground[iBck]) continue;
+    if(!runBackground[iBck] || !eventsBackground[iBck]) continue;
+    nBackgroundTotal += eventsBackground[iBck]->size();
     
     if(printHeaders) cout<<backgroundTitle[iBck]<<"\t";
-    cout<<nBackground[iBck]/(double)nEvents[0]<<endl;
+    cout<<eventsBackground[iBck]->size()<<endl;
   }
   
-  if(printHeaders) cout<<"N data/total:";
-  cout<<nData/(double)nEvents[0]<<endl;
+  // print S/B ratio for each signal type
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    if(!runSignal[iSig]) continue;
+    if(printHeaders) cout<<signalTitle[iSig]<<"\tS/B:\t";
+    cout<<eventsSignal[iSig]->size()/(double)nBackgroundTotal<<endl;
+  }
 }
 
 int main(int argc, char* argv[])
 {
-  TApplication theApp("App", &argc, argv);
+  TApplication *theApp = new TApplication("App", &argc, argv);
   
   // All events with initial cuts only
-  vector<Events*> eventsSignal;
-  vector<Events*> eventsBackground;
-  vector<Events*> eventsData;
-  
+  vector<Events*> eventsSignal, eventsBackground, eventsData;
   LoadEventsFromFiles(eventsSignal, eventsBackground, eventsData);
   
   //---------------------------------------------------------------------------
@@ -265,18 +321,12 @@ int main(int argc, char* argv[])
     EventCut::kOneTrack
   | EventCut::kOneJet;
   
-  unsigned int trackCutOptions =
-    TrackCut::kLowCalo
-    | TrackCut::kLowDEdx;
-//  | TrackCut::kHighPt;
-//  | TrackCut::kMedium;
-  
-  unsigned int jetCutOptions =
-  JetCut::kPt200GeV;
-  
   EventCut  *initialEventCut = new EventCut((EventCut::ECut)eventCutOptions);
-  TrackCut  *initialTrackCut = new TrackCut(TrackCut::kEmpty);
-  JetCut    *initialJetCut   = new JetCut(JetCut::kEmpty);
+  TrackCut  *initialTrackCut = new TrackCut();
+  JetCut    *initialJetCut   = new JetCut();
+  
+  initialEventCut->SetNtracks(2, 2);
+  initialTrackCut->SetNdets(4, 4);
   
   ApplyCuts(eventsSignal, eventsBackground, eventsData,
             initialEventCut, initialTrackCut, initialJetCut, nullptr);
@@ -285,36 +335,69 @@ int main(int argc, char* argv[])
   
   DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
   DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
+    
+  PrintSignalToBackground(eventsSignal, eventsBackground, eventsData);
   
-  vector<int> initNsignal;
+  vector<Events*> currentEventsSignal, currentEventsBackground, currentEventsData;
   
-  for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig])  initNsignal.push_back(0);
-    else                  initNsignal.push_back(eventsSignal[iSig]->size());
+  if(interactive){
+    string option;
+    double value;
+
+    EventCut  *currentEventCut  = new EventCut();
+    TrackCut  *currentTrackCut  = new TrackCut();
+    JetCut    *currentJetCut    = new JetCut();
+    
+    currentEventCut->SetMinNjets(1);
+    currentEventCut->SetNtracks(1,999999);
+    currentEventCut->SetHighJetMaxNeHEF(0.8);
+    currentEventCut->SetHighJetMinChHEF(0.1);
+    currentEventCut->SetHighJetMaxEta(2.4);
+    
+    bool stop = false;
+    
+    while(!stop){
+      cin >> option >> value;
+      
+      if(option == "high_jet_pt_min")     currentEventCut->SetHighJetMinPt(value);
+      else if(option == "met_pt_min")     currentEventCut->SetMinMetPt(value);
+      else if(option == "min_dets")       currentTrackCut->SetNdets(value, currentTrackCut->GetMaxDets());
+      else if(option == "max_dets")       currentTrackCut->SetNdets(currentTrackCut->GetMinDets(), value);
+      else if(option == "max_em_calo")    currentTrackCut->SetMaxEmCalo(value);
+      else if(option == "max_had_calo")   currentTrackCut->SetMaxHadCalo(value);
+      else if(option == "break"){
+        stop = true;
+        break;
+      }
+      else{
+        cout<<"Unknown option"<<endl;
+      }
+      
+      cout<<"current min dets:"<<currentTrackCut->GetMinDets()<<"\tmax dets:"<<currentTrackCut->GetMaxDets()<<endl;
+      
+      currentEventsSignal.clear();
+      currentEventsBackground.clear();
+      currentEventsData.clear();
+      
+      currentEventsSignal = eventsSignal;
+      currentEventsBackground = eventsBackground;
+      currentEventsData = eventsData;
+      
+      ApplyCuts(currentEventsSignal, currentEventsBackground,currentEventsData,
+                currentEventCut, currentTrackCut, currentJetCut, nullptr);
+      
+      PrintSignalToBackground(currentEventsSignal, currentEventsBackground, currentEventsData);
+    }
   }
   
-  PrintSignalToBackground(eventsSignal, eventsBackground, eventsData, initNsignal);
-  
-  unsigned int bestEventCutOptions =
-  EventCut::kOneTrack
-  | EventCut::kOneJet
-  | EventCut::kMet100GeV;
-  
-  EventCut  *bestEventCut = new EventCut((EventCut::ECut)bestEventCutOptions);
-  TrackCut  *bestTrackCut = new TrackCut((TrackCut::ECut)trackCutOptions);
-  JetCut    *bestJetCut   = new JetCut((JetCut::ECut)jetCutOptions);
-  
-  vector<Events*> eventsSignalBestCut = eventsSignal;
-  vector<Events*> eventsBackgroundBestCut = eventsBackground;
-  vector<Events*> eventsDataBestCut = eventsData;
-  
-  ApplyCuts(eventsSignalBestCut, eventsBackgroundBestCut,eventsDataBestCut , bestEventCut, bestTrackCut, bestJetCut, nullptr);
-  
-  PrintSignalToBackground(eventsSignalBestCut, eventsBackgroundBestCut, eventsDataBestCut, initNsignal);
-  
-
-  
-  theApp.Run();
+  if(showPlots){
+    if(interactive){
+      MakeComparison(eventsSignal, eventsBackground, eventsData,
+                     currentEventsSignal, currentEventsBackground, currentEventsData);
+    }
+    theApp->Run();
+  }
+    
   return 0;
 }
 

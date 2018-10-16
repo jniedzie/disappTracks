@@ -13,6 +13,7 @@ using namespace std;
 EventCut::EventCut(ECut cutType) :
 minNjets(0),
 minNtracks(0),
+maxNtracks(999999),
 minNleptons(0),
 maxNleptons(999999),
 minNmuons(0),

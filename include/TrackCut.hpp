@@ -25,6 +25,8 @@ public:
   
   inline int GetMinDedxClusters(){return minDedxClusters;}
   inline int GetMaxDedxClusters(){return maxDedxClusters;}
+  inline int GetMinDets(){return minDets;}
+  inline int GetMaxDets(){return maxDets;}
   inline double GetMinDedxPerCluster(){return minDedxPerCluster;}
   inline double GetMinTotalDedx(){return minTotalDeDx;}
   inline double GetMaxTotalDedx(){return maxTotalDeDx;}
@@ -34,6 +36,7 @@ public:
   inline double GetMaxEta(){return maxEta;}
   
   inline void SetNdedxClusters(int min, int max){minDedxClusters=min;maxDedxClusters=max;}
+  inline void SetNdets(int min, int max){minDets=min;maxDets=max;}
   inline void SetMinDedxPerCluster(double min){minDedxPerCluster=min;}
   inline void SetTotalDedx(double min, double max){minTotalDeDx=min; maxTotalDeDx=max;}
   inline void SetMinPt(double min){minPt = min;}
@@ -44,6 +47,8 @@ public:
 private:
   int minDedxClusters;      ///< min number of dedx clusters along the track
   int maxDedxClusters;      ///< max number of dedx clusters along the track
+  int minDets;              ///< min number of subdetectors
+  int maxDets;              ///< max number of subdetectors
   double minDedxPerCluster; ///< min dedx at each track's cluster
   double minTotalDeDx;      ///< min total dedx along the track
   double maxTotalDeDx;      ///< max total dedx along the track

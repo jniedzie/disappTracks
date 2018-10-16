@@ -13,6 +13,8 @@ using namespace std;
 TrackCut::TrackCut(ECut cutType) :
 minDedxClusters(0),
 maxDedxClusters(999999),
+minDets(0),
+maxDets(999999),
 minDedxPerCluster(0.0),
 minTotalDeDx(0.0),
 maxTotalDeDx(999999),

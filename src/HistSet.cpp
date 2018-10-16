@@ -190,9 +190,9 @@ void HistSet::Fill(TH1D* hist, Events *events, int iDetId)
         Track *track = events->At(iEvent)->GetTrack(iTrack);
         double value = 0.0;
         
-        if(var == kTrackNclusters)            value = track->GetNclusters();
+        if(var == kTrackNclusters)            value = track->GetNdetIDs();
         else if(var == kTrackTotalDedx)       value = track->GetTotalDedx();
-        else if(var == kTrackDedxPerCluster)  value = track->GetTotalDedx()/track->GetNclusters();
+        else if(var == kTrackDedxPerCluster)  value = track->GetTotalDedx()/track->GetNdetIDs();
         else if(var == kTrackPt)              value = track->GetPt();
         else if(var == kTrackEta)             value = track->GetEta();
         else if(var == kTrackPhi)             value = track->GetPhi();
@@ -208,7 +208,7 @@ void HistSet::Fill(TH1D* hist, Events *events, int iDetId)
           for(int i=0;i<nLayers;i++){
             int detId = track->GetSubDetIdInLayer(i);
             if(detId == iDetId){
-              if(var == kDedx)        value = track->GetDeDxInLayer(i);
+              if(var == kDedx)        value = track->GetDedxInSubDet(i);
               else if(var == kSizeX)  value = track->GetSizeXinLayer(i);
               else if(var == kSizeY)  value = track->GetSizeYinLayer(i);
               
@@ -399,7 +399,7 @@ const char* HistSet::GetTitle()
   if(var == kMetPhi) return "MET phi";
   if(var == kMetJetDphi) return "#Delta #phi (p_{T}^{jet},p_{T}^{MET})";
   
-  if(var == kTrackNclusters) return "N clusters per track";
+  if(var == kTrackNclusters) return "N detIDs per track";
   if(var == kTrackTotalDedx) return "total dedx per track";
   if(var == kTrackDedxPerCluster) return "total dedx per track / n clusters";
   if(var == kTrackPt) return "pt dist";

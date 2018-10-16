@@ -54,6 +54,9 @@ public:
   int     GetPid(){return pid;}
 
   int     GetNclusters();
+  int     GetNdetIDs();
+  
+  double  GetDedxInSubDet(int det);
   
   // Other methods
   bool IsPassingCut(TrackCut *cut);

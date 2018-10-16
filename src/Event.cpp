@@ -181,10 +181,11 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
     }
     if(dataType==kSignal){
       weight *= 0.001 * signalCrossSectionOneTrack[iSig]; // cross section for given signal (stored in fb, here transformed to pb to match background units
-      weight *= 10000.0; // scale up to make it visible
+      weight *= 3.55*0.022*6.26*0.13*10000.0; // scale up to make it visible
     }
     else if(dataType==kData){
-      weight = 686.5;
+//      weight = 686.5;
+      weight = 3.55*0.022*6.26*90.2;
     }
     
     newEvent->SetWeight(weight);
@@ -476,7 +477,7 @@ bool Event::IsPassingCut(EventCut *cut)
   
   // check number of tracks and jets after removing those that are too close to muons
   if(GetNcentralJets() < cut->GetMinNjets()) return false;
-  if(GetNtracks() < cut->GetMinNtracks()) return false;
+  if(GetNtracks() < cut->GetMinNtracks() || GetNtracks() > cut->GetMaxNtracks()) return false;
   
 
   // find the jet with the highest pt
