@@ -18,7 +18,18 @@ dzErr(99999),
 charge(99999),
 mass(99999),
 pt(99999),
-pid(99999)
+pid(99999),
+nTrackerLayers(99999),
+nPixelLayers(99999),
+nTrackerHits(99999),
+nPixelHits(99999),
+nMissingInnerPixelHits(99999),
+nMissingOuterPixelHits(99999),
+nMissingInnerStripHits(99999),
+nMissingOuterStripHits(99999),
+nMissingInnerTrackerHits(99999),
+nMissingOuterTrackerHits(99999),
+nMissingMiddleTrackerHits(99999)
 {
   for(int iLayer=0;iLayer<nLayers;iLayer++){
     dedx.push_back(0.0);

@@ -77,7 +77,19 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
   TTreeReaderArray<float> _trackMass(reader, "IsoTrack_mass");
   TTreeReaderArray<float> _trackPt(reader, "IsoTrack_pt");
   TTreeReaderArray<int>   _trackPid(reader, "IsoTrack_pdgId");
-
+  
+  TTreeReaderArray<int>   _trackTrackerLayers(reader, "IsoTrack_trackerLayers");
+  TTreeReaderArray<int>   _trackPixelLayers(reader, "IsoTrack_pixelLayers");
+  TTreeReaderArray<int>   _trackTrackerHits(reader, "IsoTrack_trackerHits");
+  TTreeReaderArray<int>   _trackPixelHits(reader, "IsoTrack_pixelHits");
+  TTreeReaderArray<int>   _trackMissingInnerPixelHits(reader, "IsoTrack_missingInnerPixelHits");
+  TTreeReaderArray<int>   _trackMissingOuterPixelHits(reader, "IsoTrack_missingOuterPixelHits");
+  TTreeReaderArray<int>   _trackMissingInnerStripHits(reader, "IsoTrack_missingInnerStripHits");
+  TTreeReaderArray<int>   _trackMissingOuterStripHits(reader, "IsoTrack_missingOuterStripHits");
+  TTreeReaderArray<int>   _trackMissingInnerTrackerHits(reader, "IsoTrack_missingInnerTrackerHits");
+  TTreeReaderArray<int>   _trackMissingOuterTrackerHits(reader, "IsoTrack_missingOuterTrackerHits");
+  TTreeReaderArray<int>   _trackMissingMiddleTrackerHits(reader, "IsoTrack_missingMiddleTrackerHits");
+  
   TTreeReaderArray<float> _leptonPt(reader, "LepGood_pt");
   TTreeReaderArray<float> _leptonPhi(reader, "LepGood_phi");
   TTreeReaderArray<float> _leptonEta(reader, "LepGood_eta");
@@ -129,7 +141,19 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
       track->SetMass(_trackMass[iTrack]);
       track->SetPt(_trackPt[iTrack]);
       track->SetPid(_trackPid[iTrack]);
-
+      
+      track->SetNtrackerLayers(_trackTrackerLayers[iTrack]);
+      track->SetNpixelLayers(_trackPixelLayers[iTrack]);
+      track->SetNtrackerHits(_trackTrackerHits[iTrack]);
+      track->SetNpixelHits(_trackPixelHits[iTrack]);
+      track->SetNmissingInnerPixelHits(_trackMissingInnerPixelHits[iTrack]);
+      track->SetNmissingOuterPixelHits(_trackMissingOuterPixelHits[iTrack]);
+      track->SetNmissingInnerStripHits(_trackMissingInnerStripHits[iTrack]);
+      track->SetNmissingOuterStripHits(_trackMissingOuterStripHits[iTrack]);
+      track->SetNmissingInnerTrackerHits(_trackMissingInnerTrackerHits[iTrack]);
+      track->SetNmissingOuterTrackerHits(_trackMissingOuterTrackerHits[iTrack]);
+      track->SetNmissingMiddleTrackerHits(_trackMissingMiddleTrackerHits[iTrack]);
+      
       for(int iLayer=0;iLayer<nLayers;iLayer++){
         track->SetDeDxInLayer(iLayer, (*_dedx[iLayer])[iTrack]);
         track->SetSubDetIdInLayer(iLayer, (*_subDetId[iLayer])[iTrack]);

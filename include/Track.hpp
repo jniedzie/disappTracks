@@ -33,6 +33,18 @@ public:
   void SetPt(double _pt){pt = _pt;}
   void SetPid(int _pid){pid = _pid;}
   
+  void SetNtrackerLayers(int n){nTrackerLayers = n;}
+  void SetNpixelLayers(int n){nPixelLayers = n;}
+  void SetNtrackerHits(int n){nTrackerHits = n;}
+  void SetNpixelHits(int n){nPixelHits = n;}
+  void SetNmissingInnerPixelHits(int n){nMissingInnerPixelHits = n;}
+  void SetNmissingOuterPixelHits(int n){nMissingOuterPixelHits = n;}
+  void SetNmissingInnerStripHits(int n){nMissingInnerStripHits = n;}
+  void SetNmissingOuterStripHits(int n){nMissingOuterStripHits = n;}
+  void SetNmissingInnerTrackerHits(int n){nMissingInnerTrackerHits = n;}
+  void SetNmissingOuterTrackerHits(int n){nMissingOuterTrackerHits = n;}
+  void SetNmissingMiddleTrackerHits(int n){nMissingMiddleTrackerHits = n;}
+  
   // Getters
   float   GetDeDxInLayer(int layer){return dedx[layer];}
   int     GetSubDetIdInLayer(int layer){return subDetId[layer];}
@@ -58,6 +70,18 @@ public:
   
   double  GetDedxInSubDet(int det);
   
+  int GetNtrackerLayers(){return nTrackerLayers;}
+  int GetNpixelLayers(){return nPixelLayers;}
+  int GetNtrackerHits(){return nTrackerHits;}
+  int GetNpixelHits(){return nPixelHits;}
+  int GetNmissingInnerPixelHits(){return nMissingInnerPixelHits;}
+  int GetNmissingOuterPixelHits(){return nMissingOuterPixelHits;}
+  int GetNmissingInnerStripHits(){return nMissingInnerStripHits;}
+  int GetNmissingOuterStripHits(){return nMissingOuterStripHits;}
+  int GetNmissingInnerTrackerHits(){return nMissingInnerTrackerHits;}
+  int GetNmissingOuterTrackerHits(){return nMissingOuterTrackerHits;}
+  int GetNmissingMiddleTrackerHits(){return nMissingMiddleTrackerHits;}
+  
   // Other methods
   bool IsPassingCut(TrackCut *cut);
   void Print();
@@ -78,6 +102,18 @@ private:
   double mass;
   double pt;
   int pid;
+  
+  int nTrackerLayers;           // Number of tracker layers
+  int nPixelLayers;             // Number of pixel layers
+  int nTrackerHits;             // Number of tracker hits
+  int nPixelHits;               // Number of pixel hits
+  int nMissingInnerPixelHits;   // Number of missing inner pixel hits
+  int nMissingOuterPixelHits;   // Number of missing outer pixel hits
+  int nMissingInnerStripHits;   // Number of missing inner strip hits
+  int nMissingOuterStripHits;   // Number of missing outer strip hits
+  int nMissingInnerTrackerHits; // Number of missing inner tracker hits
+  int nMissingOuterTrackerHits; // Number of missing outer tracker hits
+  int nMissingMiddleTrackerHits;// Number of missing middle tracker hits
 };
 
 #endif /* Track_hpp */
