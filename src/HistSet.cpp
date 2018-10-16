@@ -471,7 +471,7 @@ double HistSet::GetMin()
   if(var == kNjets30)     return 0;
   if(var == kNjets30a)    return 0;
   if(var == kMetSumEt)    return -20;
-  if(var == kMetPt)       return 0;
+  if(var == kMetPt)       return 200;
   if(var == kMetMass)     return -10e-6;
   if(var == kMetEta)      return -3.5;
   if(var == kMetPhi)      return -3.5;
@@ -509,7 +509,7 @@ double HistSet::GetMax()
   if(var == kNjets30)     return 20;
   if(var == kNjets30a)    return 20;
   if(var == kMetSumEt)    return 5000;
-  if(var == kMetPt)       return 500;
+  if(var == kMetPt)       return 1000;
   if(var == kMetMass)     return 10e-6;
   if(var == kMetEta)      return 3.5;
   if(var == kMetPhi)      return 3.5;

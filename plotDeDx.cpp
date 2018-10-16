@@ -317,25 +317,37 @@ int main(int argc, char* argv[])
   // Define event, track and jet cuts
   //---------------------------------------------------------------------------
   
-  unsigned int eventCutOptions =
-    EventCut::kOneTrack
-  | EventCut::kOneJet;
-  
-  EventCut  *initialEventCut = new EventCut((EventCut::ECut)eventCutOptions);
+  EventCut  *initialEventCut = new EventCut();
   TrackCut  *initialTrackCut = new TrackCut();
   JetCut    *initialJetCut   = new JetCut();
   
-//  initialEventCut->SetNtracks(2, 2);
-//  initialTrackCut->SetNdets(4, 4);
+  // obvious event cuts that we are sure we want to apply
+  initialEventCut->SetNtracks(1, 999999);
+  initialEventCut->SetMinNjets(1);
+  initialEventCut->SetMaxNmuons(0);
+  initialEventCut->SetMaxNtau(0);
+  initialEventCut->SetMaxNlepton(0);
+  
+  // obvious track cuts
+  initialTrackCut->SetRequireSameNpixelHitsLayers(true);
+  initialTrackCut->SetNmissingInnerPixel(0, 0);
+  initialTrackCut->SetNmissingMiddleTracker(0, 0);
+  initialTrackCut->SetNpixelHits(0, 999999);
+  
+  // obvious jet cuts
+  initialJetCut->SetMaxEta(2.4);
+  initialJetCut->SetPtRange(80, 999999);
+  
+  
+  initialEventCut->SetMinMetPt(200);
+  //  initialEventCut->SetNtracks(2, 2);
   
   ApplyCuts(eventsSignal, eventsBackground, eventsData,
             initialEventCut, initialTrackCut, initialJetCut, nullptr);
   
-  
-  
   DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
-  DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
-    
+//  DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
+  
   PrintSignalToBackground(eventsSignal, eventsBackground, eventsData);
   
   vector<Events*> currentEventsSignal, currentEventsBackground, currentEventsData;

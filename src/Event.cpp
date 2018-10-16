@@ -214,10 +214,10 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
       else{
         cout<<"WARNING -- number of generator-level charginos different than 1 or 2"<<endl;
       }
-      weight *= 10000.0; // scale up to make it visible
+      weight *= 100.0; // scale up to make it visible
     }
     else if(dataType==kData){
-      weight = 686.5;
+      weight = 1;
     }
     
     newEvent->SetWeight(weight);
