@@ -46,6 +46,7 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
   TTreeReaderValue<int>   _nJet30a(reader, "nJet30a");
   TTreeReaderValue<int>   _nLepton(reader, "nLepGood");
   TTreeReaderValue<int>   _nTau(reader, "nTauGood");
+  TTreeReaderValue<int>   _nGenChargino(reader, "nGenChargino");
   
   TTreeReaderValue<float> _xSec  (reader,(dataType==kBackground || dataType==kSignal) ? "xsec" : "rho");
   TTreeReaderValue<float> _sumWgt(reader,(dataType==kBackground || dataType==kSignal) ? "wgtsum" : "rho");
@@ -180,12 +181,19 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
       weight *= (*_xSec);
     }
     if(dataType==kSignal){
-      weight *= 0.001 * signalCrossSectionOneTrack[iSig]; // cross section for given signal (stored in fb, here transformed to pb to match background units
-      weight *= 3.55*0.022*6.26*0.13*10000.0; // scale up to make it visible
+      if(*_nGenChargino == 1){
+        weight *= 0.001 * signalCrossSectionOneTrack[iSig]; // cross section for given signal (stored in fb, here transformed to pb to match background units
+      }
+      else if(*_nGenChargino == 2){
+        weight *= 0.001 * signalCrossSectionTwoTracks[iSig];
+      }
+      else{
+        cout<<"WARNING -- number of generator-level charginos different than 1 or 2"<<endl;
+      }
+      weight *= 10000.0; // scale up to make it visible
     }
     else if(dataType==kData){
-//      weight = 686.5;
-      weight = 3.55*0.022*6.26*90.2;
+      weight = 686.5;
     }
     
     newEvent->SetWeight(weight);

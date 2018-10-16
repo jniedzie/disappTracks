@@ -18,9 +18,9 @@ const bool interactive = false;
 const bool showPlots = true;
 
 // Limit number of events loaded (-1 means load all available)
-const int maxNeventsBackground  = 100000;
-const int maxNeventsSignal      = 100000;
-const int maxNeventsData        = 100000;
+const int maxNeventsBackground  = 10000;
+const int maxNeventsSignal      = 10000;
+const int maxNeventsData        = 10000;
 
 // turn on/off different backgrounds, signals and data samples
 const vector<bool> runBackground = {

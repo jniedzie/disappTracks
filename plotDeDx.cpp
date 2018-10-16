@@ -325,8 +325,8 @@ int main(int argc, char* argv[])
   TrackCut  *initialTrackCut = new TrackCut();
   JetCut    *initialJetCut   = new JetCut();
   
-  initialEventCut->SetNtracks(2, 2);
-  initialTrackCut->SetNdets(4, 4);
+//  initialEventCut->SetNtracks(2, 2);
+//  initialTrackCut->SetNdets(4, 4);
   
   ApplyCuts(eventsSignal, eventsBackground, eventsData,
             initialEventCut, initialTrackCut, initialJetCut, nullptr);
