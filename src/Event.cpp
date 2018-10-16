@@ -32,6 +32,15 @@ Events::~Events()
   
 }
 
+double Events::weightedSize(){
+  double sum=0;
+  for(Event *ev : events){
+    sum += ev->GetWeight();
+  }
+  return sum;
+}
+
+
 void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int maxNevents, ESignal iSig)
 {
   cout<<"Reading events from:"<<fileName<<endl;
@@ -532,13 +541,13 @@ bool Event::IsPassingCut(EventCut *cut)
 
 
   
-  if(cut->RequiresMetJetPhi0p5()){
+  if(cut->GetMinJetMetPhi() > 0.0){
     TLorentzVector metVector, jetVector;
     metVector.SetPtEtaPhiM(metPt, metEta, metPhi, metMass);
 
     for(auto j : jets){
       jetVector.SetPtEtaPhiM(j->GetPt(), j->GetEta(), j->GetPhi(), j->GetMass());
-      if(fabs(metVector.DeltaPhi(jetVector)) < 0.5) return false;
+      if(fabs(metVector.DeltaPhi(jetVector)) < cut->GetMinJetMetPhi()) return false;
     }
   }
 

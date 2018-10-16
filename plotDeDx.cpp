@@ -291,15 +291,18 @@ void PrintSignalToBackground(
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     if(!runBackground[iBck] || !eventsBackground[iBck]) continue;
-    nBackgroundTotal += eventsBackground[iBck]->size();
+    nBackgroundTotal += eventsBackground[iBck]->weightedSize();
     
     if(printHeaders) cout<<backgroundTitle[iBck]<<"\t";
-    cout<<eventsBackground[iBck]->size()<<endl;
+    cout<<eventsBackground[iBck]->weightedSize()<<endl;
   }
   
   // print S/B ratio for each signal type
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]) continue;
+    if(printHeaders) cout<<signalTitle[iSig]<<"\tN events:\t";
+    cout<<eventsSignal[iSig]->size()<<endl;
+    
     if(printHeaders) cout<<signalTitle[iSig]<<"\tS/B:\t";
     cout<<eventsSignal[iSig]->size()/(double)nBackgroundTotal<<endl;
   }
@@ -340,6 +343,7 @@ int main(int argc, char* argv[])
   
   
   initialEventCut->SetMinMetPt(200);
+  initialEventCut->SetMinJetMetPhi(0.5);
   //  initialEventCut->SetNtracks(2, 2);
   
   ApplyCuts(eventsSignal, eventsBackground, eventsData,

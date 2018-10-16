@@ -69,6 +69,7 @@ public:
   inline void SetHighJetMinChHEF(double val){highJetMinChHEF = val;}
   inline void SetHighJetMaxNeHEF(double val){highJetMaxNeHEF = val;}
   inline void SetHighJetMaxEta(double val){highJetMaxEta = val;}
+  inline void SetMinJetMetPhi(double val){minJetMetPhi = val;}
   
   // Getters - give access to options of this event cut
   inline int    GetMinNjets(){return minNjets;}
@@ -94,7 +95,7 @@ public:
   inline double GetHighJetMinChHEF(){return highJetMinChHEF;}
   inline double GetHighJetMaxNeHEF(){return highJetMaxNeHEF;}
   inline double GetHighJetMaxEta(){return highJetMaxEta;}
-  
+  inline double GetMinJetMetPhi(){return minJetMetPhi;}
   
 private:
   int minNjets;           ///< min number of jets
@@ -120,6 +121,8 @@ private:
   double highJetMinChHEF; ///< min charged hadron energy fraction of the highest pt jet
   double highJetMaxNeHEF; ///< max neutral hadron energy fraction of the highest pt jet
   double highJetMaxEta;   ///< max |eta| of the highest pt jet
+  
+  double minJetMetPhi;    ///< min angle between jet and MET
 };
 
 #endif /* EventCut_hpp */

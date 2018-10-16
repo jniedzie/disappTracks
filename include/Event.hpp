@@ -83,6 +83,8 @@ public:
   /// Returns number of events in this collection
   inline int size(){return (int)events.size();}
   
+  double weightedSize();
+  
   /// Returns the event with given index
   Event* At(int index){return events[index];}
 

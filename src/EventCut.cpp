@@ -33,7 +33,8 @@ minMetNoMuPt(0.0),
 highJetMinPt(0.0),
 highJetMinChHEF(0.0),
 highJetMaxNeHEF(999999.9),
-highJetMaxEta(999999.9)
+highJetMaxEta(999999.9),
+minJetMetPhi(0)
 {
   if(cutType&kEmpty)            return;
   if(cutType&kOneTrack)         minNtracks = 1;
@@ -45,7 +46,7 @@ highJetMaxEta(999999.9)
   if(cutType&kTwoMuon)          minNmuons = maxNmuons = 2;
   if(cutType&kMetNoMuTrigger)   metNoMuTrigger = true;
   if(cutType&kMuonsFromZ)       muonsFromZ = true;
-  if(cutType&kMetJetPhi0p5)     metJetPhi = true;
+  if(cutType&kMetJetPhi0p5)     minJetMetPhi = 0.5;
   if(cutType&kMetNoMuJetPhi0p5) metNoMuJetPhi = true;
   if(cutType&kMuJetR0p4)        muJetR0p4 = true;
   if(cutType&kMuTrackR0p4)      muTrackR0p4 = true;
