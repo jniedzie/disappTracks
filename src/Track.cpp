@@ -79,6 +79,27 @@ void Track::Print()
 
 bool Track::IsPassingCut(TrackCut *cut)
 {
+  // check number of hits in pixel, stip and tracker in general
+  if(cut->GetRequireSameNpixelHitsLayers()){
+    if(GetNpixelHits() != GetNpixelLayers()) return false;
+  }
+  
+  if(cut->GetRequireSameNtrackerHitsLayers()){
+    if(GetNtrackerHits() != GetNtrackerLayers()) return false;
+  }
+  
+  if(   GetNpixelHits() < cut->GetMinNpixelHits()
+     || GetNpixelHits() > cut->GetMaxNpixelHits()) return false;
+  
+  if(   GetNmissingInnerPixelHits() < cut->GetMinNmissingInnerPixel()
+     || GetNmissingInnerPixelHits() > cut->GetMaxNmissingInnerPixel()) return false;
+  
+  if(   GetNmissingMiddleTrackerHits() < cut->GetMinNmissingMiddleTracker()
+     || GetNmissingMiddleTrackerHits() > cut->GetMaxNmissingMiddleTracker()) return false;
+  
+  if(   GetNmissingOuterTrackerHits() < cut->GetMinNmissingOuterTracker()
+     || GetNmissingOuterTrackerHits() > cut->GetMaxNmissingOuterTracker()) return false;
+  
   // check number of dedx clusters
   if(GetNclusters() < cut->GetMinDedxClusters() || GetNclusters() > cut->GetMaxDedxClusters()){
     return false;

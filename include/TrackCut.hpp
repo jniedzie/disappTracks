@@ -23,6 +23,7 @@ public:
   TrackCut(ECut cutType=kEmpty);
   ~TrackCut();
   
+  // Getters
   inline int GetMinDedxClusters(){return minDedxClusters;}
   inline int GetMaxDedxClusters(){return maxDedxClusters;}
   inline int GetMinDets(){return minDets;}
@@ -35,6 +36,22 @@ public:
   inline double GetMaxHadCalo(){return maxHadCalo;}
   inline double GetMaxEta(){return maxEta;}
   
+  inline bool GetRequireSameNpixelHitsLayers(){return sameNpixelHitsLayers;}
+  inline bool GetRequireSameNtrackerHitsLayers(){return sameNtrackerHitsLayers;}
+  
+  inline int GetMinNpixelHits(){return minNpixelHits;}
+  inline int GetMaxNpixelHits(){return maxNpixelHits;}
+  
+  inline int GetMinNmissingInnerPixel(){return minMissingInnerPixel;}
+  inline int GetMaxNmissingInnerPixel(){return maxMissingInnerPixel;}
+  
+  inline int GetMinNmissingMiddleTracker(){return minMissingMiddleTracker;}
+  inline int GetMaxNmissingMiddleTracker(){return maxMissingMiddleTracker;}
+  
+  inline int GetMinNmissingOuterTracker(){return minMissingOuterTracker;}
+  inline int GetMaxNmissingOuterTracker(){return maxMissingOuterTracker;}
+  
+  // Setters
   inline void SetNdedxClusters(int min, int max){minDedxClusters=min;maxDedxClusters=max;}
   inline void SetNdets(int min, int max){minDets=min;maxDets=max;}
   inline void SetMinDedxPerCluster(double min){minDedxPerCluster=min;}
@@ -43,6 +60,19 @@ public:
   inline void SetMaxEmCalo(double max){maxEmCalo = max;}
   inline void SetMaxHadCalo(double max){maxHadCalo = max;}
   inline void SetMaxEta(double max){maxEta = max;}
+  
+  inline void SetRequireSameNpixelHitsLayers(bool val){sameNpixelHitsLayers=val;}
+  inline void SetRequireSameNtrackerHitsLayers(bool val){sameNtrackerHitsLayers=val;}
+  
+  inline void SetNpixelHits(int min, int max){minNpixelHits=min;maxNpixelHits=max;}
+  inline void SetNmissingInnerPixel(int min, int max){minMissingInnerPixel=min;maxMissingInnerPixel=max;}
+  inline void SetNmissingMiddleTracker(int min, int max){
+    minMissingMiddleTracker=min;maxMissingMiddleTracker=max;
+  }
+  inline void SetNmissingOuterTracker(int min, int max){
+    minMissingOuterTracker=min;maxMissingOuterTracker=max;
+  }
+  
   
 private:
   int minDedxClusters;      ///< min number of dedx clusters along the track
@@ -56,6 +86,19 @@ private:
   double maxEmCalo;         ///< max energy deposit in EM calorimeter
   double maxHadCalo;        ///< max energy deposit in hadronic calorimeter
   double maxEta;            ///< maximum pseudorapidity
+  
+  bool sameNpixelHitsLayers;    ///< require the same number of hits and layers in the pixel
+  bool sameNtrackerHitsLayers;  ///< require the same number of hits and layers in the tracker
+  
+  int minNpixelHits;            ///< min number of pixel hits
+  int maxNpixelHits;            ///< max number of pixel hits
+  
+  int minMissingInnerPixel;     ///< min number of missing inner pixel hits
+  int maxMissingInnerPixel;     ///< max number of missing inner pixel hits
+  int minMissingMiddleTracker;  ///< min number of missing middle tracker hits
+  int maxMissingMiddleTracker;  ///< max number of missing middle tracker hits
+  int minMissingOuterTracker;   ///< min number of missing outer tracker hits
+  int maxMissingOuterTracker;   ///< max number of missing outer tracker hits
 };
 
 #endif /* TrackCut_hpp */

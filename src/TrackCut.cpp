@@ -21,7 +21,17 @@ maxTotalDeDx(999999),
 minPt(0.0),
 maxEmCalo(999999),
 maxHadCalo(999999),
-maxEta(999999)
+maxEta(999999),
+sameNpixelHitsLayers(false),
+sameNtrackerHitsLayers(false),
+minNpixelHits(0),
+maxNpixelHits(999999),
+minMissingInnerPixel(0),
+maxMissingInnerPixel(999999),
+minMissingMiddleTracker(0),
+maxMissingMiddleTracker(999999),
+minMissingOuterTracker(0),
+maxMissingOuterTracker(999999)
 {
   if(cutType&kEmpty) return;
   if(cutType&kPt50GeV)  minPt = 50.0;
