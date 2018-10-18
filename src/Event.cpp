@@ -68,6 +68,15 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
   TTreeReaderValue<float> _metEta(reader, "met_eta");
   
   TTreeReaderValue<int>   _metNoMuTrigger(reader, "HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight");
+  TTreeReaderValue<int>   _flag_goodVertices(reader, "Flag_goodVertices");
+  TTreeReaderValue<int>   _flag_badPFmuon(reader, "Flag_BadPFMuonFilter");
+  TTreeReaderValue<int>   _flag_HBHEnoise(reader, "Flag_HBHENoiseFilter");
+  TTreeReaderValue<int>   _flag_HBHEnoiseIso(reader, "Flag_HBHENoiseIsoFilter");
+  TTreeReaderValue<int>   _flag_EcalDeadCell(reader, "Flag_EcalDeadCellTriggerPrimitiveFilter");
+  TTreeReaderValue<int>   _flag_eeBadSc(reader, "Flag_eeBadScFilter");
+  TTreeReaderValue<int>   _flag_badChargedCandidate(reader, "Flag_BadChargedCandidateFilter");
+  TTreeReaderValue<int>   _flag_ecalBadCalib(reader, "Flag_ecalBadCalibFilter");
+  TTreeReaderValue<int>   _flag_globalTightHalo2016(reader, "Flag_globalTightHalo2016Filter");
   
   TTreeReaderValue<float> _metNoMuPt(reader, "metNoMu_pt");
   TTreeReaderValue<float> _metNoMuMass(reader, "metNoMu_mass");
@@ -214,16 +223,22 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
       weight *= (*_xSec);
     }
     if(dataType==kSignal){
-      if(*_nGenChargino == 1){
-        weight *= 0.001 * signalCrossSectionOneTrack[iSig]; // cross section for given signal (stored in fb, here transformed to pb to match background units
-      }
-      else if(*_nGenChargino == 2){
-        weight *= 0.001 * signalCrossSectionTwoTracks[iSig];
-      }
-      else{
-        cout<<"WARNING -- number of generator-level charginos different than 1 or 2"<<endl;
-      }
-      weight *= 100.0; // scale up to make it visible
+      // it's not clear how to calculate weights for the signal...
+      
+      // cross section for given signal (stored in fb, here transformed to pb to match background units
+      weight *= 0.001 * (signalCrossSectionOneTrack[iSig] + signalCrossSectionTwoTracks[iSig]);
+      
+      
+//      if(*_nGenChargino == 1){
+//        weight *= 0.001 * signalCrossSectionOneTrack[iSig]; // cross section for given signal (stored in fb, here transformed to pb to match background units
+//      }
+//      else if(*_nGenChargino == 2){
+//        weight *= 0.001 * signalCrossSectionTwoTracks[iSig];
+//      }
+//      else{
+//        cout<<"WARNING -- number of generator-level charginos different than 1 or 2"<<endl;
+//      }
+      weight *= 100; // scale up to make it visible
     }
     else if(dataType==kData){
       weight = 1;
@@ -248,6 +263,16 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
     newEvent->SetMetNoMuMass(*_metNoMuMass);
     newEvent->SetMetNoMuEta(*_metNoMuEta);
     newEvent->SetMetNoMuPhi(*_metNoMuPhi);
+    
+    newEvent->SetGoodVerticesFlag(*_flag_goodVertices);
+    newEvent->SetBadPFmuonFlag(*_flag_badPFmuon);
+    newEvent->SetHBHEnoiseFlag(*_flag_HBHEnoise);
+    newEvent->SetHBHEnoiseIsoFlag(*_flag_HBHEnoiseIso);
+    newEvent->SetEcalDeadCellFlag(*_flag_EcalDeadCell);
+    newEvent->SetEeBadScFlag(*_flag_eeBadSc);
+    newEvent->SetBadChargedCandidateFlag(*_flag_badChargedCandidate);
+    newEvent->SetEcalBadCalibFlag(*_flag_ecalBadCalib);
+    newEvent->SetGlobalTightHalo2016Flag(*_flag_globalTightHalo2016);
     
     events.push_back(newEvent);
   }
@@ -349,6 +374,16 @@ Event* Event::CopyThisEventProperties()
   outputEvent->SetMetNoMuEta(metNoMuEta);
   outputEvent->SetHasNoMuTrigger(metNoMuTrigger);
   
+  outputEvent->SetGoodVerticesFlag(flag_goodVertices);
+  outputEvent->SetBadPFmuonFlag(flag_badPFmuon);
+  outputEvent->SetHBHEnoiseFlag(flag_HBHEnoise);
+  outputEvent->SetHBHEnoiseIsoFlag(flag_HBHEnoiseIso);
+  outputEvent->SetEcalDeadCellFlag(flag_EcalDeadCell);
+  outputEvent->SetEeBadScFlag(flag_eeBadSc);
+  outputEvent->SetBadChargedCandidateFlag(flag_badChargedCandidate);
+  outputEvent->SetEcalBadCalibFlag(flag_ecalBadCalib);
+  outputEvent->SetGlobalTightHalo2016Flag(flag_globalTightHalo2016);
+  
   return outputEvent;
 }
 
@@ -406,7 +441,18 @@ Event* Event::ApplyLeptonCut(LeptonCut *cut)
 bool Event::IsPassingCut(EventCut *cut)
 {
   // check the trigger
-  if(cut->RequiresMetNoMuTrigger() && !metNoMuTrigger)  return false;
+  if(cut->RequiresMetNoMuTrigger() && !metNoMuTrigger){
+    return false;
+  }
+  // check filters
+  if(cut->GetRequiresPassingAllFilters()){
+    if(   !flag_goodVertices  || !flag_goodVertices         || !flag_badPFmuon
+       || !flag_HBHEnoise     || !flag_HBHEnoiseIso         || !flag_EcalDeadCell
+       || !flag_eeBadSc       || flag_badChargedCandidate   || !flag_ecalBadCalib
+       || !flag_globalTightHalo2016){
+      return false;
+    }
+  }
   
   // check number of objects
   if(nLepton < cut->GetMinNleptons() || nLepton > cut->GetMaxNleptons())  return false;

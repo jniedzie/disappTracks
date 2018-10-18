@@ -34,7 +34,8 @@ highJetMinPt(0.0),
 highJetMinChHEF(0.0),
 highJetMaxNeHEF(999999.9),
 highJetMaxEta(999999.9),
-minJetMetPhi(0)
+minJetMetPhi(0),
+requirePassAllFilters(false)
 {
   if(cutType&kEmpty)            return;
   if(cutType&kOneTrack)         minNtracks = 1;

@@ -115,11 +115,11 @@ const vector<vector<string>> inFileNameBackground = {
   },
   // DY + jets
   {
-    "../SR_MC/DYJetsM50_HT100to200/tree.root",
+//    "../SR_MC/DYJetsM50_HT100to200/tree.root",
     "../SR_MC/DYJetsM50_HT100to200e/tree.root",
-    "../SR_MC/DYJetsM50_HT200to400/tree.root",
+//    "../SR_MC/DYJetsM50_HT200to400/tree.root",
     "../SR_MC/DYJetsM50_HT200to400e/tree.root",
-    "../SR_MC/DYJetsM50_HT400to600/tree.root",
+//    "../SR_MC/DYJetsM50_HT400to600/tree.root",
     "../SR_MC/DYJetsM50_HT400to600e/tree.root",
     "../SR_MC/DYJetsM50_HT600to800/tree.root",
     "../SR_MC/DYJetsM50_HT800to1200/tree.root",
@@ -274,6 +274,9 @@ enum EVar{
   kTrackCharge,
   kTrackMass,
   kTrackPid,
+  kTrackMissingOuterTrackerHits,
+  kTrackPixelHits,
+  kTrackTrackerHits,
   
   // per jet variables
   kJetPt,

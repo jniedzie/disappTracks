@@ -70,6 +70,7 @@ public:
   inline void SetHighJetMaxNeHEF(double val){highJetMaxNeHEF = val;}
   inline void SetHighJetMaxEta(double val){highJetMaxEta = val;}
   inline void SetMinJetMetPhi(double val){minJetMetPhi = val;}
+  inline void SetRequirePassingAllFilters(bool val){requirePassAllFilters = val;}
   
   // Getters - give access to options of this event cut
   inline int    GetMinNjets(){return minNjets;}
@@ -96,6 +97,7 @@ public:
   inline double GetHighJetMaxNeHEF(){return highJetMaxNeHEF;}
   inline double GetHighJetMaxEta(){return highJetMaxEta;}
   inline double GetMinJetMetPhi(){return minJetMetPhi;}
+  inline bool   GetRequiresPassingAllFilters(){return requirePassAllFilters;}
   
 private:
   int minNjets;           ///< min number of jets
@@ -123,6 +125,7 @@ private:
   double highJetMaxEta;   ///< max |eta| of the highest pt jet
   
   double minJetMetPhi;    ///< min angle between jet and MET
+  bool requirePassAllFilters; ///< should event pass all filters
 };
 
 #endif /* EventCut_hpp */

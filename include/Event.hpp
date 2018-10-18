@@ -133,6 +133,16 @@ public:
   inline void SetMetNoMuEta(double val){metNoMuEta = val;}
   inline void SetHasNoMuTrigger(bool val){metNoMuTrigger = val;}
   
+  inline void SetGoodVerticesFlag(bool val){flag_goodVertices = val;}
+  inline void SetBadPFmuonFlag(bool val){flag_badPFmuon = val;}
+  inline void SetHBHEnoiseFlag(bool val){flag_HBHEnoise = val;}
+  inline void SetHBHEnoiseIsoFlag(bool val){flag_HBHEnoiseIso = val;}
+  inline void SetEcalDeadCellFlag(bool val){flag_EcalDeadCell = val;}
+  inline void SetEeBadScFlag(bool val){flag_eeBadSc = val;}
+  inline void SetBadChargedCandidateFlag(bool val){flag_badChargedCandidate = val;}
+  inline void SetEcalBadCalibFlag(bool val){flag_ecalBadCalib = val;}
+  inline void SetGlobalTightHalo2016Flag(bool val){flag_globalTightHalo2016 = val;}
+  
   // getters
   inline double GetWeight(){return weight;}
   
@@ -162,6 +172,16 @@ public:
   inline double GetMetNoMuPhi(){return metNoMuPhi;}
   inline double GetMetNoMuEta(){return metNoMuEta;}
   inline bool HetMetNoMuTrigger(){return metNoMuTrigger;}
+  
+  inline bool GetGoodVerticesFlag(){return flag_goodVertices;}
+  inline bool GetBadPFmuonFlag(){return flag_badPFmuon;}
+  inline bool GetHBHEnoiseFlag(){return flag_HBHEnoise;}
+  inline bool GetHBHEnoiseIsoFlag(){return flag_HBHEnoiseIso;}
+  inline bool GetEcalDeadCellFlag(){return flag_EcalDeadCell;}
+  inline bool GetEeBadScFlag(){return flag_eeBadSc;}
+  inline bool GetBadChargedCandidateFlag(){return flag_badChargedCandidate;}
+  inline bool GetEcalBadCalibFlag(){return flag_ecalBadCalib;}
+  inline bool GetGlobalTightHalo2016Flag(){return flag_globalTightHalo2016;}
   
   inline Track*  GetTrack(int i){return tracks[i];}
   inline Jet*    GetJet(int i){return jets[i];}
@@ -209,6 +229,17 @@ private:
   double  metNoMuEta;     ///< MET pseudorapidity (calculated without muons)
   double  metNoMuPhi;     ///< MET polar angle (calculated without muons)
   double  metNoMuMass;    ///< MET mass (calculated without muons)
+  
+  // flags for different filters (true means that event passes the filter)
+  bool flag_goodVertices;
+  bool flag_badPFmuon;
+  bool flag_HBHEnoise;
+  bool flag_HBHEnoiseIso;
+  bool flag_EcalDeadCell;
+  bool flag_eeBadSc;
+  bool flag_badChargedCandidate; // an exception, this is zero when event passes filter
+  bool flag_ecalBadCalib;
+  bool flag_globalTightHalo2016;
 };
 
 #endif /* Event_hpp */
