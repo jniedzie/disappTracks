@@ -277,11 +277,15 @@ enum EVar{
   kTrackMissingOuterTrackerHits,
   kTrackPixelHits,
   kTrackTrackerHits,
+  kTrackRelativeIsolation,
+  kTrackMetDphi,
+  kTrackDedxPerHit,
   
   // per jet variables
   kJetPt,
   kJetEta,
   kJetPhi,
+  kJetTrackDr,
   
   // per track per layer variables
   kDedx,  ///< dE/dx per layer

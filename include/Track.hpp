@@ -32,6 +32,7 @@ public:
   void SetMass(double _mass){mass = _mass;}
   void SetPt(double _pt){pt = _pt;}
   void SetPid(int _pid){pid = _pid;}
+  void SetRelativeIsolation(double val){relIso03 = val;}
   
   void SetNtrackerLayers(int n){nTrackerLayers = n;}
   void SetNpixelLayers(int n){nPixelLayers = n;}
@@ -64,6 +65,7 @@ public:
   double  GetMass(){return mass;}
   double  GetPt(){return pt;}
   int     GetPid(){return pid;}
+  double  GetRelativeIsolation(){return relIso03;}
 
   int     GetNclusters();
   int     GetNdetIDs();
@@ -102,6 +104,7 @@ private:
   double mass;
   double pt;
   int pid;
+  double relIso03;  ////< Relative track isolation in cone dR=0.3
   
   int nTrackerLayers;           // Number of tracker layers
   int nPixelLayers;             // Number of pixel layers

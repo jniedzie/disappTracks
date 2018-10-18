@@ -85,7 +85,9 @@ void DrawStandardPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBac
   HistSet *missingOuterTracker  = new HistSet(kTrackMissingOuterTrackerHits);
   HistSet *pixelHits            = new HistSet(kTrackPixelHits);
   HistSet *trackerHits          = new HistSet(kTrackTrackerHits);
-  
+  HistSet *isolation            = new HistSet(kTrackRelativeIsolation);
+  HistSet *trackMetDphi         = new HistSet(kTrackMetDphi);
+  HistSet *dedx                 = new HistSet(kTrackDedxPerHit);
   
   HistSet *dxy    = new HistSet(kTrackDxy);
   HistSet *dz     = new HistSet(kTrackDz);
@@ -96,6 +98,7 @@ void DrawStandardPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBac
   HistSet *jet_pt   = new HistSet(kJetPt);
   HistSet *jet_eta  = new HistSet(kJetEta);
   HistSet *jet_phi  = new HistSet(kJetPhi);
+  HistSet *jetTrackDr  = new HistSet(kJetTrackDr);
   
   nVertices->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   nIsoTrack->FillFromEvents(eventsSignal, eventsBackground, eventsData);
@@ -122,6 +125,9 @@ void DrawStandardPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBac
   missingOuterTracker->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   pixelHits->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   trackerHits->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  isolation->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  trackMetDphi->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  dedx->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   
   dxy->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   dz->FillFromEvents(eventsSignal, eventsBackground, eventsData);
@@ -132,6 +138,7 @@ void DrawStandardPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBac
   jet_pt->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   jet_eta->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   jet_phi->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  jetTrackDr->FillFromEvents(eventsSignal, eventsBackground, eventsData);
   
   
   // Plot histograms
@@ -145,141 +152,27 @@ void DrawStandardPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBac
   nMetPt->Draw(canvasEvents,5);
   nMetJetDphi->Draw(canvasEvents,6);
   
-  //  nJet30->Draw(canvasEvents,4);
-  //  nJet30a->Draw(canvasEvents,5);
-  //  nMetSumEt->Draw(canvasEvents,5);
-  //  nMetMass->Draw(canvasEvents,8);
-  //  nMetEta->Draw(canvasEvents,9);
-  //  nMetPhi->Draw(canvasEvents,10);
-  
   TCanvas *canvasTrack = new TCanvas((prefix+"Tracks").c_str(),(prefix+"Tracks").c_str(),2880,1800);
-  canvasTrack->Divide(3,2);
+  canvasTrack->Divide(4,3);
   
-//  nClustersPerTrack->Draw(canvasTrack,1);
-//  totalDeDx->Draw(canvasTrack,2);
-//  totalDeDxByNclusters->Draw(canvasTrack,3);
   pt->Draw(canvasTrack,1);
   caloEm->Draw(canvasTrack,2);
   caloHad->Draw(canvasTrack,3);
   missingOuterTracker->Draw(canvasTrack,4);
   pixelHits->Draw(canvasTrack,5);
   trackerHits->Draw(canvasTrack,6);
+  isolation->Draw(canvasTrack,7);
+  trackMetDphi->Draw(canvasTrack,8);
+  eta->Draw(canvasTrack,9);
+  dedx->Draw(canvasTrack,10);
   
-  //  eta->Draw(canvasTrack,5);
-  //  phi->Draw(canvasTrack,6);
-  //  charge->Draw(canvasTrack,3);
-  //  mass->Draw(canvasTrack,4);
-  //  pid->Draw(canvasTrack,5);
-  //  dxy->Draw(canvasTrack,1);
-  //  dz->Draw(canvasTrack,2);
+  TCanvas *canvasJets = new TCanvas("Jets","Jets",2880,1800);
+  canvasJets->Divide(2,2);
   
-  //  TCanvas *canvasJets = new TCanvas("Jets","Jets",2880,1800);
-  //  canvasJets->Divide(2,2);
-  
-  //  jet_eta->Draw(canvasJets, 2);
-  //  jet_phi->Draw(canvasJets, 3);
+  jetTrackDr->Draw(canvasJets, 1);
+  jet_eta->Draw(canvasJets, 2);
+  jet_phi->Draw(canvasJets, 3);
 }
-
-void MakeComparison(vector<Events*> &eventsSignal1, vector<Events*> &eventsBackground1, vector<Events*> &eventsData1,
-                    vector<Events*> &eventsSignal2, vector<Events*> &eventsBackground2, vector<Events*> &eventsData2)
-{
-  // Create standard per event, per track and per jet plots
-  
-  HistSet *nVertices1    = new HistSet(kNvertices);
-  HistSet *nIsoTrack1    = new HistSet(kNisoTracks);
-  HistSet *nJet1         = new HistSet(kNjets);
-  HistSet *nMetSumEt1    = new HistSet(kMetSumEt);
-  HistSet *nMetPt1       = new HistSet(kMetPt);
-  HistSet *nMetJetDphi1  = new HistSet(kMetJetDphi);
-  HistSet *nClustersPerTrack1  = new HistSet(kTrackNclusters);
-  HistSet *totalDeDx1          = new HistSet(kTrackTotalDedx);
-  HistSet *totalDeDxByNclusters1 = new HistSet(kTrackDedxPerCluster);
-  HistSet *pt1                   = new HistSet(kTrackPt);
-  HistSet *caloEm1               = new HistSet(kTrackCaloEm);
-  HistSet *caloHad1              = new HistSet(kTrackCaloHad);
-  HistSet *jet_pt1   = new HistSet(kJetPt);
-  
-  HistSet *nVertices2    = new HistSet(kNvertices);
-  HistSet *nIsoTrack2    = new HistSet(kNisoTracks);
-  HistSet *nJet2         = new HistSet(kNjets);
-  HistSet *nMetSumEt2    = new HistSet(kMetSumEt);
-  HistSet *nMetPt2       = new HistSet(kMetPt);
-  HistSet *nMetJetDphi2  = new HistSet(kMetJetDphi);
-  HistSet *nClustersPerTrack2  = new HistSet(kTrackNclusters);
-  HistSet *totalDeDx2          = new HistSet(kTrackTotalDedx);
-  HistSet *totalDeDxByNclusters2 = new HistSet(kTrackDedxPerCluster);
-  HistSet *pt2                   = new HistSet(kTrackPt);
-  HistSet *caloEm2               = new HistSet(kTrackCaloEm);
-  HistSet *caloHad2              = new HistSet(kTrackCaloHad);
-  HistSet *jet_pt2   = new HistSet(kJetPt);
-  
-  nIsoTrack1->FillFromEvents(eventsSignal1, eventsBackground1, eventsData1);
-  nJet1->FillFromEvents(eventsSignal1, eventsBackground1, eventsData1);
-  nMetSumEt1->FillFromEvents(eventsSignal1, eventsBackground1, eventsData1);
-  nMetPt1->FillFromEvents(eventsSignal1, eventsBackground1, eventsData1);
-  nMetJetDphi1->FillFromEvents(eventsSignal1, eventsBackground1, eventsData1);
-  nClustersPerTrack1->FillFromEvents(eventsSignal1, eventsBackground1, eventsData1);
-  pt1->FillFromEvents(eventsSignal1, eventsBackground1, eventsData1);
-  caloEm1->FillFromEvents(eventsSignal1, eventsBackground1, eventsData1);
-  caloHad1->FillFromEvents(eventsSignal1, eventsBackground1, eventsData1);
-  
-  nIsoTrack2->FillFromEvents(eventsSignal2, eventsBackground2, eventsData2);
-  nJet2->FillFromEvents(eventsSignal2, eventsBackground2, eventsData2);
-  nMetSumEt2->FillFromEvents(eventsSignal2, eventsBackground2, eventsData2);
-  nMetPt2->FillFromEvents(eventsSignal2, eventsBackground2, eventsData2);
-  nMetJetDphi2->FillFromEvents(eventsSignal2, eventsBackground2, eventsData2);
-  nClustersPerTrack2->FillFromEvents(eventsSignal2, eventsBackground2, eventsData2);
-  pt2->FillFromEvents(eventsSignal2, eventsBackground2, eventsData2);
-  caloEm2->FillFromEvents(eventsSignal2, eventsBackground2, eventsData2);
-  caloHad2->FillFromEvents(eventsSignal2, eventsBackground2, eventsData2);
-  
-  // Plot histograms
-  TCanvas *canvasEvents = new TCanvas("Events comp.","Events comp",2880,1800);
-  canvasEvents->Divide(4,4);
-  
-  nVertices1->Draw(canvasEvents,1);
-  nVertices2->Draw(canvasEvents,2);
-  
-  nIsoTrack1->Draw(canvasEvents,3);
-  nIsoTrack2->Draw(canvasEvents,4);
-  
-  nJet1->Draw(canvasEvents,5);
-  nJet2->Draw(canvasEvents,6);
-  
-  jet_pt1->Draw(canvasEvents, 7);
-  jet_pt2->Draw(canvasEvents, 8);
-  
-  nMetSumEt1->Draw(canvasEvents,9);
-  nMetSumEt2->Draw(canvasEvents,10);
-  
-  nMetPt1->Draw(canvasEvents,11);
-  nMetPt2->Draw(canvasEvents,12);
-  
-  nMetJetDphi1->Draw(canvasEvents,13);
-  nMetJetDphi2->Draw(canvasEvents,14);
-  
-  TCanvas *canvasTrack = new TCanvas("Tracks comp.","Tracks comp.",2880,1800);
-  canvasTrack->Divide(4,3);
-  
-  nClustersPerTrack1->Draw(canvasTrack,1);
-  nClustersPerTrack2->Draw(canvasTrack,2);
-  
-  totalDeDx1->Draw(canvasTrack,3);
-  totalDeDx2->Draw(canvasTrack,4);
-  
-  totalDeDxByNclusters1->Draw(canvasTrack,5);
-  totalDeDxByNclusters2->Draw(canvasTrack,6);
-  
-  pt1->Draw(canvasTrack,7);
-  pt2->Draw(canvasTrack,8);
-  
-  caloEm1->Draw(canvasTrack,9);
-  caloEm2->Draw(canvasTrack,10);
-  
-  caloHad1->Draw(canvasTrack,11);
-  caloHad2->Draw(canvasTrack,12);
-}
-
 
 void DrawPerLayerPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData)
 {
@@ -296,10 +189,8 @@ void DrawPerLayerPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBac
   //  sizeYperLayer->DrawPerLayer();
 }
 
-void PrintSignalToBackground(
-                  vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData)
+void PrintYields(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData)
 {
-  // sum up events from all background types
   int nBackgroundTotal=0;
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
@@ -309,13 +200,15 @@ void PrintSignalToBackground(
     if(printHeaders) cout<<backgroundTitle[iBck]<<"\t";
     cout<<eventsBackground[iBck]->weightedSize()<<endl;
   }
-  
-  // print S/B ratio for each signal type
+
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]) continue;
     if(printHeaders) cout<<signalTitle[iSig]<<"\tN events:\t";
     cout<<eventsSignal[iSig]->weightedSize()<<endl;
+  }
     
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    if(!runSignal[iSig]) continue;
     if(printHeaders) cout<<signalTitle[iSig]<<"\tS/B:\t";
     cout<<eventsSignal[iSig]->weightedSize()/(double)nBackgroundTotal<<endl;
   }
@@ -329,56 +222,110 @@ int main(int argc, char* argv[])
   vector<Events*> eventsSignal, eventsBackground, eventsData;
   LoadEventsFromFiles(eventsSignal, eventsBackground, eventsData);
   
+  cout<<"\n\nInitial yields"<<endl;
+  PrintYields(eventsSignal, eventsBackground, eventsData);
+  
   //---------------------------------------------------------------------------
-  // Define event, track and jet cuts
+  // Level 0
   //---------------------------------------------------------------------------
   
-  EventCut  *initialEventCut = new EventCut();
-  TrackCut  *initialTrackCut = new TrackCut();
-  JetCut    *initialJetCut   = new JetCut();
+  EventCut  *eventCut_L0 = new EventCut();
+  TrackCut  *trackCut_L0 = new TrackCut();
+  JetCut    *jetCut_L0   = new JetCut();
   
-  // obvious event cuts that we are sure we want to apply
-  initialEventCut->SetNtracks(1, 999999);
-  initialEventCut->SetMinNjets(1);
-  initialEventCut->SetMaxNmuons(0);
-  initialEventCut->SetMaxNtau(0);
-  initialEventCut->SetMaxNlepton(0);
-  initialEventCut->SetHighJetMinPt(100);
-  initialEventCut->SetHighJetMaxEta(2.4);
-  initialEventCut->SetMinMetNoMuPt(200);
-  initialEventCut->SetRequireMetNoMuTrigger(true);
-  initialEventCut->SetRequirePassingAllFilters(true);
-  initialEventCut->SetHighJetMaxNeHEF(0.8);
-  initialEventCut->SetHighJetMinChHEF(0.1);
+  eventCut_L0->SetNtracks(1, 999999);
+  eventCut_L0->SetMinNjets(1);
+  eventCut_L0->SetMaxNmuons(0);
+  eventCut_L0->SetMaxNtau(0);
+  eventCut_L0->SetMaxNlepton(0);
+  eventCut_L0->SetMinMetNoMuPt(200);
+  eventCut_L0->SetRequireMetNoMuTrigger(true);
+  eventCut_L0->SetRequirePassingAllFilters(true);
+  eventCut_L0->SetHighJetMinPt(100);
+  eventCut_L0->SetHighJetMaxEta(2.4);
+  eventCut_L0->SetHighJetMaxNeHEF(0.8);
+  eventCut_L0->SetHighJetMinChHEF(0.1);
   
-  // obvious track cuts
-//  initialTrackCut->SetRequireSameNpixelHitsLayers(true);
-  initialTrackCut->SetNmissingInnerPixel(0, 0);
-  initialTrackCut->SetNmissingMiddleTracker(0, 0);
-  initialTrackCut->SetNpixelHits(2, 999999);
+  //  trackCut_L0->SetRequireSameNpixelHitsLayers(true);
+  trackCut_L0->SetNmissingInnerPixel(0, 0);
+  trackCut_L0->SetNmissingMiddleTracker(0, 0);
+  trackCut_L0->SetNpixelLayers(2, 999999);
+  trackCut_L0->SetMaxEta(2.1);
   
-  // obvious jet cuts
-//  initialJetCut->SetMaxEta(2.4);
-//  initialJetCut->SetPtRange(80, 999999);
-//  initialJetCut->SetMaxNeutralHadronEnergyFraction(0.8);
-//  initialJetCut->SetMinChargedHadronEnergyFraction(0.1);
+  jetCut_L0->SetPtRange(30, 999999);
   
-  // additional cuts:
-//  initialEventCut->SetMinMetPt(230);
-//  initialEventCut->SetMinJetMetPhi(0.5);
-//  initialTrackCut->SetMaxEmCalo(0.5);
-//  initialTrackCut->SetMaxHadCalo(0.5);
-//  initialTrackCut->SetNmissingOuterTracker(1, 999999);
+  ApplyCuts(eventsSignal, eventsBackground, eventsData,eventCut_L0, trackCut_L0, jetCut_L0, nullptr);
+  cout<<"\n\nYields after level 0 cuts"<<endl;
+  PrintYields(eventsSignal, eventsBackground, eventsData);
   
-  //  initialEventCut->SetNtracks(2, 2);
+  if(plotAfterLevel == 0){
+    DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
+    //  DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
+  }
   
-  ApplyCuts(eventsSignal, eventsBackground, eventsData,
-            initialEventCut, initialTrackCut, initialJetCut, nullptr);
+  //---------------------------------------------------------------------------
+  // Level 1
+  //---------------------------------------------------------------------------
   
-  DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
-//  DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
+  EventCut  *eventCut_L1 = eventCut_L0;
+  TrackCut  *trackCut_L1 = trackCut_L0;
+  JetCut    *jetCut_L1   = jetCut_L0;
   
-  PrintSignalToBackground(eventsSignal, eventsBackground, eventsData);
+  eventCut_L1->SetNtracks(1, 999999);
+  eventCut_L1->SetMinNjets(1);
+  eventCut_L1->SetHighJetMinPt(100);
+  eventCut_L1->SetHighJetMaxEta(2.4);
+  eventCut_L1->SetHighJetMaxNeHEF(0.8);
+  eventCut_L1->SetHighJetMinChHEF(0.1);
+  
+  trackCut_L1->SetMaxRelativeIsolation(0.15);
+  
+  jetCut_L1->SetMinTrackDeltaR(0.2);
+  
+  ApplyCuts(eventsSignal, eventsBackground, eventsData,eventCut_L1, trackCut_L1, jetCut_L1, nullptr);
+  cout<<"\n\nYields after level 1 cuts"<<endl;
+  PrintYields(eventsSignal, eventsBackground, eventsData);
+  
+  if(plotAfterLevel == 1){
+    DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
+    //  DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
+  }
+  
+  //---------------------------------------------------------------------------
+  // Level 2
+  //---------------------------------------------------------------------------
+  
+  EventCut  *eventCut_L2 = eventCut_L1;
+  TrackCut  *trackCut_L2 = trackCut_L1;
+  JetCut    *jetCut_L2   = jetCut_L1;
+  
+  eventCut_L2->SetMinMetPt(230);
+  eventCut_L2->SetMinJetMetPhi(0.5);
+
+  trackCut_L2->SetMaxEmCalo(0.5);
+  trackCut_L2->SetMaxHadCalo(0.5);
+  trackCut_L2->SetNmissingOuterTracker(1, 999999);
+  
+  ApplyCuts(eventsSignal, eventsBackground, eventsData,eventCut_L2, trackCut_L2, jetCut_L2, nullptr);
+  cout<<"\n\nYields after level 2 cuts"<<endl;
+  PrintYields(eventsSignal, eventsBackground, eventsData);
+  
+  if(plotAfterLevel == 2){
+    DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
+    //  DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
+  }
+  
+  //---------------------------------------------------------------------------
+  // Sub-categories
+  //---------------------------------------------------------------------------
+  
+  // here select sub-categories of events (with 1 or two tracks, with 3 or 4 layers etc.)
+  //  eventCut_L0->SetNtracks(2, 2);
+  
+  if(plotAfterLevel == 3){
+    DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
+    //  DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
+  }
   
   vector<Events*> currentEventsSignal, currentEventsBackground, currentEventsData;
   
@@ -428,18 +375,12 @@ int main(int argc, char* argv[])
       ApplyCuts(currentEventsSignal, currentEventsBackground,currentEventsData,
                 currentEventCut, currentTrackCut, currentJetCut, nullptr);
       
-      PrintSignalToBackground(currentEventsSignal, currentEventsBackground, currentEventsData);
+      PrintYields(currentEventsSignal, currentEventsBackground, currentEventsData);
     }
   }
   
-  if(showPlots){
-    if(interactive){
-      MakeComparison(eventsSignal, eventsBackground, eventsData,
-                     currentEventsSignal, currentEventsBackground, currentEventsData);
-    }
-    theApp->Run();
-  }
-    
+  if(showPlots) theApp->Run();
+  
   return 0;
 }
 

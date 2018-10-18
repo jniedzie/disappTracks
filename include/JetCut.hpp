@@ -29,12 +29,14 @@ public:
   inline double GetMaxEtaFwd(){return maxEtaFwd;}
   inline double GetMinChargedHadronEnergyFraction(){return minChargedHadronEnergyFraction;}
   inline double GetMaxNeutralHadronEnergyFraction(){return maxNeutralHadronEnergyFraction;}
+  inline double GetMinTrackDeltaR(){return minTrackDeltaR;}
   
   inline void SetPtRange(double min, double max){minPt=min;maxPt=max;}
   inline void SetMaxEta(double max){maxEta = max;}
   inline void SetMaxEtaFwd(double max){maxEtaFwd = max;}
   inline void SetMinChargedHadronEnergyFraction(double min){minChargedHadronEnergyFraction = min;}
   inline void SetMaxNeutralHadronEnergyFraction(double max){maxNeutralHadronEnergyFraction = max;}
+  inline void SetMinTrackDeltaR(double min){minTrackDeltaR = min;}
   
 private:
   double minPt;   ///< min pT of the jet
@@ -42,7 +44,8 @@ private:
   double maxEta;  ///< max pseudorapidity
   double minChargedHadronEnergyFraction; ///< min charged hadron energy fraction
   double maxNeutralHadronEnergyFraction; ///< max neutral hadron energy fraction
-  double maxEtaFwd; ///< max pseudorapidity for forward jets
+  double maxEtaFwd;       ///< max pseudorapidity for forward jets
+  double minTrackDeltaR;  ///< min allowed separation with any of the tracks
   
 };
 

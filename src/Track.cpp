@@ -19,6 +19,7 @@ charge(99999),
 mass(99999),
 pt(99999),
 pid(99999),
+relIso03(99999),
 nTrackerLayers(99999),
 nPixelLayers(99999),
 nTrackerHits(99999),
@@ -81,24 +82,27 @@ bool Track::IsPassingCut(TrackCut *cut)
 {
   // check number of hits in pixel, stip and tracker in general
   if(cut->GetRequireSameNpixelHitsLayers()){
-    if(GetNpixelHits() != GetNpixelLayers()) return false;
+    if(nPixelHits != nPixelLayers) return false;
   }
   
   if(cut->GetRequireSameNtrackerHitsLayers()){
-    if(GetNtrackerHits() != GetNtrackerLayers()) return false;
+    if(nTrackerHits != nTrackerLayers) return false;
   }
   
-  if(   GetNpixelHits() < cut->GetMinNpixelHits()
-     || GetNpixelHits() > cut->GetMaxNpixelHits()) return false;
+  if(   nPixelHits < cut->GetMinNpixelHits()
+     || nPixelHits > cut->GetMaxNpixelHits()) return false;
   
-  if(   GetNmissingInnerPixelHits() < cut->GetMinNmissingInnerPixel()
-     || GetNmissingInnerPixelHits() > cut->GetMaxNmissingInnerPixel()) return false;
+  if(   nPixelLayers < cut->GetMinNpixelLayers()
+     || nPixelLayers > cut->GetMaxNpixelLayers()) return false;
   
-  if(   GetNmissingMiddleTrackerHits() < cut->GetMinNmissingMiddleTracker()
-     || GetNmissingMiddleTrackerHits() > cut->GetMaxNmissingMiddleTracker()) return false;
+  if(   nMissingInnerPixelHits < cut->GetMinNmissingInnerPixel()
+     || nMissingInnerPixelHits > cut->GetMaxNmissingInnerPixel()) return false;
   
-  if(   GetNmissingOuterTrackerHits() < cut->GetMinNmissingOuterTracker()
-     || GetNmissingOuterTrackerHits() > cut->GetMaxNmissingOuterTracker()) return false;
+  if(   nMissingMiddleTrackerHits < cut->GetMinNmissingMiddleTracker()
+     || nMissingMiddleTrackerHits > cut->GetMaxNmissingMiddleTracker()) return false;
+  
+  if(   nMissingOuterTrackerHits < cut->GetMinNmissingOuterTracker()
+     || nMissingOuterTrackerHits > cut->GetMaxNmissingOuterTracker()) return false;
   
   // check number of dedx clusters
   if(GetNclusters() < cut->GetMinDedxClusters() || GetNclusters() > cut->GetMaxDedxClusters()){
@@ -127,6 +131,9 @@ bool Track::IsPassingCut(TrackCut *cut)
   
   // check eta
   if(fabs(eta) > cut->GetMaxEta()) return false;
+  
+  // check isolation
+  if(relIso03 > cut->GetMaxRelativeIsolation()) return false;
   
   return true;
 }

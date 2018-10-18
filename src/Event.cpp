@@ -95,6 +95,7 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
   TTreeReaderArray<float> _trackMass(reader, "IsoTrack_mass");
   TTreeReaderArray<float> _trackPt(reader, "IsoTrack_pt");
   TTreeReaderArray<int>   _trackPid(reader, "IsoTrack_pdgId");
+  TTreeReaderArray<float> _trackRelIso03(reader, "IsoTrack_relIso03");
   
   TTreeReaderArray<int>   _trackTrackerLayers(reader, "IsoTrack_trackerLayers");
   TTreeReaderArray<int>   _trackPixelLayers(reader, "IsoTrack_pixelLayers");
@@ -159,6 +160,7 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
       track->SetMass(_trackMass[iTrack]);
       track->SetPt(_trackPt[iTrack]);
       track->SetPid(_trackPid[iTrack]);
+      track->SetRelativeIsolation(_trackRelIso03[iTrack]);
       
       track->SetNtrackerLayers(_trackTrackerLayers[iTrack]);
       track->SetNpixelLayers(_trackPixelLayers[iTrack]);
@@ -226,7 +228,7 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
       // it's not clear how to calculate weights for the signal...
       
       // cross section for given signal (stored in fb, here transformed to pb to match background units
-      weight *= 0.001 * (signalCrossSectionOneTrack[iSig] + signalCrossSectionTwoTracks[iSig]);
+//      weight *= 0.001 * (signalCrossSectionOneTrack[iSig] + signalCrossSectionTwoTracks[iSig]);
       
       
 //      if(*_nGenChargino == 1){
@@ -238,7 +240,7 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
 //      else{
 //        cout<<"WARNING -- number of generator-level charginos different than 1 or 2"<<endl;
 //      }
-      weight *= 100; // scale up to make it visible
+      weight *= 10000; // scale up to make it visible
     }
     else if(dataType==kData){
       weight = 1;
@@ -394,8 +396,6 @@ Event* Event::ApplyTrackCut(TrackCut *cut)
   for(auto j : jets){outputEvent->AddJet(j);}
   for(auto l : leptons){outputEvent->AddLepton(l);}
   
-  vector<Track*> tracksPassingCut;
-  
   for(auto track : tracks){
     if(track->IsPassingCut(cut)){
       outputEvent->AddTrack(track);
@@ -410,12 +410,22 @@ Event* Event::ApplyJetCut(JetCut *cut)
   
   for(auto t : tracks){outputEvent->AddTrack(t);}
   for(auto l : leptons){outputEvent->AddLepton(l);}
-
-  vector<Track*> jetPassingCuts;
   
   for(auto jet : jets){
     if(jet->IsPassingCut(cut)){
-      outputEvent->AddJet(jet);
+      
+      // check separation with all tracks in the event
+      bool overlapsWithTrack = false;
+      for(auto track : tracks){
+        double deltaR = sqrt(pow(track->GetPhi() - jet->GetPhi(),2)+pow(track->GetEta() - jet->GetEta(),2));
+        
+        if(deltaR < cut->GetMinTrackDeltaR()){
+          overlapsWithTrack = true;
+          break;
+        }
+      }
+      
+      if(!overlapsWithTrack)  outputEvent->AddJet(jet);
     }
   }
   return outputEvent;
@@ -427,8 +437,6 @@ Event* Event::ApplyLeptonCut(LeptonCut *cut)
   
   for(auto t : tracks){outputEvent->AddTrack(t);}
   for(auto j : jets){outputEvent->AddJet(j);}
-  
-  vector<Track*> leptonsPassingCuts;
   
   for(auto lepton : leptons){
     if(lepton->IsPassingCut(cut)){

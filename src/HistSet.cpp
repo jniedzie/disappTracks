@@ -180,6 +180,13 @@ void HistSet::Fill(TH1D* hist, Events *events, int iDetId)
         else if(var == kJetEta)  value = jet->GetEta();
         else if(var == kJetPhi)  value = jet->GetPhi();
         else if(var == kMetJetDphi) value = event->GetMetPhi() - jet->GetPhi();
+        else if(var == kJetTrackDr){
+          for(int iTrack=0;iTrack<events->At(iEvent)->GetNtracks();iTrack++){
+            Track *track = events->At(iEvent)->GetTrack(iTrack);
+            value = sqrt(pow(track->GetPhi() - jet->GetPhi(),2)+pow(track->GetEta() - jet->GetEta(),2));
+            hist->Fill(value,event->GetWeight());
+          }
+        }
         
         if(var == kJetPt || var == kJetEta || var == kJetPhi || var == kMetJetDphi){
           hist->Fill(value,event->GetWeight());
@@ -206,6 +213,8 @@ void HistSet::Fill(TH1D* hist, Events *events, int iDetId)
         else if(var == kTrackMissingOuterTrackerHits) value = track->GetNmissingOuterTrackerHits();
         else if(var == kTrackPixelHits)               value = track->GetNpixelHits();
         else if(var == kTrackTrackerHits)             value = track->GetNtrackerHits();
+        else if(var == kTrackRelativeIsolation)       value = track->GetRelativeIsolation();
+        else if(var == kTrackMetDphi)                 value = event->GetMetPhi() - track->GetPhi();
         
         else if(var == kDedx || var == kSizeX || var == kSizeY){
           for(int i=0;i<nLayers;i++){
@@ -219,11 +228,17 @@ void HistSet::Fill(TH1D* hist, Events *events, int iDetId)
             }
           }
         }
+        else if(var == kTrackDedxPerHit){
+          for(int i=0;i<nLayers;i++){
+            value = track->GetDeDxInLayer(i);
+            if(value > 0.00001) hist->Fill(value, event->GetWeight());
+          }
+        }
         
         if(var == kTrackNclusters || var == kTrackTotalDedx || var == kTrackDedxPerCluster || var == kTrackPt
              || var == kTrackEta || var == kTrackPhi || var == kTrackCaloEm || var == kTrackCaloHad
              || var == kTrackDxy ||var == kTrackDz   || var == kTrackCharge || var == kTrackMass || var == kTrackPid
-           || var == kTrackMissingOuterTrackerHits || var == kTrackPixelHits || var == kTrackTrackerHits){
+           || var == kTrackMissingOuterTrackerHits || var == kTrackPixelHits || var == kTrackTrackerHits || var == kTrackRelativeIsolation || var == kTrackMetDphi){
           hist->Fill(value, event->GetWeight());
         }
       }
@@ -297,7 +312,7 @@ void HistSet::Draw(TCanvas *c1, int pad)
   signalStack->Draw("nostack,same,p");
   dataStack->Draw("nostack,same,p");
   
-  leg->Draw();
+  if(showLegends) leg->Draw();
   c1->Update();
 }
 
@@ -372,7 +387,7 @@ void HistSet::DrawPerLayer()
     signalStack->Draw("nostack,same,p");
     dataStack->Draw("nostack,same,p");
     
-    leg->Draw();
+    if(showLegends) leg->Draw();
   }
   
   c1->Update();
@@ -406,9 +421,9 @@ const char* HistSet::GetTitle()
   if(var == kTrackNclusters) return "N detIDs per track";
   if(var == kTrackTotalDedx) return "total dedx per track";
   if(var == kTrackDedxPerCluster) return "total dedx per track / n clusters";
-  if(var == kTrackPt) return "pt dist";
-  if(var == kTrackEta) return "eta dist";
-  if(var == kTrackPhi) return "phi dist";
+  if(var == kTrackPt) return "Track p_{T} (GeV)";
+  if(var == kTrackEta) return "Track #eta";
+  if(var == kTrackPhi) return "Track #phi";
   if(var == kTrackCaloEm) return "EM calo energy";
   if(var == kTrackCaloHad) return "Hadron calo energy";
   if(var == kTrackDxy) return "Displacement in XY";
@@ -419,10 +434,14 @@ const char* HistSet::GetTitle()
   if(var == kTrackMissingOuterTrackerHits) return "Missing outer tracker hits";
   if(var == kTrackPixelHits) return "N pixel hits";
   if(var == kTrackTrackerHits) return "N tracker hits";
+  if(var == kTrackRelativeIsolation) return "Relative isolation in dR=0.3";
+  if(var == kTrackMetDphi) return "#Delta #phi (p_{T}^{track},p_{T}^{MET})";
+  if(var == kTrackDedxPerHit) return "dE/dx per hit";
   
-  if(var == kJetPt) return "Jet pt";
-  if(var == kJetEta) return "Jet eta";
-  if(var == kJetPhi) return "Jet phi";
+  if(var == kJetPt)       return "Jet pt";
+  if(var == kJetEta)      return "Jet eta";
+  if(var == kJetPhi)      return "Jet phi";
+  if(var == kJetTrackDr)  return "#Delta R(jet, track)";
   
   if(var == kDedx) return "dedx";
   if(var == kSizeX) return "sizeX";
@@ -461,10 +480,14 @@ int HistSet::GetNbins()
   if(var == kTrackMissingOuterTrackerHits) return 20;
   if(var == kTrackPixelHits)      return 20;
   if(var == kTrackTrackerHits)    return 40;
+  if(var == kTrackRelativeIsolation)    return 500;
+  if(var == kTrackMetDphi)        return 25;
+  if(var == kTrackDedxPerHit)     return 50;
   
   if(var == kJetPt)   return 50;
   if(var == kJetEta)  return 50;
   if(var == kJetPhi)  return 50;
+  if(var == kJetTrackDr)  return 100;
   
   if(var == kDedx)    return 50;
   if(var == kSizeX)   return 10;
@@ -503,10 +526,14 @@ double HistSet::GetMin()
   if(var == kTrackMissingOuterTrackerHits) return 0;
   if(var == kTrackPixelHits)      return 0;
   if(var == kTrackTrackerHits)    return 0;
+  if(var == kTrackRelativeIsolation)    return 0;
+  if(var == kTrackMetDphi)        return -3.5;
+  if(var == kTrackDedxPerHit)     return 0;
   
   if(var == kJetPt)   return 0.0;
   if(var == kJetEta)  return -3.0;
   if(var == kJetPhi)  return -3.5;
+  if(var == kJetTrackDr)  return 0;
   
   if(var == kDedx)    return 0.0;
   if(var == kSizeX)   return 0.0;
@@ -517,8 +544,8 @@ double HistSet::GetMin()
 double HistSet::GetMax()
 {
   if(var == kNvertices)   return 100;
-  if(var == kNisoTracks)  return 20;
-  if(var == kNjets)       return 20;
+  if(var == kNisoTracks)  return 10;
+  if(var == kNjets)       return 15;
   if(var == kNjets30)     return 20;
   if(var == kNjets30a)    return 20;
   if(var == kMetSumEt)    return 5000;
@@ -542,12 +569,16 @@ double HistSet::GetMax()
   if(var == kTrackMass)           return 0.25;
   if(var == kTrackPid)            return 220;
   if(var == kTrackMissingOuterTrackerHits) return 20;
-  if(var == kTrackPixelHits)      return 20;
+  if(var == kTrackPixelHits)      return 15;
   if(var == kTrackTrackerHits)    return 40;
+  if(var == kTrackRelativeIsolation)    return 10;
+  if(var == kTrackMetDphi)        return 3.5;
+  if(var == kTrackDedxPerHit)     return 14;
   
   if(var == kJetPt)   return 1000.0;
   if(var == kJetEta)  return 3.0;
   if(var == kJetPhi)  return 3.5;
+  if(var == kJetTrackDr)  return 10;
   
   if(var == kDedx)    return 13.0;
   if(var == kSizeX)   return 13.0;
