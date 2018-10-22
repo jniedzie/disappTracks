@@ -6,14 +6,14 @@
 
 #include <TApplication.h>
 
-void LoadEventsFromFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData)
+void LoadEventsFromFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData, string prefix="")
 {
   for(int iData=0;iData<kNdata;iData++){
     if(!runData[iData]){
       eventsData.push_back(nullptr);
     }
     else{
-      eventsData.push_back(new Events((inFileNameData[iData]+"tree.root"), Events::kData, maxNeventsData));
+      eventsData.push_back(new Events((inFileNameData[iData]+prefix+"tree.root"), Events::kData, maxNeventsData));
     }
   }
   
@@ -22,7 +22,7 @@ void LoadEventsFromFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsB
       eventsSignal.push_back(nullptr);
     }
     else{
-      eventsSignal.push_back(new Events((inFileNameSignal[iSig]+"tree.root"), Events::kSignal, maxNeventsSignal,(ESignal)iSig));
+      eventsSignal.push_back(new Events((inFileNameSignal[iSig]+prefix+"tree.root"), Events::kSignal, maxNeventsSignal,(ESignal)iSig));
     }
   }
   
@@ -34,10 +34,34 @@ void LoadEventsFromFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsB
       eventsBackground.push_back(new Events());
       
       for(string path : inFileNameBackground[iBck]){
-        eventsBackground[iBck]->AddEventsFromFile((path+"tree.root"),
+        eventsBackground[iBck]->AddEventsFromFile((path+prefix+"tree.root"),
                                                   Events::kBackground, maxNeventsBackground);
       }
     }
+  }
+}
+
+void SaveEventsToFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData, string prefix="after_L/")
+{
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    if(!runSignal[iSig]) continue;
+    system(("mkdir -p "+inFileNameSignal[iSig]+prefix).c_str());
+    eventsSignal[iSig]->SaveToTree((inFileNameSignal[iSig]+prefix+"tree.root").c_str());
+  }
+  
+  for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    if(!runBackground[iBck]) continue;
+    
+    for(string path : inFileNameBackground[iBck]){
+      system(("mkdir -p "+path+prefix).c_str());
+      eventsBackground[iBck]->SaveToTree((path+prefix+"tree.root").c_str());
+    }
+  }
+  
+  for(int iData=0;iData<kNdata;iData++){
+    if(!runData[iData]) continue;
+    system(("mkdir -p "+inFileNameData[iData]+prefix).c_str());
+    eventsData[iData]->SaveToTree((inFileNameData[iData]+prefix+"tree.root").c_str());
   }
 }
 
@@ -185,7 +209,13 @@ int main(int argc, char* argv[])
   
   // All events with initial cuts only
   vector<Events*> eventsSignal, eventsBackground, eventsData;
-  LoadEventsFromFiles(eventsSignal, eventsBackground, eventsData);
+  
+  string initPrefix;
+  if(performCutsLevel==0) initPrefix = "";
+  if(performCutsLevel==1) initPrefix = "after_L0/";
+  if(performCutsLevel==2) initPrefix = "after_L1/";
+  
+  LoadEventsFromFiles(eventsSignal, eventsBackground, eventsData, initPrefix);
   
   cout<<"\n\nInitial yields"<<endl;
   PrintYields(eventsSignal, eventsBackground, eventsData);
@@ -193,76 +223,70 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   // Level 0
   //---------------------------------------------------------------------------
-  
-  EventCut  *eventCut_L0 = new EventCut();
-  TrackCut  *trackCut_L0 = new TrackCut();
-  JetCut    *jetCut_L0   = new JetCut();
-  
-  eventCut_L0->SetNtracks(1, 999999);
-  eventCut_L0->SetMinNjets(1);
-  eventCut_L0->SetMaxNmuons(0);
-  eventCut_L0->SetMaxNtau(0);
-  eventCut_L0->SetMaxNlepton(0);
-  eventCut_L0->SetMinMetNoMuPt(200);
-  eventCut_L0->SetRequireMetNoMuTrigger(true);
-  eventCut_L0->SetRequirePassingAllFilters(true);
-  eventCut_L0->SetHighJetMinPt(100);
-  eventCut_L0->SetHighJetMaxEta(2.4);
-  eventCut_L0->SetHighJetMaxNeHEF(0.8);
-  eventCut_L0->SetHighJetMinChHEF(0.1);
-  
-//  trackCut_L0->SetRequireSameNpixelHitsLayers(true);
-  trackCut_L0->SetNmissingInnerPixel(0, 0);
-  trackCut_L0->SetNmissingMiddleTracker(0, 0);
-  trackCut_L0->SetNpixelLayers(2, 999999);
-  trackCut_L0->SetMaxEta(2.1);
-  
-  jetCut_L0->SetPtRange(30, 999999);
-  
-  ApplyCuts(eventsSignal, eventsBackground, eventsData,eventCut_L0, trackCut_L0, jetCut_L0, nullptr);
-  cout<<"\n\nYields after level 0 cuts"<<endl;
-  PrintYields(eventsSignal, eventsBackground, eventsData);
-  
-  for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig]) continue;
-    system(("mkdir -p "+inFileNameSignal[iSig]+"after_L0").c_str());
-    eventsSignal[iSig]->SaveToTree((inFileNameSignal[iSig]+"after_L0/tree.root").c_str());
-  }
-  
-  if(plotAfterLevel == 0){
+
+  if(performCutsLevel == 0){
+    EventCut  *eventCut_L0 = new EventCut();
+    TrackCut  *trackCut_L0 = new TrackCut();
+    JetCut    *jetCut_L0   = new JetCut();
+    
+    eventCut_L0->SetNtracks(1, 999999);
+    eventCut_L0->SetMinNjets(1);
+    eventCut_L0->SetMaxNmuons(0);
+    eventCut_L0->SetMaxNtau(0);
+    eventCut_L0->SetMaxNlepton(0);
+    eventCut_L0->SetMinMetNoMuPt(200);
+    eventCut_L0->SetRequireMetNoMuTrigger(true);
+    eventCut_L0->SetRequirePassingAllFilters(true);
+    eventCut_L0->SetHighJetMinPt(100);
+    eventCut_L0->SetHighJetMaxEta(2.4);
+    eventCut_L0->SetHighJetMaxNeHEF(0.8);
+    eventCut_L0->SetHighJetMinChHEF(0.1);
+    
+    //  trackCut_L0->SetRequireSameNpixelHitsLayers(true);
+    trackCut_L0->SetNmissingInnerPixel(0, 0);
+    trackCut_L0->SetNmissingMiddleTracker(0, 0);
+    trackCut_L0->SetNpixelLayers(2, 999999);
+    trackCut_L0->SetMaxEta(2.1);
+    
+    jetCut_L0->SetPtRange(30, 999999);
+    
+    ApplyCuts(eventsSignal, eventsBackground, eventsData,eventCut_L0, trackCut_L0, jetCut_L0, nullptr);
+    cout<<"\n\nYields after level 0 cuts"<<endl;
+    PrintYields(eventsSignal, eventsBackground, eventsData);
+    
+    SaveEventsToFiles(eventsSignal, eventsBackground, eventsData, "after_L0/");
     DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
     //  DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
-    
   }
   
   //---------------------------------------------------------------------------
   // Level 1
   //---------------------------------------------------------------------------
   
-  EventCut  *eventCut_L1 = eventCut_L0;
-  TrackCut  *trackCut_L1 = trackCut_L0;
-  JetCut    *jetCut_L1   = jetCut_L0;
-  
-  eventCut_L1->SetNtracks(1, 999999);
-  eventCut_L1->SetMinNjets(1);
-  eventCut_L1->SetHighJetMinPt(100);
-  eventCut_L1->SetHighJetMaxEta(2.4);
-  eventCut_L1->SetHighJetMaxNeHEF(0.8);
-  eventCut_L1->SetHighJetMinChHEF(0.1);
-  
-  trackCut_L1->SetMaxRelativeIsolation(0.15);
-  
-  jetCut_L1->SetMinTrackDeltaR(0.4);
-  
-  ApplyCuts(eventsSignal, eventsBackground, eventsData,eventCut_L1, trackCut_L1, jetCut_L1, nullptr);
-  cout<<"\n\nYields after level 1 cuts"<<endl;
-  PrintYields(eventsSignal, eventsBackground, eventsData);
-  
-  if(plotAfterLevel == 1){
+  if(performCutsLevel == 1){
+    EventCut  *eventCut_L1 = new EventCut();
+    TrackCut  *trackCut_L1 = new TrackCut();
+    JetCut    *jetCut_L1   = new JetCut();
+    
+    eventCut_L1->SetNtracks(1, 999999);
+    eventCut_L1->SetMinNjets(1);
+    eventCut_L1->SetHighJetMinPt(100);
+    eventCut_L1->SetHighJetMaxEta(2.4);
+    eventCut_L1->SetHighJetMaxNeHEF(0.8);
+    eventCut_L1->SetHighJetMinChHEF(0.1);
+    
+    trackCut_L1->SetMaxRelativeIsolation(0.15);
+    
+    jetCut_L1->SetMinTrackDeltaR(0.4);
+    
+    ApplyCuts(eventsSignal, eventsBackground, eventsData,eventCut_L1, trackCut_L1, jetCut_L1, nullptr);
+    cout<<"\n\nYields after level 1 cuts"<<endl;
+    PrintYields(eventsSignal, eventsBackground, eventsData);
+    SaveEventsToFiles(eventsSignal, eventsBackground, eventsData, "after_L1/");
     DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
     //  DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
   }
-  
+    
   //---------------------------------------------------------------------------
   // Level 2
   //---------------------------------------------------------------------------
@@ -286,7 +310,7 @@ int main(int argc, char* argv[])
     DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
     //  DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
   }
-  /*
+  
   //---------------------------------------------------------------------------
   // Sub-categories
   //---------------------------------------------------------------------------
@@ -351,7 +375,7 @@ int main(int argc, char* argv[])
     }
   }
 */
-  if(showPlots) theApp->Run();
+  theApp->Run();
   
   return 0;
 }

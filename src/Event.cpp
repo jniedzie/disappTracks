@@ -288,25 +288,26 @@ void Events::SaveToTree(string fileName)
   outFile.cd();
   TTree *tree = new TTree("tree","tree");
   
-  int nTracks = 100;
-  int nJets = 100;
-  int nLeptons = 100;
-  int nJetsFwd = 0;
+  const int nTracks = 100;
+  const int nJets = 100;
+  const int nLeptons = 100;
+  const int nJetsFwd = 0;
   
   int nIsoTracks, nVert, nJet, nJetFwd, nJet30, nJet30a, nLepGood, nTauGood, nGenChargino;
-  double xsec, wgtsum, genWeight, met_sumEt, met_pt, met_mass, met_phi, met_eta;
+  float xsec, wgtsum, genWeight, met_sumEt, met_pt, met_mass, met_phi, met_eta;
   bool metNoMuTrigger, flag_goodVertices, flag_badPFmuon, flag_HBHEnoise, flag_HBHEnoiseIso, flag_EcalDeadCell, flag_eeBadSc, flag_badChargedCandidate, flag_ecalBadCalib, flag_globalTightHalo2016;
-  double metNoMu_pt, metNoMu_mass, metNoMu_phi, metNoMu_eta;
+  float metNoMu_pt, metNoMu_mass, metNoMu_phi, metNoMu_eta;
   
-  double IsoTrack_eta[nTracks], IsoTrack_phi[nTracks], IsoTrack_caloEmEnergy[nTracks], IsoTrack_caloHadEnergy[nTracks], IsoTrack_edxy[nTracks], IsoTrack_dxy[nTracks], IsoTrack_edz[nTracks], IsoTrack_dz[nTracks], IsoTrack_mass[nTracks], IsoTrack_pt[nTracks], IsoTrack_relIso03[nTracks];
+  float IsoTrack_eta[nTracks], IsoTrack_phi[nTracks], IsoTrack_caloEmEnergy[nTracks], IsoTrack_caloHadEnergy[nTracks], IsoTrack_edxy[nTracks], IsoTrack_dxy[nTracks], IsoTrack_edz[nTracks], IsoTrack_dz[nTracks], IsoTrack_mass[nTracks], IsoTrack_pt[nTracks], IsoTrack_relIso03[nTracks];
+  
   int IsoTrack_charge[nTracks], IsoTrack_pdgId[nTracks];
   int IsoTrack_trackerLayers[nTracks], IsoTrack_pixelLayers[nTracks], IsoTrack_trackerHits[nTracks], IsoTrack_pixelHits[nTracks], IsoTrack_missingInnerPixelHits[nTracks], IsoTrack_missingOuterPixelHits[nTracks], IsoTrack_missingInnerStripHits[nTracks], IsoTrack_missingOuterStripHits[nTracks], IsoTrack_missingInnerTrackerHits[nTracks], IsoTrack_missingOuterTrackerHits[nTracks], IsoTrack_missingMiddleTrackerHits[nTracks];
   
-  double LepGood_pt[nLeptons], LepGood_phi[nLeptons], LepGood_eta[nLeptons], LepGood_tightId[nLeptons], LepGood_relIso04[nLeptons], LepGood_pdgId[nLeptons];
-  double Jet_pt[nJets], Jet_eta[nJets], Jet_phi[nJets], Jet_mass[nJets], Jet_chHEF[nJets], Jet_neHEF[nJets];
+  float LepGood_pt[nLeptons], LepGood_phi[nLeptons], LepGood_eta[nLeptons], LepGood_tightId[nLeptons], LepGood_relIso04[nLeptons], LepGood_pdgId[nLeptons];
+  float Jet_pt[nJets], Jet_eta[nJets], Jet_phi[nJets], Jet_mass[nJets], Jet_chHEF[nJets], Jet_neHEF[nJets];
   
   
-  double JetFwd_pt[nJetsFwd], JetFwd_eta[nJetsFwd], JetFwd_phi[nJetsFwd], JetFwd_mass[nJetsFwd], JetFwd_chHEF[nJetsFwd], JetFwd_neHEF[nJetsFwd];
+  float JetFwd_pt[nJetsFwd], JetFwd_eta[nJetsFwd], JetFwd_phi[nJetsFwd], JetFwd_mass[nJetsFwd], JetFwd_chHEF[nJetsFwd], JetFwd_neHEF[nJetsFwd];
   
   tree->Branch("nIsoTrack", &nIsoTracks, "nIsoTrack/I");
   tree->Branch("nVert", &nVert, "nVert/I");
@@ -376,9 +377,9 @@ void Events::SaveToTree(string fileName)
   tree->Branch("LepGood_pt", &LepGood_pt, "LepGood_pt[nLepGood]/F");
   tree->Branch("LepGood_phi", &LepGood_phi, "LepGood_phi[nLepGood]/F");
   tree->Branch("LepGood_eta", &LepGood_eta, "LepGood_eta[nLepGood]/F");
-  tree->Branch("LepGood_tightId", &LepGood_tightId, "LepGood_tightId[nLepGood]/F");
+  tree->Branch("LepGood_tightId", &LepGood_tightId, "LepGood_tightId[nLepGood]/I");
   tree->Branch("LepGood_relIso04", &LepGood_relIso04, "LepGood_relIso04[nLepGood]/F");
-  tree->Branch("LepGood_pdgId", &LepGood_pdgId, "LepGood_pdgId[nLepGood]/F");
+  tree->Branch("LepGood_pdgId", &LepGood_pdgId, "LepGood_pdgId[nLepGood]/I");
   
   tree->Branch("Jet_pt", &Jet_pt, "Jet_pt[nJet]/F");
   tree->Branch("Jet_eta", &Jet_eta, "Jet_eta[nJet]/F");
@@ -394,19 +395,37 @@ void Events::SaveToTree(string fileName)
   tree->Branch("JetFwd_chHEF", &JetFwd_chHEF, "JetFwd_chHEF[nJetFwd]/F");
   tree->Branch("JetFwd_neHEF", &JetFwd_neHEF, "JetFwd_neHEF[nJetFwd]/F");
   
+  double dedx[nLayers];
+  int subDetId[nLayers], sizeX[nLayers], sizeY[nLayers];
+  
+  for(int iLayer=0;iLayer<nLayers;iLayer++){
+    
+    tree->Branch(Form("IsoTrack_dedxByLayer%i",iLayer), &dedx,
+                 Form("IsoTrack_dedxByLayer%i[nIsoTrack]/F",iLayer));
+    
+    tree->Branch(Form("IsoTrack_subDetIdByLayer%i",iLayer), &subDetId,
+                 Form("IsoTrack_subDetIdByLayer%i[nIsoTrack]/I",iLayer));
+    
+    tree->Branch(Form("IsoTrack_sizeXbyLayer%i",iLayer), &sizeX,
+                 Form("IsoTrack_sizeXbyLayer%i[nIsoTrack]/I",iLayer));
+    
+    tree->Branch(Form("IsoTrack_sizeYbyLayer%i",iLayer), &sizeY,
+                 Form("IsoTrack_sizeYbyLayer%i[nIsoTrack]/I",iLayer));
+  }
+  
   for(auto event : events){
     nVert = event->GetNvertices();
-    nIsoTracks = event->GetNtracks();
-    nJet = event->GetNjets();
+    nIsoTracks = (int)event->GetNtracks();
+    nJet = (int)event->GetNjets();
     nJetFwd = 0;
     nJet30 = event->GetNjet30();
     nJet30a = event->GetNjet30a();
     nLepGood = event->GetNlepton();
     nTauGood = event->GetNtau();
-//    nGenChargino;
-//    xsec
-//    wgtsum
-//    genWeight
+    nGenChargino = 1;
+    xsec = 100;
+    wgtsum = 1;
+    genWeight = 1;
     met_sumEt = event->GetMetSumEt();
     met_pt = event->GetMetPt();
     met_mass = event->GetMetMass();
@@ -424,11 +443,7 @@ void Events::SaveToTree(string fileName)
     flag_ecalBadCalib = event->GetEcalBadCalibFlag();
     flag_globalTightHalo2016 = event->GetGlobalTightHalo2016Flag();
     
-    nTracks = event->GetNtracks();
-    nLeptons = event->GetNlepton();
-    nJets = event->GetNjets();
-    
-    for(int iTrack=0;iTrack<nTracks;iTrack++){
+    for(int iTrack=0;iTrack<nIsoTracks;iTrack++){
       IsoTrack_eta[iTrack] = event->GetTrack(iTrack)->GetEta();
       IsoTrack_phi[iTrack] = event->GetTrack(iTrack)->GetPhi();
       IsoTrack_caloEmEnergy[iTrack] = event->GetTrack(iTrack)->GetCaloEmEnergy();
@@ -457,7 +472,7 @@ void Events::SaveToTree(string fileName)
       IsoTrack_missingMiddleTrackerHits[iTrack] = event->GetTrack(iTrack)->GetNmissingMiddleTrackerHits();
     }
     
-    for(int iLep=0;iLep<nLeptons;iLep++){
+    for(int iLep=0;iLep<nLepGood;iLep++){
       LepGood_pt[iLep] = event->GetLepton(iLep)->GetPt();
       
       LepGood_phi[iLep] = event->GetLepton(iLep)->GetPt();
@@ -467,7 +482,7 @@ void Events::SaveToTree(string fileName)
       LepGood_pdgId[iLep] = event->GetLepton(iLep)->GetPid();
     }
     
-    for(int iJet=0;iJet<nJets;iJet++){
+    for(int iJet=0;iJet<nJet;iJet++){
       Jet_pt[iJet] = event->GetJet(iJet)->GetPt();
       Jet_eta[iJet] = event->GetJet(iJet)->GetEta();
       Jet_phi[iJet] = event->GetJet(iJet)->GetPhi();
@@ -479,7 +494,7 @@ void Events::SaveToTree(string fileName)
     tree->Fill();
   }
   tree->Write();
-  outFile.Close();
+//  outFile.Close();
 }
 
 Events* Events::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
