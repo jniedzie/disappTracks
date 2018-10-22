@@ -60,118 +60,82 @@ void ApplyCuts(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground,
 void DrawStandardPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData, string prefix="")
 {
   // Create standard per event, per track and per jet plots
+  map<string, HistSet*> hists;
   
-  HistSet *nVertices    = new HistSet(kNvertices);
-  HistSet *nIsoTrack    = new HistSet(kNisoTracks);
-  HistSet *nJet         = new HistSet(kNjets);
-  HistSet *nJet30       = new HistSet(kNjets30);
-  HistSet *nJet30a      = new HistSet(kNjets30a);
-  HistSet *nMetSumEt    = new HistSet(kMetSumEt);
-  HistSet *nMetPt       = new HistSet(kMetPt);
-  HistSet *nMetMass     = new HistSet(kMetMass);
-  HistSet *nMetEta      = new HistSet(kMetEta);
-  HistSet *nMetPhi      = new HistSet(kMetPhi);
-  HistSet *nMetJetDphi  = new HistSet(kMetJetDphi);
+  hists["nVertices"]  = new HistSet(kNvertices);
+  hists["nIsoTrack"]  = new HistSet(kNisoTracks);
+  hists["nJet"]       = new HistSet(kNjets);
+  hists["nJet30"]     = new HistSet(kNjets30);
+  hists["nJet30a"]    = new HistSet(kNjets30a);
+  hists["nMetSumEt"]  = new HistSet(kMetSumEt);
+  hists["nMetPt"]     = new HistSet(kMetPt);
+  hists["nMetMass"]   = new HistSet(kMetMass);
+  hists["nMetEta"]    = new HistSet(kMetEta);
+  hists["nMetPhi"]    = new HistSet(kMetPhi);
+  hists["nMetJetDphi"]= new HistSet(kMetJetDphi);
   
-  HistSet *nClustersPerTrack  = new HistSet(kTrackNclusters);
-  HistSet *totalDeDx          = new HistSet(kTrackTotalDedx);
+  hists["nClustersPerTrack"]  = new HistSet(kTrackNclusters);
+  hists["totalDeDx"]          = new HistSet(kTrackTotalDedx);
+  hists["totalDeDxByNclusters"] = new HistSet(kTrackDedxPerCluster);
+  hists["missingOuterTracker"]  = new HistSet(kTrackMissingOuterTrackerHits);
   
-  HistSet *totalDeDxByNclusters = new HistSet(kTrackDedxPerCluster);
-  HistSet *pt                   = new HistSet(kTrackPt);
-  HistSet *eta                  = new HistSet(kTrackEta);
-  HistSet *phi                  = new HistSet(kTrackPhi);
-  HistSet *caloEm               = new HistSet(kTrackCaloEm);
-  HistSet *caloHad              = new HistSet(kTrackCaloHad);
-  HistSet *missingOuterTracker  = new HistSet(kTrackMissingOuterTrackerHits);
-  HistSet *pixelHits            = new HistSet(kTrackPixelHits);
-  HistSet *trackerHits          = new HistSet(kTrackTrackerHits);
-  HistSet *isolation            = new HistSet(kTrackRelativeIsolation);
-  HistSet *trackMetDphi         = new HistSet(kTrackMetDphi);
-  HistSet *dedx                 = new HistSet(kTrackDedxPerHit);
+  hists["pt"]           = new HistSet(kTrackPt);
+  hists["eta"]          = new HistSet(kTrackEta);
+  hists["phi"]          = new HistSet(kTrackPhi);
+  hists["caloEm"]       = new HistSet(kTrackCaloEm);
+  hists["caloHad"]      = new HistSet(kTrackCaloHad);
+  hists["pixelHits"]    = new HistSet(kTrackPixelHits);
+  hists["trackerHits"]  = new HistSet(kTrackTrackerHits);
+  hists["isolation"]    = new HistSet(kTrackRelativeIsolation);
+  hists["trackMetDphi"] = new HistSet(kTrackMetDphi);
+  hists["dedx"]         = new HistSet(kTrackDedxPerHit);
   
-  HistSet *dxy    = new HistSet(kTrackDxy);
-  HistSet *dz     = new HistSet(kTrackDz);
-  HistSet *charge = new HistSet(kTrackCharge);
-  HistSet *mass   = new HistSet(kTrackMass);
-  HistSet *pid    = new HistSet(kTrackPid);
+  hists["dxy"]    = new HistSet(kTrackDxy);
+  hists["dz"]     = new HistSet(kTrackDz);
+  hists["charge"] = new HistSet(kTrackCharge);
+  hists["mass"]   = new HistSet(kTrackMass);
+  hists["pid"]    = new HistSet(kTrackPid);
   
-  HistSet *jet_pt   = new HistSet(kJetPt);
-  HistSet *jet_eta  = new HistSet(kJetEta);
-  HistSet *jet_phi  = new HistSet(kJetPhi);
-  HistSet *jetTrackDr  = new HistSet(kJetTrackDr);
+  hists["jet_pt"]     = new HistSet(kJetPt);
+  hists["jet_eta"]    = new HistSet(kJetEta);
+  hists["jet_phi"]    = new HistSet(kJetPhi);
+  hists["jetTrackDr"] = new HistSet(kJetTrackDr);
   
-  nVertices->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  nIsoTrack->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  nJet->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  nJet30->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  nJet30a->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  nMetSumEt->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  nMetPt->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  nMetMass->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  nMetEta->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  nMetPhi->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  nMetJetDphi->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  
-  nClustersPerTrack->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  totalDeDx->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  
-  totalDeDxByNclusters->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  pt->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  eta->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  phi->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  caloEm->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  caloHad->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  caloHad->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  missingOuterTracker->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  pixelHits->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  trackerHits->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  isolation->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  trackMetDphi->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  dedx->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  
-  dxy->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  dz->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  charge->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  mass->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  pid->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  
-  jet_pt->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  jet_eta->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  jet_phi->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  jetTrackDr->FillFromEvents(eventsSignal, eventsBackground, eventsData);
-  
+  for(auto hist : hists){
+    hist.second->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  }
   
   // Plot histograms
   TCanvas *canvasEvents = new TCanvas((prefix+"Events").c_str(),(prefix+"Events").c_str(),2880,1800);
   canvasEvents->Divide(3,2);
   
-  nVertices->Draw(canvasEvents,1);
-  nIsoTrack->Draw(canvasEvents,2);
-  nJet->Draw(canvasEvents,3);
-  jet_pt->Draw(canvasEvents, 4);
-  nMetPt->Draw(canvasEvents,5);
-  nMetJetDphi->Draw(canvasEvents,6);
+  hists["nVertices"]->Draw(canvasEvents,1);
+  hists["nIsoTrack"]->Draw(canvasEvents,2);
+  hists["nJet"]->Draw(canvasEvents,3);
+  hists["jet_pt"]->Draw(canvasEvents, 4);
+  hists["nMetPt"]->Draw(canvasEvents,5);
+  hists["nMetJetDphi"]->Draw(canvasEvents,6);
   
   TCanvas *canvasTrack = new TCanvas((prefix+"Tracks").c_str(),(prefix+"Tracks").c_str(),2880,1800);
   canvasTrack->Divide(4,3);
   
-  pt->Draw(canvasTrack,1);
-  caloEm->Draw(canvasTrack,2);
-  caloHad->Draw(canvasTrack,3);
-  missingOuterTracker->Draw(canvasTrack,4);
-  pixelHits->Draw(canvasTrack,5);
-  trackerHits->Draw(canvasTrack,6);
-  isolation->Draw(canvasTrack,7);
-  trackMetDphi->Draw(canvasTrack,8);
-  eta->Draw(canvasTrack,9);
-  dedx->Draw(canvasTrack,10);
+  hists["pt"]->Draw(canvasTrack,1);
+  hists["caloEm"]->Draw(canvasTrack,2);
+  hists["caloHad"]->Draw(canvasTrack,3);
+  hists["missingOuterTracker"]->Draw(canvasTrack,4);
+  hists["pixelHits"]->Draw(canvasTrack,5);
+  hists["trackerHits"]->Draw(canvasTrack,6);
+  hists["isolation"]->Draw(canvasTrack,7);
+  hists["trackMetDphi"]->Draw(canvasTrack,8);
+  hists["eta"]->Draw(canvasTrack,9);
+  hists["dedx"]->Draw(canvasTrack,10);
   
   TCanvas *canvasJets = new TCanvas("Jets","Jets",2880,1800);
   canvasJets->Divide(2,2);
   
-  jetTrackDr->Draw(canvasJets, 1);
-  jet_eta->Draw(canvasJets, 2);
-  jet_phi->Draw(canvasJets, 3);
+  hists["jetTrackDr"]->Draw(canvasJets, 1);
+  hists["jet_eta"]->Draw(canvasJets, 2);
+  hists["jet_phi"]->Draw(canvasJets, 3);
 }
 
 void DrawPerLayerPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData)
@@ -246,7 +210,7 @@ int main(int argc, char* argv[])
   eventCut_L0->SetHighJetMaxNeHEF(0.8);
   eventCut_L0->SetHighJetMinChHEF(0.1);
   
-  //  trackCut_L0->SetRequireSameNpixelHitsLayers(true);
+//  trackCut_L0->SetRequireSameNpixelHitsLayers(true);
   trackCut_L0->SetNmissingInnerPixel(0, 0);
   trackCut_L0->SetNmissingMiddleTracker(0, 0);
   trackCut_L0->SetNpixelLayers(2, 999999);
@@ -261,6 +225,7 @@ int main(int argc, char* argv[])
   if(plotAfterLevel == 0){
     DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
     //  DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
+    
   }
   
   //---------------------------------------------------------------------------
@@ -280,7 +245,7 @@ int main(int argc, char* argv[])
   
   trackCut_L1->SetMaxRelativeIsolation(0.15);
   
-  jetCut_L1->SetMinTrackDeltaR(0.2);
+  jetCut_L1->SetMinTrackDeltaR(0.4);
   
   ApplyCuts(eventsSignal, eventsBackground, eventsData,eventCut_L1, trackCut_L1, jetCut_L1, nullptr);
   cout<<"\n\nYields after level 1 cuts"<<endl;
@@ -294,7 +259,7 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   // Level 2
   //---------------------------------------------------------------------------
-  
+  /*
   EventCut  *eventCut_L2 = eventCut_L1;
   TrackCut  *trackCut_L2 = trackCut_L1;
   JetCut    *jetCut_L2   = jetCut_L1;
@@ -314,7 +279,7 @@ int main(int argc, char* argv[])
     DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
     //  DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
   }
-  
+  /*
   //---------------------------------------------------------------------------
   // Sub-categories
   //---------------------------------------------------------------------------
@@ -335,7 +300,7 @@ int main(int argc, char* argv[])
 
     EventCut  *currentEventCut  = new EventCut();
     TrackCut  *currentTrackCut  = new TrackCut();
-    JetCut    *currentJetCut    = new JetCut();
+    JetCut    *currentJetCut"]    = new JetCut();
     
     currentEventCut->SetMinNjets(1);
     currentEventCut->SetNtracks(1,999999);
@@ -378,7 +343,7 @@ int main(int argc, char* argv[])
       PrintYields(currentEventsSignal, currentEventsBackground, currentEventsData);
     }
   }
-  
+*/
   if(showPlots) theApp->Run();
   
   return 0;

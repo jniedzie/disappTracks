@@ -273,12 +273,18 @@ void HistSet::Draw(TCanvas *c1, int pad)
     signal[iSig]->SetFillColorAlpha(SignalColor((ESignal)iSig), fillOpacity);
     if(ShouldNormalize()) signal[iSig]->Scale(1/signal[iSig]->Integral());
   }
+  double bckIntegral = 0;
+  for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    if(!runBackground[iBck]) continue;
+    bckIntegral += background[iBck]->Integral();
+  }
+  
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     if(!runBackground[iBck]) continue;
     background[iBck]->SetLineColor(BackColor((EBackground)iBck));
     background[iBck]->SetFillStyle(fillStyleBack);
     background[iBck]->SetFillColorAlpha(BackColor((EBackground)iBck), fillOpacity);
-    if(ShouldNormalize()) background[iBck]->Scale(1/background[iBck]->Integral());
+    if(ShouldNormalize()) background[iBck]->Scale(1/bckIntegral);
   }
   for(int iData=0;iData<kNdata;iData++){
     if(!runData[iData]) continue;
@@ -454,9 +460,9 @@ int HistSet::GetNbins()
 {
   if(var == kNvertices)   return 25;
   if(var == kNisoTracks)  return 20;
-  if(var == kNjets)       return 20;
-  if(var == kNjets30)     return 20;
-  if(var == kNjets30a)    return 20;
+  if(var == kNjets)       return 15;
+  if(var == kNjets30)     return 15;
+  if(var == kNjets30a)    return 15;
   if(var == kMetSumEt)    return 100;
   if(var == kMetPt)       return 25;
   if(var == kMetMass)     return 100;
@@ -470,17 +476,17 @@ int HistSet::GetNbins()
   if(var == kTrackPt)             return 25;
   if(var == kTrackEta)            return 50;
   if(var == kTrackPhi)            return 50;
-  if(var == kTrackCaloEm)         return 100;
-  if(var == kTrackCaloHad)        return 100;
+  if(var == kTrackCaloEm)         return 20;
+  if(var == kTrackCaloHad)        return 20;
   if(var == kTrackDxy)            return 100;
   if(var == kTrackDz)             return 100;
   if(var == kTrackCharge)         return 100;
   if(var == kTrackMass)           return 500;
   if(var == kTrackPid)            return 441;
   if(var == kTrackMissingOuterTrackerHits) return 20;
-  if(var == kTrackPixelHits)      return 20;
+  if(var == kTrackPixelHits)      return 10;
   if(var == kTrackTrackerHits)    return 40;
-  if(var == kTrackRelativeIsolation)    return 500;
+  if(var == kTrackRelativeIsolation)    return 200;
   if(var == kTrackMetDphi)        return 25;
   if(var == kTrackDedxPerHit)     return 50;
   
@@ -546,8 +552,8 @@ double HistSet::GetMax()
   if(var == kNvertices)   return 100;
   if(var == kNisoTracks)  return 10;
   if(var == kNjets)       return 15;
-  if(var == kNjets30)     return 20;
-  if(var == kNjets30a)    return 20;
+  if(var == kNjets30)     return 15;
+  if(var == kNjets30a)    return 15;
   if(var == kMetSumEt)    return 5000;
   if(var == kMetPt)       return 1000;
   if(var == kMetMass)     return 10e-6;
@@ -561,15 +567,15 @@ double HistSet::GetMax()
   if(var == kTrackPt)             return 1000.0;
   if(var == kTrackEta)            return 3.0;
   if(var == kTrackPhi)            return 3.5;
-  if(var == kTrackCaloEm)         return 30.0;
-  if(var == kTrackCaloHad)        return 30.0;
+  if(var == kTrackCaloEm)         return 10;
+  if(var == kTrackCaloHad)        return 10;
   if(var == kTrackDxy) 	          return 0.02;
   if(var == kTrackDz)             return 0.02;
   if(var == kTrackCharge)         return 10.0;
   if(var == kTrackMass)           return 0.25;
   if(var == kTrackPid)            return 220;
   if(var == kTrackMissingOuterTrackerHits) return 20;
-  if(var == kTrackPixelHits)      return 15;
+  if(var == kTrackPixelHits)      return 10;
   if(var == kTrackTrackerHits)    return 40;
   if(var == kTrackRelativeIsolation)    return 10;
   if(var == kTrackMetDphi)        return 3.5;

@@ -228,8 +228,7 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
       // it's not clear how to calculate weights for the signal...
       
       // cross section for given signal (stored in fb, here transformed to pb to match background units
-//      weight *= 0.001 * (signalCrossSectionOneTrack[iSig] + signalCrossSectionTwoTracks[iSig]);
-      
+      weight *= 0.001 * (signalCrossSectionOneTrack[iSig] + signalCrossSectionTwoTracks[iSig]);
       
 //      if(*_nGenChargino == 1){
 //        weight *= 0.001 * signalCrossSectionOneTrack[iSig]; // cross section for given signal (stored in fb, here transformed to pb to match background units
@@ -240,7 +239,10 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
 //      else{
 //        cout<<"WARNING -- number of generator-level charginos different than 1 or 2"<<endl;
 //      }
-      weight *= 10000; // scale up to make it visible
+//      weight *= 10; // scale up to make it visible
+//      if(iSig!=kWino_M_300_cTau_3 && iSig!=kWino_M_300_cTau_10 && iSig!=kWino_M_300_cTau_30){
+//        weight *= 300;
+//      }
     }
     else if(dataType==kData){
       weight = 1;
@@ -416,12 +418,16 @@ Event* Event::ApplyJetCut(JetCut *cut)
       
       // check separation with all tracks in the event
       bool overlapsWithTrack = false;
-      for(auto track : tracks){
-        double deltaR = sqrt(pow(track->GetPhi() - jet->GetPhi(),2)+pow(track->GetEta() - jet->GetEta(),2));
-        
-        if(deltaR < cut->GetMinTrackDeltaR()){
-          overlapsWithTrack = true;
-          break;
+      double minTrackDeltaR = cut->GetMinTrackDeltaR();
+      
+      if(minTrackDeltaR > 0){
+        for(auto track : tracks){
+          double deltaR_2 = pow(track->GetPhi() - jet->GetPhi(),2)+pow(track->GetEta() - jet->GetEta(),2);
+          
+          if(deltaR_2 < (minTrackDeltaR*minTrackDeltaR)){
+            overlapsWithTrack = true;
+            break;
+          }
         }
       }
       

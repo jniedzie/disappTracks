@@ -17,7 +17,7 @@ maxEta(9999999),
 maxEtaFwd(9999999),
 minChargedHadronEnergyFraction(0),
 maxNeutralHadronEnergyFraction(9999999),
-minTrackDeltaR(0)
+minTrackDeltaR(-1)
 {
   if(cutType&kEmpty)      return;
   if(cutType&kPt30GeV)    minPt = 30.0;
