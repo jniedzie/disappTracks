@@ -52,6 +52,8 @@ public:
   void AddEventsFromFile(std::string fileName, EDataType dataType=kBackground, int maxNevents=-1,
                          ESignal iSig=kNsignals);
   
+  void SaveToTree(std::string fileName);
+  
   /// Applies cuts in this order: track, jet, lepton, event
   /// \param eventCut   Cuts to be applied to events
   /// \param trackCut   Cuts to be applied to tracks

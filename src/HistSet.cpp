@@ -598,7 +598,7 @@ bool HistSet::ShouldNormalize()
   
 //  if(var == kTrackTotalDedx) return false;
   
-  return false;
+  return true;
 }
 
 bool HistSet::DoSumw2()

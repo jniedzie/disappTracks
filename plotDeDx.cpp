@@ -13,7 +13,7 @@ void LoadEventsFromFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsB
       eventsData.push_back(nullptr);
     }
     else{
-      eventsData.push_back(new Events(inFileNameData[iData], Events::kData, maxNeventsData));
+      eventsData.push_back(new Events((inFileNameData[iData]+"tree.root"), Events::kData, maxNeventsData));
     }
   }
   
@@ -22,7 +22,7 @@ void LoadEventsFromFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsB
       eventsSignal.push_back(nullptr);
     }
     else{
-      eventsSignal.push_back(new Events(inFileNameSignal[iSig], Events::kSignal, maxNeventsSignal,(ESignal)iSig));
+      eventsSignal.push_back(new Events((inFileNameSignal[iSig]+"tree.root"), Events::kSignal, maxNeventsSignal,(ESignal)iSig));
     }
   }
   
@@ -34,7 +34,8 @@ void LoadEventsFromFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsB
       eventsBackground.push_back(new Events());
       
       for(string path : inFileNameBackground[iBck]){
-        eventsBackground[iBck]->AddEventsFromFile(path, Events::kBackground, maxNeventsBackground);
+        eventsBackground[iBck]->AddEventsFromFile((path+"tree.root"),
+                                                  Events::kBackground, maxNeventsBackground);
       }
     }
   }
@@ -136,6 +137,8 @@ void DrawStandardPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBac
   hists["jetTrackDr"]->Draw(canvasJets, 1);
   hists["jet_eta"]->Draw(canvasJets, 2);
   hists["jet_phi"]->Draw(canvasJets, 3);
+  
+  outFile->Close();
 }
 
 void DrawPerLayerPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData)
@@ -221,6 +224,12 @@ int main(int argc, char* argv[])
   ApplyCuts(eventsSignal, eventsBackground, eventsData,eventCut_L0, trackCut_L0, jetCut_L0, nullptr);
   cout<<"\n\nYields after level 0 cuts"<<endl;
   PrintYields(eventsSignal, eventsBackground, eventsData);
+  
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    if(!runSignal[iSig]) continue;
+    system(("mkdir -p "+inFileNameSignal[iSig]+"after_L0").c_str());
+    eventsSignal[iSig]->SaveToTree((inFileNameSignal[iSig]+"after_L0/tree.root").c_str());
+  }
   
   if(plotAfterLevel == 0){
     DrawStandardPlots(eventsSignal, eventsBackground, eventsData);

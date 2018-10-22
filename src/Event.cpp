@@ -282,6 +282,206 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
   }
 }
 
+void Events::SaveToTree(string fileName)
+{
+  TFile outFile(fileName.c_str(),"RECREATE");
+  outFile.cd();
+  TTree *tree = new TTree("tree","tree");
+  
+  int nTracks = 100;
+  int nJets = 100;
+  int nLeptons = 100;
+  int nJetsFwd = 0;
+  
+  int nIsoTracks, nVert, nJet, nJetFwd, nJet30, nJet30a, nLepGood, nTauGood, nGenChargino;
+  double xsec, wgtsum, genWeight, met_sumEt, met_pt, met_mass, met_phi, met_eta;
+  bool metNoMuTrigger, flag_goodVertices, flag_badPFmuon, flag_HBHEnoise, flag_HBHEnoiseIso, flag_EcalDeadCell, flag_eeBadSc, flag_badChargedCandidate, flag_ecalBadCalib, flag_globalTightHalo2016;
+  double metNoMu_pt, metNoMu_mass, metNoMu_phi, metNoMu_eta;
+  
+  double IsoTrack_eta[nTracks], IsoTrack_phi[nTracks], IsoTrack_caloEmEnergy[nTracks], IsoTrack_caloHadEnergy[nTracks], IsoTrack_edxy[nTracks], IsoTrack_dxy[nTracks], IsoTrack_edz[nTracks], IsoTrack_dz[nTracks], IsoTrack_mass[nTracks], IsoTrack_pt[nTracks], IsoTrack_relIso03[nTracks];
+  int IsoTrack_charge[nTracks], IsoTrack_pdgId[nTracks];
+  int IsoTrack_trackerLayers[nTracks], IsoTrack_pixelLayers[nTracks], IsoTrack_trackerHits[nTracks], IsoTrack_pixelHits[nTracks], IsoTrack_missingInnerPixelHits[nTracks], IsoTrack_missingOuterPixelHits[nTracks], IsoTrack_missingInnerStripHits[nTracks], IsoTrack_missingOuterStripHits[nTracks], IsoTrack_missingInnerTrackerHits[nTracks], IsoTrack_missingOuterTrackerHits[nTracks], IsoTrack_missingMiddleTrackerHits[nTracks];
+  
+  double LepGood_pt[nLeptons], LepGood_phi[nLeptons], LepGood_eta[nLeptons], LepGood_tightId[nLeptons], LepGood_relIso04[nLeptons], LepGood_pdgId[nLeptons];
+  double Jet_pt[nJets], Jet_eta[nJets], Jet_phi[nJets], Jet_mass[nJets], Jet_chHEF[nJets], Jet_neHEF[nJets];
+  
+  
+  double JetFwd_pt[nJetsFwd], JetFwd_eta[nJetsFwd], JetFwd_phi[nJetsFwd], JetFwd_mass[nJetsFwd], JetFwd_chHEF[nJetsFwd], JetFwd_neHEF[nJetsFwd];
+  
+  tree->Branch("nIsoTrack", &nIsoTracks, "nIsoTrack/I");
+  tree->Branch("nVert", &nVert, "nVert/I");
+  tree->Branch("nJet", &nJet, "nJet/I");
+  tree->Branch("nJetFwd", &nJetFwd, "nJetFwd/I");
+  tree->Branch("nJet30", &nJet30, "nJet30/I");
+  tree->Branch("nJet30a", &nJet30a, "nJet30a/I");
+  tree->Branch("nLepGood", &nLepGood, "nLepGood/I");
+  tree->Branch("nTauGood", &nTauGood, "nTauGood/I");
+  tree->Branch("nGenChargino", &nGenChargino, "nGenChargino/I");
+  
+  tree->Branch("xsec", &xsec, "xsec/F");
+  tree->Branch("wgtsum", &wgtsum, "wgtsum/F");
+  tree->Branch("genWeight", &genWeight, "genWeight/F");
+  
+  tree->Branch("met_sumEt", &met_sumEt, "met_sumEt/F");
+  tree->Branch("met_pt", &met_pt, "met_pt/F");
+  tree->Branch("met_mass", &met_mass, "met_mass/F");
+  tree->Branch("met_phi", &met_phi, "met_phi/F");
+  tree->Branch("met_eta", &met_eta, "met_eta/F");
+  
+  tree->Branch("HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight", &metNoMuTrigger, "HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight/I");
+  tree->Branch("Flag_goodVertices", &flag_goodVertices, "Flag_goodVertices/I");
+  tree->Branch("Flag_BadPFMuonFilter", &flag_badPFmuon, "Flag_BadPFMuonFilter/I");
+  tree->Branch("Flag_HBHENoiseFilter", &flag_HBHEnoise, "Flag_HBHENoiseFilter/I");
+  tree->Branch("Flag_HBHENoiseIsoFilter", &flag_HBHEnoiseIso, "Flag_HBHENoiseIsoFilter/I");
+  tree->Branch("Flag_EcalDeadCellTriggerPrimitiveFilter", &flag_EcalDeadCell, "Flag_EcalDeadCellTriggerPrimitiveFilter/I");
+  tree->Branch("Flag_eeBadScFilter", &flag_eeBadSc, "Flag_eeBadScFilter/I");
+  tree->Branch("Flag_BadChargedCandidateFilter", &flag_badChargedCandidate, "Flag_BadChargedCandidateFilter/I");
+  tree->Branch("Flag_ecalBadCalibFilter", &flag_ecalBadCalib, "Flag_ecalBadCalibFilter/I");
+  tree->Branch("Flag_globalTightHalo2016Filter", &flag_globalTightHalo2016, "Flag_globalTightHalo2016Filter/I");
+  
+  tree->Branch("metNoMu_pt", &metNoMu_pt, "metNoMu_pt/F");
+  tree->Branch("metNoMu_mass", &metNoMu_mass, "metNoMu_mass/F");
+  tree->Branch("metNoMu_phi", &metNoMu_phi, "metNoMu_phi/F");
+  tree->Branch("metNoMu_eta", &metNoMu_eta, "metNoMu_eta/F");
+  
+
+  tree->Branch("IsoTrack_eta", &IsoTrack_eta, "IsoTrack_eta[nIsoTrack]/F");
+  tree->Branch("IsoTrack_phi", &IsoTrack_phi, "IsoTrack_phi[nIsoTrack]/F");
+  tree->Branch("IsoTrack_caloEmEnergy", &IsoTrack_caloEmEnergy, "IsoTrack_caloEmEnergy[nIsoTrack]/F");
+  tree->Branch("IsoTrack_caloHadEnergy", &IsoTrack_caloHadEnergy, "IsoTrack_caloHadEnergy[nIsoTrack]/F");
+  tree->Branch("IsoTrack_edxy", &IsoTrack_edxy, "IsoTrack_edxy[nIsoTrack]/F");
+  tree->Branch("IsoTrack_dxy", &IsoTrack_dxy, "IsoTrack_dxy[nIsoTrack]/F");
+  tree->Branch("IsoTrack_edz", &IsoTrack_edz, "IsoTrack_edz[nIsoTrack]/F");
+  tree->Branch("IsoTrack_dz", &IsoTrack_dz, "IsoTrack_dz[nIsoTrack]/F");
+  tree->Branch("IsoTrack_charge", &IsoTrack_charge, "IsoTrack_charge[nIsoTrack]/I");
+  tree->Branch("IsoTrack_mass", &IsoTrack_mass, "IsoTrack_mass[nIsoTrack]/F");
+  tree->Branch("IsoTrack_pt", &IsoTrack_pt, "IsoTrack_pt[nIsoTrack]/F");
+  tree->Branch("IsoTrack_pdgId", &IsoTrack_pdgId, "IsoTrack_pdgId[nIsoTrack]/I");
+  tree->Branch("IsoTrack_relIso03", &IsoTrack_relIso03, "IsoTrack_relIso03[nIsoTrack]/F");
+  
+  tree->Branch("IsoTrack_trackerLayers", &IsoTrack_trackerLayers, "IsoTrack_trackerLayers[nIsoTrack]/I");
+  tree->Branch("IsoTrack_pixelLayers", &IsoTrack_pixelLayers, "IsoTrack_pixelLayers[nIsoTrack]/I");
+  tree->Branch("IsoTrack_trackerHits", &IsoTrack_trackerHits, "IsoTrack_trackerHits[nIsoTrack]/I");
+  tree->Branch("IsoTrack_pixelHits", &IsoTrack_pixelHits, "IsoTrack_pixelHits[nIsoTrack]/I");
+  tree->Branch("IsoTrack_missingInnerPixelHits", &IsoTrack_missingInnerPixelHits, "IsoTrack_missingInnerPixelHits[nIsoTrack]/I");
+  tree->Branch("IsoTrack_missingOuterPixelHits", &IsoTrack_missingOuterPixelHits, "IsoTrack_missingOuterPixelHits[nIsoTrack]/I");
+  tree->Branch("IsoTrack_missingInnerStripHits", &IsoTrack_missingInnerStripHits, "IsoTrack_missingInnerStripHits[nIsoTrack]/I");
+  tree->Branch("IsoTrack_missingOuterStripHits", &IsoTrack_missingOuterStripHits, "IsoTrack_missingOuterStripHits[nIsoTrack]/I");
+  tree->Branch("IsoTrack_missingInnerTrackerHits", &IsoTrack_missingInnerTrackerHits, "IsoTrack_missingInnerTrackerHits[nIsoTrack]/I");
+  tree->Branch("IsoTrack_missingOuterTrackerHits", &IsoTrack_missingOuterTrackerHits, "IsoTrack_missingOuterTrackerHits[nIsoTrack]/I");
+  tree->Branch("IsoTrack_missingMiddleTrackerHits", &IsoTrack_missingMiddleTrackerHits, "IsoTrack_missingMiddleTrackerHits[nIsoTrack]/I");
+  
+
+  
+  tree->Branch("LepGood_pt", &LepGood_pt, "LepGood_pt[nLepGood]/F");
+  tree->Branch("LepGood_phi", &LepGood_phi, "LepGood_phi[nLepGood]/F");
+  tree->Branch("LepGood_eta", &LepGood_eta, "LepGood_eta[nLepGood]/F");
+  tree->Branch("LepGood_tightId", &LepGood_tightId, "LepGood_tightId[nLepGood]/F");
+  tree->Branch("LepGood_relIso04", &LepGood_relIso04, "LepGood_relIso04[nLepGood]/F");
+  tree->Branch("LepGood_pdgId", &LepGood_pdgId, "LepGood_pdgId[nLepGood]/F");
+  
+  tree->Branch("Jet_pt", &Jet_pt, "Jet_pt[nJet]/F");
+  tree->Branch("Jet_eta", &Jet_eta, "Jet_eta[nJet]/F");
+  tree->Branch("Jet_phi", &Jet_phi, "Jet_phi[nJet]/F");
+  tree->Branch("Jet_mass", &Jet_mass, "Jet_mass[nJet]/F");
+  tree->Branch("Jet_chHEF", &Jet_chHEF, "Jet_chHEF[nJet]/F");
+  tree->Branch("Jet_neHEF", &Jet_neHEF, "Jet_neHEF[nJet]/F");
+  
+  tree->Branch("JetFwd_pt", &JetFwd_pt, "JetFwd_pt[nJetFwd]/F");
+  tree->Branch("JetFwd_eta", &JetFwd_eta, "JetFwd_eta[nJetFwd]/F");
+  tree->Branch("JetFwd_phi", &JetFwd_phi, "JetFwd_phi[nJetFwd]/F");
+  tree->Branch("JetFwd_mass", &JetFwd_mass, "JetFwd_mass[nJetFwd]/F");
+  tree->Branch("JetFwd_chHEF", &JetFwd_chHEF, "JetFwd_chHEF[nJetFwd]/F");
+  tree->Branch("JetFwd_neHEF", &JetFwd_neHEF, "JetFwd_neHEF[nJetFwd]/F");
+  
+  for(auto event : events){
+    nVert = event->GetNvertices();
+    nIsoTracks = event->GetNtracks();
+    nJet = event->GetNjets();
+    nJetFwd = 0;
+    nJet30 = event->GetNjet30();
+    nJet30a = event->GetNjet30a();
+    nLepGood = event->GetNlepton();
+    nTauGood = event->GetNtau();
+//    nGenChargino;
+//    xsec
+//    wgtsum
+//    genWeight
+    met_sumEt = event->GetMetSumEt();
+    met_pt = event->GetMetPt();
+    met_mass = event->GetMetMass();
+    met_phi = event->GetMetPhi();
+    met_eta = event->GetMetEta();
+    
+    metNoMuTrigger = event->HetMetNoMuTrigger();
+    flag_goodVertices = event->GetGoodVerticesFlag();
+    flag_badPFmuon = event->GetBadPFmuonFlag();
+    flag_HBHEnoise = event->GetHBHEnoiseFlag();
+    flag_HBHEnoiseIso = event->GetHBHEnoiseIsoFlag();
+    flag_EcalDeadCell = event->GetEcalDeadCellFlag();
+    flag_eeBadSc = event->GetEeBadScFlag();
+    flag_badChargedCandidate = event->GetBadChargedCandidateFlag();
+    flag_ecalBadCalib = event->GetEcalBadCalibFlag();
+    flag_globalTightHalo2016 = event->GetGlobalTightHalo2016Flag();
+    
+    nTracks = event->GetNtracks();
+    nLeptons = event->GetNlepton();
+    nJets = event->GetNjets();
+    
+    for(int iTrack=0;iTrack<nTracks;iTrack++){
+      IsoTrack_eta[iTrack] = event->GetTrack(iTrack)->GetEta();
+      IsoTrack_phi[iTrack] = event->GetTrack(iTrack)->GetPhi();
+      IsoTrack_caloEmEnergy[iTrack] = event->GetTrack(iTrack)->GetCaloEmEnergy();
+      IsoTrack_caloHadEnergy[iTrack] = event->GetTrack(iTrack)->GetCaloHadEnergy();
+      IsoTrack_edxy[iTrack] = event->GetTrack(iTrack)->GetDxyErr();
+      IsoTrack_dxy[iTrack] = event->GetTrack(iTrack)->GetDxy();
+      IsoTrack_edz[iTrack] = event->GetTrack(iTrack)->GetDzErr();
+      IsoTrack_dz[iTrack] = event->GetTrack(iTrack)->GetDz();
+      IsoTrack_mass[iTrack] = event->GetTrack(iTrack)->GetMass();
+      IsoTrack_pt[iTrack] = event->GetTrack(iTrack)->GetPt();
+      IsoTrack_relIso03[iTrack] = event->GetTrack(iTrack)->GetRelativeIsolation();
+
+      IsoTrack_charge[iTrack] = event->GetTrack(iTrack)->GetCharge();
+      IsoTrack_pdgId[iTrack] = event->GetTrack(iTrack)->GetPid();
+      
+      IsoTrack_trackerLayers[iTrack] = event->GetTrack(iTrack)->GetNtrackerLayers();
+      IsoTrack_pixelLayers[iTrack] = event->GetTrack(iTrack)->GetNpixelLayers();
+      IsoTrack_trackerHits[iTrack] = event->GetTrack(iTrack)->GetNtrackerHits();
+      IsoTrack_pixelHits[iTrack] = event->GetTrack(iTrack)->GetNpixelHits();
+      IsoTrack_missingInnerPixelHits[iTrack] = event->GetTrack(iTrack)->GetNmissingInnerPixelHits();
+      IsoTrack_missingOuterPixelHits[iTrack] = event->GetTrack(iTrack)->GetNmissingOuterPixelHits();
+      IsoTrack_missingInnerStripHits[iTrack] = event->GetTrack(iTrack)->GetNmissingInnerStripHits();
+      IsoTrack_missingOuterStripHits[iTrack] = event->GetTrack(iTrack)->GetNmissingOuterStripHits();
+      IsoTrack_missingInnerTrackerHits[iTrack] = event->GetTrack(iTrack)->GetNmissingInnerTrackerHits();
+      IsoTrack_missingOuterTrackerHits[iTrack] = event->GetTrack(iTrack)->GetNmissingOuterTrackerHits();
+      IsoTrack_missingMiddleTrackerHits[iTrack] = event->GetTrack(iTrack)->GetNmissingMiddleTrackerHits();
+    }
+    
+    for(int iLep=0;iLep<nLeptons;iLep++){
+      LepGood_pt[iLep] = event->GetLepton(iLep)->GetPt();
+      
+      LepGood_phi[iLep] = event->GetLepton(iLep)->GetPt();
+      LepGood_eta[iLep] = event->GetLepton(iLep)->GetEta();
+      LepGood_tightId[iLep] = event->GetLepton(iLep)->GetTightID();
+      LepGood_relIso04[iLep] = event->GetLepton(iLep)->GetIsolation();
+      LepGood_pdgId[iLep] = event->GetLepton(iLep)->GetPid();
+    }
+    
+    for(int iJet=0;iJet<nJets;iJet++){
+      Jet_pt[iJet] = event->GetJet(iJet)->GetPt();
+      Jet_eta[iJet] = event->GetJet(iJet)->GetEta();
+      Jet_phi[iJet] = event->GetJet(iJet)->GetPhi();
+      Jet_mass[iJet] = event->GetJet(iJet)->GetMass();
+      Jet_chHEF[iJet] = event->GetJet(iJet)->GetChargedHadronEnergyFraction();
+      Jet_neHEF[iJet] = event->GetJet(iJet)->GetNeutralHadronEnergyFraction();
+    }
+    
+    tree->Fill();
+  }
+  tree->Write();
+  outFile.Close();
+}
+
 Events* Events::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
 {
   Events *outputEvents = new Events(*this);
