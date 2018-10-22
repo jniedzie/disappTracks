@@ -137,8 +137,6 @@ void DrawStandardPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBac
   hists["jetTrackDr"]->Draw(canvasJets, 1);
   hists["jet_eta"]->Draw(canvasJets, 2);
   hists["jet_phi"]->Draw(canvasJets, 3);
-  
-  outFile->Close();
 }
 
 void DrawPerLayerPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData)
