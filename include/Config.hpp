@@ -19,8 +19,8 @@ const bool showLegends = false;
 const int performCutsLevel = 1;
 
 // Limit number of events loaded (-1 means load all available)
-const int maxNeventsBackground  = 1000;
-const int maxNeventsSignal      = 1000;
+const int maxNeventsBackground  = -1;
+const int maxNeventsSignal      = -1;
 const int maxNeventsData        = -1;
 
 // turn on/off different backgrounds, signals and data samples

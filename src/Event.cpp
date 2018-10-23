@@ -470,6 +470,13 @@ void Events::SaveToTree(string fileName)
       IsoTrack_missingInnerTrackerHits[iTrack] = event->GetTrack(iTrack)->GetNmissingInnerTrackerHits();
       IsoTrack_missingOuterTrackerHits[iTrack] = event->GetTrack(iTrack)->GetNmissingOuterTrackerHits();
       IsoTrack_missingMiddleTrackerHits[iTrack] = event->GetTrack(iTrack)->GetNmissingMiddleTrackerHits();
+      
+      for(int iLayer=0;iLayer<nLayers;iLayer++){
+        dedx[iLayer] = event->GetTrack(iTrack)->GetDeDxInLayer(iLayer);
+        subDetId[iLayer] = event->GetTrack(iTrack)->GetSubDetIdInLayer(iLayer);
+        sizeX[iLayer] = event->GetTrack(iTrack)->GetSizeXinLayer(iLayer);
+        sizeY[iLayer] = event->GetTrack(iTrack)->GetSizeYinLayer(iLayer);
+      }
     }
     
     for(int iLep=0;iLep<nLepGood;iLep++){
