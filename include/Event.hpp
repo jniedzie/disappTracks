@@ -145,6 +145,11 @@ public:
   inline void SetEcalBadCalibFlag(bool val){flag_ecalBadCalib = val;}
   inline void SetGlobalTightHalo2016Flag(bool val){flag_globalTightHalo2016 = val;}
   
+  inline void SetNgenChargino(int val){nGenChargino = val;}
+  inline void SetXsec(double val){xsec = val;}
+  inline void SetWgtSum(double val){wgtsum = val;}
+  inline void SetGenWeight(double val){genWeight = val;}
+  
   // getters
   inline double GetWeight(){return weight;}
   
@@ -184,6 +189,11 @@ public:
   inline bool GetBadChargedCandidateFlag(){return flag_badChargedCandidate;}
   inline bool GetEcalBadCalibFlag(){return flag_ecalBadCalib;}
   inline bool GetGlobalTightHalo2016Flag(){return flag_globalTightHalo2016;}
+  
+  inline int GetNgenChargino(){return nGenChargino;}
+  inline double GetXsec(){return xsec;}
+  inline double GetWgtSum(){return wgtsum;}
+  inline double GetGenWeight(){return genWeight;}
   
   inline Track*  GetTrack(int i){return tracks[i];}
   inline Jet*    GetJet(int i){return jets[i];}
@@ -242,6 +252,11 @@ private:
   bool flag_badChargedCandidate; // an exception, this is zero when event passes filter
   bool flag_ecalBadCalib;
   bool flag_globalTightHalo2016;
+  
+  int nGenChargino;
+  double xsec;
+  double wgtsum;
+  double genWeight;
 };
 
 #endif /* Event_hpp */

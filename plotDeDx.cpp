@@ -214,6 +214,7 @@ int main(int argc, char* argv[])
   if(performCutsLevel==0) initPrefix = "";
   if(performCutsLevel==1) initPrefix = "after_L0/";
   if(performCutsLevel==2) initPrefix = "after_L1/";
+  if(performCutsLevel==10) initPrefix = "after_L0/";
   
   LoadEventsFromFiles(eventsSignal, eventsBackground, eventsData, initPrefix);
   
@@ -268,16 +269,17 @@ int main(int argc, char* argv[])
     TrackCut  *trackCut_L1 = new TrackCut();
     JetCut    *jetCut_L1   = new JetCut();
     
+    // L1 cuts
+    trackCut_L1->SetMaxRelativeIsolation(0.15);
+    jetCut_L1->SetMinTrackDeltaR(0.4);
+    
+    // + standard cuts to be applied after L2 selections
     eventCut_L1->SetNtracks(1, 999999);
     eventCut_L1->SetMinNjets(1);
     eventCut_L1->SetHighJetMinPt(100);
     eventCut_L1->SetHighJetMaxEta(2.4);
     eventCut_L1->SetHighJetMaxNeHEF(0.8);
     eventCut_L1->SetHighJetMinChHEF(0.1);
-    
-    trackCut_L1->SetMaxRelativeIsolation(0.15);
-    
-    jetCut_L1->SetMinTrackDeltaR(0.4);
     
     ApplyCuts(eventsSignal, eventsBackground, eventsData,eventCut_L1, trackCut_L1, jetCut_L1, nullptr);
     cout<<"\n\nYields after level 1 cuts"<<endl;
@@ -290,26 +292,74 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   // Level 2
   //---------------------------------------------------------------------------
-  /*
-  EventCut  *eventCut_L2 = eventCut_L1;
-  TrackCut  *trackCut_L2 = trackCut_L1;
-  JetCut    *jetCut_L2   = jetCut_L1;
-  
-  eventCut_L2->SetMinMetPt(230);
-  eventCut_L2->SetMinJetMetPhi(0.5);
-
-  trackCut_L2->SetMaxEmCalo(0.5);
-  trackCut_L2->SetMaxHadCalo(0.5);
-  trackCut_L2->SetNmissingOuterTracker(1, 999999);
-  
-  ApplyCuts(eventsSignal, eventsBackground, eventsData,eventCut_L2, trackCut_L2, jetCut_L2, nullptr);
-  cout<<"\n\nYields after level 2 cuts"<<endl;
-  PrintYields(eventsSignal, eventsBackground, eventsData);
-  
-  if(plotAfterLevel == 2){
+  if(performCutsLevel == 2){
+    EventCut  *eventCut_L2 = new EventCut();
+    TrackCut  *trackCut_L2 = new TrackCut();
+    JetCut    *jetCut_L2   = new JetCut();
+    
+    // L2 cuts
+    eventCut_L2->SetMinMetPt(230);
+    eventCut_L2->SetMinJetMetPhi(0.5);
+    
+    eventCut_L2->SetNtracks(2, 2);
+    
+    trackCut_L2->SetMaxEmCalo(0.5);
+    trackCut_L2->SetMaxHadCalo(0.5);
+    trackCut_L2->SetNmissingOuterTracker(1, 999999);
+    
+    // + standard cuts to be applied after L2 selections
+//    eventCut_L2->SetNtracks(1, 999999);
+    eventCut_L2->SetMinNjets(1);
+    eventCut_L2->SetHighJetMinPt(100);
+    eventCut_L2->SetHighJetMaxEta(2.4);
+    eventCut_L2->SetHighJetMaxNeHEF(0.8);
+    eventCut_L2->SetHighJetMinChHEF(0.1);
+    
+    ApplyCuts(eventsSignal, eventsBackground, eventsData,eventCut_L2, trackCut_L2, jetCut_L2, nullptr);
+    cout<<"\n\nYields after level 2 cuts"<<endl;
+    PrintYields(eventsSignal, eventsBackground, eventsData);
+    SaveEventsToFiles(eventsSignal, eventsBackground, eventsData, "after_L2/");
     DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
     //  DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
   }
+  
+  //---------------------------------------------------------------------------
+  // Adish cuts
+  //---------------------------------------------------------------------------
+  if(performCutsLevel == 10){
+    EventCut  *eventCut_adish = new EventCut();
+    TrackCut  *trackCut_adish = new TrackCut();
+    JetCut    *jetCut_adish   = new JetCut();
+    
+    // adish cuts
+    eventCut_adish->SetMinJetMetPhi(0.5);
+    
+    
+    // + standard cuts to be applied after L2 selections
+    eventCut_adish->SetNtracks(1, 999999);
+    eventCut_adish->SetMinNjets(1);
+    eventCut_adish->SetHighJetMinPt(100);
+    eventCut_adish->SetHighJetMaxEta(2.4);
+    eventCut_adish->SetHighJetMaxNeHEF(0.8);
+    eventCut_adish->SetHighJetMinChHEF(0.1);
+    
+    eventCut_adish->SetMaxNmuons(0);
+    eventCut_adish->SetMaxNtau(0);
+    eventCut_adish->SetMaxNlepton(0);
+    eventCut_adish->SetMinMetNoMuPt(200);
+    eventCut_adish->SetRequireMetNoMuTrigger(true);
+    eventCut_adish->SetRequirePassingAllFilters(true);
+    jetCut_adish->SetPtRange(30, 999999);
+    
+    ApplyCuts(eventsSignal, eventsBackground, eventsData,eventCut_adish, trackCut_adish, jetCut_adish, nullptr);
+    cout<<"\n\nYields after adish cuts"<<endl;
+    PrintYields(eventsSignal, eventsBackground, eventsData);
+//    SaveEventsToFiles(eventsSignal, eventsBackground, eventsData, "adish_cuts/");
+//    DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
+    //  DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
+  }
+  
+    /*
   
   //---------------------------------------------------------------------------
   // Sub-categories

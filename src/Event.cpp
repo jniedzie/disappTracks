@@ -278,6 +278,11 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
     newEvent->SetEcalBadCalibFlag(*_flag_ecalBadCalib);
     newEvent->SetGlobalTightHalo2016Flag(*_flag_globalTightHalo2016);
     
+    newEvent->SetNgenChargino(*_nGenChargino);
+    newEvent->SetXsec(*_xSec);
+    newEvent->SetWgtSum(*_sumWgt);
+    newEvent->SetGenWeight(*_genWgt);
+    
     events.push_back(newEvent);
   }
 }
@@ -295,7 +300,7 @@ void Events::SaveToTree(string fileName)
   
   int nIsoTracks, nVert, nJet, nJetFwd, nJet30, nJet30a, nLepGood, nTauGood, nGenChargino;
   float xsec, wgtsum, genWeight, met_sumEt, met_pt, met_mass, met_phi, met_eta;
-  bool metNoMuTrigger, flag_goodVertices, flag_badPFmuon, flag_HBHEnoise, flag_HBHEnoiseIso, flag_EcalDeadCell, flag_eeBadSc, flag_badChargedCandidate, flag_ecalBadCalib, flag_globalTightHalo2016;
+  int metNoMuTrigger, flag_goodVertices, flag_badPFmuon, flag_HBHEnoise, flag_HBHEnoiseIso, flag_EcalDeadCell, flag_eeBadSc, flag_badChargedCandidate, flag_ecalBadCalib, flag_globalTightHalo2016;
   float metNoMu_pt, metNoMu_mass, metNoMu_phi, metNoMu_eta;
   
   float IsoTrack_eta[nTracks], IsoTrack_phi[nTracks], IsoTrack_caloEmEnergy[nTracks], IsoTrack_caloHadEnergy[nTracks], IsoTrack_edxy[nTracks], IsoTrack_dxy[nTracks], IsoTrack_edz[nTracks], IsoTrack_dz[nTracks], IsoTrack_mass[nTracks], IsoTrack_pt[nTracks], IsoTrack_relIso03[nTracks];
@@ -395,7 +400,7 @@ void Events::SaveToTree(string fileName)
   tree->Branch("JetFwd_chHEF", &JetFwd_chHEF, "JetFwd_chHEF[nJetFwd]/F");
   tree->Branch("JetFwd_neHEF", &JetFwd_neHEF, "JetFwd_neHEF[nJetFwd]/F");
   
-  double dedx[nLayers];
+  float dedx[nLayers];
   int subDetId[nLayers], sizeX[nLayers], sizeY[nLayers];
   
   for(int iLayer=0;iLayer<nLayers;iLayer++){
@@ -422,25 +427,30 @@ void Events::SaveToTree(string fileName)
     nJet30a = event->GetNjet30a();
     nLepGood = event->GetNlepton();
     nTauGood = event->GetNtau();
-    nGenChargino = 1;
-    xsec = 100;
-    wgtsum = 1;
-    genWeight = 1;
+    nGenChargino = event->GetNgenChargino();
+    xsec = event->GetXsec();
+    wgtsum = event->GetWgtSum();
+    genWeight = event->GetGenWeight();
     met_sumEt = event->GetMetSumEt();
     met_pt = event->GetMetPt();
     met_mass = event->GetMetMass();
     met_phi = event->GetMetPhi();
     met_eta = event->GetMetEta();
     
-    metNoMuTrigger = event->HetMetNoMuTrigger();
+    metNoMu_pt = event->GetMetNoMuPt();
+    metNoMu_mass = event->GetMetNoMuMass();
+    metNoMu_phi = event->GetMetNoMuPhi();
+    metNoMu_eta = event->GetMetNoMuEta();
+    
+    metNoMuTrigger    = event->HetMetNoMuTrigger();
     flag_goodVertices = event->GetGoodVerticesFlag();
-    flag_badPFmuon = event->GetBadPFmuonFlag();
-    flag_HBHEnoise = event->GetHBHEnoiseFlag();
+    flag_badPFmuon    = event->GetBadPFmuonFlag();
+    flag_HBHEnoise    = event->GetHBHEnoiseFlag();
     flag_HBHEnoiseIso = event->GetHBHEnoiseIsoFlag();
     flag_EcalDeadCell = event->GetEcalDeadCellFlag();
-    flag_eeBadSc = event->GetEeBadScFlag();
-    flag_badChargedCandidate = event->GetBadChargedCandidateFlag();
+    flag_eeBadSc      = event->GetEeBadScFlag();
     flag_ecalBadCalib = event->GetEcalBadCalibFlag();
+    flag_badChargedCandidate = event->GetBadChargedCandidateFlag();
     flag_globalTightHalo2016 = event->GetGlobalTightHalo2016Flag();
     
     for(int iTrack=0;iTrack<nIsoTracks;iTrack++){
@@ -609,6 +619,11 @@ Event* Event::CopyThisEventProperties()
   outputEvent->SetBadChargedCandidateFlag(flag_badChargedCandidate);
   outputEvent->SetEcalBadCalibFlag(flag_ecalBadCalib);
   outputEvent->SetGlobalTightHalo2016Flag(flag_globalTightHalo2016);
+  
+  outputEvent->SetNgenChargino(nGenChargino);
+  outputEvent->SetXsec(xsec);
+  outputEvent->SetWgtSum(wgtsum);
+  outputEvent->SetGenWeight(genWeight);
   
   return outputEvent;
 }
