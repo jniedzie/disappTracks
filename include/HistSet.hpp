@@ -26,9 +26,9 @@ public:
   inline void FillBackground(EBackground bck, double value){background[bck]->Fill(value);}
   inline void FillData(EData iData, double value){data[iData]->Fill(value);}
   
-  void FillFromEvents(vector<Events*> signalEvents,
-                      vector<Events*> backgroundEvents,
-                      vector<Events*> dataEvents);
+  void FillFromEvents(vector<shared_ptr<Events>> signalEvents,
+                      vector<shared_ptr<Events>> backgroundEvents,
+                      vector<shared_ptr<Events>> dataEvents);
   
   void Draw(TCanvas *c1, int pad);
   void DrawPerLayer();
@@ -47,9 +47,9 @@ private:
   vector<vector<TH1D*>> backgroundPerLayer;
   vector<vector<TH1D*>> dataPerLayer;
   
-  void FillFromEventsPerLayer(vector<Events*> signalEvents,
-                              vector<Events*> backgroundEvents,
-                              vector<Events*> dataEvents);
+  void FillFromEventsPerLayer(vector<shared_ptr<Events>> signalEvents,
+                              vector<shared_ptr<Events>> backgroundEvents,
+                              vector<shared_ptr<Events>> dataEvents);
   
   TLegend* GetLegend();
   
@@ -60,7 +60,7 @@ private:
   bool ShouldNormalize();
   bool DoSumw2();
   
-  void Fill(TH1D* hist, Events *events, int iDetId=-1);
+  void Fill(TH1D* hist, shared_ptr<Events> events, int iDetId=-1);
   double GetNonZeroBinPosX(TH1D *hist);
 };
 

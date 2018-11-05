@@ -8,14 +8,16 @@
 
 #include <TApplication.h>
 
-void LoadEventsFromFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData, string prefix="")
+void LoadEventsFromFiles(vector<shared_ptr<Events>> &eventsSignal,
+                         vector<shared_ptr<Events>> &eventsBackground,
+                         vector<shared_ptr<Events>> &eventsData, string prefix="")
 {
   for(int iData=0;iData<kNdata;iData++){
     if(!runData[iData]){
       eventsData.push_back(nullptr);
     }
     else{
-      eventsData.push_back(new Events((inFileNameData[iData]+prefix+"tree.root"), Events::kData, maxNeventsData));
+      eventsData.push_back(make_shared<Events>((inFileNameData[iData]+prefix+"tree.root"), Events::kData, maxNeventsData));
     }
   }
   
@@ -24,7 +26,7 @@ void LoadEventsFromFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsB
       eventsSignal.push_back(nullptr);
     }
     else{
-      eventsSignal.push_back(new Events((inFileNameSignal[iSig]+prefix+"tree.root"), Events::kSignal, maxNeventsSignal,(ESignal)iSig));
+      eventsSignal.push_back(make_shared<Events>((inFileNameSignal[iSig]+prefix+"tree.root"), Events::kSignal, maxNeventsSignal,(ESignal)iSig));
     }
   }
   
@@ -33,7 +35,7 @@ void LoadEventsFromFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsB
       eventsBackground.push_back(nullptr);
     }
     else{
-      eventsBackground.push_back(new Events());
+      eventsBackground.push_back(make_shared<Events>());
       
       if(prefix==""){
         for(string path : inFileNameBackground[iBck]){
@@ -50,7 +52,9 @@ void LoadEventsFromFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsB
   }
 }
 
-void SaveEventsToFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData, string prefix="after_L/")
+void SaveEventsToFiles(vector<shared_ptr<Events>> &eventsSignal,
+                       vector<shared_ptr<Events>> &eventsBackground,
+                       vector<shared_ptr<Events>> &eventsData, string prefix="after_L/")
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]) continue;
@@ -74,7 +78,9 @@ void SaveEventsToFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsBac
   }
 }
 
-void ApplyCuts(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData,
+void ApplyCuts(vector<shared_ptr<Events>> &eventsSignal,
+               vector<shared_ptr<Events>> &eventsBackground,
+               vector<shared_ptr<Events>> &eventsData,
                EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
@@ -91,7 +97,9 @@ void ApplyCuts(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground,
   }
 }
 
-void DrawStandardPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData, string prefix="")
+void DrawStandardPlots(vector<shared_ptr<Events>> &eventsSignal,
+                       vector<shared_ptr<Events>> &eventsBackground,
+                       vector<shared_ptr<Events>> &eventsData, string prefix="")
 {
   // Create standard per event, per track and per jet plots
   map<string, HistSet*> hists;
@@ -174,7 +182,9 @@ void DrawStandardPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBac
   hists["jet_phi"]->Draw(canvasJets, 3);
 }
 
-void DrawPerLayerPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData)
+void DrawPerLayerPlots(vector<shared_ptr<Events>> &eventsSignal,
+                       vector<shared_ptr<Events>> &eventsBackground,
+                       vector<shared_ptr<Events>> &eventsData)
 {
   HistSet *dedxPerLayer = new HistSet(kDedx);
   dedxPerLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
@@ -189,7 +199,9 @@ void DrawPerLayerPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBac
   //  sizeYperLayer->DrawPerLayer();
 }
 
-void PrintYields(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData)
+void PrintYields(vector<shared_ptr<Events>> &eventsSignal,
+                 vector<shared_ptr<Events>> &eventsBackground,
+                 vector<shared_ptr<Events>> &eventsData)
 {
   int nBackgroundTotal=0;
   
@@ -223,7 +235,7 @@ int main(int argc, char* argv[])
   TApplication *theApp = new TApplication("App", &argc, argv);
   
   // All events with initial cuts only
-  vector<Events*> eventsSignal, eventsBackground, eventsData;
+  vector<shared_ptr<Events>> eventsSignal, eventsBackground, eventsData;
   
   string initPrefix;
   if(performCutsLevel==0) initPrefix = "";

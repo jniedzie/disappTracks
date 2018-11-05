@@ -52,7 +52,9 @@ void LoadEventsFromFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsB
   }
 }
 
-void ApplyCuts(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData,
+void ApplyCuts(vector<shared_ptr<Events>> &eventsSignal,
+               vector<shared_ptr<Events>> &eventsBackground,
+               vector<shared_ptr<Events>> &eventsData,
                EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
@@ -99,8 +101,8 @@ int main(int argc, char* argv[])
   int iPoint=0;
   double cutMin=0, cutMax=20, cutStep=1;
   
-  Events* eventsAfterCuts[kNsignals];
-  Events* backAfterCuts[kNbackgrounds];
+  shared_ptr<Events> eventsAfterCuts[kNsignals];
+  shared_ptr<Events> backAfterCuts[kNbackgrounds];
   
   for(double cut=cutMin;cut<cutMax; cut += cutStep){
     cout<<"cut:"<<cut<<endl;

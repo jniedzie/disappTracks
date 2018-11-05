@@ -45,7 +45,7 @@ void DrawPoints(TEvePointSetArray *points)
   gEve->Redraw3D();
 }
 
-void DrawEvent(Event *event, bool cleanView=true)
+void DrawEvent(shared_ptr<Event> event, bool cleanView=true)
 {
   gEve->GetEventScene()->DestroyElements();
   gSystem->ProcessEvents();
@@ -91,10 +91,10 @@ int main(int argc, char* argv[])
   
   TrackCut *trackCut = new TrackCut(TrackCut::kShort);
   
-  Events *filteredSignalEvents = eventsSignal->ApplyTrackCut(trackCut);
+  shared_ptr<Events> filteredSignalEvents = eventsSignal->ApplyTrackCut(trackCut);
   
   for(int iEvent=0;iEvent<filteredSignalEvents->size();iEvent++){
-    Event* event = filteredSignalEvents->At(iEvent);
+    shared_ptr<Event> event = filteredSignalEvents->At(iEvent);
     
     if(event->GetNtracks() < 1) continue;
 

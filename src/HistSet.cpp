@@ -78,9 +78,9 @@ HistSet::~HistSet()
   
 }
 
-void HistSet::FillFromEvents(std::vector<Events*> signalEvents,
-                             std::vector<Events*> backgroundEvents,
-                             std::vector<Events*> dataEvents)
+void HistSet::FillFromEvents(std::vector<shared_ptr<Events>> signalEvents,
+                             std::vector<shared_ptr<Events>> backgroundEvents,
+                             std::vector<shared_ptr<Events>> dataEvents)
 {
   if(var == kDedx || var == kSizeX || var == kSizeY){
     FillFromEventsPerLayer(signalEvents, backgroundEvents, dataEvents);
@@ -98,9 +98,9 @@ void HistSet::FillFromEvents(std::vector<Events*> signalEvents,
   }
 }
 
-void HistSet::FillFromEventsPerLayer(std::vector<Events*> signalEvents,
-                                     std::vector<Events*> backgroundEvents,
-                                     std::vector<Events*> dataEvents)
+void HistSet::FillFromEventsPerLayer(std::vector<shared_ptr<Events>> signalEvents,
+                                     std::vector<shared_ptr<Events>> backgroundEvents,
+                                     std::vector<shared_ptr<Events>> dataEvents)
 {
   const char* title= GetTitle();
   int nBins = GetNbins();
@@ -147,7 +147,7 @@ void HistSet::FillFromEventsPerLayer(std::vector<Events*> signalEvents,
   }
 }
 
-void HistSet::Fill(TH1D* hist, Events *events, int iDetId)
+void HistSet::Fill(TH1D* hist, shared_ptr<Events> events, int iDetId)
 {
   if(events){
     for(int iEvent=0;iEvent<events->size();iEvent++){
