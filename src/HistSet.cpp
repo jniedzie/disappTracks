@@ -151,7 +151,7 @@ void HistSet::Fill(TH1D* hist, Events *events, int iDetId)
 {
   if(events){
     for(int iEvent=0;iEvent<events->size();iEvent++){
-      Event *event = events->At(iEvent);
+      shared_ptr<Event> event = events->At(iEvent);
       
       double value = 0.0;
       

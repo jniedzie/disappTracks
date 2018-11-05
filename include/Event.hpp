@@ -16,6 +16,8 @@
 #include "Lepton.hpp"
 #include "LeptonCut.hpp"
 
+#include <utility>
+
 class Event;
 
 class Events {
@@ -37,12 +39,15 @@ public:
   /// Empty constructor. Creates an empty class with no events.
   Events();
   
+  /// Copy constructor. Copies all events in the collection.
+  Events(const Events &event);
+  
   /// Default destructor
   ~Events();
   
   /// Adds event to the collection of events
   /// \param event Event object to be added to the collection
-  void AddEvent(Event *event){events.push_back(event);}
+  void AddEvent(std::shared_ptr<Event> event){events.push_back(event);}
   
   /// Adds events from specified path to the existing events collection
   /// \param fileName Path to the ROOT file with ntuples from which events will be loaded
@@ -60,27 +65,27 @@ public:
   /// \param jetCut     Cuts to be applied to jets
   /// \param leptonCut  Cuts to be applied to leptons
   /// \return Returns collection of events passing cuts, containing only tracks, jets and leptons that passed all cuts
-  Events* ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut);
+  std::shared_ptr<Events> ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut);
   
   /// Applies cuts on events
   /// \param cut   Cuts to be applied to events
   /// \return Returns collection of events passing all cuts
-  Events* ApplyEventCut(EventCut *cut);
+  std::shared_ptr<Events> ApplyEventCut(EventCut *cut);
   
   /// Applies cuts on tracks
   /// \param cut   Cuts to be applied to tracks
   /// \return Returns collection of events, containing only those tracks that passed all cuts
-  Events* ApplyTrackCut(TrackCut *cut);
+  std::shared_ptr<Events> ApplyTrackCut(TrackCut *cut);
   
   /// Applies cuts on jets
   /// \param cut   Cuts to be applied to jets
   /// \return Returns collection of events, containing only those jets that passed all cuts
-  Events* ApplyJetCut(JetCut *cut);
+  std::shared_ptr<Events> ApplyJetCut(JetCut *cut);
   
   /// Applies cuts on leptons
   /// \param cut   Cuts to be applied to leptons
   /// \return Returns collection of events, containing only those leptons that passed all cuts
-  Events* ApplyLeptonCut(LeptonCut *cut);
+  std::shared_ptr<Events> ApplyLeptonCut(LeptonCut *cut);
   
   /// Returns number of events in this collection
   inline int size(){return (int)events.size();}
@@ -88,13 +93,10 @@ public:
   double weightedSize();
   
   /// Returns the event with given index
-  Event* At(int index){return events[index];}
+  std::shared_ptr<Event> At(int index){return events[index];}
 
 private:
-  /// Copy constructor. Copies all events in the collection.
-  Events(const Events &event);
-  
-  std::vector<Event*> events; ///< Vector of events
+  std::vector<std::shared_ptr<Event>> events; ///< Vector of events
 };
 
 //---------------------------------------------------------------------------------------
@@ -108,6 +110,7 @@ private:
 class Event{
 public:
   Event();
+  Event(const Event &event);
   ~Event();
   
   // setters
@@ -203,19 +206,20 @@ public:
   void Print();
   
   /// Returns a new event with only tracks passing the cut
-  Event* ApplyTrackCut(TrackCut *cut);
+  std::unique_ptr<Event> ApplyTrackCut(TrackCut *cut);
   
   /// Returns a new event with only jets passing the cut
-  Event* ApplyJetCut(JetCut *cut);
+  std::unique_ptr<Event> ApplyJetCut(JetCut *cut);
   
   /// Returns a new event with only leptons passing the cut
-  Event* ApplyLeptonCut(LeptonCut *cut);
+  std::unique_ptr<Event> ApplyLeptonCut(LeptonCut *cut);
   
   /// Check if event passes a cut
   bool IsPassingCut(EventCut *cut);
   
   /// Returns an event with global params copied (but no colletions of tracks, jets, leptons
-  Event* CopyThisEventProperties();
+  std::unique_ptr<Event> CopyThisEventProperties();
+  
   
 private:
   vector<Track*>  tracks;   ///< Vector of isolated tracks

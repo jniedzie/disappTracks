@@ -52,7 +52,9 @@ void LoadEventsFromFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsB
   }
 }
 
-void ApplyCuts(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData,
+void ApplyCuts(vector<shared_ptr<Events>> &eventsSignal,
+               vector<shared_ptr<Events>> &eventsBackground,
+               vector<shared_ptr<Events>> &eventsData,
                EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
@@ -88,9 +90,9 @@ int main(int argc, char* argv[])
   eventCut->SetHighJetMinChHEF(0.1);
   
   double dedxMin=3.0, dedxMax=6.1, dedxStep=0.1;
-  double caloEmMin=0.1, caloEmMax=1.2,caloEmStep=0.5;
-  double caloHadMin=0.1, caloHadMax=1.2,caloHadStep=0.5;
-  double metPtMin=200, metPtMax=401, metPtStep=25;
+//  double caloEmMin=0.1, caloEmMax=1.2,caloEmStep=0.5;
+//  double caloHadMin=0.1, caloHadMax=1.2,caloHadStep=0.5;
+//  double metPtMin=200, metPtMax=401, metPtStep=25;
   double jetMetPhiMin=0.1, jetMetPhiMax=1.5, jetMetPhiStep=0.1;
   double minNmissingMin=0, minNmissingMax=12, minNmissingStep=1;
   
@@ -99,8 +101,8 @@ int main(int argc, char* argv[])
     bestSb[iSig] = 0;
   }
 
-  Events* eventsAfterCuts[kNsignals];
-  Events* backAfterCuts[kNbackgrounds];
+  shared_ptr<Events> eventsAfterCuts[kNsignals];
+  shared_ptr<Events> backAfterCuts[kNbackgrounds];
   
   for(double dedxCut=dedxMin;dedxCut<dedxMax; dedxCut += dedxStep){
 //    for(double caloEmCut=caloEmMin;caloEmCut<caloEmMax; caloEmCut += caloEmStep){
@@ -148,24 +150,7 @@ int main(int argc, char* argv[])
                   cout<<"min jet,met phi:"<<jetMetPhiCut<<endl;
                   cout<<"min N missing hits:"<<minNmissingCut<<endl;
                 }
-              }
-                
-              // clean up
-              for(int iSig=0;iSig<kNsignals;iSig++){
-                if(!runSignal[iSig]) continue;
-                  if(eventsAfterCuts[iSig]){
-                    delete eventsAfterCuts[iSig];
-                    eventsAfterCuts[iSig] = nullptr;
-                  }
-              }
-              for(int iBck=0;iBck<kNbackgrounds;iBck++){
-                if(!runBackground[iBck]) continue;
-                if(backAfterCuts[iBck]){
-                  delete backAfterCuts[iBck];
-                  backAfterCuts[iBck] = nullptr;
-                }
-              }
-              
+              }  
             }
           }
 //        }

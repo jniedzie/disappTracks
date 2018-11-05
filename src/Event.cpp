@@ -22,8 +22,8 @@ Events::Events(string fileName, EDataType dataType, int maxNevents, ESignal iSig
 
 Events::Events(const Events &e)
 {
-  for(auto event : e.events){
-    events.push_back(event);
+  for(auto &event : e.events){
+    events.push_back(make_shared<Event>(*event));
   }
 }
 
@@ -34,7 +34,7 @@ Events::~Events()
 
 double Events::weightedSize(){
   double sum=0;
-  for(Event *ev : events){
+  for(auto &ev : events){
     sum += ev->GetWeight();
   }
   return sum;
@@ -146,7 +146,7 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
     iter++;
     if(maxNevents>0 && iter>maxNevents) break;
     
-    Event *newEvent = new Event();
+    unique_ptr<Event> newEvent = unique_ptr<Event>(new Event());
 
     for(int iTrack=0;iTrack<*_nTracks;iTrack++){
       Track *track = new Track();
@@ -280,7 +280,7 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
     newEvent->SetWgtSum(*_sumWgt);
     newEvent->SetGenWeight(*_genWgt);
     
-    events.push_back(newEvent);
+    events.push_back(move(newEvent));
   }
 }
 
@@ -415,7 +415,7 @@ void Events::SaveToTree(string fileName)
                  Form("IsoTrack_sizeYbyLayer%i[nIsoTrack]/I",iLayer));
   }
   
-  for(auto event : events){
+  for(auto &event : events){
     nVert = event->GetNvertices();
     nIsoTracks = (int)event->GetNtracks();
     nJet = (int)event->GetNjets();
@@ -511,9 +511,10 @@ void Events::SaveToTree(string fileName)
 //  outFile.Close();
 }
 
-Events* Events::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
+shared_ptr<Events> Events::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
 {
-  Events *outputEvents = new Events(*this);
+//  shared_ptr<Events> outputEvents = shared_ptr<Events>(new Events(*this));
+  shared_ptr<Events> outputEvents = make_shared<Events>(*this);
   
   if(trackCut)  outputEvents = outputEvents->ApplyTrackCut(trackCut);
   if(jetCut)    outputEvents = outputEvents->ApplyJetCut(jetCut);
@@ -523,9 +524,9 @@ Events* Events::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut
   return outputEvents;
 }
 
-Events* Events::ApplyEventCut(EventCut *cut)
+shared_ptr<Events> Events::ApplyEventCut(EventCut *cut)
 {
-  Events *outputEvents = new Events();
+  shared_ptr<Events> outputEvents = shared_ptr<Events>(new Events());
   
   for(int iEvent=0;iEvent<events.size();iEvent++){
     if(events[iEvent]->IsPassingCut(cut)){
@@ -535,9 +536,9 @@ Events* Events::ApplyEventCut(EventCut *cut)
   return outputEvents;
 }
 
-Events* Events::ApplyTrackCut(TrackCut *cut)
+shared_ptr<Events> Events::ApplyTrackCut(TrackCut *cut)
 {
-  Events *outputEvents = new Events();
+  shared_ptr<Events> outputEvents = shared_ptr<Events>(new Events());
   
   for(int iEvent=0;iEvent<events.size();iEvent++){
     outputEvents->AddEvent(events[iEvent]->ApplyTrackCut(cut));
@@ -545,9 +546,9 @@ Events* Events::ApplyTrackCut(TrackCut *cut)
   return outputEvents;
 }
 
-Events* Events::ApplyJetCut(JetCut *cut)
+shared_ptr<Events> Events::ApplyJetCut(JetCut *cut)
 {
-  Events *outputEvents = new Events();
+  shared_ptr<Events> outputEvents = shared_ptr<Events>(new Events());
   
   for(int iEvent=0;iEvent<events.size();iEvent++){
     outputEvents->AddEvent(events[iEvent]->ApplyJetCut(cut));
@@ -555,9 +556,9 @@ Events* Events::ApplyJetCut(JetCut *cut)
   return outputEvents;
 }
 
-Events* Events::ApplyLeptonCut(LeptonCut *cut)
+shared_ptr<Events> Events::ApplyLeptonCut(LeptonCut *cut)
 {
-  Events *outputEvents = new Events();
+  shared_ptr<Events> outputEvents = shared_ptr<Events>(new Events());
   
   for(int iEvent=0;iEvent<events.size();iEvent++){
     outputEvents->AddEvent(events[iEvent]->ApplyLeptonCut(cut));
@@ -574,6 +575,56 @@ Event::Event()
   
 }
 
+Event::Event(const Event &e)
+{
+  for(auto t : e.tracks){
+    tracks.push_back(t);
+  }
+  
+  for(auto j : e.jets){
+    jets.push_back(j);
+  }
+  
+  for(auto l : e.leptons){
+    leptons.push_back(l);
+  }
+  
+  SetWeight(e.weight);
+  SetNvertices(e.nVertices);
+  SetNjet30(e.nJet30);
+  SetNjet30a(e.nJet30a);
+  SetNlepton(e.nLepton);
+  SetNtau(e.nTau);
+  
+  SetMetSumEt(e.metSumEt);
+  SetMetPt(e.metPt);
+  SetMetMass(e.metMass);
+  SetMetPhi(e.metPhi);
+  SetMetEta(e.metEta);
+  
+  SetMetNoMuPt(e.metNoMuPt);
+  SetMetNoMuMass(e.metNoMuMass);
+  SetMetNoMuPhi(e.metNoMuPhi);
+  SetMetNoMuEta(e.metNoMuEta);
+  SetHasNoMuTrigger(e.metNoMuTrigger);
+  
+  SetGoodVerticesFlag(e.flag_goodVertices);
+  SetBadPFmuonFlag(e.flag_badPFmuon);
+  SetHBHEnoiseFlag(e.flag_HBHEnoise);
+  SetHBHEnoiseIsoFlag(e.flag_HBHEnoiseIso);
+  SetEcalDeadCellFlag(e.flag_EcalDeadCell);
+  SetEeBadScFlag(e.flag_eeBadSc);
+  SetBadChargedCandidateFlag(e.flag_badChargedCandidate);
+  SetEcalBadCalibFlag(e.flag_ecalBadCalib);
+  SetGlobalTightHalo2016Flag(e.flag_globalTightHalo2016);
+  
+  SetNgenChargino(e.nGenChargino);
+  SetXsec(e.xsec);
+  SetWgtSum(e.wgtsum);
+  SetGenWeight(e.genWeight);
+}
+
+
 Event::~Event()
 {
   
@@ -584,10 +635,10 @@ void Event::Print(){
   for(auto j : jets){   j->Print(); }
 }
 
-Event* Event::CopyThisEventProperties()
+unique_ptr<Event> Event::CopyThisEventProperties()
 {
-  Event *outputEvent = new Event();
-    
+  unique_ptr<Event> outputEvent = unique_ptr<Event>(new Event());
+  
   outputEvent->SetWeight(weight);
   outputEvent->SetNvertices(nVertices);
   outputEvent->SetNjet30(nJet30);
@@ -625,9 +676,9 @@ Event* Event::CopyThisEventProperties()
   return outputEvent;
 }
 
-Event* Event::ApplyTrackCut(TrackCut *cut)
+unique_ptr<Event> Event::ApplyTrackCut(TrackCut *cut)
 {
-  Event *outputEvent = CopyThisEventProperties();
+  unique_ptr<Event> outputEvent = CopyThisEventProperties();
   
   for(auto j : jets){outputEvent->AddJet(j);}
   for(auto l : leptons){outputEvent->AddLepton(l);}
@@ -640,9 +691,9 @@ Event* Event::ApplyTrackCut(TrackCut *cut)
   return outputEvent;
 }
 
-Event* Event::ApplyJetCut(JetCut *cut)
+unique_ptr<Event> Event::ApplyJetCut(JetCut *cut)
 {
-  Event *outputEvent = CopyThisEventProperties();
+  unique_ptr<Event> outputEvent = CopyThisEventProperties();
   
   for(auto t : tracks){outputEvent->AddTrack(t);}
   for(auto l : leptons){outputEvent->AddLepton(l);}
@@ -671,9 +722,9 @@ Event* Event::ApplyJetCut(JetCut *cut)
   return outputEvent;
 }
 
-Event* Event::ApplyLeptonCut(LeptonCut *cut)
+unique_ptr<Event> Event::ApplyLeptonCut(LeptonCut *cut)
 {
-  Event *outputEvent = CopyThisEventProperties();
+  unique_ptr<Event> outputEvent = CopyThisEventProperties();
   
   for(auto t : tracks){outputEvent->AddTrack(t);}
   for(auto j : jets){outputEvent->AddJet(j);}
