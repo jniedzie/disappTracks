@@ -30,7 +30,9 @@ nMissingInnerStripHits(99999),
 nMissingOuterStripHits(99999),
 nMissingInnerTrackerHits(99999),
 nMissingOuterTrackerHits(99999),
-nMissingMiddleTrackerHits(99999)
+nMissingMiddleTrackerHits(99999),
+nDetIDs(-1),
+nClusters(-1)
 {
   for(int iLayer=0;iLayer<nLayers;iLayer++){
     dedx.push_back(0.0);
@@ -41,22 +43,18 @@ nMissingMiddleTrackerHits(99999)
 };
 
 
-int Track::GetNclusters()
-{
-  int nClusters=0;
-  for(float d : dedx){
-    if(d > 0.000001) nClusters++;
-  }
-  return nClusters;
-}
-
-int Track::GetNdetIDs()
+void Track::CalculateInternals()
 {
   set<int> uniqueDets;
   for(int d : subDetId){
     uniqueDets.insert(d);
   }
-  return (int)uniqueDets.size();
+  nDetIDs = (int)uniqueDets.size();
+  
+  nClusters=0;
+  for(float d : dedx){
+    if(d > 0.000001) nClusters++;
+  }
 }
 
 double Track::GetDedxInSubDet(int det)

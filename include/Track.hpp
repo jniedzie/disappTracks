@@ -17,6 +17,8 @@ public:
   Track();
   ~Track(){};
   
+  void CalculateInternals(); // Call this method when everything was already added to a track
+  
   // Setters
   void SetDeDxInLayer(int layer, float value){dedx[layer] = value;}
   void SetSubDetIdInLayer(int layer, int id){subDetId[layer] = id;}
@@ -66,10 +68,6 @@ public:
   double  GetPt(){return pt;}
   int     GetPid(){return pid;}
   double  GetRelativeIsolation(){return relIso03;}
-
-  int     GetNclusters();
-  int     GetNdetIDs();
-  
   double  GetDedxInSubDet(int det);
   
   int GetNtrackerLayers(){return nTrackerLayers;}
@@ -83,6 +81,9 @@ public:
   int GetNmissingInnerTrackerHits(){return nMissingInnerTrackerHits;}
   int GetNmissingOuterTrackerHits(){return nMissingOuterTrackerHits;}
   int GetNmissingMiddleTrackerHits(){return nMissingMiddleTrackerHits;}
+  
+  int GetNclusters(){return nClusters;}
+  int GetNdetIDs(){return nDetIDs;}
   
   // Other methods
   bool IsPassingCut(TrackCut *cut);
@@ -117,6 +118,9 @@ private:
   int nMissingInnerTrackerHits; // Number of missing inner tracker hits
   int nMissingOuterTrackerHits; // Number of missing outer tracker hits
   int nMissingMiddleTrackerHits;// Number of missing middle tracker hits
+  
+  int nDetIDs;  // total number of sub-detectors hit by this track
+  int nClusters;// total number of clusters belonging to this track
 };
 
 #endif /* Track_hpp */

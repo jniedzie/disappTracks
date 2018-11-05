@@ -4,6 +4,8 @@
 #include "HistSet.hpp"
 #include "Helpers.hpp"
 
+#include "TGraph.h"
+
 #include <TApplication.h>
 
 void LoadEventsFromFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData, string prefix="")
@@ -33,7 +35,14 @@ void LoadEventsFromFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsB
     else{
       eventsBackground.push_back(new Events());
       
-      for(string path : inFileNameBackground[iBck]){
+      if(prefix==""){
+        for(string path : inFileNameBackground[iBck]){
+          eventsBackground[iBck]->AddEventsFromFile((path+prefix+"tree.root"),
+                                                    Events::kBackground, maxNeventsBackground);
+        }
+      }
+      else{
+        string path = inFileNameBackground[iBck][0];
         eventsBackground[iBck]->AddEventsFromFile((path+prefix+"tree.root"),
                                                   Events::kBackground, maxNeventsBackground);
       }
@@ -52,10 +61,10 @@ void SaveEventsToFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsBac
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     if(!runBackground[iBck]) continue;
     
-    for(string path : inFileNameBackground[iBck]){
-      system(("mkdir -p "+path+prefix).c_str());
-      eventsBackground[iBck]->SaveToTree((path+prefix+"tree.root").c_str());
-    }
+    // merged events will be stored in the first directory for given background
+    string path = inFileNameBackground[iBck][0];
+    system(("mkdir -p "+path+prefix).c_str());
+    eventsBackground[iBck]->SaveToTree((path+prefix+"tree.root").c_str());
   }
   
   for(int iData=0;iData<kNdata;iData++){
@@ -154,6 +163,8 @@ void DrawStandardPlots(vector<Events*> &eventsSignal, vector<Events*> &eventsBac
   hists["trackMetDphi"]->Draw(canvasTrack,8);
   hists["eta"]->Draw(canvasTrack,9);
   hists["dedx"]->Draw(canvasTrack,10);
+  hists["dxy"]->Draw(canvasTrack,11);
+  hists["dz"]->Draw(canvasTrack,12);
   
   TCanvas *canvasJets = new TCanvas("Jets","Jets",2880,1800);
   canvasJets->Divide(2,2);
@@ -186,20 +197,24 @@ void PrintYields(vector<Events*> &eventsSignal, vector<Events*> &eventsBackgroun
     if(!runBackground[iBck] || !eventsBackground[iBck]) continue;
     nBackgroundTotal += eventsBackground[iBck]->weightedSize();
     
-    if(printHeaders) cout<<backgroundTitle[iBck]<<"\t";
-    cout<<eventsBackground[iBck]->weightedSize()<<endl;
+    if(printYields){
+      if(printHeaders) cout<<backgroundTitle[iBck]<<"\t";
+      cout<<eventsBackground[iBck]->weightedSize()<<endl;
+    }
   }
 
-  for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig]) continue;
-    if(printHeaders) cout<<signalTitle[iSig]<<"\tN events:\t";
-    cout<<eventsSignal[iSig]->weightedSize()<<endl;
+  if(printYields){
+    for(int iSig=0;iSig<kNsignals;iSig++){
+      if(!runSignal[iSig]) continue;
+      if(printHeaders) cout<<signalTitle[iSig]<<"\tN events:\t";
+      cout<<eventsSignal[iSig]->weightedSize()<<endl;
+    }
   }
     
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]) continue;
-    if(printHeaders) cout<<signalTitle[iSig]<<"\tS/B:\t";
-    cout<<eventsSignal[iSig]->weightedSize()/(double)nBackgroundTotal<<endl;
+    if(printHeaders) cout<<signalTitle[iSig]<<"\tS/sqrt(B):\t";
+    cout<<eventsSignal[iSig]->weightedSize()/sqrt((double)nBackgroundTotal)<<endl;
   }
 }
 
@@ -214,7 +229,8 @@ int main(int argc, char* argv[])
   if(performCutsLevel==0) initPrefix = "";
   if(performCutsLevel==1) initPrefix = "after_L0/";
   if(performCutsLevel==2) initPrefix = "after_L1/";
-  if(performCutsLevel==10) initPrefix = "after_L0/";
+  if(performCutsLevel==3) initPrefix = "after_L2/";
+  if(performCutsLevel==10) initPrefix = "";
   
   LoadEventsFromFiles(eventsSignal, eventsBackground, eventsData, initPrefix);
   
@@ -235,9 +251,12 @@ int main(int argc, char* argv[])
     eventCut_L0->SetMaxNmuons(0);
     eventCut_L0->SetMaxNtau(0);
     eventCut_L0->SetMaxNlepton(0);
+    
     eventCut_L0->SetMinMetNoMuPt(200);
     eventCut_L0->SetRequireMetNoMuTrigger(true);
+    
     eventCut_L0->SetRequirePassingAllFilters(true);
+    
     eventCut_L0->SetHighJetMinPt(100);
     eventCut_L0->SetHighJetMaxEta(2.4);
     eventCut_L0->SetHighJetMaxNeHEF(0.8);
@@ -274,7 +293,7 @@ int main(int argc, char* argv[])
     jetCut_L1->SetMinTrackDeltaR(0.4);
     
     // + standard cuts to be applied after L2 selections
-    eventCut_L1->SetNtracks(1, 999999);
+    eventCut_L1->SetNtracks(1, 9999999);
     eventCut_L1->SetMinNjets(1);
     eventCut_L1->SetHighJetMinPt(100);
     eventCut_L1->SetHighJetMaxEta(2.4);
@@ -285,8 +304,8 @@ int main(int argc, char* argv[])
     cout<<"\n\nYields after level 1 cuts"<<endl;
     PrintYields(eventsSignal, eventsBackground, eventsData);
     SaveEventsToFiles(eventsSignal, eventsBackground, eventsData, "after_L1/");
-    DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
-    //  DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
+//    DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
+//  DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
   }
     
   //---------------------------------------------------------------------------
@@ -300,25 +319,57 @@ int main(int argc, char* argv[])
     // L2 cuts
     eventCut_L2->SetMinMetPt(230);
     eventCut_L2->SetMinJetMetPhi(0.5);
-    
-    eventCut_L2->SetNtracks(2, 2);
-    
+
     trackCut_L2->SetMaxEmCalo(0.5);
     trackCut_L2->SetMaxHadCalo(0.5);
     trackCut_L2->SetNmissingOuterTracker(1, 999999);
+    trackCut_L2->SetMinDedxPerCluster(2.2);
     
     // + standard cuts to be applied after L2 selections
-//    eventCut_L2->SetNtracks(1, 999999);
+    eventCut_L2->SetNtracks(1, 999999);
     eventCut_L2->SetMinNjets(1);
     eventCut_L2->SetHighJetMinPt(100);
     eventCut_L2->SetHighJetMaxEta(2.4);
     eventCut_L2->SetHighJetMaxNeHEF(0.8);
     eventCut_L2->SetHighJetMinChHEF(0.1);
     
-    ApplyCuts(eventsSignal, eventsBackground, eventsData,eventCut_L2, trackCut_L2, jetCut_L2, nullptr);
+    ApplyCuts(eventsSignal, eventsBackground, eventsData, eventCut_L2, trackCut_L2, jetCut_L2, nullptr);
     cout<<"\n\nYields after level 2 cuts"<<endl;
     PrintYields(eventsSignal, eventsBackground, eventsData);
     SaveEventsToFiles(eventsSignal, eventsBackground, eventsData, "after_L2/");
+//    DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
+//  DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
+    
+  }
+  
+  //---------------------------------------------------------------------------
+  // Level 3
+  //---------------------------------------------------------------------------
+  if(performCutsLevel == 3){
+    EventCut  *eventCut_L3 = new EventCut();
+    TrackCut  *trackCut_L3 = new TrackCut();
+    JetCut    *jetCut_L3   = new JetCut();
+    
+    // L2 cuts
+//    eventCut_L3->SetMinMetPt(230);
+//    eventCut_L3->SetMinJetMetPhi(0.5);
+    
+//    trackCut_L3->SetMaxEmCalo(0.5);
+//    trackCut_L3->SetMaxHadCalo(0.5);
+    trackCut_L3->SetNmissingOuterTracker(3, 999999);
+    
+    // + standard cuts to be applied after L2 selections
+    eventCut_L3->SetNtracks(1, 999999);
+    eventCut_L3->SetMinNjets(1);
+    eventCut_L3->SetHighJetMinPt(100);
+    eventCut_L3->SetHighJetMaxEta(2.4);
+    eventCut_L3->SetHighJetMaxNeHEF(0.8);
+    eventCut_L3->SetHighJetMinChHEF(0.1);
+    
+    ApplyCuts(eventsSignal, eventsBackground, eventsData, eventCut_L3, trackCut_L3, jetCut_L3, nullptr);
+    cout<<"\n\nYields after level 3 cuts"<<endl;
+    PrintYields(eventsSignal, eventsBackground, eventsData);
+    SaveEventsToFiles(eventsSignal, eventsBackground, eventsData, "after_L3/");
     DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
     //  DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
   }
@@ -332,24 +383,22 @@ int main(int argc, char* argv[])
     JetCut    *jetCut_adish   = new JetCut();
     
     // adish cuts
-    eventCut_adish->SetMinJetMetPhi(0.5);
+    eventCut_adish->SetRequireMetNoMuTrigger(true);
+    eventCut_adish->SetMinMetNoMuPt(200);
     
-    
-    // + standard cuts to be applied after L2 selections
-    eventCut_adish->SetNtracks(1, 999999);
     eventCut_adish->SetMinNjets(1);
+
     eventCut_adish->SetHighJetMinPt(100);
     eventCut_adish->SetHighJetMaxEta(2.4);
     eventCut_adish->SetHighJetMaxNeHEF(0.8);
     eventCut_adish->SetHighJetMinChHEF(0.1);
+
+    eventCut_adish->SetMinJetMetPhi(0.5);
+    jetCut_adish->SetPtRange(30, 999999);
     
     eventCut_adish->SetMaxNmuons(0);
     eventCut_adish->SetMaxNtau(0);
     eventCut_adish->SetMaxNlepton(0);
-    eventCut_adish->SetMinMetNoMuPt(200);
-    eventCut_adish->SetRequireMetNoMuTrigger(true);
-    eventCut_adish->SetRequirePassingAllFilters(true);
-    jetCut_adish->SetPtRange(30, 999999);
     
     ApplyCuts(eventsSignal, eventsBackground, eventsData,eventCut_adish, trackCut_adish, jetCut_adish, nullptr);
     cout<<"\n\nYields after adish cuts"<<endl;

@@ -180,6 +180,7 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
         track->SetSizeXinLayer(iLayer, (*_sizeX[iLayer])[iTrack]);
         track->SetSizeYinLayer(iLayer, (*_sizeY[iLayer])[iTrack]);
       }
+      track->CalculateInternals();
       newEvent->AddTrack(track);
     }
     
@@ -238,10 +239,6 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
 //      }
 //      else{
 //        cout<<"WARNING -- number of generator-level charginos different than 1 or 2"<<endl;
-//      }
-//      weight *= 10; // scale up to make it visible
-//      if(iSig!=kWino_M_300_cTau_3 && iSig!=kWino_M_300_cTau_10 && iSig!=kWino_M_300_cTau_30){
-//        weight *= 300;
 //      }
     }
     else if(dataType==kData){
