@@ -180,7 +180,6 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
         track->SetSizeXinLayer(iLayer, (*_sizeX[iLayer])[iTrack]);
         track->SetSizeYinLayer(iLayer, (*_sizeY[iLayer])[iTrack]);
       }
-      track->CalculateInternals();
       newEvent->AddTrack(track);
     }
     
