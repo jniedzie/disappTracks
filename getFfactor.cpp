@@ -63,55 +63,54 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   // Define event, track and jet cuts
   //---------------------------------------------------------------------------
-  unsigned int eventCutOptionsZmm =
-    EventCut::kOneTrack
-  | EventCut::kMetNoMuTrigger
-  | EventCut::kNoTau
-  | EventCut::kHighJetPt100GeV
-  | EventCut::kHighJetChHEF0p1
-  | EventCut::kHighJetNeHEF0p8
-  | EventCut::kHighJetEta2p4
-  | EventCut::kHighJet
-  | EventCut::kMetNoMu200GeV
-  | EventCut::kMetNoMuJetPhi0p5
-  | EventCut::kMuonsFromZ
-  | EventCut::kMuJetR0p4
-  | EventCut::kMuTrackR0p4
-  | EventCut::kTwoOppositeMuons
-  | EventCut::kTightMuon
-  ;
   
-  unsigned int eventCutOptionsWvl =
-    EventCut::kOneTrack
-  | EventCut::kMetNoMuTrigger
-  | EventCut::kNoTau
-  | EventCut::kHighJetPt100GeV
-  | EventCut::kHighJetChHEF0p1
-  | EventCut::kHighJetNeHEF0p8
-  | EventCut::kHighJetEta2p4
-  | EventCut::kHighJet
-  | EventCut::kMetNoMu200GeV
-  | EventCut::kMetNoMuJetPhi0p5
-//  | EventCut::kMuonsFromZ
-  | EventCut::kMuJetR0p4
-  | EventCut::kMuTrackR0p4
-//  | EventCut::kTwoOppositeMuons
-  | EventCut::kTightMuon
-  ;
+  EventCut  *eventCutZmm  = new EventCut();
+  EventCut  *eventCutWvl  = new EventCut();
+  EventCut  *eventCutZvv  = new EventCut();
   
-  unsigned int eventCutOptionsZvv =
-    EventCut::kOneTrack
-  | EventCut::kMetNoMuTrigger
-  | EventCut::kNoTau
-  | EventCut::kHighJetPt100GeV
-  | EventCut::kHighJetChHEF0p1
-  | EventCut::kHighJetNeHEF0p8
-  | EventCut::kHighJetEta2p4
-  | EventCut::kHighJet
-  | EventCut::kMet200GeV
-  | EventCut::kMetJetPhi0p5
-  | EventCut::kNoLepton
-  ;
+  
+  eventCutZmm->SetNtracks(range<int>(1,999999));
+  eventCutZmm->SetRequireMetNoMuTrigger(true);
+  eventCutZmm->SetNtaus(range<int>(0,0));
+  eventCutZmm->SetLeadingJetPt(range<double>(100,999999));
+  eventCutZmm->SetLeadingJetEta(range<double>(-2.4,2.4));
+  eventCutZmm->SetLeadingJetNeHEF(range<double>(-999999,0.8));
+  eventCutZmm->SetLeadingJetChHEF(range<double>(0.1,999999));
+  eventCutZmm->SetRequireHighJet(true);
+  eventCutZmm->SetMetNoMuPt(range<double>(200,999999));
+  eventCutZmm->SetRequireMetNoMuJetPhi0p5(true);
+  eventCutZmm->SetRequireMuonsFromZ(true);
+  eventCutZmm->SetRequireMuJetR0p4(true);
+  eventCutZmm->SetRequireMuTrackR0p4(true);
+  eventCutZmm->SetRequireTwoOppositeMuons(true);
+  eventCutZmm->SetRequireTightMuon(true);
+  
+  eventCutWvl->SetNtracks(range<int>(1,999999));
+  eventCutWvl->SetRequireMetNoMuTrigger(true);
+  eventCutWvl->SetNtaus(range<int>(0,0));
+  eventCutWvl->SetLeadingJetPt(range<double>(100,999999));
+  eventCutWvl->SetLeadingJetEta(range<double>(-2.4,2.4));
+  eventCutWvl->SetLeadingJetNeHEF(range<double>(-999999,0.8));
+  eventCutWvl->SetLeadingJetChHEF(range<double>(0.1,999999));
+  eventCutWvl->SetRequireHighJet(true);
+  eventCutWvl->SetMetNoMuPt(range<double>(200,999999));
+  eventCutWvl->SetRequireMetNoMuJetPhi0p5(true);
+  eventCutWvl->SetRequireMuJetR0p4(true);
+  eventCutWvl->SetRequireMuTrackR0p4(true);
+  eventCutWvl->SetRequireTightMuon(true);
+  
+ 
+  eventCutZvv->SetNtracks(range<int>(1,999999));
+  eventCutZvv->SetRequireMetNoMuTrigger(true);
+  eventCutZvv->SetNtaus(range<int>(0,0));
+  eventCutZvv->SetLeadingJetPt(range<double>(100,999999));
+  eventCutZvv->SetLeadingJetEta(range<double>(-2.4,2.4));
+  eventCutZvv->SetLeadingJetNeHEF(range<double>(-999999,0.8));
+  eventCutZvv->SetLeadingJetChHEF(range<double>(0.1,999999));
+  eventCutZvv->SetRequireHighJet(true);
+  eventCutZvv->SetMetPt(range<double>(200,999999));
+  eventCutZvv->SetRequireMetJetPhi0p5(true);
+  eventCutZvv->SetNleptons(range<int>(0,0));
   
   unsigned int trackCutOptions =
     TrackCut::kPt50GeV
@@ -128,11 +127,6 @@ int main(int argc, char* argv[])
 
   unsigned int leptonCutOptions =
     LeptonCut::kEmpty;
-  
-  
-  EventCut  *eventCutZmm  = new EventCut((EventCut::ECut)eventCutOptionsZmm);
-  EventCut  *eventCutZvv  = new EventCut((EventCut::ECut)eventCutOptionsZvv);
-  EventCut  *eventCutWvl  = new EventCut((EventCut::ECut)eventCutOptionsWvl);
 
   TrackCut  *trackCut     = new TrackCut((TrackCut::ECut)trackCutOptions);
   JetCut    *jetCut       = new JetCut((JetCut::ECut)jetCutOptions);

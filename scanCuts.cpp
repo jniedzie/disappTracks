@@ -15,12 +15,12 @@ int main(int argc, char* argv[])
   JetCut    *jetCut   = new JetCut();
   
   // + standard cuts to be applied after L2 selections
-  eventCut->SetNtracks(2,2);
-  eventCut->SetMinNjets(1);
-  eventCut->SetHighJetMinPt(100);
-  eventCut->SetHighJetMaxEta(2.4);
-  eventCut->SetHighJetMaxNeHEF(0.8);
-  eventCut->SetHighJetMinChHEF(0.1);
+  eventCut->SetNtracks(range<int>(2,2));
+  eventCut->SetNjets(range<int>(1,999999));
+  eventCut->SetLeadingJetPt(range<double>(100,999999));
+  eventCut->SetLeadingJetEta(range<double>(-2.4,2.4));
+  eventCut->SetLeadingJetNeHEF(range<double>(-999999,0.8));
+  eventCut->SetLeadingJetChHEF(range<double>(0.1,999999));
   
   double dedxMin=2.0, dedxMax=4.3, dedxStep=0.1;
   double caloEmMin=0.1, caloEmMax=1.2,caloEmStep=0.5;
@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
   shared_ptr<Events> eventsAfterCuts[kNsignals];
   shared_ptr<Events> backAfterCuts[kNbackgrounds];
   
-  eventCut->SetMinJetMetPhi(0.5);
+  eventCut->SetJetMetDeltaPhi(range<double>(0.5,999999));
   
   double sb_sum_best = 0;
   
