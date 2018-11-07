@@ -213,7 +213,7 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
       lepton->SetEta(_leptonEta[iLepton]);
       lepton->SetPhi(_leptonPhi[iLepton]);
       lepton->SetTightID(_leptonThightId[iLepton]);
-      lepton->SetIsolation(_leptonIsolation[iLepton]);
+      lepton->SetRelativeIsolation(_leptonIsolation[iLepton]);
       lepton->SetPid(_leptonPid[iLepton]);
       newEvent->AddLepton(lepton);
     }
@@ -498,7 +498,7 @@ void Events::SaveToTree(string fileName)
       LepGood_phi[iLep] = event->GetLepton(iLep)->GetPt();
       LepGood_eta[iLep] = event->GetLepton(iLep)->GetEta();
       LepGood_tightId[iLep] = event->GetLepton(iLep)->GetTightID();
-      LepGood_relIso04[iLep] = event->GetLepton(iLep)->GetIsolation();
+      LepGood_relIso04[iLep] = event->GetLepton(iLep)->GetRelativeIsolation();
       LepGood_pdgId[iLep] = event->GetLepton(iLep)->GetPid();
     }
     

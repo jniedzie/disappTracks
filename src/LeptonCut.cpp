@@ -7,14 +7,14 @@
 #include "LeptonCut.hpp"
 
 LeptonCut::LeptonCut(ECut cutType) :
-minPt(0.0),
-maxPt(9999999),
-maxIsolation(9999999)
+pt(range<double>()),
+relativeIsolation(range<double>()),
+requireTightID(false)
 {
-  if(cutType&kEmpty) return;
+  if(cutType&kEmpty)    return;
   if(cutType&kTightID)  requireTightID = true;
-  if(cutType&kPt20GeV)  minPt = 20.0;
-  if(cutType&kIsolated) maxIsolation = 0.15;
+  if(cutType&kPt20GeV)  pt = range<double>(20.0, 999999);
+  if(cutType&kIsolated) relativeIsolation = range<double>(-999999, 0.15);
 }
 
 LeptonCut::~LeptonCut()

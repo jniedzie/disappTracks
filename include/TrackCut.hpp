@@ -81,7 +81,7 @@ private:
   range<double> eta;                ///< allowed pseudorapidity
   range<double> caloEmEnergy;       ///< allowed energy deposit in EM calorimeter
   range<double> caloHadEnergy;      ///< allowed energy deposit in Hadronic calorimeter
-  range<double> relativeIsolation;  ///< max relative isolation in dR=0.3
+  range<double> relativeIsolation;  ///< allowed relative isolation in dR=0.3
   
   bool sameNpixelHitsLayers;        ///< require the same number of hits and layers in the pixel
   bool sameNtrackerHitsLayers;      ///< require the same number of hits and layers in the tracker

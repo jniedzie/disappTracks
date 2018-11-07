@@ -11,7 +11,7 @@ eta(99999),
 phi(99999),
 pt(99999),
 pid(99999),
-isolation(0)
+relativeIsolation(0)
 {
 
 };
@@ -19,10 +19,10 @@ isolation(0)
 bool Lepton::IsPassingCut(LeptonCut *cut)
 {
   // check pt
-  if(pt < cut->GetMinPt() || pt > cut->GetMaxPt()) return false;
+  if(cut->GetPt().IsOutside(pt)) return false;
 
   // check isolation
-  if(isolation >= cut->GetMaxIsolation()) return false;
+  if(cut->GetRelativeIsolation().IsOutside(relativeIsolation)) return false;
   
   // check tight id requirement
   if(cut->RequiresTightID() && !tightID) return false;

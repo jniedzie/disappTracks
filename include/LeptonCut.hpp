@@ -7,6 +7,11 @@
 #ifndef LeptonCut_hpp
 #define LeptonCut_hpp
 
+#include "Helpers.hpp"
+
+/// Class containing definition of the lepton selection criteria.
+/// Some pre-defined sets of cuts are available and can be set while calling a default constructor.
+/// Otherwise, user can define ranges of allowed parameters and required flags.
 class LeptonCut {
 public:
   enum ECut {
@@ -17,26 +22,29 @@ public:
     
   };
   
+  /// Default constructor
+  /// \param cutType Optionally, specify a pre-defined set of cuts
   LeptonCut(ECut cutType=kEmpty);
+  
+  /// Default constructor
   ~LeptonCut();
   
+  
   // setters
-  inline void SetPtRange(int min, int max){minPt=min;maxPt=max;}
-  inline void SetMaxIsolation(double max){maxIsolation = max;}
+  inline void SetPt(range<double> val){pt=val;}
+  inline void SetRelativeIsolation(range<double> val){relativeIsolation=val;}
   inline void SetRequireTightID(bool id){requireTightID = id;}
   
+  
   // getters
-  inline int GetMinPt(){return minPt;}
-  inline int GetMaxPt(){return maxPt;}
+  inline range<double> GetPt(){return pt;}
+  inline range<double> GetRelativeIsolation(){return relativeIsolation;}
   inline bool RequiresTightID(){return requireTightID;}
-  inline double GetMaxIsolation(){return maxIsolation;}
   
 private:
-  double minPt;         ///< min pT of the jet
-  double maxPt;         ///< max pT of the jet
-  bool requireTightID;  ///< should tight ID be required
-  double maxIsolation;  ///< max isolation value
-  
+  range<double> pt;                 ///< allowed transverse momentum of the lepton
+  range<double> relativeIsolation;  ///< allowed relative isolation in dR=0.4
+  bool requireTightID;              ///< should tight ID be required
 };
 
 #endif /* LeptonCut_hpp */
