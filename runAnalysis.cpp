@@ -72,10 +72,10 @@ int main(int argc, char* argv[])
     eventCut_L0->SetHighJetMinChHEF(0.1);
     
     //  trackCut_L0->SetRequireSameNpixelHitsLayers(true);
-    trackCut_L0->SetNmissingInnerPixel(0, 0);
-    trackCut_L0->SetNmissingMiddleTracker(0, 0);
-    trackCut_L0->SetNpixelLayers(2, 999999);
-    trackCut_L0->SetMaxEta(2.1);
+    trackCut_L0->SetNmissingInnerPixel(range<int>(0, 0));
+    trackCut_L0->SetNmissingMiddleTracker(range<int>(0, 0));
+    trackCut_L0->SetNpixelLayers(range<int>(2, 999999));
+    trackCut_L0->SetEta(range<double>(-2.1, 2.1));
 
     jetCut_L0->SetPtRange(30, 999999);
     
@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
     JetCut    *jetCut_L1   = new JetCut();
     
     // L1 cuts
-    trackCut_L1->SetMaxRelativeIsolation(0.15);
+    trackCut_L1->SetRelativeIsolation(range<double>(0.0, 0.15));
     jetCut_L1->SetMinTrackDeltaR(0.2);
     
     // + standard cuts to be applied after L2 selections
@@ -119,8 +119,8 @@ int main(int argc, char* argv[])
     eventCut_L2->SetNtracks(2,2);
     
     // play with these cuts
-    trackCut_L2->SetNmissingOuterTracker(8, 999999);
-    trackCut_L2->SetMinDedxPerCluster(3.5);
+    trackCut_L2->SetNmissingOuterTracker(range<int>(8, 999999));
+    trackCut_L2->SetDedxPerCluster(range<double>(3.5,999999));
 //    eventCut_L2->SetMinMetPt(250);
 //    trackCut_L2->SetMaxEmCalo(0.1);
 //    trackCut_L2->SetMaxHadCalo(0.1);
@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
     
 //    trackCut_L3->SetMaxEmCalo(0.5);
 //    trackCut_L3->SetMaxHadCalo(0.5);
-    trackCut_L3->SetNmissingOuterTracker(3, 999999);
+    trackCut_L3->SetNmissingOuterTracker(range<int>(3, 999999));
     
     // + standard cuts to be applied after L2 selections
     eventCut_L3->SetNtracks(1, 999999);

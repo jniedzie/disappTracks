@@ -101,7 +101,7 @@ public:
   inline int GetNmissingMiddleTrackerHits(){return nMissingMiddleTrackerHits;}
   
   inline int GetNdetIDs(){return nDetIDs;}
-  inline int GetNclusters(){return nClusters;}
+  inline int GetNdedxClusters(){return nDedxClusters;}
   
 private:
   std::vector<float> dedx;    ///< dE/dx in consecutive layers
@@ -137,7 +137,7 @@ private:
   
   
   int nDetIDs;    ///< Total number of sub-detectors hit by this track
-  int nClusters;  ///< Total number of clusters belonging to this track
+  int nDedxClusters;  ///< Total number of clusters belonging to this track
   
   /// Calculates additional properties that are not read directly from ntuples.
   /// Should be called after adding setting some of the track's properties

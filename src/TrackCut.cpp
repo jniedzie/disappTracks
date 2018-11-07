@@ -11,48 +11,34 @@
 using namespace std;
 
 TrackCut::TrackCut(ECut cutType) :
-minDedxClusters(0),
-maxDedxClusters(999999),
-minDets(0),
-maxDets(999999),
-minDedxPerCluster(0.0),
-minTotalDeDx(0.0),
-maxTotalDeDx(999999),
-minPt(0.0),
-maxEmCalo(999999),
-maxHadCalo(999999),
-maxEta(999999),
-maxRelIso(999999),
+nDedxClusters(range<int>()),
+nDetIDs(range<int>()),
+dedxPerCluster(range<double>()),
+totalDeDx(range<double>()),
+pt(range<double>()),
+caloEmEnergy(range<double>()),
+caloHadEnergy(range<double>()),
+eta(range<double>()),
+relativeIsolation(range<double>()),
 sameNpixelHitsLayers(false),
 sameNtrackerHitsLayers(false),
-minNpixelHits(0),
-maxNpixelHits(999999),
-minNpixelLayers(0),
-maxNpixelLayers(999999),
-minMissingInnerPixel(0),
-maxMissingInnerPixel(999999),
-minMissingMiddleTracker(0),
-maxMissingMiddleTracker(999999),
-minMissingOuterTracker(0),
-maxMissingOuterTracker(999999)
+nPixelHits(range<int>()),
+nPixelLayers(range<int>()),
+nMissingInnerPixel(range<int>()),
+nMissingMiddleTracker(range<int>()),
+nMissingOuterTracker(range<int>())
 {
   if(cutType&kEmpty) return;
-  if(cutType&kPt50GeV)  minPt = 50.0;
-  if(cutType&kPt200GeV) minPt = 200.0;
+  if(cutType&kPt50GeV)  pt = range<double>(50.0,  999999);
+  if(cutType&kPt200GeV) pt = range<double>(200.0, 999999);
   if(cutType&kLowCalo){
-      maxEmCalo = 0.5;
-      maxHadCalo = 0.5;
+      caloEmEnergy = range<double>(0.0, 0.5);
+      caloEmEnergy = range<double>(0.0, 0.5);
   }
-  if(cutType&kLowDEdx) maxTotalDeDx = 38.0;
-  if(cutType&kShort){
-      minDedxClusters = 3;
-      maxDedxClusters = 4;
-  }
-  if(cutType&kMedium){
-      minDedxClusters = 3;
-      maxDedxClusters = 8;
-  }
-  if(cutType&kEta2p4) maxEta = 2.4;
+  if(cutType&kLowDEdx) totalDeDx = range<double>(0.0, 38.0);
+  if(cutType&kShort)  nDedxClusters = range<int>(3, 4);
+  if(cutType&kMedium) nDedxClusters = range<int>(3, 8);
+  if(cutType&kEta2p4) eta = range<double>(-2.4, 2.4);
 }
 
 TrackCut::~TrackCut()

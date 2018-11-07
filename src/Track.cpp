@@ -32,7 +32,7 @@ nMissingInnerTrackerHits(99999),
 nMissingOuterTrackerHits(99999),
 nMissingMiddleTrackerHits(99999),
 nDetIDs(-1),
-nClusters(-1)
+nDedxClusters(-1)
 {
   for(int iLayer=0;iLayer<nLayers;iLayer++){
     dedx.push_back(0.0);
@@ -77,45 +77,33 @@ bool Track::IsPassingCut(TrackCut *cut)
     if(nTrackerHits != nTrackerLayers) return false;
   }
   
-  if(   nPixelHits < cut->GetMinNpixelHits()
-     || nPixelHits > cut->GetMaxNpixelHits()) return false;
-  
-  if(   nPixelLayers < cut->GetMinNpixelLayers()
-     || nPixelLayers > cut->GetMaxNpixelLayers()) return false;
-  
-  if(   nMissingInnerPixelHits < cut->GetMinNmissingInnerPixel()
-     || nMissingInnerPixelHits > cut->GetMaxNmissingInnerPixel()) return false;
-  
-  if(   nMissingMiddleTrackerHits < cut->GetMinNmissingMiddleTracker()
-     || nMissingMiddleTrackerHits > cut->GetMaxNmissingMiddleTracker()) return false;
-  
-  if(   nMissingOuterTrackerHits < cut->GetMinNmissingOuterTracker()
-     || nMissingOuterTrackerHits > cut->GetMaxNmissingOuterTracker()) return false;
+  if(cut->GetNpixelHits().IsOutside(nPixelHits))  return false;
+  if(cut->GetNpixelLayers().IsOutside(nPixelLayers)) return false;
+  if(cut->GetNmissingInnerPixel().IsOutside(nMissingInnerPixelHits)) return false;
+  if(cut->GetNmissingMiddleTracker().IsOutside(nMissingMiddleTrackerHits)) return false;
+  if(cut->GetNmissingOuterTracker().IsOutside(nMissingOuterTrackerHits))  return false;
   
   // check number of dedx, number of detectors, number of clusters
-  if(   GetNclusters() < cut->GetMinDedxClusters()
-     || GetNclusters() > cut->GetMaxDedxClusters()) return false;
+  if(cut->GetNdedxClusters().IsOutside(nDedxClusters)) return false;
+  if(cut->GetNdetIDs().IsOutside(nDetIDs))  return false;
   
-  if(   GetNdetIDs() < cut->GetMinDets()
-     || GetNdetIDs() > cut->GetMaxDets()) return false;
   
-  if(   GetTotalDedx() < cut->GetMinTotalDedx()
-     || GetTotalDedx() > cut->GetMaxTotalDedx())  return false;
+  if(cut->GetTotalDedx().IsOutside(GetTotalDedx())) return false;
   
-  for(int iCluster=0;iCluster<GetNclusters();iCluster++){
-    if(dedx[iCluster] < cut->GetMinDedxPerCluster()) return false;
+  for(int iCluster=0;iCluster<nDedxClusters;iCluster++){
+    if(cut->GetDedxPerCluster().IsOutside(dedx[iCluster])) return false;
   }
   
   // check basic kinematical variables
-  if(pt < cut->GetMinPt()) return false;
-  if(fabs(eta) > cut->GetMaxEta()) return false;
+  if(cut->GetPt().IsOutside(pt)) return false;
+  if(cut->GetEta().IsOutside(eta)) return false;
   
   // check calo energy
-  if(caloEmEnergy  > cut->GetMaxEmCalo() ) return false;
-  if(caloHadEnergy > cut->GetMaxHadCalo()) return false;
+  if(cut->GetCaloEmEnergy().IsOutside(caloEmEnergy))  return false;
+  if(cut->GetCaloHadEnergy().IsOutside(caloHadEnergy))  return false;
   
   // check isolation
-  if(relativeIsolation > cut->GetMaxRelativeIsolation()) return false;
+  if(cut->GetRelativeIsolation().IsOutside(relativeIsolation))  return false;
   
   return true;
 }
@@ -140,8 +128,8 @@ void Track::CalculateInternals()
   }
   nDetIDs = (int)uniqueDets.size();
   
-  nClusters=0;
+  nDedxClusters=0;
   for(float d : dedx){
-    if(d > 0.000001) nClusters++;
+    if(d > 0.000001) nDedxClusters++;
   }
 }
