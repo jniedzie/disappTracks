@@ -9,6 +9,9 @@
 
 #include "Helpers.hpp"
 
+/// Class containing definition of the track selection criteria.
+/// Some pre-defined sets of cuts are available and can be set while calling a default constructor.
+/// Otherwise, user can define ranges of allowed parameters and required flags.
 class TrackCut {
 public:
   enum ECut {
@@ -22,7 +25,11 @@ public:
     kEta2p4   = 1 << 7, ///< |eta| ≤ 2.4
   };
   
+  /// Default constructor
+  /// \param cutType Optionally, specify a pre-defined set of cuts
   TrackCut(ECut cutType=kEmpty);
+  
+  /// Default desctructor
   ~TrackCut();
   
   
@@ -46,6 +53,7 @@ public:
   inline void SetTotalDedx(range<double> val){totalDeDx=val;}
   inline void SetNdetIDs(range<int> val){nDetIDs=val;}
   inline void SetNdedxClusters(range<int> val){nDedxClusters = val;}
+  
   
   // Getters
   inline range<double> GetPt(){return pt;}

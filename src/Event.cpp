@@ -851,7 +851,7 @@ unique_ptr<Event> Event::ApplyJetCut(JetCut *cut)
       
       // check separation with all tracks in the event
       bool overlapsWithTrack = false;
-      double minTrackDeltaR = cut->GetMinTrackDeltaR();
+      double minTrackDeltaR = cut->GetTrackDeltaR().GetMin();
       
       if(minTrackDeltaR > 0){
         for(auto track : tracks){

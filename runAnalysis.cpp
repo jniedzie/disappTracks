@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
     trackCut_L0->SetNpixelLayers(range<int>(2, 999999));
     trackCut_L0->SetEta(range<double>(-2.1, 2.1));
 
-    jetCut_L0->SetPtRange(30, 999999);
+    jetCut_L0->SetPt(range<double>(30.0, 999999));
     
     ProcessCuts(eventsSignal, eventsBackground, eventsData,eventCut_L0, trackCut_L0, jetCut_L0, nullptr);
   }
@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
     
     // L1 cuts
     trackCut_L1->SetRelativeIsolation(range<double>(0.0, 0.15));
-    jetCut_L1->SetMinTrackDeltaR(0.2);
+    jetCut_L1->SetTrackDeltaR(range<double>(0.2,999999));
     
     // + standard cuts to be applied after L2 selections
     eventCut_L1->SetNtracks(1, 9999999);
@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
     eventCut_adish->SetHighJetMinChHEF(0.1);
 
     eventCut_adish->SetMinJetMetPhi(0.5);
-    jetCut_adish->SetPtRange(30, 999999);
+    jetCut_adish->SetPt(range<double>(30, 999999));
     
     eventCut_adish->SetMaxNmuons(0);
     eventCut_adish->SetMaxNtau(0);

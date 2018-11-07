@@ -321,6 +321,9 @@ class range
 public:
   range(T _min=-999999, T _max=999999) : min(_min), max(_max){}
   
+  inline T GetMin(){return min;}
+  inline T GetMax(){return max;}
+  
   inline bool IsInside(T val){
     if(val >= min && val <= max) return true;
     else return false;

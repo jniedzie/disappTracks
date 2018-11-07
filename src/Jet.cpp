@@ -36,16 +36,14 @@ void Jet::Print()
 
 bool Jet::IsPassingCut(JetCut *cut)
 {
-  // check jet's pT
-  if(pt < cut->GetMinPt() || pt > cut->GetMaxPt())return false;
-  
-  // check eta
-  if(fabs(eta) > cut->GetMaxEta()) return false;
-  if(isForward && fabs(eta) > cut->GetMaxEtaFwd())return false;
+  // check jet's kinematical properties
+  if(cut->GetPt().IsOutside(pt))  return false;
+  if(!isForward && cut->GetEta().IsOutside(eta))  return false;
+  if( isForward && cut->GetEtaForward().IsOutside(eta)) return false;
   
   // check hadron energy fractions
-  if(chargedHadronEnergyFraction < cut->GetMinChargedHadronEnergyFraction()) return false;
-  if(neutralHadronEnergyFraction > cut->GetMaxNeutralHadronEnergyFraction()) return false;
+  if(cut->GetChargedHadronEnergyFraction().IsOutside(chargedHadronEnergyFraction)) return false;
+  if(cut->GetNeutralHadronEnergyFraction().IsOutside(neutralHadronEnergyFraction)) return false;
   
   return true;
 }
