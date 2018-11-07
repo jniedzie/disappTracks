@@ -50,11 +50,11 @@ int main(int argc, char* argv[])
             for(double minNmissingCut=minNmissingMin;minNmissingCut<minNmissingMax; minNmissingCut += minNmissingStep){
 //            for(double nPixelHitsCut=nPixelHitsMin;nPixelHitsCut<nPixelHitsMax; nPixelHitsCut += nPixelHitsStep){
               
-              trackCut->SetMinDedxPerCluster(dedxCut);
+              trackCut->SetDedxPerCluster(range<double>(dedxCut,999999));
 //              trackCut->SetMaxEmCalo(caloEmCut);
 //              trackCut->SetMaxHadCalo(caloHadCut);
               //              eventCut->SetMinMetPt(metPtCut);
-              trackCut->SetNmissingOuterTracker(minNmissingCut, 999999);
+              trackCut->SetNmissingOuterTracker(range<int>(minNmissingCut, 999999));
 //              trackCut->SetNpixelHits(nPixelHitsCut, nPixelHitsCut);
               
               

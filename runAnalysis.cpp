@@ -55,21 +55,21 @@ int main(int argc, char* argv[])
     TrackCut  *trackCut_L0 = new TrackCut();
     JetCut    *jetCut_L0   = new JetCut();
     
-    eventCut_L0->SetNtracks(1, 999999);
-    eventCut_L0->SetMinNjets(1);
-    eventCut_L0->SetMaxNmuons(0);
-    eventCut_L0->SetMaxNtau(0);
-    eventCut_L0->SetMaxNlepton(0);
+    eventCut_L0->SetNtracks(range<int>(1, 999999));
+    eventCut_L0->SetNjets(range<int>(1,999999));
+    eventCut_L0->SetNmuons(range<int>(0,0));
+    eventCut_L0->SetNtaus(range<int>(0,0));
+    eventCut_L0->SetNleptons(range<int>(0,0));
 
-    eventCut_L0->SetMinMetNoMuPt(200);
+    eventCut_L0->SetMetNoMuPt(range<double>(200,999999));
     eventCut_L0->SetRequireMetNoMuTrigger(true);
 
     eventCut_L0->SetRequirePassingAllFilters(true);
 
-    eventCut_L0->SetHighJetMinPt(100);
-    eventCut_L0->SetHighJetMaxEta(2.4);
-    eventCut_L0->SetHighJetMaxNeHEF(0.8);
-    eventCut_L0->SetHighJetMinChHEF(0.1);
+    eventCut_L0->SetLeadingJetPt(range<double>(100,999999));
+    eventCut_L0->SetLeadingJetEta(range<double>(-2.4,2.4));
+    eventCut_L0->SetLeadingJetNeHEF(range<double>(-999999,0.8));
+    eventCut_L0->SetLeadingJetChHEF(range<double>(0.1,999999));
     
     //  trackCut_L0->SetRequireSameNpixelHitsLayers(true);
     trackCut_L0->SetNmissingInnerPixel(range<int>(0, 0));
@@ -96,12 +96,12 @@ int main(int argc, char* argv[])
     jetCut_L1->SetTrackDeltaR(range<double>(0.2,999999));
     
     // + standard cuts to be applied after L2 selections
-    eventCut_L1->SetNtracks(1, 9999999);
-    eventCut_L1->SetMinNjets(1);
-    eventCut_L1->SetHighJetMinPt(100);
-    eventCut_L1->SetHighJetMaxEta(2.4);
-    eventCut_L1->SetHighJetMaxNeHEF(0.8);
-    eventCut_L1->SetHighJetMinChHEF(0.1);
+    eventCut_L1->SetNtracks(range<int>(1, 999999));
+    eventCut_L1->SetNjets(range<int>(1,999999));
+    eventCut_L1->SetLeadingJetPt(range<double>(100,999999));
+    eventCut_L1->SetLeadingJetEta(range<double>(-2.4,2.4));
+    eventCut_L1->SetLeadingJetNeHEF(range<double>(-999999,0.8));
+    eventCut_L1->SetLeadingJetChHEF(range<double>(0.1,999999));
 
     ProcessCuts(eventsSignal, eventsBackground, eventsData,eventCut_L1, trackCut_L1, jetCut_L1, nullptr);
   }
@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
 
     // pick category
 //    trackCut_L2->SetNpixelLayers(4, 4);
-    eventCut_L2->SetNtracks(2,2);
+    eventCut_L2->SetNtracks(range<int>(2,2));
     
     // play with these cuts
     trackCut_L2->SetNmissingOuterTracker(range<int>(8, 999999));
@@ -126,14 +126,14 @@ int main(int argc, char* argv[])
 //    trackCut_L2->SetMaxHadCalo(0.1);
     
     // cuts not to be optimized
-    eventCut_L2->SetMinJetMetPhi(0.5);
+    eventCut_L2->SetJetMetDeltaPhi(range<double>(0.5,999999));
     
     // + standard cuts to be applied after L2 selections
-    eventCut_L2->SetMinNjets(1);
-    eventCut_L2->SetHighJetMinPt(100);
-    eventCut_L2->SetHighJetMaxEta(2.4);
-    eventCut_L2->SetHighJetMaxNeHEF(0.8);
-    eventCut_L2->SetHighJetMinChHEF(0.1);
+    eventCut_L2->SetNjets(range<int>(1,999999));
+    eventCut_L2->SetLeadingJetPt(range<double>(100,999999));
+    eventCut_L2->SetLeadingJetEta(range<double>(-2.4,2.4));
+    eventCut_L2->SetLeadingJetNeHEF(range<double>(-999999,0.8));
+    eventCut_L2->SetLeadingJetChHEF(range<double>(0.1,999999));
     
     ProcessCuts(eventsSignal, eventsBackground, eventsData, eventCut_L2, trackCut_L2, jetCut_L2, nullptr);
     
@@ -149,33 +149,6 @@ int main(int argc, char* argv[])
   }
   
   //---------------------------------------------------------------------------
-  // Level 3
-  //---------------------------------------------------------------------------
-  if(performCutsLevel == 3){
-    EventCut  *eventCut_L3 = new EventCut();
-    TrackCut  *trackCut_L3 = new TrackCut();
-    JetCut    *jetCut_L3   = new JetCut();
-    
-    // L2 cuts
-//    eventCut_L3->SetMinMetPt(230);
-//    eventCut_L3->SetMinJetMetPhi(0.5);
-    
-//    trackCut_L3->SetMaxEmCalo(0.5);
-//    trackCut_L3->SetMaxHadCalo(0.5);
-    trackCut_L3->SetNmissingOuterTracker(range<int>(3, 999999));
-    
-    // + standard cuts to be applied after L2 selections
-    eventCut_L3->SetNtracks(1, 999999);
-    eventCut_L3->SetMinNjets(1);
-    eventCut_L3->SetHighJetMinPt(100);
-    eventCut_L3->SetHighJetMaxEta(2.4);
-    eventCut_L3->SetHighJetMaxNeHEF(0.8);
-    eventCut_L3->SetHighJetMinChHEF(0.1);
-    
-    ProcessCuts(eventsSignal, eventsBackground, eventsData, eventCut_L3, trackCut_L3, jetCut_L3, nullptr);
-  }
-  
-  //---------------------------------------------------------------------------
   // Adish cuts
   //---------------------------------------------------------------------------
   if(performCutsLevel == 10){
@@ -185,21 +158,21 @@ int main(int argc, char* argv[])
     
     // adish cuts
     eventCut_adish->SetRequireMetNoMuTrigger(true);
-    eventCut_adish->SetMinMetNoMuPt(200);
+    eventCut_adish->SetMetNoMuPt(range<double>(200,999999));
     
-    eventCut_adish->SetMinNjets(1);
+    eventCut_adish->SetNjets(range<int>(1,999999));
 
-    eventCut_adish->SetHighJetMinPt(100);
-    eventCut_adish->SetHighJetMaxEta(2.4);
-    eventCut_adish->SetHighJetMaxNeHEF(0.8);
-    eventCut_adish->SetHighJetMinChHEF(0.1);
+    eventCut_adish->SetLeadingJetPt(range<double>(100,999999));
+    eventCut_adish->SetLeadingJetEta(range<double>(-2.4,2.4));
+    eventCut_adish->SetLeadingJetNeHEF(range<double>(-999999,0.8));
+    eventCut_adish->SetLeadingJetChHEF(range<double>(0.1,999999));
 
-    eventCut_adish->SetMinJetMetPhi(0.5);
+    eventCut_adish->SetJetMetDeltaPhi(range<double>(0.5,999999));
     jetCut_adish->SetPt(range<double>(30, 999999));
     
-    eventCut_adish->SetMaxNmuons(0);
-    eventCut_adish->SetMaxNtau(0);
-    eventCut_adish->SetMaxNlepton(0);
+    eventCut_adish->SetNmuons(range<int>(0,0));
+    eventCut_adish->SetNtaus(range<int>(0,0));
+    eventCut_adish->SetNleptons(range<int>(0,0));
     
     ProcessCuts(eventsSignal, eventsBackground, eventsData,eventCut_adish, trackCut_adish, jetCut_adish, nullptr);
   }

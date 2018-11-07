@@ -902,8 +902,8 @@ bool Event::IsPassingCut(EventCut *cut)
   }
   
   // check number of objects
-  if(nLepton < cut->GetMinNleptons() || nLepton > cut->GetMaxNleptons())  return false;
-  if(nTau > cut->GetMaxNtau()) return false;
+  if(cut->GetNleptons().IsOutside(nLepton))  return false;
+  if(cut->GetNtaus().IsOutside(nTau)) return false;
   
   vector<Lepton*> muons;
   for(auto l : leptons){
@@ -911,9 +911,7 @@ bool Event::IsPassingCut(EventCut *cut)
   }
   
   // check number of muons
-  if(muons.size() < cut->GetMinNmuons() || muons.size() > cut->GetMaxNmuons()){
-    return false;
-  }
+  if(cut->GetNmuons().IsOutside(muons.size())) return false;
   
   // make sure they have an opposite sign
   if(cut->RequiresTwoOppositeMuons()){
@@ -952,8 +950,8 @@ bool Event::IsPassingCut(EventCut *cut)
     if(muonVectorSum.M() < 60. || muonVectorSum.M() > 120.) return false;
   }
   
-  if(metPt < cut->GetMinMetPt())  return false;
-  if(metNoMuPt < cut->GetMinMetNoMuPt())  return false;
+  if(cut->GetMetPt().IsOutside(metPt))  return false;
+  if(cut->GetMetNoMuPt().IsOutside(metNoMuPt))  return false;
   
   // Remove jets that are too close to muons (they will be permanently removed from the event)
   if(cut->RequiresMuJetR0p4()){
@@ -1010,37 +1008,34 @@ bool Event::IsPassingCut(EventCut *cut)
   }
   
   // check number of tracks and jets after removing those that are too close to muons
-  if(GetNcentralJets() < cut->GetMinNjets()) return false;
-  if(GetNtracks() < cut->GetMinNtracks() || GetNtracks() > cut->GetMaxNtracks()) return false;
-  
+  if(cut->GetNjets().IsOutside(GetNcentralJets())) return false;
+  if(cut->GetNtracks().IsOutside(GetNtracks())) return false;
 
   // find the jet with the highest pt
-  Jet *highJet = nullptr;
+  Jet *leadingJet = nullptr;
   double highestPt = -1.0;
 
   for(int iJet=0;iJet<GetNjets();iJet++){
     if(jets[iJet]->GetPt() > highestPt){
       highestPt = jets[iJet]->GetPt();
-      highJet = jets[iJet];
+      leadingJet = jets[iJet];
     }
   }
 
   // check properties of the highest pt jet
-  if(cut->RequiresHighJet() && !highJet) return false;
-  if(highJet->GetPt() < cut->GetHighJetMinPt()) return false;
-  if(fabs(highJet->GetEta()) > cut->GetHighJetMaxEta()) return false;
-  if(highJet->GetChargedHadronEnergyFraction() < cut->GetHighJetMinChHEF()) return false;
-  if(highJet->GetNeutralHadronEnergyFraction() > cut->GetHighJetMaxNeHEF()) return false;
+  if(cut->RequiresHighJet() && !leadingJet) return false;
+  if(cut->GetLeadingJetPt().IsOutside(leadingJet->GetPt())) return false;
+  if(cut->GetLeadingJetEta().IsOutside(leadingJet->GetEta())) return false;
+  if(cut->GetLeadingJetChHEF().IsOutside(leadingJet->GetChargedHadronEnergyFraction())) return false;
+  if(cut->GetLeadingJetNeHEF().IsOutside(leadingJet->GetNeutralHadronEnergyFraction())) return false;
 
-
-  
-  if(cut->GetMinJetMetPhi() > 0.0){
+  if(cut->GetJetMetDeltaPhi().GetMin() > 0.0){
     TLorentzVector metVector, jetVector;
     metVector.SetPtEtaPhiM(metPt, metEta, metPhi, metMass);
 
     for(auto j : jets){
       jetVector.SetPtEtaPhiM(j->GetPt(), j->GetEta(), j->GetPhi(), j->GetMass());
-      if(fabs(metVector.DeltaPhi(jetVector)) < cut->GetMinJetMetPhi()) return false;
+      if(cut->GetJetMetDeltaPhi().IsOutside(fabs(metVector.DeltaPhi(jetVector)) )) return false;
     }
   }
 
@@ -1053,8 +1048,6 @@ bool Event::IsPassingCut(EventCut *cut)
       if(fabs(metVector.DeltaPhi(jetVector)) < 0.5) return false;
     }
   }
-  
-
   
   return true;
 }

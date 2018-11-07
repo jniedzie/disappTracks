@@ -23,12 +23,12 @@ int main(int argc, char* argv[])
   JetCut    *jetCut   = new JetCut();
   
   // + standard cuts to be applied after L2 selections
-  eventCut->SetNtracks(1, 999999);
-  eventCut->SetMinNjets(1);
-  eventCut->SetHighJetMinPt(100);
-  eventCut->SetHighJetMaxEta(2.4);
-  eventCut->SetHighJetMaxNeHEF(0.8);
-  eventCut->SetHighJetMinChHEF(0.1);
+  eventCut->SetNtracks(range<int>(1, 999999));
+  eventCut->SetNjets(range<int>(1,999999));
+  eventCut->SetLeadingJetPt(range<double>(100,999999));
+  eventCut->SetLeadingJetEta(range<double>(-2.4,2.4));
+  eventCut->SetLeadingJetNeHEF(range<double>(-999999,0.8));
+  eventCut->SetLeadingJetChHEF(range<double>(0.1,999999));
   
   TGraph *sb[kNsignals];
   

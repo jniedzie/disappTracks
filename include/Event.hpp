@@ -175,9 +175,9 @@ public:
   // getters
   inline double GetWeight(){return weight;}
   
-  inline unsigned long GetNtracks(){return tracks.size(); }
-  inline unsigned long GetNjets(){return jets.size(); }
-  inline unsigned long GetNcentralJets(){
+  inline int GetNtracks(){return (int)tracks.size(); }
+  inline int GetNjets(){return (int)jets.size(); }
+  inline int GetNcentralJets(){
     int n=0;
     for(auto j : jets){
       if(!j->IsForward()) n++;
