@@ -620,7 +620,7 @@ void Events::PrintYields(vector<shared_ptr<Events>> &eventsSignal,
     nBackgroundTotal += eventsBackground[iBck]->weightedSize();
     
     if(printYields){
-      if(printHeaders) cout<<backgroundTitle[iBck]<<"\t";
+      cout<<backgroundTitle[iBck]<<"\t";
       cout<<eventsBackground[iBck]->weightedSize();
       cout<<"\t("<<eventsBackground[iBck]->size()<<")"<<endl;
     }
@@ -629,7 +629,7 @@ void Events::PrintYields(vector<shared_ptr<Events>> &eventsSignal,
   if(printYields){
     for(int iSig=0;iSig<kNsignals;iSig++){
       if(!runSignal[iSig]) continue;
-      if(printHeaders) cout<<signalTitle[iSig]<<"\tN events:\t";
+      cout<<signalTitle[iSig]<<"\tN events:\t";
       cout<<eventsSignal[iSig]->weightedSize();
       cout<<"\t("<<eventsSignal[iSig]->size()<<")"<<endl;
     }
@@ -637,13 +637,13 @@ void Events::PrintYields(vector<shared_ptr<Events>> &eventsSignal,
   
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]) continue;
-    if(printHeaders) cout<<signalTitle[iSig]<<"\tS/sqrt(B):\t";
+    cout<<signalTitle[iSig]<<"\tS/sqrt(B):\t";
     cout<<eventsSignal[iSig]->weightedSize()/sqrt(nBackgroundTotal+eventsSignal[iSig]->weightedSize())<<endl;
   }
   
   for(int iData=0;iData<kNdata;iData++){
     if(!runData[iData]) continue;
-    if(printHeaders) cout<<dataTitle[iData]<<"\tS/sqrt(B):\t";
+    cout<<dataTitle[iData]<<"\tS/sqrt(B):\t";
     cout<<eventsData[iData]->weightedSize()/sqrt(nBackgroundTotal+eventsData[iData]->weightedSize())<<endl;
   }
 }

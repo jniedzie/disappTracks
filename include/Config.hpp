@@ -13,11 +13,15 @@
 using namespace std;
 
 // Analysis configuration
-const bool printHeaders = true;
-const bool printYields = true;
-const bool interactive = false;
-const bool showLegends = false;
 const int performCutsLevel = 2;
+
+const bool saveEvents = false;
+const bool printYields = true;
+const bool printBackgroundDetails = false;
+
+const bool drawStandardPlots = false;
+const bool drawPerLayerPlots = false;
+const bool showLegends = false;
 
 // Limit number of events loaded (-1 means load all available)
 const int maxNeventsBackground  = -1;
