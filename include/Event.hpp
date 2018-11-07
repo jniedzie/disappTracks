@@ -59,6 +59,25 @@ public:
   
   void SaveToTree(std::string fileName);
   
+  static void LoadEventsFromFiles(vector<shared_ptr<Events>> &eventsSignal,
+                                  vector<shared_ptr<Events>> &eventsBackground,
+                                  vector<shared_ptr<Events>> &eventsData,
+                                  string prefix="");
+  
+  static void SaveEventsToFiles(vector<shared_ptr<Events>> &eventsSignal,
+                                vector<shared_ptr<Events>> &eventsBackground,
+                                vector<shared_ptr<Events>> &eventsData,
+                                string prefix="after_L/");
+  
+  static void ApplyCuts(vector<shared_ptr<Events>> &eventsSignal,
+                        vector<shared_ptr<Events>> &eventsBackground,
+                        vector<shared_ptr<Events>> &eventsData,
+                        EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut);
+  
+  static void PrintYields(vector<shared_ptr<Events>> &eventsSignal,
+                          vector<shared_ptr<Events>> &eventsBackground,
+                          vector<shared_ptr<Events>> &eventsData);
+  
   /// Applies cuts in this order: track, jet, lepton, event
   /// \param eventCut   Cuts to be applied to events
   /// \param trackCut   Cuts to be applied to tracks

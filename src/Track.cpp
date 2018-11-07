@@ -71,9 +71,14 @@ double Track::GetDedxInSubDet(int det)
 
 void Track::Print()
 {
-  for(int iLayer=0;iLayer<nLayers;iLayer++){
-    cout<<"Layer:"<<iLayer<<"\tsub-det ID:"<<subDetId[iLayer]<<"\tdEdx:"<<dedx[iLayer]<<endl;
-  }
+  cout<<"PID:"<<pid<<"\trel iso:"<<relIso03<<endl;
+  cout<<"eta:"<<eta<<"\tphi:"<<phi<<"\tpT:"<<pt<<endl;
+  cout<<"Tracker layers:"<<nTrackerLayers<<"\tpixel layers:"<<nPixelLayers<<endl;
+  cout<<"Missing outer tracker hits:"<<nMissingOuterTrackerHits<<endl;
+  
+//  for(int iLayer=0;iLayer<nLayers;iLayer++){
+//    cout<<"Layer:"<<iLayer<<"\tsub-det ID:"<<subDetId[iLayer]<<"\tdEdx:"<<dedx[iLayer]<<endl;
+//  }
 }
 
 bool Track::IsPassingCut(TrackCut *cut)

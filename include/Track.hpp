@@ -68,6 +68,7 @@ public:
   double  GetPt(){return pt;}
   int     GetPid(){return pid;}
   double  GetRelativeIsolation(){return relIso03;}
+  double  GetAbsoluteIsolation(){return relIso03*pt;}
   double  GetDedxInSubDet(int det);
   
   int GetNtrackerLayers(){return nTrackerLayers;}

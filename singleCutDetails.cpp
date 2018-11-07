@@ -10,74 +10,13 @@
 
 ESignal testSignal = kWino_M_300_cTau_30;
 
-void LoadEventsFromFiles(vector<Events*> &eventsSignal, vector<Events*> &eventsBackground, vector<Events*> &eventsData, string prefix="")
-{
-  for(int iData=0;iData<kNdata;iData++){
-    if(!runData[iData]){
-      eventsData.push_back(nullptr);
-    }
-    else{
-      eventsData.push_back(new Events((inFileNameData[iData]+prefix+"tree.root"), Events::kData, maxNeventsData));
-    }
-  }
-  
-  for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig]){
-      eventsSignal.push_back(nullptr);
-    }
-    else{
-      eventsSignal.push_back(new Events((inFileNameSignal[iSig]+prefix+"tree.root"), Events::kSignal, maxNeventsSignal,(ESignal)iSig));
-    }
-  }
-  
-  for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    if(!runBackground[iBck]){
-      eventsBackground.push_back(nullptr);
-    }
-    else{
-      eventsBackground.push_back(new Events());
-      
-      if(prefix==""){
-        for(string path : inFileNameBackground[iBck]){
-          eventsBackground[iBck]->AddEventsFromFile((path+prefix+"tree.root"),
-                                                    Events::kBackground, maxNeventsBackground);
-        }
-      }
-      else{
-        string path = inFileNameBackground[iBck][0];
-        eventsBackground[iBck]->AddEventsFromFile((path+prefix+"tree.root"),
-                                                  Events::kBackground, maxNeventsBackground);
-      }
-    }
-  }
-}
-
-void ApplyCuts(vector<shared_ptr<Events>> &eventsSignal,
-               vector<shared_ptr<Events>> &eventsBackground,
-               vector<shared_ptr<Events>> &eventsData,
-               EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
-{
-  for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig]) continue;
-    eventsSignal[iSig] = eventsSignal[iSig]->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
-  }
-  for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    if(!runBackground[iBck]) continue;
-    eventsBackground[iBck] = eventsBackground[iBck]->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
-  }
-  for(int iData=0;iData<kNdata;iData++){
-    if(!runData[iData]) continue;
-    eventsData[iData] = eventsData[iData]->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
-  }
-}
-
 int main(int argc, char* argv[])
 {
   TApplication *theApp = new TApplication("App", &argc, argv);
   
   // All events with initial cuts only
-  vector<Events*> eventsSignal, eventsBackground, eventsData;
-  LoadEventsFromFiles(eventsSignal, eventsBackground, eventsData, "after_L1/");
+  vector<shared_ptr<Events>> eventsSignal, eventsBackground, eventsData;
+  Events::LoadEventsFromFiles(eventsSignal, eventsBackground, eventsData, "after_L1/");
   
   EventCut  *eventCut = new EventCut();
   TrackCut  *trackCut = new TrackCut();

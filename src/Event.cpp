@@ -222,6 +222,13 @@ void Events::AddEventsFromFile(std::string fileName, EDataType dataType, int max
     double lumi = 41.37 * 1000.;
     double weight = lumi * (*_genWgt) / (*_sumWgt);
 
+//    static map<string,set<double>> wgts;
+//
+//    if(*_genWgt != 1.0 && wgts[fileName].find(*_genWgt) == wgts[fileName].end() ){
+//      wgts[fileName].insert(*_genWgt);
+//      cout<<*_genWgt<<"\t"<<fileName<<endl;
+//    }
+    
     if(dataType==kBackground){
       weight *= (*_xSec);
     }
@@ -511,6 +518,136 @@ void Events::SaveToTree(string fileName)
 //  outFile.Close();
 }
 
+void Events::LoadEventsFromFiles(vector<shared_ptr<Events>> &eventsSignal,
+                                 vector<shared_ptr<Events>> &eventsBackground,
+                                 vector<shared_ptr<Events>> &eventsData,
+                                 string prefix)
+{
+  for(int iData=0;iData<kNdata;iData++){
+    if(!runData[iData]){
+      eventsData.push_back(nullptr);
+    }
+    else{
+      eventsData.push_back(make_shared<Events>((inFileNameData[iData]+prefix+"tree.root"), Events::kData, maxNeventsData));
+    }
+  }
+  
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    if(!runSignal[iSig]){
+      eventsSignal.push_back(nullptr);
+    }
+    else{
+      eventsSignal.push_back(make_shared<Events>((inFileNameSignal[iSig]+prefix+"tree.root"), Events::kSignal, maxNeventsSignal,(ESignal)iSig));
+    }
+  }
+  
+  for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    if(!runBackground[iBck]){
+      eventsBackground.push_back(nullptr);
+    }
+    else{
+      eventsBackground.push_back(make_shared<Events>());
+      
+      if(prefix==""){
+        for(string path : inFileNameBackground[iBck]){
+          eventsBackground[iBck]->AddEventsFromFile((path+prefix+"tree.root"),
+                                                    Events::kBackground, maxNeventsBackground);
+        }
+      }
+      else{
+        string path = inFileNameBackground[iBck][0];
+        eventsBackground[iBck]->AddEventsFromFile((path+prefix+"tree.root"),
+                                                  Events::kBackground, maxNeventsBackground);
+      }
+    }
+  }
+}
+
+void Events::SaveEventsToFiles(vector<shared_ptr<Events>> &eventsSignal,
+                               vector<shared_ptr<Events>> &eventsBackground,
+                               vector<shared_ptr<Events>> &eventsData,
+                               string prefix)
+{
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    if(!runSignal[iSig]) continue;
+    system(("mkdir -p "+inFileNameSignal[iSig]+prefix).c_str());
+    eventsSignal[iSig]->SaveToTree((inFileNameSignal[iSig]+prefix+"tree.root").c_str());
+  }
+  
+  for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    if(!runBackground[iBck]) continue;
+    
+    // merged events will be stored in the first directory for given background
+    string path = inFileNameBackground[iBck][0];
+    system(("mkdir -p "+path+prefix).c_str());
+    eventsBackground[iBck]->SaveToTree((path+prefix+"tree.root").c_str());
+  }
+  
+  for(int iData=0;iData<kNdata;iData++){
+    if(!runData[iData]) continue;
+    system(("mkdir -p "+inFileNameData[iData]+prefix).c_str());
+    eventsData[iData]->SaveToTree((inFileNameData[iData]+prefix+"tree.root").c_str());
+  }
+}
+
+void Events::ApplyCuts(vector<shared_ptr<Events>> &eventsSignal,
+               vector<shared_ptr<Events>> &eventsBackground,
+               vector<shared_ptr<Events>> &eventsData,
+               EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
+{
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    if(!runSignal[iSig]) continue;
+    eventsSignal[iSig] = eventsSignal[iSig]->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+  }
+  for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    if(!runBackground[iBck]) continue;
+    eventsBackground[iBck] = eventsBackground[iBck]->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+  }
+  for(int iData=0;iData<kNdata;iData++){
+    if(!runData[iData]) continue;
+    eventsData[iData] = eventsData[iData]->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+  }
+}
+
+void Events::PrintYields(vector<shared_ptr<Events>> &eventsSignal,
+                         vector<shared_ptr<Events>> &eventsBackground,
+                         vector<shared_ptr<Events>> &eventsData)
+{
+  double nBackgroundTotal=0;
+  
+  for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    if(!runBackground[iBck] || !eventsBackground[iBck]) continue;
+    nBackgroundTotal += eventsBackground[iBck]->weightedSize();
+    
+    if(printYields){
+      if(printHeaders) cout<<backgroundTitle[iBck]<<"\t";
+      cout<<eventsBackground[iBck]->weightedSize();
+      cout<<"\t("<<eventsBackground[iBck]->size()<<")"<<endl;
+    }
+  }
+  
+  if(printYields){
+    for(int iSig=0;iSig<kNsignals;iSig++){
+      if(!runSignal[iSig]) continue;
+      if(printHeaders) cout<<signalTitle[iSig]<<"\tN events:\t";
+      cout<<eventsSignal[iSig]->weightedSize();
+      cout<<"\t("<<eventsSignal[iSig]->size()<<")"<<endl;
+    }
+  }
+  
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    if(!runSignal[iSig]) continue;
+    if(printHeaders) cout<<signalTitle[iSig]<<"\tS/sqrt(B):\t";
+    cout<<eventsSignal[iSig]->weightedSize()/sqrt(nBackgroundTotal+eventsSignal[iSig]->weightedSize())<<endl;
+  }
+  
+  for(int iData=0;iData<kNdata;iData++){
+    if(!runData[iData]) continue;
+    if(printHeaders) cout<<dataTitle[iData]<<"\tS/sqrt(B):\t";
+    cout<<eventsData[iData]->weightedSize()/sqrt(nBackgroundTotal+eventsData[iData]->weightedSize())<<endl;
+  }
+}
+
 shared_ptr<Events> Events::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
 {
 //  shared_ptr<Events> outputEvents = shared_ptr<Events>(new Events(*this));
@@ -631,8 +768,20 @@ Event::~Event()
 }
 
 void Event::Print(){
+  cout<<"\n\n================================================"<<endl;
+  cout<<"Event:"<<endl;
+  cout<<"\t n vertices:"<<nVertices<<endl;
+  cout<<"\t MET pT:"<<metPt<<"\teta:"<<metEta<<"\tphi:"<<metPhi<<endl;
+  cout<<"weigth:"<<genWeight<<endl;
+  cout<<"xsec:"<<xsec<<endl;
+  
+  cout<<"\nTracks:"<<endl;
   for(auto t : tracks){ t->Print(); }
+  
+  cout<<"\nJets:"<<endl;
   for(auto j : jets){   j->Print(); }
+  
+  cout<<"================================================\n\n"<<endl;
 }
 
 unique_ptr<Event> Event::CopyThisEventProperties()
@@ -747,7 +896,7 @@ bool Event::IsPassingCut(EventCut *cut)
   if(cut->GetRequiresPassingAllFilters()){
     if(   !flag_goodVertices  || !flag_goodVertices         || !flag_badPFmuon
        || !flag_HBHEnoise     || !flag_HBHEnoiseIso         || !flag_EcalDeadCell
-       || !flag_eeBadSc       || flag_badChargedCandidate   || !flag_ecalBadCalib
+       || !flag_eeBadSc       /*|| flag_badChargedCandidate*/   || !flag_ecalBadCalib
        || !flag_globalTightHalo2016){
       return false;
     }

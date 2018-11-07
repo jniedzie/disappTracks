@@ -33,6 +33,15 @@ public:
   void Draw(TCanvas *c1, int pad);
   void DrawPerLayer();
   
+  static void DrawStandardPlots(vector<shared_ptr<Events>> &eventsSignal,
+                                vector<shared_ptr<Events>> &eventsBackground,
+                                vector<shared_ptr<Events>> &eventsData,
+                                string prefix="");
+  
+  static void DrawPerLayerPlots(vector<shared_ptr<Events>> &eventsSignal,
+                                vector<shared_ptr<Events>> &eventsBackground,
+                                vector<shared_ptr<Events>> &eventsData);
+  
   inline void SetShowNonZerBinPosX(){showNonZeroBinPosX = true;}
 private:
   vector<TH1D*> signal;

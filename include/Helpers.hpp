@@ -71,7 +71,7 @@ const vector<vector<int>> signalColors = {
 // {140, 50 , 230} {170, 200, 195} {240, 50 , 100} {255, 225, 25 } {0  , 128, 128} {230, 190, 255} {170, 100, 195} {240, 50 , 230}
 
 const vector<vector<int>> dataColors = {
-  {50 , 190, 255},  // single electron (2017B)
+  {200 , 10, 10},  // single electron (2017B)
 };
 
 // Names of background, signal and data samples
@@ -280,6 +280,7 @@ enum EVar{
   kTrackPixelHits,
   kTrackTrackerHits,
   kTrackRelativeIsolation,
+  kTrackAbsoluteIsolation,
   kTrackMetDphi,
   kTrackDedxPerHit,
   

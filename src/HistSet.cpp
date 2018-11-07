@@ -214,6 +214,7 @@ void HistSet::Fill(TH1D* hist, shared_ptr<Events> events, int iDetId)
         else if(var == kTrackPixelHits)               value = track->GetNpixelHits();
         else if(var == kTrackTrackerHits)             value = track->GetNtrackerHits();
         else if(var == kTrackRelativeIsolation)       value = track->GetRelativeIsolation();
+        else if(var == kTrackAbsoluteIsolation)       value = track->GetAbsoluteIsolation();
         else if(var == kTrackMetDphi)                 value = event->GetMetPhi() - track->GetPhi();
         
         else if(var == kDedx || var == kSizeX || var == kSizeY){
@@ -238,7 +239,7 @@ void HistSet::Fill(TH1D* hist, shared_ptr<Events> events, int iDetId)
         if(var == kTrackNclusters || var == kTrackTotalDedx || var == kTrackDedxPerCluster || var == kTrackPt
              || var == kTrackEta || var == kTrackPhi || var == kTrackCaloEm || var == kTrackCaloHad
              || var == kTrackDxy ||var == kTrackDz   || var == kTrackCharge || var == kTrackMass || var == kTrackPid
-           || var == kTrackMissingOuterTrackerHits || var == kTrackPixelHits || var == kTrackTrackerHits || var == kTrackRelativeIsolation || var == kTrackMetDphi){
+           || var == kTrackMissingOuterTrackerHits || var == kTrackPixelHits || var == kTrackTrackerHits || var == kTrackRelativeIsolation || var == kTrackAbsoluteIsolation || var == kTrackMetDphi){
           hist->Fill(value, event->GetWeight());
         }
       }
@@ -399,6 +400,110 @@ void HistSet::DrawPerLayer()
   c1->Update();
 }
 
+void HistSet::DrawStandardPlots(vector<shared_ptr<Events>> &eventsSignal,
+                                vector<shared_ptr<Events>> &eventsBackground,
+                                vector<shared_ptr<Events>> &eventsData,
+                                string prefix)
+{
+  // Create standard per event, per track and per jet plots
+  map<string, HistSet*> hists;
+  
+  hists["nVertices"]  = new HistSet(kNvertices);
+  hists["nIsoTrack"]  = new HistSet(kNisoTracks);
+  hists["nJet"]       = new HistSet(kNjets);
+  hists["nJet30"]     = new HistSet(kNjets30);
+  hists["nJet30a"]    = new HistSet(kNjets30a);
+  hists["nMetSumEt"]  = new HistSet(kMetSumEt);
+  hists["nMetPt"]     = new HistSet(kMetPt);
+  hists["nMetMass"]   = new HistSet(kMetMass);
+  hists["nMetEta"]    = new HistSet(kMetEta);
+  hists["nMetPhi"]    = new HistSet(kMetPhi);
+  hists["nMetJetDphi"]= new HistSet(kMetJetDphi);
+  
+  hists["nClustersPerTrack"]  = new HistSet(kTrackNclusters);
+  hists["totalDeDx"]          = new HistSet(kTrackTotalDedx);
+  hists["totalDeDxByNclusters"] = new HistSet(kTrackDedxPerCluster);
+  hists["missingOuterTracker"]  = new HistSet(kTrackMissingOuterTrackerHits);
+  
+  hists["pt"]           = new HistSet(kTrackPt);
+  hists["eta"]          = new HistSet(kTrackEta);
+  hists["phi"]          = new HistSet(kTrackPhi);
+  hists["caloEm"]       = new HistSet(kTrackCaloEm);
+  hists["caloHad"]      = new HistSet(kTrackCaloHad);
+  hists["pixelHits"]    = new HistSet(kTrackPixelHits);
+  hists["trackerHits"]  = new HistSet(kTrackTrackerHits);
+  hists["isolation"]    = new HistSet(kTrackRelativeIsolation);
+  hists["absIsolation"] = new HistSet(kTrackAbsoluteIsolation);
+  hists["trackMetDphi"] = new HistSet(kTrackMetDphi);
+  hists["dedx"]         = new HistSet(kTrackDedxPerHit);
+  
+  hists["dxy"]    = new HistSet(kTrackDxy);
+  hists["dz"]     = new HistSet(kTrackDz);
+  hists["charge"] = new HistSet(kTrackCharge);
+  hists["mass"]   = new HistSet(kTrackMass);
+  hists["pid"]    = new HistSet(kTrackPid);
+  
+  hists["jet_pt"]     = new HistSet(kJetPt);
+  hists["jet_eta"]    = new HistSet(kJetEta);
+  hists["jet_phi"]    = new HistSet(kJetPhi);
+  hists["jetTrackDr"] = new HistSet(kJetTrackDr);
+  
+  for(auto hist : hists){
+    hist.second->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  }
+  
+  // Plot histograms
+  TCanvas *canvasEvents = new TCanvas((prefix+"Events").c_str(),(prefix+"Events").c_str(),2880,1800);
+  canvasEvents->Divide(3,2);
+  
+  hists["nVertices"]->Draw(canvasEvents,1);
+  hists["nIsoTrack"]->Draw(canvasEvents,2);
+  hists["nJet"]->Draw(canvasEvents,3);
+  hists["jet_pt"]->Draw(canvasEvents, 4);
+  hists["nMetPt"]->Draw(canvasEvents,5);
+  hists["nMetJetDphi"]->Draw(canvasEvents,6);
+  
+  TCanvas *canvasTrack = new TCanvas((prefix+"Tracks").c_str(),(prefix+"Tracks").c_str(),2880,1800);
+  canvasTrack->Divide(4,3);
+  
+  hists["pt"]->Draw(canvasTrack,1);
+  hists["caloEm"]->Draw(canvasTrack,2);
+  hists["caloHad"]->Draw(canvasTrack,3);
+  hists["missingOuterTracker"]->Draw(canvasTrack,4);
+  hists["pixelHits"]->Draw(canvasTrack,5);
+  hists["trackerHits"]->Draw(canvasTrack,6);
+  hists["isolation"]->Draw(canvasTrack,7);
+  hists["trackMetDphi"]->Draw(canvasTrack,8);
+  hists["eta"]->Draw(canvasTrack,9);
+  hists["dedx"]->Draw(canvasTrack,10);
+  hists["absIsolation"]->Draw(canvasTrack,11);
+  hists["dz"]->Draw(canvasTrack,12);
+  
+  TCanvas *canvasJets = new TCanvas("Jets","Jets",2880,1800);
+  canvasJets->Divide(2,2);
+  
+  hists["jetTrackDr"]->Draw(canvasJets, 1);
+  hists["jet_eta"]->Draw(canvasJets, 2);
+  hists["jet_phi"]->Draw(canvasJets, 3);
+}
+
+void DrawPerLayerPlots(vector<shared_ptr<Events>> &eventsSignal,
+                       vector<shared_ptr<Events>> &eventsBackground,
+                       vector<shared_ptr<Events>> &eventsData)
+{
+  HistSet *dedxPerLayer = new HistSet(kDedx);
+  dedxPerLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  dedxPerLayer->DrawPerLayer();
+  
+  //  HistSet *sizeXperLayer = new HistSet(kSizeX);
+  //  sizeXperLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  //  sizeXperLayer->DrawPerLayer();
+  //
+  //  HistSet *sizeYperLayer = new HistSet(kSizeY);
+  //  sizeYperLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  //  sizeYperLayer->DrawPerLayer();
+}
+
 TLegend* HistSet::GetLegend()
 {
   double legendW=0.25, legendH=0.80, legendX=0.65, legendY=0.1;
@@ -441,6 +546,7 @@ const char* HistSet::GetTitle()
   if(var == kTrackPixelHits) return "N pixel hits";
   if(var == kTrackTrackerHits) return "N tracker hits";
   if(var == kTrackRelativeIsolation) return "Relative isolation in dR=0.3";
+  if(var == kTrackAbsoluteIsolation) return "Absolute isolation in dR=0.3";
   if(var == kTrackMetDphi) return "#Delta #phi (p_{T}^{track},p_{T}^{MET})";
   if(var == kTrackDedxPerHit) return "dE/dx per hit";
   
@@ -487,6 +593,7 @@ int HistSet::GetNbins()
   if(var == kTrackPixelHits)      return 10;
   if(var == kTrackTrackerHits)    return 40;
   if(var == kTrackRelativeIsolation)    return 200;
+  if(var == kTrackAbsoluteIsolation)    return 200;
   if(var == kTrackMetDphi)        return 25;
   if(var == kTrackDedxPerHit)     return 50;
   
@@ -533,6 +640,7 @@ double HistSet::GetMin()
   if(var == kTrackPixelHits)      return 0;
   if(var == kTrackTrackerHits)    return 0;
   if(var == kTrackRelativeIsolation)    return 0;
+  if(var == kTrackAbsoluteIsolation)    return 0;
   if(var == kTrackMetDphi)        return -3.5;
   if(var == kTrackDedxPerHit)     return 0;
   
@@ -578,6 +686,7 @@ double HistSet::GetMax()
   if(var == kTrackPixelHits)      return 10;
   if(var == kTrackTrackerHits)    return 40;
   if(var == kTrackRelativeIsolation)    return 10;
+  if(var == kTrackAbsoluteIsolation)    return 10;
   if(var == kTrackMetDphi)        return 3.5;
   if(var == kTrackDedxPerHit)     return 14;
   
