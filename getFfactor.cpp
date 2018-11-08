@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
   JetCut    *jetCut       = new JetCut((JetCut::ECut)jetCutOptions);
   LeptonCut *leptonCut    = new LeptonCut((LeptonCut::ECut)leptonCutOptions);
   
-  for(int iHT=0;iHT<ZmmFilePaths.size();iHT++){
+  for(int iHT=0;iHT<(int)ZmmFilePaths.size();iHT++){
     ZmmData.push_back(make_shared<Events>(basePath+"/"+ZmmFilePaths[iHT]+"/tree.root",Events::kBackground));
     ZmmData[iHT] = ZmmData[iHT]->ApplyCuts(eventCutZmm, trackCut, jetCut, leptonCut);
     
@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
     }
   }
   
-  for(int iHT=0;iHT<WvlFilePaths.size();iHT++){
+  for(int iHT=0;iHT<(int)WvlFilePaths.size();iHT++){
     WvlData.push_back(make_shared<Events>(basePath+"/"+WvlFilePaths[iHT]+"/tree.root",Events::kBackground));
     WvlData[iHT] = WvlData[iHT]->ApplyCuts(eventCutWvl, trackCut, jetCut, leptonCut);
     
@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
     }
   }
     
-  for(int iHT=0;iHT<ZvvFilePaths.size();iHT++){
+  for(int iHT=0;iHT<(int)ZvvFilePaths.size();iHT++){
     ZvvData.push_back(make_shared<Events>(basePath+"/"+ZvvFilePaths[iHT]+"/tree.root",Events::kBackground));
     ZvvData[iHT] = ZvvData[iHT]->ApplyCuts(eventCutZvv, trackCut, jetCut, leptonCut);
 

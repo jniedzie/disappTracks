@@ -4,7 +4,7 @@
 #include "HistSet.hpp"
 #include "Helpers.hpp"
 
-int main(int argc, char* argv[])
+int main()
 {
   // All events with initial cuts only
   vector<shared_ptr<Events>> eventsSignal, eventsBackground, eventsData;
@@ -23,12 +23,12 @@ int main(int argc, char* argv[])
   eventCut->SetLeadingJetChHEF(range<double>(0.1,999999));
   
   double dedxMin=2.0, dedxMax=4.3, dedxStep=0.1;
-  double caloEmMin=0.1, caloEmMax=1.2,caloEmStep=0.5;
-  double caloHadMin=0.1, caloHadMax=1.2,caloHadStep=0.5;
+//  double caloEmMin=0.1, caloEmMax=1.2,caloEmStep=0.5;
+//  double caloHadMin=0.1, caloHadMax=1.2,caloHadStep=0.5;
 //  double metPtMin=200, metPtMax=401, metPtStep=25;
 //  double jetMetPhiMin=0.1, jetMetPhiMax=1.4, jetMetPhiStep=0.1;
   double minNmissingMin=0, minNmissingMax=12, minNmissingStep=1;
-  double nPixelHitsMin=0, nPixelHitsMax=8, nPixelHitsStep=1;
+//  double nPixelHitsMin=0, nPixelHitsMax=8, nPixelHitsStep=1;
   
   double bestSb[kNsignals];
   for(int iSig=0;iSig<kNsignals;iSig++){

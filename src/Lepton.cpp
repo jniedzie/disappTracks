@@ -7,11 +7,12 @@
 #include "Lepton.hpp"
 
 Lepton::Lepton() :
+pt(99999),
 eta(99999),
 phi(99999),
-pt(99999),
-pid(99999),
-relativeIsolation(0)
+relativeIsolation(0),
+tightID(false),
+pid(99999)
 {
 
 };

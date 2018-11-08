@@ -86,13 +86,13 @@ void HistSet::FillFromEvents(std::vector<shared_ptr<Events>> signalEvents,
     FillFromEventsPerLayer(signalEvents, backgroundEvents, dataEvents);
   }
   else{
-    for(int iSig=0;iSig<signalEvents.size();iSig++){
+    for(int iSig=0;iSig<(int)signalEvents.size();iSig++){
       Fill(signal[iSig], signalEvents[iSig]);
     }
-    for(int iBck=0;iBck<backgroundEvents.size();iBck++){
+    for(int iBck=0;iBck<(int)backgroundEvents.size();iBck++){
       Fill(background[iBck], backgroundEvents[iBck]);
     }
-    for(int iData=0;iData<dataEvents.size();iData++){
+    for(int iData=0;iData<(int)dataEvents.size();iData++){
       Fill(data[iData], dataEvents[iData]);
     }
   }
@@ -107,7 +107,7 @@ void HistSet::FillFromEventsPerLayer(std::vector<shared_ptr<Events>> signalEvent
   double min = GetMin();
   double max = GetMax();
   
-  for(int iSig=0;iSig<signalEvents.size();iSig++){
+  for(int iSig=0;iSig<(int)signalEvents.size();iSig++){
     vector<TH1D*> signalVector;
     for(int iDetId=0;iDetId<nLayers;iDetId++){
       TH1D *histSignal = new TH1D(Form("%s_subDet[%i]_signal_%s",title,iDetId,signalTitle[iSig].c_str()),
@@ -121,7 +121,7 @@ void HistSet::FillFromEventsPerLayer(std::vector<shared_ptr<Events>> signalEvent
   }
   
   
-  for(int iBck=0;iBck<backgroundEvents.size();iBck++){
+  for(int iBck=0;iBck<(int)backgroundEvents.size();iBck++){
     vector<TH1D*> backgroundVector;
     for(int iDetId=0;iDetId<nLayers;iDetId++){
       TH1D *histBackground = new TH1D(Form("%s_subDet[%i]_background_%s",title,iDetId,backgroundTitle[iBck].c_str()),
@@ -133,7 +133,7 @@ void HistSet::FillFromEventsPerLayer(std::vector<shared_ptr<Events>> signalEvent
     }
     backgroundPerLayer.push_back(backgroundVector);
   }
-  for(int iData=0;iData<dataEvents.size();iData++){
+  for(int iData=0;iData<(int)dataEvents.size();iData++){
     vector<TH1D*> dataVector;
     for(int iDetId=0;iDetId<nLayers;iDetId++){
       
@@ -251,15 +251,15 @@ void HistSet::Draw(TCanvas *c1, int pad)
 {
   TLegend *leg = GetLegend();
   
-  for(int iSig=0;iSig<signal.size();iSig++){
+  for(int iSig=0;iSig<(int)signal.size();iSig++){
     if(!runSignal[iSig]) continue;
     leg->AddEntry(signal[iSig],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
   }
-  for(int iBck=0;iBck<background.size();iBck++){
+  for(int iBck=0;iBck<(int)background.size();iBck++){
     if(!runBackground[iBck]) continue;
     leg->AddEntry(background[iBck],Form("Background %s",backgroundTitle[iBck].c_str()),"lp");
   }
-  for(int iData=0;iData<data.size();iData++){
+  for(int iData=0;iData<(int)data.size();iData++){
     if(!runData[iData]) continue;
     leg->AddEntry(data[iData],Form("Data  %s",dataTitle[iData].c_str()),"lp");
   }
@@ -326,15 +326,15 @@ void HistSet::Draw(TCanvas *c1, int pad)
 void HistSet::DrawPerLayer()
 {
   TLegend *leg = GetLegend();
-  for(int iSig=0;iSig<signalPerLayer.size();iSig++){
+  for(int iSig=0;iSig<(int)signalPerLayer.size();iSig++){
     if(!runSignal[iSig]) continue;
     leg->AddEntry(signalPerLayer[iSig][1],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
   }
-  for(int iBck=0;iBck<backgroundPerLayer.size();iBck++){
+  for(int iBck=0;iBck<(int)backgroundPerLayer.size();iBck++){
     if(!runBackground[iBck]) continue;
     leg->AddEntry(backgroundPerLayer[iBck][1],Form("Background %s",backgroundTitle[iBck].c_str()),"lp");
   }
-  for(int iData=0;iData<dataPerLayer.size();iData++){
+  for(int iData=0;iData<(int)dataPerLayer.size();iData++){
     if(!runData[iData]) continue;
     leg->AddEntry(dataPerLayer[iData][1],Form("Data %s",dataTitle[iData].c_str()),"lp");
   }
@@ -350,7 +350,7 @@ void HistSet::DrawPerLayer()
     
     c1->cd(var==kDedx ? iDetId : iDetId+1);
     
-    for(int iSig=0;iSig<signalPerLayer.size();iSig++){
+    for(int iSig=0;iSig<(int)signalPerLayer.size();iSig++){
       signalPerLayer[iSig][iDetId]->SetLineColor(SignalColor((ESignal)iSig));
       signalPerLayer[iSig][iDetId]->SetMarkerStyle(signalMarkers[iSig]);
       signalPerLayer[iSig][iDetId]->SetMarkerColor(SignalColor((ESignal)iSig));
@@ -359,13 +359,13 @@ void HistSet::DrawPerLayer()
       signalPerLayer[iSig][iDetId]->Scale(1/signalPerLayer[iSig][iDetId]->Integral());
     }
       
-    for(int iBck=0;iBck<backgroundPerLayer.size();iBck++){
+    for(int iBck=0;iBck<(int)backgroundPerLayer.size();iBck++){
       backgroundPerLayer[iBck][iDetId]->SetLineColor(BackColor((EBackground)iBck));
       backgroundPerLayer[iBck][iDetId]->SetFillStyle(fillStyleBack);
       backgroundPerLayer[iBck][iDetId]->SetFillColorAlpha(BackColor((EBackground)iBck), fillOpacity);
       backgroundPerLayer[iBck][iDetId]->Scale(1/backgroundPerLayer[iBck][iDetId]->Integral());
     }
-    for(int iData=0;iData<dataPerLayer.size();iData++){
+    for(int iData=0;iData<(int)dataPerLayer.size();iData++){
       dataPerLayer[iData][iDetId]->SetLineColor(DataColor((EData)iData));
       dataPerLayer[iData][iDetId]->SetMarkerColor(DataColor((EData)iData));
       dataPerLayer[iData][iDetId]->SetMarkerStyle(20);
@@ -386,9 +386,9 @@ void HistSet::DrawPerLayer()
     
     
     
-    for(int iBck=0;iBck<backgroundPerLayer.size();iBck++){backgroundStack->Add(backgroundPerLayer[iBck][iDetId]);}
-    for(int iSig=0;iSig<signalPerLayer.size();iSig++){  signalStack->Add(signalPerLayer[iSig][iDetId]);}
-    for(int iData=0;iData<dataPerLayer.size();iData++){dataStack->Add(dataPerLayer[iData][iDetId]);}
+    for(int iBck=0;iBck<(int)backgroundPerLayer.size();iBck++){backgroundStack->Add(backgroundPerLayer[iBck][iDetId]);}
+    for(int iSig=0;iSig<(int)signalPerLayer.size();iSig++){  signalStack->Add(signalPerLayer[iSig][iDetId]);}
+    for(int iData=0;iData<(int)dataPerLayer.size();iData++){dataStack->Add(dataPerLayer[iData][iDetId]);}
     
     backgroundStack->Draw("nostack,p");
     signalStack->Draw("nostack,same,p");

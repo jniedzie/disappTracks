@@ -664,7 +664,7 @@ shared_ptr<Events> Events::ApplyEventCut(EventCut *cut)
 {
   shared_ptr<Events> outputEvents = shared_ptr<Events>(new Events());
   
-  for(int iEvent=0;iEvent<events.size();iEvent++){
+  for(int iEvent=0;iEvent<(int)events.size();iEvent++){
     if(events[iEvent]->IsPassingCut(cut)){
       outputEvents->AddEvent(events[iEvent]);
     }
@@ -676,7 +676,7 @@ shared_ptr<Events> Events::ApplyTrackCut(TrackCut *cut)
 {
   shared_ptr<Events> outputEvents = shared_ptr<Events>(new Events());
   
-  for(int iEvent=0;iEvent<events.size();iEvent++){
+  for(int iEvent=0;iEvent<(int)events.size();iEvent++){
     outputEvents->AddEvent(events[iEvent]->ApplyTrackCut(cut));
   }
   return outputEvents;
@@ -686,7 +686,7 @@ shared_ptr<Events> Events::ApplyJetCut(JetCut *cut)
 {
   shared_ptr<Events> outputEvents = shared_ptr<Events>(new Events());
   
-  for(int iEvent=0;iEvent<events.size();iEvent++){
+  for(int iEvent=0;iEvent<(int)events.size();iEvent++){
     outputEvents->AddEvent(events[iEvent]->ApplyJetCut(cut));
   }
   return outputEvents;
@@ -696,7 +696,7 @@ shared_ptr<Events> Events::ApplyLeptonCut(LeptonCut *cut)
 {
   shared_ptr<Events> outputEvents = shared_ptr<Events>(new Events());
   
-  for(int iEvent=0;iEvent<events.size();iEvent++){
+  for(int iEvent=0;iEvent<(int)events.size();iEvent++){
     outputEvents->AddEvent(events[iEvent]->ApplyLeptonCut(cut));
   }
   return outputEvents;

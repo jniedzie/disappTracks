@@ -30,6 +30,15 @@ void ProcessCuts(vector<shared_ptr<Events>> eventsSignal,
   if(drawPerLayerPlots){
     HistSet::DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
   }
+  if(printBackgroundDetails){
+    for(int iBck=0;iBck<kNbackgrounds;iBck++){
+      if(!runBackground[iBck]) continue;
+      cout<<"Background events in "<<backgroundTitle[iBck]<<":"<<endl;
+      for(int iEvent=0;iEvent<eventsBackground[iBck]->size();iEvent++){
+        eventsBackground[iBck]->At(iEvent)->Print();
+      }
+    }
+  }
 }
 
 int main(int argc, char* argv[])
@@ -119,11 +128,11 @@ int main(int argc, char* argv[])
     eventCut_L2->SetNtracks(range<int>(2,2));
     
     // play with these cuts
-    trackCut_L2->SetNmissingOuterTracker(range<int>(8, 999999));
-    trackCut_L2->SetDedxPerCluster(range<double>(3.5,999999));
-//    eventCut_L2->SetMinMetPt(250);
-//    trackCut_L2->SetMaxEmCalo(0.1);
-//    trackCut_L2->SetMaxHadCalo(0.1);
+    trackCut_L2->SetNmissingOuterTracker(range<int>(1, 999999));
+//    trackCut_L2->SetDedxPerCluster(range<double>(1.5,999999));
+//    eventCut_L2->SetMetPt(range<double>(200,99999));
+    trackCut_L2->SetCaloEmEnergy(range<double>(0.0,14.0));
+//    trackCut_L2->SetCaloHadEnergy(range<double>(0.0,30.0));
     
     // cuts not to be optimized
     eventCut_L2->SetJetMetDeltaPhi(range<double>(0.5,999999));
@@ -136,16 +145,6 @@ int main(int argc, char* argv[])
     eventCut_L2->SetLeadingJetChHEF(range<double>(0.1,999999));
     
     ProcessCuts(eventsSignal, eventsBackground, eventsData, eventCut_L2, trackCut_L2, jetCut_L2, nullptr);
-    
-    if(printBackgroundDetails){
-      for(int iBck=0;iBck<kNbackgrounds;iBck++){
-        if(!runBackground[iBck]) continue;
-        cout<<"Background events in "<<backgroundTitle[iBck]<<":"<<endl;
-        for(int iEvent=0;iEvent<eventsBackground[iBck]->size();iEvent++){
-          eventsBackground[iBck]->At(iEvent)->Print();
-        }
-      }
-    }
   }
   
   //---------------------------------------------------------------------------

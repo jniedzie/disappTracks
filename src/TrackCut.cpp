@@ -11,22 +11,22 @@
 using namespace std;
 
 TrackCut::TrackCut(ECut cutType) :
-nDedxClusters(range<int>()),
-nDetIDs(range<int>()),
-dedxPerCluster(range<double>()),
-totalDeDx(range<double>()),
 pt(range<double>()),
+eta(range<double>()),
 caloEmEnergy(range<double>()),
 caloHadEnergy(range<double>()),
-eta(range<double>()),
 relativeIsolation(range<double>()),
 sameNpixelHitsLayers(false),
 sameNtrackerHitsLayers(false),
-nPixelHits(range<int>()),
 nPixelLayers(range<int>()),
+nPixelHits(range<int>()),
 nMissingInnerPixel(range<int>()),
+nMissingOuterTracker(range<int>()),
 nMissingMiddleTracker(range<int>()),
-nMissingOuterTracker(range<int>())
+dedxPerCluster(range<double>()),
+totalDeDx(range<double>()),
+nDetIDs(range<int>()),
+nDedxClusters(range<int>())
 {
   if(cutType&kEmpty)    return;
   if(cutType&kPt50GeV)  pt = range<double>(50.0,  999999);

@@ -5,7 +5,14 @@
 #include <TEveManager.h>
 #include <TEveScene.h>
 #include <TEvePointSet.h>
+#include <TEveJetCone.h>
+#include <TEveBox.h>
 #include <TApplication.h>
+#include <TGeoShape.h>
+#include <TGeoTube.h>
+#include <TEveGeoShape.h>
+
+const double scale = 0.1;
 
 const bool showUnderflowBins = false;
 const bool showOverflowBins = true;
@@ -16,6 +23,14 @@ const int hitMarkerSize = 2.0;
 const double dedxBinsMin = 1;
 const double dedxBinsMax = 10;
 const int dedxNbins = 5;
+
+const double jetConeRadius = scale*0.4;
+
+const double metRadius = scale * 2000;
+const double metBoxSize = scale * 30;
+const double metBoxAngularSize = 0.1;
+
+const int geomTransparency = 90; // 30 - 100
 
                                   //     Underflow                                       Overflow
 const int dedxBinColors[dedxNbins+2] = { kGray,     kBlue, kCyan, kGreen, kYellow, kRed, kMagenta };
@@ -45,10 +60,22 @@ void DrawPoints(TEvePointSetArray *points)
   gEve->Redraw3D();
 }
 
-void DrawEvent(shared_ptr<Event> event, bool cleanView=true)
+void DrawEvent(shared_ptr<Event> event)
 {
   gEve->GetEventScene()->DestroyElements();
   gSystem->ProcessEvents();
+ 
+  for(int iJet=0;iJet<event->GetNjets();iJet++){
+    Jet *jet = event->GetJet(iJet);
+    TEveJetCone *jetCone = new TEveJetCone();
+    jetCone->SetCylinder(scale*2900, scale*5500);
+    jetCone->AddCone(jet->GetEta(), jet->GetPhi(), jetConeRadius);
+    jetCone->SetMainColorRGB((Float_t)1.0, 0.0, 0.0);
+    jetCone->SetRnrSelf(kTRUE);
+    gEve->AddElement(jetCone);
+    gEve->Redraw3D();
+  }
+  
   
   TEvePointSetArray *points = PreparePointsEventDisplay();
   
@@ -67,10 +94,118 @@ void DrawEvent(shared_ptr<Event> event, bool cleanView=true)
       //          cout<<"Point R:"<<R<<"\teta:"<<eta<<"\tphi:"<<phi<<"\ttheta:"<<theta<<endl;
   //      cout<<"Point x:"<<x<<"\ty:"<<y<<"\tz:"<<z<<"\tvalue:"<<track->dedx[iLayer]<<endl;
       
-      points->Fill(x,y,z,track->GetDeDxInLayer(iLayer));
+      points->Fill(scale*x,scale*y,scale*z,track->GetDeDxInLayer(iLayer));
     }
   }
   DrawPoints(points);
+  
+  
+  // MET
+  
+  TEveBox *metBox = new TEveBox("MET");
+  
+  double metPhi = event->GetMetPhi();
+  double metTheta = 2*atan(exp(-event->GetMetEta()));
+  
+//  double metX = metRadius*sin(metTheta)*cos(metPhi);
+//  double metY = metRadius*sin(metTheta)*sin(metPhi);
+//  double metZ = metRadius*cos(metTheta);
+//
+//  metBox->SetVertex(0, metX-metBoxSize, metY+metBoxSize, metZ+metBoxSize);
+//  metBox->SetVertex(1, metX+metBoxSize, metY+metBoxSize, metZ+metBoxSize);
+//  metBox->SetVertex(2, metX+metBoxSize, metY-metBoxSize, metZ+metBoxSize);
+//  metBox->SetVertex(3, metX-metBoxSize, metY-metBoxSize, metZ+metBoxSize);
+//
+//  metBox->SetVertex(4, metX-metBoxSize, metY+metBoxSize, metZ-metBoxSize);
+//  metBox->SetVertex(5, metX+metBoxSize, metY+metBoxSize, metZ-metBoxSize);
+//  metBox->SetVertex(6, metX+metBoxSize, metY-metBoxSize, metZ-metBoxSize);
+//  metBox->SetVertex(7, metX-metBoxSize, metY-metBoxSize, metZ-metBoxSize);
+  
+  
+  metBox->SetVertex(0,
+                    (metRadius-metBoxSize)*sin(metTheta+metBoxAngularSize)*cos(metPhi+metBoxAngularSize),
+                    (metRadius-metBoxSize)*sin(metTheta+metBoxAngularSize)*sin(metPhi+metBoxAngularSize),
+                    (metRadius-metBoxSize)*cos(metTheta+metBoxAngularSize));
+  
+  metBox->SetVertex(1,
+                    (metRadius+metBoxSize)*sin(metTheta+metBoxAngularSize)*cos(metPhi+metBoxAngularSize),
+                    (metRadius+metBoxSize)*sin(metTheta+metBoxAngularSize)*sin(metPhi+metBoxAngularSize),
+                    (metRadius+metBoxSize)*cos(metTheta+metBoxAngularSize));
+  
+  metBox->SetVertex(2,
+                    (metRadius+metBoxSize)*sin(metTheta-metBoxAngularSize)*cos(metPhi+metBoxAngularSize),
+                    (metRadius+metBoxSize)*sin(metTheta-metBoxAngularSize)*sin(metPhi+metBoxAngularSize),
+                    (metRadius+metBoxSize)*cos(metTheta-metBoxAngularSize));
+  
+  metBox->SetVertex(3,
+                    (metRadius-metBoxSize)*sin(metTheta-metBoxAngularSize)*cos(metPhi+metBoxAngularSize),
+                    (metRadius-metBoxSize)*sin(metTheta-metBoxAngularSize)*sin(metPhi+metBoxAngularSize),
+                    (metRadius-metBoxSize)*cos(metTheta-metBoxAngularSize));
+
+  
+  metBox->SetVertex(4,
+                    (metRadius-metBoxSize)*sin(metTheta+metBoxAngularSize)*cos(metPhi-metBoxAngularSize),
+                    (metRadius-metBoxSize)*sin(metTheta+metBoxAngularSize)*sin(metPhi-metBoxAngularSize),
+                    (metRadius-metBoxSize)*cos(metTheta+metBoxAngularSize));
+  
+  metBox->SetVertex(5,
+                    (metRadius+metBoxSize)*sin(metTheta+metBoxAngularSize)*cos(metPhi-metBoxAngularSize),
+                    (metRadius+metBoxSize)*sin(metTheta+metBoxAngularSize)*sin(metPhi-metBoxAngularSize),
+                    (metRadius+metBoxSize)*cos(metTheta+metBoxAngularSize));
+  
+  metBox->SetVertex(6,
+                    (metRadius+metBoxSize)*sin(metTheta-metBoxAngularSize)*cos(metPhi-metBoxAngularSize),
+                    (metRadius+metBoxSize)*sin(metTheta-metBoxAngularSize)*sin(metPhi-metBoxAngularSize),
+                    (metRadius+metBoxSize)*cos(metTheta-metBoxAngularSize));
+  
+  metBox->SetVertex(7,
+                    (metRadius-metBoxSize)*sin(metTheta-metBoxAngularSize)*cos(metPhi-metBoxAngularSize),
+                    (metRadius-metBoxSize)*sin(metTheta-metBoxAngularSize)*sin(metPhi-metBoxAngularSize),
+                    (metRadius-metBoxSize)*cos(metTheta-metBoxAngularSize));
+  
+  
+  metBox->SetMainColorRGB((Float_t)0.0, 1.0, 1.0);
+  metBox->SetRnrSelf(true);
+  
+  gEve->AddElement(metBox);
+  gEve->Redraw3D();
+  
+  // Geometry:
+  
+  TGeoTube *pixelTube = new TGeoTube(scale*0,scale*200, scale*1500);
+  TEveGeoShape *pixel = new TEveGeoShape ("Pixel tracker","Pixel tracker");
+  pixel->SetShape(pixelTube);
+  pixel->SetMainTransparency(geomTransparency-30);
+  pixel->SetMainColorRGB((Float_t)0.0, 1.0, 0.0);
+  pixel->SetRnrSelf(true);
+  
+  TGeoTube *trackerTube = new TGeoTube(scale*230,scale*1100,scale*2800);
+  TEveGeoShape *tracker = new TEveGeoShape ("Tracker","Tracker");
+  tracker->SetShape(trackerTube);
+  tracker->SetMainTransparency(geomTransparency-20);
+  tracker->SetMainColorRGB((Float_t)1.0, 1.0, 0.0);
+  tracker->SetRnrSelf(true);
+  
+  TGeoTube *emCalTube = new TGeoTube(scale*1100,scale*1800,scale*3700);
+  TEveGeoShape *emCal = new TEveGeoShape ("EM calo","EM calo");
+  emCal->SetShape(emCalTube);
+  emCal->SetMainTransparency(geomTransparency-10);
+  emCal->SetMainColorRGB((Float_t)0.0, 0.0, 1.0);
+  emCal->SetRnrSelf(true);
+  
+  TGeoTube *hadCalTube = new TGeoTube(scale*1800,scale*2900,scale*5500);
+  TEveGeoShape *hadCal = new TEveGeoShape ("Had calo","Had calo");
+  hadCal->SetShape(hadCalTube);
+  hadCal->SetMainTransparency(geomTransparency);
+  hadCal->SetMainColorRGB((Float_t)1.0, 0.0, 0.5);
+  hadCal->SetRnrSelf(true);
+  
+  
+  gEve->AddElement(pixel);
+  gEve->AddElement(tracker);
+  gEve->AddElement(emCal);
+  gEve->AddElement(hadCal);
+  gEve->Redraw3D();
 }
 
 int main(int argc, char* argv[])
@@ -81,27 +216,29 @@ int main(int argc, char* argv[])
   
 //  const char *inFileNameSignal = "../adish/Signal/tree.root";
 //  const char *inFileNameBackground = "../adish/Background/tree.root";
+//  const char *inFileNameSignal = "../jniedzie/mcSignal/tree.root";
   
-    const char *inFileNameSignal = "../jniedzie/mcSignal/tree.root";
+  const char* inFileName = "../SR_MC/WJets_HT100to200/after_L2/tree.root";
+  
 //    const char *inFileNameBackground = "../jniedzie/mcBackground/tree.root";
   
-  Events *eventsSignal = new Events(inFileNameSignal);
+//  Events *eventsSignal = new Events(inFileNameSignal);
 //  Events *eventsBackground = new Events(inFileNameBackground);
+  Events *events = new Events(inFileName);
   
+  auto event = events->At(0);
+  DrawEvent(event);
   
-  TrackCut *trackCut = new TrackCut(TrackCut::kShort);
+//  TrackCut *trackCut = new TrackCut(TrackCut::kShort);
+//  shared_ptr<Events> filteredSignalEvents = eventsSignal->ApplyTrackCut(trackCut);
   
-  shared_ptr<Events> filteredSignalEvents = eventsSignal->ApplyTrackCut(trackCut);
-  
-  for(int iEvent=0;iEvent<filteredSignalEvents->size();iEvent++){
-    shared_ptr<Event> event = filteredSignalEvents->At(iEvent);
-    
-    if(event->GetNtracks() < 1) continue;
-
-    cout<<"Event iter:"<<iEvent<<endl;
-    DrawEvent(event);
-    break;
-  }
+//  for(int iEvent=0;iEvent<filteredSignalEvents->size();iEvent++){
+//    shared_ptr<Event> event = filteredSignalEvents->At(iEvent);
+//    if(event->GetNtracks() < 1) continue;
+//    cout<<"Event iter:"<<iEvent<<endl;
+//    DrawEvent(event);
+//    break;
+//  }
   
   theApp.Run();
   
