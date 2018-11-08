@@ -911,7 +911,7 @@ bool Event::IsPassingCut(EventCut *cut)
   }
   
   // check number of muons
-  if(cut->GetNmuons().IsOutside(muons.size())) return false;
+  if(cut->GetNmuons().IsOutside((int)muons.size())) return false;
   
   // make sure they have an opposite sign
   if(cut->RequiresTwoOppositeMuons()){
@@ -921,9 +921,11 @@ bool Event::IsPassingCut(EventCut *cut)
   
   // apply tight muon cuts (tightID flag, pt > 20 GeV, isolation < 0.15
   if(cut->RequiresTightMuon()){
-    unsigned int leptonCutOptions = LeptonCut::kIsolated | LeptonCut::kTightID | LeptonCut::kPt20GeV;
-    LeptonCut *tightMuonCut = new LeptonCut((LeptonCut::ECut)leptonCutOptions);
-
+    LeptonCut *tightMuonCut = new LeptonCut();
+    tightMuonCut->SetRelativeIsolation(range<double>(-999999,0.15));
+    tightMuonCut->SetRequireTightID(true);
+    tightMuonCut->SetPt(range<double>(20.0,999999));
+    
     bool atLeastOneTightMuon = false;
     for(auto muon : muons){
       if(muon->IsPassingCut(tightMuonCut)) atLeastOneTightMuon = true;

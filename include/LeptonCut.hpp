@@ -10,21 +10,11 @@
 #include "Helpers.hpp"
 
 /// Class containing definition of the lepton selection criteria.
-/// Some pre-defined sets of cuts are available and can be set while calling a default constructor.
-/// Otherwise, user can define ranges of allowed parameters and required flags.
+/// User can define ranges of allowed parameters and required flags.
 class LeptonCut {
 public:
-  enum ECut {
-    kEmpty    = 1,
-    kTightID  = 1 << 1, ///< require tight identification
-    kPt20GeV  = 1 << 2, ///< pT ≥ 20 GeV
-    kIsolated = 1 << 3, ///< isolation ≤ 0.15
-    
-  };
-  
   /// Default constructor
-  /// \param cutType Optionally, specify a pre-defined set of cuts
-  LeptonCut(ECut cutType=kEmpty);
+  LeptonCut();
   
   /// Default constructor
   ~LeptonCut();

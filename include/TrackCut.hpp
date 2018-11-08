@@ -10,24 +10,11 @@
 #include "Helpers.hpp"
 
 /// Class containing definition of the track selection criteria.
-/// Some pre-defined sets of cuts are available and can be set while calling a default constructor.
-/// Otherwise, user can define ranges of allowed parameters and required flags.
+/// User can define ranges of allowed parameters and required flags.
 class TrackCut {
 public:
-  enum ECut {
-    kEmpty    = 1,
-    kPt200GeV = 1 << 1, ///< pT ≥ 200 GeV
-    kLowCalo  = 1 << 2, ///< energy deposit in both EM and Had calo ≤ 0.5 GeV
-    kLowDEdx  = 1 << 3, ///< ΣdE/dx ≤ 38 MeV
-    kShort    = 1 << 4, ///< 3-4 clusters
-    kMedium   = 1 << 5, ///< 3-8 clusters
-    kPt50GeV  = 1 << 6, ///< pT ≥ 50 GeV
-    kEta2p4   = 1 << 7, ///< |eta| ≤ 2.4
-  };
-  
   /// Default constructor
-  /// \param cutType Optionally, specify a pre-defined set of cuts
-  TrackCut(ECut cutType=kEmpty);
+  TrackCut();
   
   /// Default desctructor
   ~TrackCut();

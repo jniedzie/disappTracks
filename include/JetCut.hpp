@@ -10,24 +10,11 @@
 #include "Helpers.hpp"
 
 /// Class containing definition of the jet selection criteria.
-/// Some pre-defined sets of cuts are available and can be set while calling a default constructor.
-/// Otherwise, user can define ranges of allowed parameters and required flags.
+/// User can define ranges of allowed parameters and required flags.
 class JetCut {
 public:
-  enum ECut {
-    kEmpty    = 1,
-    kPt100GeV = 1 << 1, ///< pT ≥ 100 GeV
-    kPt200GeV = 1 << 2, ///< pT ≥ 200 GeV
-    kEta2p4   = 1 << 3, ///< |eta| < 2.4
-    kChHEF0p1 = 1 << 4, ///< charged hadron energy fraction ≥ 0.1
-    kNeHEF0p8 = 1 << 5, ///< neutral hadron energy fraction ≤ 0.8
-    kFwdEta4p7= 1 << 6, ///< |eta| < 4.7 for forward jets
-    kPt30GeV  = 1 << 7, ///< pT ≥ 30 GeV
-  };
-  
   /// Default constructor
-  /// \param cutType Optionally, specify a pre-defined set of cuts
-  JetCut(ECut cutType=kEmpty);
+  JetCut();
   
   /// Default desctructor
   ~JetCut();

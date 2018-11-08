@@ -112,25 +112,15 @@ int main(int argc, char* argv[])
   eventCutZvv->SetRequireMetJetPhi0p5(true);
   eventCutZvv->SetNleptons(range<int>(0,0));
   
-  unsigned int trackCutOptions =
-    TrackCut::kPt50GeV
-  | TrackCut::kEta2p4
-//  | TrackCut::kShort
-//  | TrackCut::kLowCalo
-//  | TrackCut::kLowDEdx
-  ;
+  TrackCut *trackCut = new TrackCut();
+  trackCut->SetPt(range<double>(50,999999));
+  trackCut->SetEta(range<double>(-2.1, 2.1));
 
-  unsigned int jetCutOptions =
-    JetCut::kPt30GeV
-  | JetCut::kFwdEta4p7
-  ;
-
-  unsigned int leptonCutOptions =
-    LeptonCut::kEmpty;
-
-  TrackCut  *trackCut     = new TrackCut((TrackCut::ECut)trackCutOptions);
-  JetCut    *jetCut       = new JetCut((JetCut::ECut)jetCutOptions);
-  LeptonCut *leptonCut    = new LeptonCut((LeptonCut::ECut)leptonCutOptions);
+  JetCut *jetCut = new JetCut();
+  jetCut->SetPt(range<double>(30,999999));
+  jetCut->SetEtaForward(range<double>(-4.7, 4.7));
+  
+  LeptonCut *leptonCut = new LeptonCut();
   
   for(int iHT=0;iHT<(int)ZmmFilePaths.size();iHT++){
     ZmmData.push_back(make_shared<Events>(basePath+"/"+ZmmFilePaths[iHT]+"/tree.root",Events::kBackground));
