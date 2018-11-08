@@ -1,4 +1,5 @@
 #include "Event.hpp"
+#include "EventSet.hpp"
 #include "TrackCut.hpp"
 #include "JetCut.hpp"
 #include "LeptonCut.hpp"
@@ -45,6 +46,8 @@ int main(int argc, char* argv[])
   vector<shared_ptr<EventSet>> ZmmData;
   vector<shared_ptr<EventSet>> ZvvData;
   vector<shared_ptr<EventSet>> WvlData;
+  
+  vector<shared_ptr<EventSet>> emptySet;
   
   const int nBins = 11;
   double bins[] = {200., 225., 250., 275., 300., 350., 400., 450., 500., 600., 800., 1000.};
@@ -124,8 +127,11 @@ int main(int argc, char* argv[])
   
   for(int iHT=0;iHT<(int)ZmmFilePaths.size();iHT++){
     ZmmData.push_back(make_shared<EventSet>(basePath+"/"+ZmmFilePaths[iHT]+"/tree.root",EventSet::kBackground));
-    ZmmData[iHT] = ZmmData[iHT]->ApplyCuts(eventCutZmm, trackCut, jetCut, leptonCut);
-    
+  }
+  
+  EventSet::ApplyCuts(emptySet, ZmmData, emptySet, eventCutZmm, trackCut, jetCut, leptonCut);
+
+  for(int iHT=0;iHT<(int)ZmmFilePaths.size();iHT++){
     for(int iEvent=0;iEvent<ZmmData[iHT]->size();iEvent++){
       nEventsZmm->Fill(ZmmData[iHT]->At(iEvent)->GetMetNoMuPt(),
                        ZmmData[iHT]->At(iEvent)->GetWeight());
@@ -134,8 +140,11 @@ int main(int argc, char* argv[])
   
   for(int iHT=0;iHT<(int)WvlFilePaths.size();iHT++){
     WvlData.push_back(make_shared<EventSet>(basePath+"/"+WvlFilePaths[iHT]+"/tree.root",EventSet::kBackground));
-    WvlData[iHT] = WvlData[iHT]->ApplyCuts(eventCutWvl, trackCut, jetCut, leptonCut);
-    
+  }
+  
+  EventSet::ApplyCuts(emptySet, WvlData, emptySet, eventCutWvl, trackCut, jetCut, leptonCut);
+  
+  for(int iHT=0;iHT<(int)WvlFilePaths.size();iHT++){
     for(int iEvent=0;iEvent<WvlData[iHT]->size();iEvent++){
       nEventsWvl->Fill(WvlData[iHT]->At(iEvent)->GetMetNoMuPt(),
                        WvlData[iHT]->At(iEvent)->GetWeight());
@@ -144,8 +153,12 @@ int main(int argc, char* argv[])
     
   for(int iHT=0;iHT<(int)ZvvFilePaths.size();iHT++){
     ZvvData.push_back(make_shared<EventSet>(basePath+"/"+ZvvFilePaths[iHT]+"/tree.root",EventSet::kBackground));
-    ZvvData[iHT] = ZvvData[iHT]->ApplyCuts(eventCutZvv, trackCut, jetCut, leptonCut);
-
+    
+  }
+  
+  EventSet::ApplyCuts(emptySet, ZvvData, emptySet, eventCutZvv, trackCut, jetCut, leptonCut);
+  
+  for(int iHT=0;iHT<(int)ZvvFilePaths.size();iHT++){
     for(int iEvent=0;iEvent<ZvvData[iHT]->size();iEvent++){
       nEventsZvv->Fill(ZvvData[iHT]->At(iEvent)->GetMetNoMuPt(),
                        ZvvData[iHT]->At(iEvent)->GetWeight());

@@ -35,8 +35,9 @@ int main()
     bestSb[iSig] = 0;
   }
 
-  shared_ptr<EventSet> eventsAfterCuts[kNsignals];
-  shared_ptr<EventSet> backAfterCuts[kNbackgrounds];
+  vector<shared_ptr<EventSet>> eventsAfterCuts;
+  vector<shared_ptr<EventSet>> backAfterCuts;
+  vector<shared_ptr<EventSet>> dataAfterCuts;
   
   eventCut->SetJetMetDeltaPhi(range<double>(0.5,inf));
   
@@ -60,13 +61,21 @@ int main()
               
               for(int iSig=0;iSig<kNsignals;iSig++){
                 if(!runSignal[iSig]) continue;
-                eventsAfterCuts[iSig] = eventsSignal[iSig]->ApplyCuts(eventCut, trackCut, jetCut, nullptr);
+                eventsAfterCuts[iSig] = eventsSignal[iSig];
               }
               
               for(int iBck=0;iBck<kNbackgrounds;iBck++){
                 if(!runBackground[iBck]) continue;
-                backAfterCuts[iBck] = eventsBackground[iBck]->ApplyCuts(eventCut, trackCut, jetCut, nullptr);
+                backAfterCuts[iBck] = eventsBackground[iBck];
               }
+              for(int iData=0;iData<kNdata;iData++){
+                if(!runData[iData]) continue;
+                dataAfterCuts[iData] = eventsData[iData];
+              }
+              
+              EventSet::ApplyCuts(eventsAfterCuts, backAfterCuts, dataAfterCuts, eventCut, trackCut, jetCut, nullptr);
+              
+              
               
               double nBackgroundTotal=0;
               for(int iBck=0;iBck<kNbackgrounds;iBck++){
