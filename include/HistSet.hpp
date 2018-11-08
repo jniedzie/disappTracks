@@ -7,7 +7,7 @@
 #ifndef HistSet_hpp
 #define HistSet_hpp
 
-#include "Event.hpp"
+#include "EventSet.hpp"
 
 #include <TH1D.h>
 #include <TCanvas.h>
@@ -26,21 +26,21 @@ public:
   inline void FillBackground(EBackground bck, double value){background[bck]->Fill(value);}
   inline void FillData(EData iData, double value){data[iData]->Fill(value);}
   
-  void FillFromEvents(vector<shared_ptr<Events>> signalEvents,
-                      vector<shared_ptr<Events>> backgroundEvents,
-                      vector<shared_ptr<Events>> dataEvents);
+  void FillFromEvents(vector<shared_ptr<EventSet>> signalEvents,
+                      vector<shared_ptr<EventSet>> backgroundEvents,
+                      vector<shared_ptr<EventSet>> dataEvents);
   
   void Draw(TCanvas *c1, int pad);
   void DrawPerLayer();
   
-  static void DrawStandardPlots(vector<shared_ptr<Events>> &eventsSignal,
-                                vector<shared_ptr<Events>> &eventsBackground,
-                                vector<shared_ptr<Events>> &eventsData,
+  static void DrawStandardPlots(vector<shared_ptr<EventSet>> &eventsSignal,
+                                vector<shared_ptr<EventSet>> &eventsBackground,
+                                vector<shared_ptr<EventSet>> &eventsData,
                                 string prefix="");
   
-  static void DrawPerLayerPlots(vector<shared_ptr<Events>> &eventsSignal,
-                                vector<shared_ptr<Events>> &eventsBackground,
-                                vector<shared_ptr<Events>> &eventsData);
+  static void DrawPerLayerPlots(vector<shared_ptr<EventSet>> &eventsSignal,
+                                vector<shared_ptr<EventSet>> &eventsBackground,
+                                vector<shared_ptr<EventSet>> &eventsData);
   
   inline void SetShowNonZerBinPosX(){showNonZeroBinPosX = true;}
 private:
@@ -56,9 +56,9 @@ private:
   vector<vector<TH1D*>> backgroundPerLayer;
   vector<vector<TH1D*>> dataPerLayer;
   
-  void FillFromEventsPerLayer(vector<shared_ptr<Events>> signalEvents,
-                              vector<shared_ptr<Events>> backgroundEvents,
-                              vector<shared_ptr<Events>> dataEvents);
+  void FillFromEventsPerLayer(vector<shared_ptr<EventSet>> signalEvents,
+                              vector<shared_ptr<EventSet>> backgroundEvents,
+                              vector<shared_ptr<EventSet>> dataEvents);
   
   TLegend* GetLegend();
   
@@ -69,7 +69,7 @@ private:
   bool ShouldNormalize();
   bool DoSumw2();
   
-  void Fill(TH1D* hist, shared_ptr<Events> events, int iDetId=-1);
+  void Fill(TH1D* hist, shared_ptr<EventSet> events, int iDetId=-1);
   double GetNonZeroBinPosX(TH1D *hist);
 };
 

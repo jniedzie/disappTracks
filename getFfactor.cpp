@@ -42,9 +42,9 @@ int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
   
-  vector<shared_ptr<Events>> ZmmData;
-  vector<shared_ptr<Events>> ZvvData;
-  vector<shared_ptr<Events>> WvlData;
+  vector<shared_ptr<EventSet>> ZmmData;
+  vector<shared_ptr<EventSet>> ZvvData;
+  vector<shared_ptr<EventSet>> WvlData;
   
   const int nBins = 11;
   double bins[] = {200., 225., 250., 275., 300., 350., 400., 450., 500., 600., 800., 1000.};
@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
   LeptonCut *leptonCut = new LeptonCut();
   
   for(int iHT=0;iHT<(int)ZmmFilePaths.size();iHT++){
-    ZmmData.push_back(make_shared<Events>(basePath+"/"+ZmmFilePaths[iHT]+"/tree.root",Events::kBackground));
+    ZmmData.push_back(make_shared<EventSet>(basePath+"/"+ZmmFilePaths[iHT]+"/tree.root",EventSet::kBackground));
     ZmmData[iHT] = ZmmData[iHT]->ApplyCuts(eventCutZmm, trackCut, jetCut, leptonCut);
     
     for(int iEvent=0;iEvent<ZmmData[iHT]->size();iEvent++){
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
   }
   
   for(int iHT=0;iHT<(int)WvlFilePaths.size();iHT++){
-    WvlData.push_back(make_shared<Events>(basePath+"/"+WvlFilePaths[iHT]+"/tree.root",Events::kBackground));
+    WvlData.push_back(make_shared<EventSet>(basePath+"/"+WvlFilePaths[iHT]+"/tree.root",EventSet::kBackground));
     WvlData[iHT] = WvlData[iHT]->ApplyCuts(eventCutWvl, trackCut, jetCut, leptonCut);
     
     for(int iEvent=0;iEvent<WvlData[iHT]->size();iEvent++){
@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
   }
     
   for(int iHT=0;iHT<(int)ZvvFilePaths.size();iHT++){
-    ZvvData.push_back(make_shared<Events>(basePath+"/"+ZvvFilePaths[iHT]+"/tree.root",Events::kBackground));
+    ZvvData.push_back(make_shared<EventSet>(basePath+"/"+ZvvFilePaths[iHT]+"/tree.root",EventSet::kBackground));
     ZvvData[iHT] = ZvvData[iHT]->ApplyCuts(eventCutZvv, trackCut, jetCut, leptonCut);
 
     for(int iEvent=0;iEvent<ZvvData[iHT]->size();iEvent++){

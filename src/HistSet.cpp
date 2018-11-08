@@ -78,9 +78,9 @@ HistSet::~HistSet()
   
 }
 
-void HistSet::FillFromEvents(std::vector<shared_ptr<Events>> signalEvents,
-                             std::vector<shared_ptr<Events>> backgroundEvents,
-                             std::vector<shared_ptr<Events>> dataEvents)
+void HistSet::FillFromEvents(std::vector<shared_ptr<EventSet>> signalEvents,
+                             std::vector<shared_ptr<EventSet>> backgroundEvents,
+                             std::vector<shared_ptr<EventSet>> dataEvents)
 {
   if(var == kDedx || var == kSizeX || var == kSizeY){
     FillFromEventsPerLayer(signalEvents, backgroundEvents, dataEvents);
@@ -98,9 +98,9 @@ void HistSet::FillFromEvents(std::vector<shared_ptr<Events>> signalEvents,
   }
 }
 
-void HistSet::FillFromEventsPerLayer(std::vector<shared_ptr<Events>> signalEvents,
-                                     std::vector<shared_ptr<Events>> backgroundEvents,
-                                     std::vector<shared_ptr<Events>> dataEvents)
+void HistSet::FillFromEventsPerLayer(std::vector<shared_ptr<EventSet>> signalEvents,
+                                     std::vector<shared_ptr<EventSet>> backgroundEvents,
+                                     std::vector<shared_ptr<EventSet>> dataEvents)
 {
   const char* title= GetTitle();
   int nBins = GetNbins();
@@ -147,7 +147,7 @@ void HistSet::FillFromEventsPerLayer(std::vector<shared_ptr<Events>> signalEvent
   }
 }
 
-void HistSet::Fill(TH1D* hist, shared_ptr<Events> events, int iDetId)
+void HistSet::Fill(TH1D* hist, shared_ptr<EventSet> events, int iDetId)
 {
   if(events){
     for(int iEvent=0;iEvent<events->size();iEvent++){
@@ -400,9 +400,9 @@ void HistSet::DrawPerLayer()
   c1->Update();
 }
 
-void HistSet::DrawStandardPlots(vector<shared_ptr<Events>> &eventsSignal,
-                                vector<shared_ptr<Events>> &eventsBackground,
-                                vector<shared_ptr<Events>> &eventsData,
+void HistSet::DrawStandardPlots(vector<shared_ptr<EventSet>> &eventsSignal,
+                                vector<shared_ptr<EventSet>> &eventsBackground,
+                                vector<shared_ptr<EventSet>> &eventsData,
                                 string prefix)
 {
   // Create standard per event, per track and per jet plots
@@ -487,9 +487,9 @@ void HistSet::DrawStandardPlots(vector<shared_ptr<Events>> &eventsSignal,
   hists["jet_phi"]->Draw(canvasJets, 3);
 }
 
-void DrawPerLayerPlots(vector<shared_ptr<Events>> &eventsSignal,
-                       vector<shared_ptr<Events>> &eventsBackground,
-                       vector<shared_ptr<Events>> &eventsData)
+void DrawPerLayerPlots(vector<shared_ptr<EventSet>> &eventsSignal,
+                       vector<shared_ptr<EventSet>> &eventsBackground,
+                       vector<shared_ptr<EventSet>> &eventsData)
 {
   HistSet *dedxPerLayer = new HistSet(kDedx);
   dedxPerLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);

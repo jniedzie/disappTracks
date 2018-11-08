@@ -7,8 +7,8 @@
 int main()
 {
   // All events with initial cuts only
-  vector<shared_ptr<Events>> eventsSignal, eventsBackground, eventsData;
-  Events::LoadEventsFromFiles(eventsSignal, eventsBackground, eventsData, "after_L1/");
+  vector<shared_ptr<EventSet>> eventsSignal, eventsBackground, eventsData;
+  EventSet::LoadEventsFromFiles(eventsSignal, eventsBackground, eventsData, "after_L1/");
   
   EventCut  *eventCut = new EventCut();
   TrackCut  *trackCut = new TrackCut();
@@ -35,8 +35,8 @@ int main()
     bestSb[iSig] = 0;
   }
 
-  shared_ptr<Events> eventsAfterCuts[kNsignals];
-  shared_ptr<Events> backAfterCuts[kNbackgrounds];
+  shared_ptr<EventSet> eventsAfterCuts[kNsignals];
+  shared_ptr<EventSet> backAfterCuts[kNbackgrounds];
   
   eventCut->SetJetMetDeltaPhi(range<double>(0.5,inf));
   

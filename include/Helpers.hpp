@@ -322,7 +322,11 @@ template <class T>
 class range
 {
 public:
-  range(T _min=-inf, T _max=inf) : min(_min), max(_max){}
+  range(T _min=-inf, T _max=inf) : min(_min), max(_max){
+    if(min > max){
+      throw logic_error("You try to set min grater than max!");
+    }
+  }
   
   inline T GetMin(){return min;}
   inline T GetMax(){return max;}

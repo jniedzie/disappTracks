@@ -8,21 +8,21 @@
 
 #include <TApplication.h>
 
-void ProcessCuts(vector<shared_ptr<Events>> eventsSignal,
-                 vector<shared_ptr<Events>> eventsBackground,
-                 vector<shared_ptr<Events>> eventsData,
+void ProcessCuts(vector<shared_ptr<EventSet>> eventsSignal,
+                 vector<shared_ptr<EventSet>> eventsBackground,
+                 vector<shared_ptr<EventSet>> eventsData,
                  EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
 {
-  Events::ApplyCuts(eventsSignal, eventsBackground, eventsData,eventCut, trackCut, jetCut, leptonCut);
+  EventSet::ApplyCuts(eventsSignal, eventsBackground, eventsData,eventCut, trackCut, jetCut, leptonCut);
   
   if(printYields){
     cout<<"\n\nYields after level "<<performCutsLevel<<" cuts"<<endl;
-    Events::PrintYields(eventsSignal, eventsBackground, eventsData);
+    EventSet::PrintYields(eventsSignal, eventsBackground, eventsData);
   }
   if(saveEvents){
     string prefix = "after_L"+to_string(performCutsLevel)+"/";
     if(performCutsLevel==10) prefix = "adish_cuts";
-    Events::SaveEventsToFiles(eventsSignal, eventsBackground, eventsData, prefix);
+    EventSet::SaveEventsToFiles(eventsSignal, eventsBackground, eventsData, prefix);
   }
   if(drawStandardPlots){
     HistSet::DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
@@ -46,14 +46,14 @@ int main(int argc, char* argv[])
   TApplication *theApp = new TApplication("App", &argc, argv);
   
   // All events with initial cuts only
-  vector<shared_ptr<Events>> eventsSignal, eventsBackground, eventsData;
+  vector<shared_ptr<EventSet>> eventsSignal, eventsBackground, eventsData;
   
   string initPrefix = "after_L"+to_string(performCutsLevel-1)+"/";
   if(performCutsLevel==0 || performCutsLevel==10) initPrefix = "";
   
-  Events::LoadEventsFromFiles(eventsSignal, eventsBackground, eventsData, initPrefix);
+  EventSet::LoadEventsFromFiles(eventsSignal, eventsBackground, eventsData, initPrefix);
   cout<<"\n\nInitial yields"<<endl;
-  Events::PrintYields(eventsSignal, eventsBackground, eventsData);
+  EventSet::PrintYields(eventsSignal, eventsBackground, eventsData);
   
   //---------------------------------------------------------------------------
   // Level 0

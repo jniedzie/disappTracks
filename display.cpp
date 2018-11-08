@@ -1,5 +1,6 @@
 #include "Helpers.hpp"
 #include "Event.hpp"
+#include "EventSet.hpp"
 
 #include <TSystem.h>
 #include <TEveManager.h>
@@ -224,7 +225,7 @@ int main(int argc, char* argv[])
   
 //  Events *eventsSignal = new Events(inFileNameSignal);
 //  Events *eventsBackground = new Events(inFileNameBackground);
-  Events *events = new Events(inFileName);
+  EventSet *events = new EventSet(inFileName);
   
   auto event = events->At(0);
   DrawEvent(event);
