@@ -1,41 +1,40 @@
 #include "Event.hpp"
+#include "EventSet.hpp"
 #include "TrackCut.hpp"
 #include "JetCut.hpp"
-#include "HistSet.hpp"
+//#include "HistSet.hpp"
 #include "Helpers.hpp"
 
 #include "TGraph.h"
 
 #include <TApplication.h>
 
-void ProcessCuts(vector<shared_ptr<EventSet>> eventsSignal,
-                 vector<shared_ptr<EventSet>> eventsBackground,
-                 vector<shared_ptr<EventSet>> eventsData,
+void ProcessCuts(shared_ptr<EventSet> events,
                  EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
 {
-  EventSet::ApplyCuts(eventsSignal, eventsBackground, eventsData,eventCut, trackCut, jetCut, leptonCut);
+  events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
   if(printYields){
     cout<<"\n\nYields after level "<<performCutsLevel<<" cuts"<<endl;
-    EventSet::PrintYields(eventsSignal, eventsBackground, eventsData);
+    events->PrintYields();
   }
   if(saveEvents){
     string prefix = "after_L"+to_string(performCutsLevel)+"/";
     if(performCutsLevel==10) prefix = "adish_cuts";
-    EventSet::SaveEventsToFiles(eventsSignal, eventsBackground, eventsData, prefix);
+    events->SaveEventsToFiles(prefix);
   }
   if(drawStandardPlots){
-    HistSet::DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
+//    HistSet::DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
   }
   if(drawPerLayerPlots){
-    HistSet::DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
+//    HistSet::DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
   }
   if(printBackgroundDetails){
     for(int iBck=0;iBck<kNbackgrounds;iBck++){
       if(!runBackground[iBck]) continue;
       cout<<"Background events in "<<backgroundTitle[iBck]<<":"<<endl;
-      for(int iEvent=0;iEvent<eventsBackground[iBck]->size();iEvent++){
-        eventsBackground[iBck]->At(iEvent)->Print();
+      for(int iEvent=0;iEvent<events->size(EventSet::kBackground,iBck);iEvent++){
+        events->At(EventSet::kBackground,iBck,iEvent)->Print();
       }
     }
   }
@@ -46,14 +45,14 @@ int main(int argc, char* argv[])
   TApplication *theApp = new TApplication("App", &argc, argv);
   
   // All events with initial cuts only
-  vector<shared_ptr<EventSet>> eventsSignal, eventsBackground, eventsData;
+  shared_ptr<EventSet> events = shared_ptr<EventSet>(new EventSet);
   
   string initPrefix = "after_L"+to_string(performCutsLevel-1)+"/";
   if(performCutsLevel==0 || performCutsLevel==10) initPrefix = "";
   
-  EventSet::LoadEventsFromFiles(eventsSignal, eventsBackground, eventsData, initPrefix);
+  events->LoadEventsFromFiles(initPrefix);
   cout<<"\n\nInitial yields"<<endl;
-  EventSet::PrintYields(eventsSignal, eventsBackground, eventsData);
+  events->PrintYields();
   
   //---------------------------------------------------------------------------
   // Level 0
@@ -88,7 +87,7 @@ int main(int argc, char* argv[])
 
     jetCut_L0->SetPt(range<double>(30.0, inf));
     
-    ProcessCuts(eventsSignal, eventsBackground, eventsData,eventCut_L0, trackCut_L0, jetCut_L0, nullptr);
+    ProcessCuts(events,eventCut_L0, trackCut_L0, jetCut_L0, nullptr);
   }
   
   //---------------------------------------------------------------------------
@@ -112,7 +111,7 @@ int main(int argc, char* argv[])
     eventCut_L1->SetLeadingJetNeHEF(range<double>(-inf,0.8));
     eventCut_L1->SetLeadingJetChHEF(range<double>(0.1,inf));
 
-    ProcessCuts(eventsSignal, eventsBackground, eventsData,eventCut_L1, trackCut_L1, jetCut_L1, nullptr);
+    ProcessCuts(events,eventCut_L1, trackCut_L1, jetCut_L1, nullptr);
   }
     
   //---------------------------------------------------------------------------
@@ -144,7 +143,7 @@ int main(int argc, char* argv[])
     eventCut_L2->SetLeadingJetNeHEF(range<double>(-inf,0.8));
     eventCut_L2->SetLeadingJetChHEF(range<double>(0.1,inf));
     
-    ProcessCuts(eventsSignal, eventsBackground, eventsData, eventCut_L2, trackCut_L2, jetCut_L2, nullptr);
+    ProcessCuts(events, eventCut_L2, trackCut_L2, jetCut_L2, nullptr);
   }
   
   //---------------------------------------------------------------------------
@@ -173,7 +172,7 @@ int main(int argc, char* argv[])
     eventCut_adish->SetNtaus(range<int>(0,0));
     eventCut_adish->SetNleptons(range<int>(0,0));
     
-    ProcessCuts(eventsSignal, eventsBackground, eventsData,eventCut_adish, trackCut_adish, jetCut_adish, nullptr);
+    ProcessCuts(events,eventCut_adish, trackCut_adish, jetCut_adish, nullptr);
   }
   
   if(drawStandardPlots || drawPerLayerPlots)  theApp->Run();

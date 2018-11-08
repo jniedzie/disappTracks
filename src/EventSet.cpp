@@ -12,18 +12,38 @@
 
 EventSet::EventSet()
 {
-  
+  for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    eventsBackground.push_back(vector<shared_ptr<Event>>());
+  }
+  for(int iSig=0;iSig<kNbackgrounds;iSig++){
+    eventsSignal.push_back(vector<shared_ptr<Event>>());
+  }
+  for(int iData=0;iData<kNbackgrounds;iData++){
+    eventsData.push_back(vector<shared_ptr<Event>>());
+  }
 }
 
 EventSet::EventSet(string fileName, EDataType dataType, int maxNevents, ESignal iSig)
 {
-  AddEventsFromFile(fileName,dataType,maxNevents, iSig);
+  AddEventsFromFile(fileName,dataType,maxNevents,iSig);
 }
 
 EventSet::EventSet(const EventSet &e)
 {
-  for(auto &event : e.events){
-    events.push_back(make_shared<Event>(*event));
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    for(auto &event : e.eventsSignal[iSig]){
+      eventsSignal[iSig].push_back(make_shared<Event>(*event));
+    }
+  }
+  for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    for(auto &event : e.eventsBackground[iBck]){
+      eventsBackground[iBck].push_back(make_shared<Event>(*event));
+    }
+  }
+  for(int iData=0;iData<kNdata;iData++){
+    for(auto &event : e.eventsData[iData]){
+      eventsData[iData].push_back(make_shared<Event>(*event));
+    }
   }
 }
 
@@ -32,16 +52,28 @@ EventSet::~EventSet()
   
 }
 
-double EventSet::weightedSize(){
+double EventSet::weightedSize(EDataType type, int setIter)
+{
   double sum=0;
-  for(auto &ev : events){
-    sum += ev->GetWeight();
+  
+  if(type == kSignal){
+    for(auto &ev : eventsSignal[(ESignal)setIter]){sum += ev->GetWeight();}
   }
+  else if(type == kBackground){
+    for(auto &ev : eventsBackground[(EBackground)setIter]){sum += ev->GetWeight();}
+  }
+  else if(type == kData){
+    for(auto &ev : eventsData[(EData)setIter]){sum += ev->GetWeight();}
+  }
+  else{
+    throw out_of_range("Unknown data type provided");
+  }
+  
   return sum;
 }
 
 
-void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int maxNevents, ESignal iSig)
+void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int maxNevents, int setIter)
 {
   cout<<"Reading events from:"<<fileName<<endl;
   TFile *inFile = TFile::Open(fileName.c_str());
@@ -146,7 +178,7 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
     iter++;
     if(maxNevents>0 && iter>maxNevents) break;
     
-    unique_ptr<Event> newEvent = unique_ptr<Event>(new Event());
+    shared_ptr<Event> newEvent = shared_ptr<Event>(new Event());
     
     for(int iTrack=0;iTrack<*_nTracks;iTrack++){
       Track *track = new Track();
@@ -235,7 +267,8 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
       // it's not clear how to calculate weights for the signal...
       
       // cross section for given signal (stored in fb, here transformed to pb to match background units
-      weight *= 0.001 * (signalCrossSectionOneTrack[iSig] + signalCrossSectionTwoTracks[iSig]);
+      weight *= 0.001 * (signalCrossSectionOneTrack[(ESignal)setIter] +
+                         signalCrossSectionTwoTracks[(ESignal)setIter]);
       
       //      if(*_nGenChargino == 1){
       //        weight *= 0.001 * signalCrossSectionOneTrack[iSig]; // cross section for given signal (stored in fb, here transformed to pb to match background units
@@ -286,11 +319,23 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
     newEvent->SetWgtSum(*_sumWgt);
     newEvent->SetGenWeight(*_genWgt);
     
-    events.push_back(move(newEvent));
+    if(dataType == kSignal){
+      eventsSignal[setIter].push_back(newEvent);
+    }
+    else if(dataType == kBackground){
+      eventsBackground[setIter].push_back(newEvent);
+    }
+    else if(dataType == kData){
+      eventsData[setIter].push_back(newEvent);
+    }
+    else{
+      throw out_of_range("Unknown data type provided");
+    }
+    
   }
 }
 
-void EventSet::SaveToTree(string fileName)
+void EventSet::SaveToTree(string fileName, EDataType dataType, int setIter)
 {
   TFile outFile(fileName.c_str(),"RECREATE");
   outFile.cd();
@@ -421,7 +466,8 @@ void EventSet::SaveToTree(string fileName)
                  Form("IsoTrack_sizeYbyLayer%i[nIsoTrack]/I",iLayer));
   }
   
-  for(auto &event : events){
+  
+  function<void(shared_ptr<Event>, TTree*)> func = [&](shared_ptr<Event> event, TTree *tree) -> void {
     nVert = event->GetNvertices();
     nIsoTracks = (int)event->GetNtracks();
     nJet = (int)event->GetNjets();
@@ -512,65 +558,59 @@ void EventSet::SaveToTree(string fileName)
     }
     
     tree->Fill();
+  };
+  
+  if(dataType == kSignal){
+    for(auto &event : eventsSignal[(ESignal)setIter]){func(event, tree);}
   }
+  else if(dataType == kBackground){
+    for(auto &event : eventsBackground[(EBackground)setIter]){func(event, tree);}
+  }
+  else if(dataType == kData){
+    for(auto &event : eventsData[(EData)setIter]){func(event, tree);}
+  }
+  else{
+    throw out_of_range("Unknown data type provided");
+  }
+  
   tree->Write();
   //  outFile.Close();
 }
 
-void EventSet::LoadEventsFromFiles(vector<shared_ptr<EventSet>> &eventsSignal,
-                                   vector<shared_ptr<EventSet>> &eventsBackground,
-                                   vector<shared_ptr<EventSet>> &eventsData,
-                                   string prefix)
+void EventSet::LoadEventsFromFiles(string prefix)
 {
-  for(int iData=0;iData<kNdata;iData++){
-    if(!runData[iData]){
-      eventsData.push_back(nullptr);
+  for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    if(!runBackground[iBck]) continue;
+    
+    if(prefix==""){
+      for(string path : inFileNameBackground[iBck]){
+        AddEventsFromFile((path+prefix+"tree.root"),kBackground, maxNeventsBackground, iBck);
+      }
     }
     else{
-      eventsData.push_back(make_shared<EventSet>((inFileNameData[iData]+prefix+"tree.root"), EventSet::kData, maxNeventsData));
+      string path = inFileNameBackground[iBck][0];
+      AddEventsFromFile((path+prefix+"tree.root"),kBackground, maxNeventsBackground, iBck);
     }
   }
   
   for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig]){
-      eventsSignal.push_back(nullptr);
-    }
-    else{
-      eventsSignal.push_back(make_shared<EventSet>((inFileNameSignal[iSig]+prefix+"tree.root"), EventSet::kSignal, maxNeventsSignal,(ESignal)iSig));
-    }
+    if(!runSignal[iSig]) continue;
+    AddEventsFromFile((inFileNameSignal[iSig]+prefix+"tree.root"),kSignal,maxNeventsSignal,iSig);
   }
   
-  for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    if(!runBackground[iBck]){
-      eventsBackground.push_back(nullptr);
-    }
-    else{
-      eventsBackground.push_back(make_shared<EventSet>());
-      
-      if(prefix==""){
-        for(string path : inFileNameBackground[iBck]){
-          eventsBackground[iBck]->AddEventsFromFile((path+prefix+"tree.root"),
-                                                    EventSet::kBackground, maxNeventsBackground);
-        }
-      }
-      else{
-        string path = inFileNameBackground[iBck][0];
-        eventsBackground[iBck]->AddEventsFromFile((path+prefix+"tree.root"),
-                                                  EventSet::kBackground, maxNeventsBackground);
-      }
-    }
+  for(int iData=0;iData<kNdata;iData++){
+    if(!runData[iData]) continue;
+    AddEventsFromFile((inFileNameData[iData]+prefix+"tree.root"),kData,maxNeventsData,iData);
   }
 }
 
-void EventSet::SaveEventsToFiles(vector<shared_ptr<EventSet>> &eventsSignal,
-                               vector<shared_ptr<EventSet>> &eventsBackground,
-                               vector<shared_ptr<EventSet>> &eventsData,
-                               string prefix)
+void EventSet::SaveEventsToFiles(string prefix)
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]) continue;
     system(("mkdir -p "+inFileNameSignal[iSig]+prefix).c_str());
-    eventsSignal[iSig]->SaveToTree((inFileNameSignal[iSig]+prefix+"tree.root").c_str());
+    
+    SaveToTree((inFileNameSignal[iSig]+prefix+"tree.root").c_str(), kSignal, (int)iSig);
   }
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
@@ -579,49 +619,44 @@ void EventSet::SaveEventsToFiles(vector<shared_ptr<EventSet>> &eventsSignal,
     // merged events will be stored in the first directory for given background
     string path = inFileNameBackground[iBck][0];
     system(("mkdir -p "+path+prefix).c_str());
-    eventsBackground[iBck]->SaveToTree((path+prefix+"tree.root").c_str());
+    SaveToTree((path+prefix+"tree.root").c_str(), kBackground, (int)iBck);
   }
   
   for(int iData=0;iData<kNdata;iData++){
     if(!runData[iData]) continue;
     system(("mkdir -p "+inFileNameData[iData]+prefix).c_str());
-    eventsData[iData]->SaveToTree((inFileNameData[iData]+prefix+"tree.root").c_str());
+    SaveToTree((inFileNameData[iData]+prefix+"tree.root").c_str(), kData, (int)iData);
   }
 }
 
-void EventSet::ApplyCuts(vector<shared_ptr<EventSet>> &eventsSignal,
-                       vector<shared_ptr<EventSet>> &eventsBackground,
-                       vector<shared_ptr<EventSet>> &eventsData,
-                       EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
+void EventSet::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]) continue;
-    eventsSignal[iSig] = eventsSignal[iSig]->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+    eventsSignal[iSig] = ApplyCuts(eventCut, trackCut, jetCut, leptonCut, kSignal, iSig);
   }
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     if(!runBackground[iBck]) continue;
-    eventsBackground[iBck] = eventsBackground[iBck]->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+    eventsBackground[iBck] = ApplyCuts(eventCut, trackCut, jetCut, leptonCut, kBackground, iBck);
   }
   for(int iData=0;iData<kNdata;iData++){
     if(!runData[iData]) continue;
-    eventsData[iData] = eventsData[iData]->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+    eventsData[iData] = ApplyCuts(eventCut, trackCut, jetCut, leptonCut, kData, iData);
   }
 }
 
-void EventSet::PrintYields(vector<shared_ptr<EventSet>> &eventsSignal,
-                         vector<shared_ptr<EventSet>> &eventsBackground,
-                         vector<shared_ptr<EventSet>> &eventsData)
+void EventSet::PrintYields()
 {
   double nBackgroundTotal=0;
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    if(!runBackground[iBck] || !eventsBackground[iBck]) continue;
-    nBackgroundTotal += eventsBackground[iBck]->weightedSize();
+    if(!runBackground[iBck]) continue;
+    nBackgroundTotal += weightedSize(kBackground,(int)iBck);
     
     if(printYields){
       cout<<backgroundTitle[iBck]<<"\t";
-      cout<<eventsBackground[iBck]->weightedSize();
-      cout<<"\t("<<eventsBackground[iBck]->size()<<")"<<endl;
+      cout<<weightedSize(kBackground, (int)iBck);
+      cout<<"\t("<<size(kBackground,(int)iBck)<<")"<<endl;
     }
   }
   
@@ -629,75 +664,88 @@ void EventSet::PrintYields(vector<shared_ptr<EventSet>> &eventsSignal,
     for(int iSig=0;iSig<kNsignals;iSig++){
       if(!runSignal[iSig]) continue;
       cout<<signalTitle[iSig]<<"\tN events:\t";
-      cout<<eventsSignal[iSig]->weightedSize();
-      cout<<"\t("<<eventsSignal[iSig]->size()<<")"<<endl;
+      cout<<weightedSize(kSignal,(int)iSig);
+      cout<<"\t("<<size(kSignal,(int)iSig)<<")"<<endl;
     }
   }
   
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]) continue;
     cout<<signalTitle[iSig]<<"\tS/sqrt(B):\t";
-    cout<<eventsSignal[iSig]->weightedSize()/sqrt(nBackgroundTotal+eventsSignal[iSig]->weightedSize())<<endl;
+    cout<<weightedSize(kSignal,(int)iSig)/sqrt(nBackgroundTotal+weightedSize(kSignal,(int)iSig))<<endl;
   }
   
   for(int iData=0;iData<kNdata;iData++){
     if(!runData[iData]) continue;
     cout<<dataTitle[iData]<<"\tS/sqrt(B):\t";
-    cout<<eventsData[iData]->weightedSize()/sqrt(nBackgroundTotal+eventsData[iData]->weightedSize())<<endl;
+    cout<<weightedSize(kData,(int)iData)/sqrt(nBackgroundTotal+weightedSize(kData,(int)iData))<<endl;
   }
 }
 
-shared_ptr<EventSet> EventSet::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
+vector<shared_ptr<Event>> EventSet::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut, EDataType dataType, int setIter)
 {
-  //  shared_ptr<EventSet> outputEvents = shared_ptr<EventSet>(new EventSet(*this));
-  shared_ptr<EventSet> outputEvents = make_shared<EventSet>(*this);
+  vector<shared_ptr<Event>> outputEvents;
   
-  if(trackCut)  outputEvents = outputEvents->ApplyTrackCut(trackCut);
-  if(jetCut)    outputEvents = outputEvents->ApplyJetCut(jetCut);
-  if(leptonCut) outputEvents = outputEvents->ApplyLeptonCut(leptonCut);
-  if(eventCut)  outputEvents = outputEvents->ApplyEventCut(eventCut);
+  if(dataType == kSignal){
+    outputEvents = eventsSignal[(ESignal)setIter];
+  }
+  else if(dataType == kBackground){
+    outputEvents = eventsBackground[(EBackground)setIter];
+  }
+  else if(dataType == kData){
+    outputEvents = eventsData[(EData)setIter];
+  }
+  else{
+    throw out_of_range("Unknown data type provided");
+  }
+  
+  if(trackCut)  outputEvents = ApplyTrackCut(outputEvents, trackCut);
+  if(jetCut)    outputEvents = ApplyJetCut(outputEvents, jetCut);
+  if(leptonCut) outputEvents = ApplyLeptonCut(outputEvents, leptonCut);
+  if(eventCut)  outputEvents = ApplyEventCut(outputEvents, eventCut);
   
   return outputEvents;
 }
 
-shared_ptr<EventSet> EventSet::ApplyEventCut(EventCut *cut)
+vector<shared_ptr<Event>> EventSet::ApplyEventCut(vector<shared_ptr<Event>> events, EventCut *cut)
 {
-  shared_ptr<EventSet> outputEvents = shared_ptr<EventSet>(new EventSet());
+  vector<shared_ptr<Event>> outputEvents;
   
   for(int iEvent=0;iEvent<(int)events.size();iEvent++){
     if(events[iEvent]->IsPassingCut(cut)){
-      outputEvents->AddEvent(events[iEvent]);
+      outputEvents.push_back(events[iEvent]);
     }
   }
+  
   return outputEvents;
 }
 
-shared_ptr<EventSet> EventSet::ApplyTrackCut(TrackCut *cut)
+vector<shared_ptr<Event>> EventSet::ApplyTrackCut(vector<shared_ptr<Event>> events, TrackCut *cut)
 {
-  shared_ptr<EventSet> outputEvents = shared_ptr<EventSet>(new EventSet());
+  vector<shared_ptr<Event>> outputEvents;
   
   for(int iEvent=0;iEvent<(int)events.size();iEvent++){
-    outputEvents->AddEvent(events[iEvent]->ApplyTrackCut(cut));
+    outputEvents.push_back(events[iEvent]->ApplyTrackCut(cut));
   }
   return outputEvents;
 }
 
-shared_ptr<EventSet> EventSet::ApplyJetCut(JetCut *cut)
+vector<shared_ptr<Event>> EventSet::ApplyJetCut(vector<shared_ptr<Event>> events, JetCut *cut)
 {
-  shared_ptr<EventSet> outputEvents = shared_ptr<EventSet>(new EventSet());
+  vector<shared_ptr<Event>> outputEvents;
   
   for(int iEvent=0;iEvent<(int)events.size();iEvent++){
-    outputEvents->AddEvent(events[iEvent]->ApplyJetCut(cut));
+    outputEvents.push_back(events[iEvent]->ApplyJetCut(cut));
   }
   return outputEvents;
 }
 
-shared_ptr<EventSet> EventSet::ApplyLeptonCut(LeptonCut *cut)
+vector<shared_ptr<Event>> EventSet::ApplyLeptonCut(vector<shared_ptr<Event>> events, LeptonCut *cut)
 {
-  shared_ptr<EventSet> outputEvents = shared_ptr<EventSet>(new EventSet());
+  vector<shared_ptr<Event>> outputEvents;
   
   for(int iEvent=0;iEvent<(int)events.size();iEvent++){
-    outputEvents->AddEvent(events[iEvent]->ApplyLeptonCut(cut));
+    outputEvents.push_back(events[iEvent]->ApplyLeptonCut(cut));
   }
   return outputEvents;
 }
