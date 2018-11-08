@@ -69,15 +69,15 @@ int main(int argc, char* argv[])
   EventCut  *eventCutZvv  = new EventCut();
   
   
-  eventCutZmm->SetNtracks(range<int>(1,999999));
+  eventCutZmm->SetNtracks(range<int>(1,inf));
   eventCutZmm->SetRequireMetNoMuTrigger(true);
   eventCutZmm->SetNtaus(range<int>(0,0));
-  eventCutZmm->SetLeadingJetPt(range<double>(100,999999));
+  eventCutZmm->SetLeadingJetPt(range<double>(100,inf));
   eventCutZmm->SetLeadingJetEta(range<double>(-2.4,2.4));
-  eventCutZmm->SetLeadingJetNeHEF(range<double>(-999999,0.8));
-  eventCutZmm->SetLeadingJetChHEF(range<double>(0.1,999999));
+  eventCutZmm->SetLeadingJetNeHEF(range<double>(-inf,0.8));
+  eventCutZmm->SetLeadingJetChHEF(range<double>(0.1,inf));
   eventCutZmm->SetRequireHighJet(true);
-  eventCutZmm->SetMetNoMuPt(range<double>(200,999999));
+  eventCutZmm->SetMetNoMuPt(range<double>(200,inf));
   eventCutZmm->SetRequireMetNoMuJetPhi0p5(true);
   eventCutZmm->SetRequireMuonsFromZ(true);
   eventCutZmm->SetRequireMuJetR0p4(true);
@@ -85,39 +85,39 @@ int main(int argc, char* argv[])
   eventCutZmm->SetRequireTwoOppositeMuons(true);
   eventCutZmm->SetRequireTightMuon(true);
   
-  eventCutWvl->SetNtracks(range<int>(1,999999));
+  eventCutWvl->SetNtracks(range<int>(1,inf));
   eventCutWvl->SetRequireMetNoMuTrigger(true);
   eventCutWvl->SetNtaus(range<int>(0,0));
-  eventCutWvl->SetLeadingJetPt(range<double>(100,999999));
+  eventCutWvl->SetLeadingJetPt(range<double>(100,inf));
   eventCutWvl->SetLeadingJetEta(range<double>(-2.4,2.4));
-  eventCutWvl->SetLeadingJetNeHEF(range<double>(-999999,0.8));
-  eventCutWvl->SetLeadingJetChHEF(range<double>(0.1,999999));
+  eventCutWvl->SetLeadingJetNeHEF(range<double>(-inf,0.8));
+  eventCutWvl->SetLeadingJetChHEF(range<double>(0.1,inf));
   eventCutWvl->SetRequireHighJet(true);
-  eventCutWvl->SetMetNoMuPt(range<double>(200,999999));
+  eventCutWvl->SetMetNoMuPt(range<double>(200,inf));
   eventCutWvl->SetRequireMetNoMuJetPhi0p5(true);
   eventCutWvl->SetRequireMuJetR0p4(true);
   eventCutWvl->SetRequireMuTrackR0p4(true);
   eventCutWvl->SetRequireTightMuon(true);
   
  
-  eventCutZvv->SetNtracks(range<int>(1,999999));
+  eventCutZvv->SetNtracks(range<int>(1,inf));
   eventCutZvv->SetRequireMetNoMuTrigger(true);
   eventCutZvv->SetNtaus(range<int>(0,0));
-  eventCutZvv->SetLeadingJetPt(range<double>(100,999999));
+  eventCutZvv->SetLeadingJetPt(range<double>(100,inf));
   eventCutZvv->SetLeadingJetEta(range<double>(-2.4,2.4));
-  eventCutZvv->SetLeadingJetNeHEF(range<double>(-999999,0.8));
-  eventCutZvv->SetLeadingJetChHEF(range<double>(0.1,999999));
+  eventCutZvv->SetLeadingJetNeHEF(range<double>(-inf,0.8));
+  eventCutZvv->SetLeadingJetChHEF(range<double>(0.1,inf));
   eventCutZvv->SetRequireHighJet(true);
-  eventCutZvv->SetMetPt(range<double>(200,999999));
+  eventCutZvv->SetMetPt(range<double>(200,inf));
   eventCutZvv->SetRequireMetJetPhi0p5(true);
   eventCutZvv->SetNleptons(range<int>(0,0));
   
   TrackCut *trackCut = new TrackCut();
-  trackCut->SetPt(range<double>(50,999999));
+  trackCut->SetPt(range<double>(50,inf));
   trackCut->SetEta(range<double>(-2.1, 2.1));
 
   JetCut *jetCut = new JetCut();
-  jetCut->SetPt(range<double>(30,999999));
+  jetCut->SetPt(range<double>(30,inf));
   jetCut->SetEtaForward(range<double>(-4.7, 4.7));
   
   LeptonCut *leptonCut = new LeptonCut();

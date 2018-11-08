@@ -16,11 +16,11 @@ int main()
   
   // + standard cuts to be applied after L2 selections
   eventCut->SetNtracks(range<int>(2,2));
-  eventCut->SetNjets(range<int>(1,999999));
-  eventCut->SetLeadingJetPt(range<double>(100,999999));
+  eventCut->SetNjets(range<int>(1,inf));
+  eventCut->SetLeadingJetPt(range<double>(100,inf));
   eventCut->SetLeadingJetEta(range<double>(-2.4,2.4));
-  eventCut->SetLeadingJetNeHEF(range<double>(-999999,0.8));
-  eventCut->SetLeadingJetChHEF(range<double>(0.1,999999));
+  eventCut->SetLeadingJetNeHEF(range<double>(-inf,0.8));
+  eventCut->SetLeadingJetChHEF(range<double>(0.1,inf));
   
   double dedxMin=2.0, dedxMax=4.3, dedxStep=0.1;
 //  double caloEmMin=0.1, caloEmMax=1.2,caloEmStep=0.5;
@@ -38,7 +38,7 @@ int main()
   shared_ptr<Events> eventsAfterCuts[kNsignals];
   shared_ptr<Events> backAfterCuts[kNbackgrounds];
   
-  eventCut->SetJetMetDeltaPhi(range<double>(0.5,999999));
+  eventCut->SetJetMetDeltaPhi(range<double>(0.5,inf));
   
   double sb_sum_best = 0;
   
@@ -50,11 +50,11 @@ int main()
             for(double minNmissingCut=minNmissingMin;minNmissingCut<minNmissingMax; minNmissingCut += minNmissingStep){
 //            for(double nPixelHitsCut=nPixelHitsMin;nPixelHitsCut<nPixelHitsMax; nPixelHitsCut += nPixelHitsStep){
               
-              trackCut->SetDedxPerCluster(range<double>(dedxCut,999999));
+              trackCut->SetDedxPerCluster(range<double>(dedxCut,inf));
 //              trackCut->SetMaxEmCalo(caloEmCut);
 //              trackCut->SetMaxHadCalo(caloHadCut);
               //              eventCut->SetMinMetPt(metPtCut);
-              trackCut->SetNmissingOuterTracker(range<int>(minNmissingCut, 999999));
+              trackCut->SetNmissingOuterTracker(range<int>(minNmissingCut, inf));
 //              trackCut->SetNpixelHits(nPixelHitsCut, nPixelHitsCut);
               
               

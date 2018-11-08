@@ -25,6 +25,9 @@
 
 using namespace std;
 
+#define inf 99999999
+
+
 // Plotting style
 const double fillOpacity = 1.0;
 const int fillStyleBack = 1000;
@@ -319,7 +322,7 @@ template <class T>
 class range
 {
 public:
-  range(T _min=-999999, T _max=999999) : min(_min), max(_max){}
+  range(T _min=-inf, T _max=inf) : min(_min), max(_max){}
   
   inline T GetMin(){return min;}
   inline T GetMax(){return max;}

@@ -13,10 +13,10 @@
 using namespace std;
 
 Jet::Jet() :
-pt(99999),
-eta(99999),
-phi(99999),
-mass(999999),
+pt(inf),
+eta(inf),
+phi(inf),
+mass(inf),
 isForward(false)
 {
 

@@ -922,9 +922,9 @@ bool Event::IsPassingCut(EventCut *cut)
   // apply tight muon cuts (tightID flag, pt > 20 GeV, isolation < 0.15
   if(cut->RequiresTightMuon()){
     LeptonCut *tightMuonCut = new LeptonCut();
-    tightMuonCut->SetRelativeIsolation(range<double>(-999999,0.15));
+    tightMuonCut->SetRelativeIsolation(range<double>(-inf,0.15));
     tightMuonCut->SetRequireTightID(true);
-    tightMuonCut->SetPt(range<double>(20.0,999999));
+    tightMuonCut->SetPt(range<double>(20.0,inf));
     
     bool atLeastOneTightMuon = false;
     for(auto muon : muons){
