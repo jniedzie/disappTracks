@@ -215,33 +215,25 @@ int main(int argc, char* argv[])
   // create event display
   TEveManager::Create();
   
-//  const char *inFileNameSignal = "../adish/Signal/tree.root";
-//  const char *inFileNameBackground = "../adish/Background/tree.root";
-//  const char *inFileNameSignal = "../jniedzie/mcSignal/tree.root";
+  shared_ptr<EventSet> events = shared_ptr<EventSet>(new EventSet());
+  events->LoadEventsFromFiles("after_L2/");
   
-  const char* inFileName = "../SR_MC/WJets_HT100to200/after_L2/tree.root";
-  
-//    const char *inFileNameBackground = "../jniedzie/mcBackground/tree.root";
-  
-//  Events *eventsSignal = new Events(inFileNameSignal);
-//  Events *eventsBackground = new Events(inFileNameBackground);
-  EventSet *events = new EventSet(inFileName);
-  
-  auto event = events->At(0);
+  auto event = events->At(EventSet::kBackground, kWmunuJets, 0);
   DrawEvent(event);
+  /*
+  TrackCut *trackCut = new TrackCut();
+  trackCut->SetNpixelLayers(range<int>(3,4));
+  events->ApplyCuts(nullptr, trackCut, nullptr, nullptr);
   
-//  TrackCut *trackCut = new TrackCut(TrackCut::kShort);
-//  shared_ptr<Events> filteredSignalEvents = eventsSignal->ApplyTrackCut(trackCut);
-  
-//  for(int iEvent=0;iEvent<filteredSignalEvents->size();iEvent++){
-//    shared_ptr<Event> event = filteredSignalEvents->At(iEvent);
-//    if(event->GetNtracks() < 1) continue;
-//    cout<<"Event iter:"<<iEvent<<endl;
-//    DrawEvent(event);
-//    break;
-//  }
+  for(int iEvent=0;iEvent<events->size(EventSet::kSignal,kWino_M_300_cTau_30);iEvent++){
+    shared_ptr<Event> event = events->At(EventSet::kSignal,kWino_M_300_cTau_30, iEvent);
+    if(event->GetNtracks() < 1) continue;
+    cout<<"Event iter:"<<iEvent<<endl;
+    DrawEvent(event);
+    break;
+  }
+  */
   
   theApp.Run();
-  
   return 0;
 }

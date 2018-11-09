@@ -30,17 +30,17 @@ const int maxNeventsData        = -1;
 
 // turn on/off different backgrounds, signals and data samples
 const vector<bool> runBackground = {
-  true,   // QCD
+  false,   // QCD
   true,   // Z->μμ + jets
-  true,   // tops
-  true,   // VV
+  false,   // tops
+  false,   // VV
   true,   // W->μν + jets
   true,   // Z->νν + jets
 };
 
 const vector<bool> runSignal = {
   false,   // wino m=300 cτ=3
-  true,   // wino m=300 cτ=10
+  false,   // wino m=300 cτ=10
   false,   // wino m=300 cτ=30
   false,   // wino m=500 cτ=10
   false,   // wino m=500 cτ=20

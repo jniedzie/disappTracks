@@ -604,6 +604,27 @@ void EventSet::LoadEventsFromFiles(string prefix)
   }
 }
 
+void EventSet::LoadEventsFromFiles(EDataType dataType, int setIter, string prefix)
+{
+  if(dataType == kBackground){
+    if(prefix==""){
+      for(string path : inFileNameBackground[setIter]){
+        AddEventsFromFile((path+prefix+"tree.root"),kBackground, maxNeventsBackground, setIter);
+      }
+    }
+    else{
+      string path = inFileNameBackground[setIter][0];
+      AddEventsFromFile((path+prefix+"tree.root"),kBackground, maxNeventsBackground, setIter);
+    }
+  }
+  else if(dataType == kSignal){
+    AddEventsFromFile((inFileNameSignal[setIter]+prefix+"tree.root"),kSignal,maxNeventsSignal,setIter);
+  }
+  else if(dataType == kData){
+    AddEventsFromFile((inFileNameData[setIter]+prefix+"tree.root"),kData,maxNeventsData,setIter);
+  }
+}
+
 void EventSet::SaveEventsToFiles(string prefix)
 {
   for(int iSig=0;iSig<kNsignals;iSig++){

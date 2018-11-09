@@ -30,6 +30,7 @@ public:
   ~EventSet();
   
   void LoadEventsFromFiles(string prefix="");
+  void LoadEventsFromFiles(EDataType dataType, int setIter, string prefix="");
   
   void SaveEventsToFiles(string prefix="after_L/");
   

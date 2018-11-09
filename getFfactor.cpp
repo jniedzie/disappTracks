@@ -7,58 +7,31 @@
 
 #include <TApplication.h>
 
-string basePath = "../SR_MC";
-
-vector<string> ZmmFilePaths = {
-//  "DYJetsM50_HT100to200",
-//  "DYJetsM50_HT200to400",
-//  "DYJetsM50_HT400to600",
-//  "DYJetsM50_HT600to800",
-//  "DYJetsM50_HT800to1200",
-//  "DYJetsM50_HT1200to2500",
-//  "DYJetsM50_HT2500toInf"
-};
-
-vector<string> WvlFilePaths = {
-  "WJets_HT100to200",
-  "WJets_HT200to400",
-  "WJets_HT400to600",
-  "WJets_HT600to800",
-  "WJets_HT800to1200",
-  "WJets_HT1200to2500",
-  "WJets_HT2500toInf"
-};
-
-vector<string> ZvvFilePaths = {
-  "ZvvJets_HT100to200",
-  "ZvvJets_HT200to400",
-  "ZvvJets_HT400to600",
-  "ZvvJets_HT600to800",
-  "ZvvJets_HT800to1200",
-  "ZvvJets_HT1200to2500",
-  "ZvvJets_HT2500toInf"
-};
-
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
   
-  vector<shared_ptr<EventSet>> ZmmData;
-  vector<shared_ptr<EventSet>> ZvvData;
-  vector<shared_ptr<EventSet>> WvlData;
+  // Load W->μν, Z->νν and Z->μμ events
+  shared_ptr<EventSet> eventsZmm = shared_ptr<EventSet>(new EventSet);
+  eventsZmm->LoadEventsFromFiles(EventSet::kBackground,kZmumuJets);
   
-  vector<shared_ptr<EventSet>> emptySet;
+  shared_ptr<EventSet> eventsWmv = shared_ptr<EventSet>(new EventSet);
+  eventsWmv->LoadEventsFromFiles(EventSet::kBackground,kWmunuJets);
   
+  shared_ptr<EventSet> eventsZvv = shared_ptr<EventSet>(new EventSet);
+  eventsZvv->LoadEventsFromFiles(EventSet::kBackground,kZnunuJets);
+  
+  // Prepare histograms
   const int nBins = 11;
   double bins[] = {200., 225., 250., 275., 300., 350., 400., 450., 500., 600., 800., 1000.};
   
   TH1D *nEventsZvv = new TH1D("N events Zvv","N events Zvv", nBins, bins);
   TH1D *nEventsZmm = new TH1D("N events Zmm","N events Zmm", nBins, bins);
-  TH1D *nEventsWvl = new TH1D("N events Wvl","N events Wvl", nBins, bins);
+  TH1D *nEventsWmv = new TH1D("N events Wvl","N events Wvl", nBins, bins);
   
   nEventsZvv->Sumw2();
   nEventsZmm->Sumw2();
-  nEventsWvl->Sumw2();
+  nEventsWmv->Sumw2();
   
   TCanvas *canvas = new TCanvas("F factor","F factor",2880,1800);
   canvas->Divide(2,3);
@@ -68,9 +41,8 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   
   EventCut  *eventCutZmm  = new EventCut();
-  EventCut  *eventCutWvl  = new EventCut();
+  EventCut  *eventCutWmv  = new EventCut();
   EventCut  *eventCutZvv  = new EventCut();
-  
   
   eventCutZmm->SetNtracks(range<int>(1,inf));
   eventCutZmm->SetRequireMetNoMuTrigger(true);
@@ -88,19 +60,19 @@ int main(int argc, char* argv[])
   eventCutZmm->SetRequireTwoOppositeMuons(true);
   eventCutZmm->SetRequireTightMuon(true);
   
-  eventCutWvl->SetNtracks(range<int>(1,inf));
-  eventCutWvl->SetRequireMetNoMuTrigger(true);
-  eventCutWvl->SetNtaus(range<int>(0,0));
-  eventCutWvl->SetLeadingJetPt(range<double>(100,inf));
-  eventCutWvl->SetLeadingJetEta(range<double>(-2.4,2.4));
-  eventCutWvl->SetLeadingJetNeHEF(range<double>(-inf,0.8));
-  eventCutWvl->SetLeadingJetChHEF(range<double>(0.1,inf));
-  eventCutWvl->SetRequireHighJet(true);
-  eventCutWvl->SetMetNoMuPt(range<double>(200,inf));
-  eventCutWvl->SetRequireMetNoMuJetPhi0p5(true);
-  eventCutWvl->SetRequireMuJetR0p4(true);
-  eventCutWvl->SetRequireMuTrackR0p4(true);
-  eventCutWvl->SetRequireTightMuon(true);
+  eventCutWmv->SetNtracks(range<int>(1,inf));
+  eventCutWmv->SetRequireMetNoMuTrigger(true);
+  eventCutWmv->SetNtaus(range<int>(0,0));
+  eventCutWmv->SetLeadingJetPt(range<double>(100,inf));
+  eventCutWmv->SetLeadingJetEta(range<double>(-2.4,2.4));
+  eventCutWmv->SetLeadingJetNeHEF(range<double>(-inf,0.8));
+  eventCutWmv->SetLeadingJetChHEF(range<double>(0.1,inf));
+  eventCutWmv->SetRequireHighJet(true);
+  eventCutWmv->SetMetNoMuPt(range<double>(200,inf));
+  eventCutWmv->SetRequireMetNoMuJetPhi0p5(true);
+  eventCutWmv->SetRequireMuJetR0p4(true);
+  eventCutWmv->SetRequireMuTrackR0p4(true);
+  eventCutWmv->SetRequireTightMuon(true);
   
  
   eventCutZvv->SetNtracks(range<int>(1,inf));
@@ -125,44 +97,23 @@ int main(int argc, char* argv[])
   
   LeptonCut *leptonCut = new LeptonCut();
   
-  for(int iHT=0;iHT<(int)ZmmFilePaths.size();iHT++){
-    ZmmData.push_back(make_shared<EventSet>(basePath+"/"+ZmmFilePaths[iHT]+"/tree.root",EventSet::kBackground));
+  eventsZmm->ApplyCuts(eventCutZmm, trackCut, jetCut, leptonCut);
+  eventsWmv->ApplyCuts(eventCutWmv, trackCut, jetCut, leptonCut);
+  eventsZvv->ApplyCuts(eventCutZvv, trackCut, jetCut, leptonCut);
+  
+  for(int iEvent=0;iEvent<eventsZmm->size(EventSet::kBackground,kZmumuJets);iEvent++){
+    shared_ptr<Event> event = eventsZmm->At(EventSet::kBackground,kZmumuJets,iEvent);
+    nEventsZmm->Fill(event->GetMetNoMuPt(), event->GetWeight());
   }
   
-  EventSet::ApplyCuts(emptySet, ZmmData, emptySet, eventCutZmm, trackCut, jetCut, leptonCut);
-
-  for(int iHT=0;iHT<(int)ZmmFilePaths.size();iHT++){
-    for(int iEvent=0;iEvent<ZmmData[iHT]->size();iEvent++){
-      nEventsZmm->Fill(ZmmData[iHT]->At(iEvent)->GetMetNoMuPt(),
-                       ZmmData[iHT]->At(iEvent)->GetWeight());
-    }
+  for(int iEvent=0;iEvent<eventsWmv->size(EventSet::kBackground,kWmunuJets);iEvent++){
+    shared_ptr<Event> event = eventsWmv->At(EventSet::kBackground,kWmunuJets,iEvent);
+    nEventsWmv->Fill(event->GetMetNoMuPt(), event->GetWeight());
   }
   
-  for(int iHT=0;iHT<(int)WvlFilePaths.size();iHT++){
-    WvlData.push_back(make_shared<EventSet>(basePath+"/"+WvlFilePaths[iHT]+"/tree.root",EventSet::kBackground));
-  }
-  
-  EventSet::ApplyCuts(emptySet, WvlData, emptySet, eventCutWvl, trackCut, jetCut, leptonCut);
-  
-  for(int iHT=0;iHT<(int)WvlFilePaths.size();iHT++){
-    for(int iEvent=0;iEvent<WvlData[iHT]->size();iEvent++){
-      nEventsWvl->Fill(WvlData[iHT]->At(iEvent)->GetMetNoMuPt(),
-                       WvlData[iHT]->At(iEvent)->GetWeight());
-    }
-  }
-    
-  for(int iHT=0;iHT<(int)ZvvFilePaths.size();iHT++){
-    ZvvData.push_back(make_shared<EventSet>(basePath+"/"+ZvvFilePaths[iHT]+"/tree.root",EventSet::kBackground));
-    
-  }
-  
-  EventSet::ApplyCuts(emptySet, ZvvData, emptySet, eventCutZvv, trackCut, jetCut, leptonCut);
-  
-  for(int iHT=0;iHT<(int)ZvvFilePaths.size();iHT++){
-    for(int iEvent=0;iEvent<ZvvData[iHT]->size();iEvent++){
-      nEventsZvv->Fill(ZvvData[iHT]->At(iEvent)->GetMetNoMuPt(),
-                       ZvvData[iHT]->At(iEvent)->GetWeight());
-    }
+  for(int iEvent=0;iEvent<eventsZvv->size(EventSet::kBackground,kZnunuJets);iEvent++){
+    shared_ptr<Event> event = eventsZvv->At(EventSet::kBackground,kZnunuJets,iEvent);
+    nEventsZvv->Fill(event->GetMetNoMuPt(), event->GetWeight());
   }
   
   TFile *outFile = new TFile("fFactor.root","recreate");
@@ -177,8 +128,8 @@ int main(int argc, char* argv[])
   nEventsZmm->Write("Zmm");
   
   canvas->cd(3);
-  nEventsWvl->DrawCopy();
-  nEventsWvl->Write("Wvl");
+  nEventsWmv->DrawCopy();
+  nEventsWmv->Write("Wvl");
   
   canvas->cd(4);
   TH1D *fFactorZmm = new TH1D(*nEventsZvv);
@@ -188,7 +139,7 @@ int main(int argc, char* argv[])
   
   canvas->cd(4);
   TH1D *fFactorWvl = new TH1D(*nEventsZvv);
-  fFactorWvl->Divide(nEventsWvl);
+  fFactorWvl->Divide(nEventsWmv);
   fFactorWvl->Draw();
   fFactorWvl->Write("f factor (ZvvWvl)");
   

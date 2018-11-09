@@ -7,8 +7,8 @@
 int main()
 {
   // All events with initial cuts only
-  vector<shared_ptr<EventSet>> eventsSignal, eventsBackground, eventsData;
-  EventSet::LoadEventsFromFiles(eventsSignal, eventsBackground, eventsData, "after_L1/");
+  shared_ptr<EventSet> events;
+  events->LoadEventsFromFiles("after_L1/");
   
   EventCut  *eventCut = new EventCut();
   TrackCut  *trackCut = new TrackCut();
@@ -35,9 +35,7 @@ int main()
     bestSb[iSig] = 0;
   }
 
-  vector<shared_ptr<EventSet>> eventsAfterCuts;
-  vector<shared_ptr<EventSet>> backAfterCuts;
-  vector<shared_ptr<EventSet>> dataAfterCuts;
+  shared_ptr<EventSet> eventsAfterCuts;
   
   eventCut->SetJetMetDeltaPhi(range<double>(0.5,inf));
   
@@ -59,35 +57,21 @@ int main()
 //              trackCut->SetNpixelHits(nPixelHitsCut, nPixelHitsCut);
               
               
-              for(int iSig=0;iSig<kNsignals;iSig++){
-                if(!runSignal[iSig]) continue;
-                eventsAfterCuts[iSig] = eventsSignal[iSig];
-              }
               
-              for(int iBck=0;iBck<kNbackgrounds;iBck++){
-                if(!runBackground[iBck]) continue;
-                backAfterCuts[iBck] = eventsBackground[iBck];
-              }
-              for(int iData=0;iData<kNdata;iData++){
-                if(!runData[iData]) continue;
-                dataAfterCuts[iData] = eventsData[iData];
-              }
-              
-              EventSet::ApplyCuts(eventsAfterCuts, backAfterCuts, dataAfterCuts, eventCut, trackCut, jetCut, nullptr);
-              
-              
+              eventsAfterCuts = events;
+              eventsAfterCuts->ApplyCuts(eventCut, trackCut, jetCut, nullptr);
               
               double nBackgroundTotal=0;
               for(int iBck=0;iBck<kNbackgrounds;iBck++){
-                if(!runBackground[iBck] || !backAfterCuts[iBck]) continue;
-                nBackgroundTotal += backAfterCuts[iBck]->weightedSize();
+                if(!runBackground[iBck]) continue;
+                nBackgroundTotal += eventsAfterCuts->weightedSize(EventSet::kBackground, iBck);
               }
               
               double sb_sum=0;
               
               for(int iSig=0;iSig<kNsignals;iSig++){
                 if(!runSignal[iSig]) continue;
-                double sb = eventsAfterCuts[iSig]->weightedSize()/sqrt(nBackgroundTotal+eventsAfterCuts[iSig]->weightedSize());
+                double sb = eventsAfterCuts->weightedSize(EventSet::kSignal,iSig)/sqrt(nBackgroundTotal+eventsAfterCuts->weightedSize(EventSet::kSignal,iSig));
               
                 sb_sum += sb*sb;
                 

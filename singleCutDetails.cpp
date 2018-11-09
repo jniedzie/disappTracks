@@ -15,8 +15,8 @@ int main(int argc, char* argv[])
   TApplication *theApp = new TApplication("App", &argc, argv);
   
   // All events with initial cuts only
-  vector<shared_ptr<EventSet>> eventsSignal, eventsBackground, eventsData;
-  EventSet::LoadEventsFromFiles(eventsSignal, eventsBackground, eventsData, "after_L1/");
+  shared_ptr<EventSet> events;
+  events->LoadEventsFromFiles("after_L1/");
   
   EventCut  *eventCut = new EventCut();
   TrackCut  *trackCut = new TrackCut();
@@ -40,9 +40,7 @@ int main(int argc, char* argv[])
   int iPoint=0;
   double cutMin=0, cutMax=20, cutStep=1;
 
-  vector<shared_ptr<EventSet>> eventsAfterCuts;
-  vector<shared_ptr<EventSet>> backAfterCuts;
-  vector<shared_ptr<EventSet>> dataAfterCuts;
+  shared_ptr<EventSet> eventsAfterCuts;
   
   for(double cut=cutMin;cut<cutMax; cut += cutStep){
     cout<<"cut:"<<cut<<endl;
@@ -54,31 +52,19 @@ int main(int argc, char* argv[])
 //    trackCut->SetMaxHadCalo(cut);
 //    trackCut->SetNmissingOuterTracker(cut,inf);
     
-    for(int iSig=0;iSig<kNsignals;iSig++){
-      if(!runSignal[iSig]) continue;
-      eventsAfterCuts[iSig] = eventsSignal[iSig];
-    }
-    for(int iBck=0;iBck<kNbackgrounds;iBck++){
-      if(!runBackground[iBck]) continue;
-      backAfterCuts[iBck] = eventsBackground[iBck];
-    }
-    for(int iData=0;iData<kNdata;iData++){
-      if(!runData[iData]) continue;
-      dataAfterCuts[iData] = eventsData[iData];
-    }
-    
-    EventSet::ApplyCuts(eventsAfterCuts, backAfterCuts, dataAfterCuts, eventCut, trackCut, jetCut, nullptr);
+    eventsAfterCuts = events;
+    events->ApplyCuts(eventCut, trackCut, jetCut, nullptr);
     
     double nBackgroundTotal=0;
     for(int iBck=0;iBck<kNbackgrounds;iBck++){
-      if(!runBackground[iBck] || !backAfterCuts[iBck]) continue;
-      nBackgroundTotal += backAfterCuts[iBck]->weightedSize();
+      if(!runBackground[iBck]) continue;
+      nBackgroundTotal += eventsAfterCuts->weightedSize(EventSet::kBackground,iBck);
     }
     nBackgroundTotal = sqrt(nBackgroundTotal);
     
     for(int iSig=0;iSig<kNsignals;iSig++){
       if(!runSignal[iSig]) continue;
-      double val = eventsAfterCuts[iSig]->weightedSize()/nBackgroundTotal;
+      double val = eventsAfterCuts->weightedSize(EventSet::kSignal,iSig)/nBackgroundTotal;
       sb[iSig]->SetPoint(iPoint,cut,val);
     }
     iPoint++;
