@@ -2,7 +2,7 @@
 #include "EventSet.hpp"
 #include "TrackCut.hpp"
 #include "JetCut.hpp"
-//#include "HistSet.hpp"
+#include "HistSet.hpp"
 #include "Helpers.hpp"
 
 #include "TGraph.h"
@@ -24,10 +24,10 @@ void ProcessCuts(shared_ptr<EventSet> events,
     events->SaveEventsToFiles(prefix);
   }
   if(drawStandardPlots){
-//    HistSet::DrawStandardPlots(eventsSignal, eventsBackground, eventsData);
+    HistSet::DrawStandardPlots(events);
   }
   if(drawPerLayerPlots){
-//    HistSet::DrawPerLayerPlots(eventsSignal, eventsBackground, eventsData);
+    HistSet::DrawPerLayerPlots(events);
   }
   if(printBackgroundDetails){
     for(int iBck=0;iBck<kNbackgrounds;iBck++){

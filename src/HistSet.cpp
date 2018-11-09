@@ -78,80 +78,78 @@ HistSet::~HistSet()
   
 }
 
-void HistSet::FillFromEvents(std::vector<shared_ptr<EventSet>> signalEvents,
-                             std::vector<shared_ptr<EventSet>> backgroundEvents,
-                             std::vector<shared_ptr<EventSet>> dataEvents)
+void HistSet::FillFromEvents(shared_ptr<EventSet> events)
 {
   if(var == kDedx || var == kSizeX || var == kSizeY){
-    FillFromEventsPerLayer(signalEvents, backgroundEvents, dataEvents);
+    FillFromEventsPerLayer(events);
   }
   else{
-    for(int iSig=0;iSig<(int)signalEvents.size();iSig++){
-      Fill(signal[iSig], signalEvents[iSig]);
+    for(int iSig=0;iSig<kNsignals;iSig++){
+      Fill(signal[iSig], events,EventSet::kSignal, iSig);
     }
-    for(int iBck=0;iBck<(int)backgroundEvents.size();iBck++){
-      Fill(background[iBck], backgroundEvents[iBck]);
+    for(int iBck=0;iBck<kNbackgrounds;iBck++){
+      Fill(background[iBck],events,EventSet::kBackground, iBck);
     }
-    for(int iData=0;iData<(int)dataEvents.size();iData++){
-      Fill(data[iData], dataEvents[iData]);
+    for(int iData=0;iData<kNdata;iData++){
+      Fill(data[iData],events,EventSet::kData, iData);
     }
   }
 }
 
-void HistSet::FillFromEventsPerLayer(std::vector<shared_ptr<EventSet>> signalEvents,
-                                     std::vector<shared_ptr<EventSet>> backgroundEvents,
-                                     std::vector<shared_ptr<EventSet>> dataEvents)
+void HistSet::FillFromEventsPerLayer(shared_ptr<EventSet> events)
 {
   const char* title= GetTitle();
   int nBins = GetNbins();
   double min = GetMin();
   double max = GetMax();
   
-  for(int iSig=0;iSig<(int)signalEvents.size();iSig++){
+  for(int iSig=0;iSig<kNsignals;iSig++){
     vector<TH1D*> signalVector;
     for(int iDetId=0;iDetId<nLayers;iDetId++){
       TH1D *histSignal = new TH1D(Form("%s_subDet[%i]_signal_%s",title,iDetId,signalTitle[iSig].c_str()),
                                   Form("%s_subDet[%i]_signal_%s",title,iDetId,signalTitle[iSig].c_str()),
                                   nBins,min,max);
       
-      Fill(histSignal,signalEvents[iSig],iDetId);
+      Fill(histSignal,events,EventSet::kSignal,iSig,iDetId);
       signalVector.push_back(histSignal);
     }
     signalPerLayer.push_back(signalVector);
   }
   
   
-  for(int iBck=0;iBck<(int)backgroundEvents.size();iBck++){
+  for(int iBck=0;iBck<kNbackgrounds;iBck++){
     vector<TH1D*> backgroundVector;
     for(int iDetId=0;iDetId<nLayers;iDetId++){
       TH1D *histBackground = new TH1D(Form("%s_subDet[%i]_background_%s",title,iDetId,backgroundTitle[iBck].c_str()),
                                       Form("%s_subDet[%i]_background_%s",title,iDetId,backgroundTitle[iBck].c_str()),
                                       nBins,min,max);
       
-      Fill(histBackground,backgroundEvents[iBck],iDetId);
+      Fill(histBackground,events,EventSet::kBackground,iBck,iDetId);
       backgroundVector.push_back(histBackground);
     }
     backgroundPerLayer.push_back(backgroundVector);
   }
-  for(int iData=0;iData<(int)dataEvents.size();iData++){
+  for(int iData=0;iData<kNdata;iData++){
     vector<TH1D*> dataVector;
     for(int iDetId=0;iDetId<nLayers;iDetId++){
       
       TH1D *histData = new TH1D(Form("%s_subDet[%i]_data",title,iDetId),
                                 Form("%s_subDet[%i]_data",title,iDetId),
                                 nBins,min,max);
-      Fill(histData,dataEvents[iData],iDetId);
+      Fill(histData,events,EventSet::kData,iData,iDetId);
       dataVector.push_back(histData);
     }
     dataPerLayer.push_back(dataVector);
   }
 }
 
-void HistSet::Fill(TH1D* hist, shared_ptr<EventSet> events, int iDetId)
+void HistSet::Fill(TH1D* hist, shared_ptr<EventSet> events,
+                   EventSet::EDataType dataType, int setIter,
+                   int iDetId)
 {
   if(events){
-    for(int iEvent=0;iEvent<events->size();iEvent++){
-      shared_ptr<Event> event = events->At(iEvent);
+    for(int iEvent=0;iEvent<events->size(dataType, setIter);iEvent++){
+      shared_ptr<Event> event = events->At(dataType, setIter, iEvent);
       
       double value = 0.0;
       
@@ -181,8 +179,8 @@ void HistSet::Fill(TH1D* hist, shared_ptr<EventSet> events, int iDetId)
         else if(var == kJetPhi)  value = jet->GetPhi();
         else if(var == kMetJetDphi) value = event->GetMetPhi() - jet->GetPhi();
         else if(var == kJetTrackDr){
-          for(int iTrack=0;iTrack<events->At(iEvent)->GetNtracks();iTrack++){
-            Track *track = events->At(iEvent)->GetTrack(iTrack);
+          for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
+            Track *track = event->GetTrack(iTrack);
             value = sqrt(pow(track->GetPhi() - jet->GetPhi(),2)+pow(track->GetEta() - jet->GetEta(),2));
             hist->Fill(value,event->GetWeight());
           }
@@ -193,8 +191,8 @@ void HistSet::Fill(TH1D* hist, shared_ptr<EventSet> events, int iDetId)
         }
       }
       
-      for(int iTrack=0;iTrack<events->At(iEvent)->GetNtracks();iTrack++){
-        Track *track = events->At(iEvent)->GetTrack(iTrack);
+      for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
+        Track *track = event->GetTrack(iTrack);
         double value = 0.0;
         
         if(var == kTrackNclusters)                    value = track->GetNdetIDs();
@@ -400,10 +398,7 @@ void HistSet::DrawPerLayer()
   c1->Update();
 }
 
-void HistSet::DrawStandardPlots(vector<shared_ptr<EventSet>> &eventsSignal,
-                                vector<shared_ptr<EventSet>> &eventsBackground,
-                                vector<shared_ptr<EventSet>> &eventsData,
-                                string prefix)
+void HistSet::DrawStandardPlots(shared_ptr<EventSet> events,string prefix)
 {
   // Create standard per event, per track and per jet plots
   map<string, HistSet*> hists;
@@ -448,8 +443,8 @@ void HistSet::DrawStandardPlots(vector<shared_ptr<EventSet>> &eventsSignal,
   hists["jet_phi"]    = new HistSet(kJetPhi);
   hists["jetTrackDr"] = new HistSet(kJetTrackDr);
   
-  for(auto hist : hists){
-    hist.second->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  for(pair<string, HistSet*> hist : hists){
+    hist.second->FillFromEvents(events);
   }
   
   // Plot histograms
@@ -487,12 +482,10 @@ void HistSet::DrawStandardPlots(vector<shared_ptr<EventSet>> &eventsSignal,
   hists["jet_phi"]->Draw(canvasJets, 3);
 }
 
-void DrawPerLayerPlots(vector<shared_ptr<EventSet>> &eventsSignal,
-                       vector<shared_ptr<EventSet>> &eventsBackground,
-                       vector<shared_ptr<EventSet>> &eventsData)
+void HistSet::DrawPerLayerPlots(shared_ptr<EventSet> events)
 {
   HistSet *dedxPerLayer = new HistSet(kDedx);
-  dedxPerLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  dedxPerLayer->FillFromEvents(events);
   dedxPerLayer->DrawPerLayer();
   
   //  HistSet *sizeXperLayer = new HistSet(kSizeX);
