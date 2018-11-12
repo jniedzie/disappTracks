@@ -24,7 +24,6 @@ var(_var)
     signal.push_back(new TH1D(Form("%s (signal %s)",title,signalTitle[iSig].c_str()),
                               Form("%s (signal %s)",title,signalTitle[iSig].c_str()),
                               nBins,min,max));
-    //    signal[iSig]->Sumw2(DoSumw2());
   }
   
   
@@ -32,13 +31,11 @@ var(_var)
     background.push_back(new TH1D(Form("%s (background %s)",title,backgroundTitle[iBck].c_str()),
                                   Form("%s (background %s)",title,backgroundTitle[iBck].c_str()),
                                   nBins,min,max));
-    //    background[iBck]->Sumw2(DoSumw2());
   }
   for(int iData=0;iData<kNdata;iData++){
     data.push_back(new TH1D(Form("%s (data %s)",title,dataTitle[iData].c_str()),
                             Form("%s (data %s)",title,dataTitle[iData].c_str()),
                             nBins,min,max));
-    //    data[iData]->Sumw2(DoSumw2());
   }
 }
 
@@ -118,93 +115,87 @@ void HistSet::Fill(TH1D* hist, shared_ptr<EventSet> events,
     
     double value = 0.0;
     
-    if(var == kNvertices)       value = event->GetNvertices();
-    else if(var == kNisoTracks) value = event->GetNtracks();
-    else if(var == kNjets)      value = event->GetNjets();
-    else if(var == kNjets30)    value = event->GetNjet30();
-    else if(var == kNjets30a)   value = event->GetNjet30a();
-    else if(var == kMetSumEt)   value = event->GetMetSumEt();
-    else if(var == kMetPt)      value = event->GetMetPt();
-    else if(var == kMetMass)    value = event->GetMetMass();
-    else if(var == kMetEta)     value = event->GetMetEta();
-    else if(var == kMetPhi)     value = event->GetMetPhi();
-    
-    if(var == kNvertices || var == kNisoTracks || var == kNjets || var == kNjets30 || var == kNjets30a || var == kMetSumEt || var == kMetPt || var == kMetMass || var == kMetEta || var == kMetPhi){
+    if(IsPerEventVariable(var)){
+      if(var == kNvertices)       value = event->GetNvertices();
+      else if(var == kNisoTracks) value = event->GetNtracks();
+      else if(var == kNjets)      value = event->GetNjets();
+      else if(var == kNjets30)    value = event->GetNjet30();
+      else if(var == kNjets30a)   value = event->GetNjet30a();
+      else if(var == kMetSumEt)   value = event->GetMetSumEt();
+      else if(var == kMetPt)      value = event->GetMetPt();
+      else if(var == kMetMass)    value = event->GetMetMass();
+      else if(var == kMetEta)     value = event->GetMetEta();
+      else if(var == kMetPhi)     value = event->GetMetPhi();
+      
       hist->Fill(value, event->GetWeight());
-      continue;
     }
     
-    for(int iJet=0;iJet<event->GetNjets();iJet++){
-      Jet *jet = event->GetJet(iJet);
-      
-      double value=0.0;
-      
-      if(var == kJetPt)   value = jet->GetPt();
-      else if(var == kJetEta)  value = jet->GetEta();
-      else if(var == kJetPhi)  value = jet->GetPhi();
-      else if(var == kMetJetDphi) value = event->GetMetPhi() - jet->GetPhi();
-      else if(var == kJetCHF) value = jet->GetChargedHadronEnergyFraction();
-      else if(var == kJetNHF) value = jet->GetNeutralHadronEnergyFraction();
-      else if(var == kJetTrackDr){
-        for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
-          Track *track = event->GetTrack(iTrack);
-          value = sqrt(pow(track->GetPhi() - jet->GetPhi(),2)+pow(track->GetEta() - jet->GetEta(),2));
-          hist->Fill(value,event->GetWeight());
+    if(IsPerJetVariable(var)){
+      for(int iJet=0;iJet<event->GetNjets();iJet++){
+        Jet *jet = event->GetJet(iJet);
+        
+        if(var == kJetPt)           value = jet->GetPt();
+        else if(var == kJetEta)     value = jet->GetEta();
+        else if(var == kJetPhi)     value = jet->GetPhi();
+        else if(var == kMetJetDphi) value = event->GetMetPhi() - jet->GetPhi();
+        else if(var == kJetCHF)     value = jet->GetChargedHadronEnergyFraction();
+        else if(var == kJetNHF)     value = jet->GetNeutralHadronEnergyFraction();
+        else if(var == kJetTrackDr){
+          for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
+            Track *track = event->GetTrack(iTrack);
+            value = sqrt(pow(track->GetPhi() - jet->GetPhi(),2)+pow(track->GetEta() - jet->GetEta(),2));
+            hist->Fill(value,event->GetWeight());
+          }
+          continue;
         }
-      }
-      
-      if(var == kJetPt || var == kJetEta || var == kJetPhi || var == kMetJetDphi || var == kJetNHF || var == kJetCHF){
         hist->Fill(value,event->GetWeight());
       }
     }
     
-    for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
-      Track *track = event->GetTrack(iTrack);
-      double value = 0.0;
-      
-      if(var == kTrackNclusters)                    value = track->GetNdetIDs();
-      else if(var == kTrackTotalDedx)               value = track->GetTotalDedx();
-      else if(var == kTrackDedxPerCluster)          value = track->GetTotalDedx()/track->GetNdetIDs();
-      else if(var == kTrackPt)                      value = track->GetPt();
-      else if(var == kTrackEta)                     value = track->GetEta();
-      else if(var == kTrackPhi)                     value = track->GetPhi();
-      else if(var == kTrackCaloEm)                  value = track->GetCaloEmEnergy();
-      else if(var == kTrackCaloHad)                 value = track->GetCaloHadEnergy();
-      else if(var == kTrackDxy)                     value = track->GetDxy();
-      else if(var == kTrackDz)                      value = track->GetDz();
-      else if(var == kTrackCharge)                  value = track->GetCharge();
-      else if(var == kTrackMass)                    value = track->GetMass();
-      else if(var == kTrackPid)                     value = track->GetPid();
-      else if(var == kTrackMissingOuterTrackerHits) value = track->GetNmissingOuterTrackerHits();
-      else if(var == kTrackPixelHits)               value = track->GetNpixelHits();
-      else if(var == kTrackTrackerHits)             value = track->GetNtrackerHits();
-      else if(var == kTrackRelativeIsolation)       value = track->GetRelativeIsolation();
-      else if(var == kTrackAbsoluteIsolation)       value = track->GetAbsoluteIsolation();
-      else if(var == kTrackMetDphi)                 value = event->GetMetPhi() - track->GetPhi();
-      
-      else if(var == kDedx || var == kSizeX || var == kSizeY){
-        for(int i=0;i<nLayers;i++){
-          int detId = track->GetSubDetIdInLayer(i);
-          if(detId == iDetId){
-            if(var == kDedx)        value = track->GetDedxInSubDet(i);
-            else if(var == kSizeX)  value = track->GetSizeXinLayer(i);
-            else if(var == kSizeY)  value = track->GetSizeYinLayer(i);
-            
+    if(IsPerTrackVariable(var)){
+      for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
+        Track *track = event->GetTrack(iTrack);
+        
+        if(var == kTrackNclusters)                    value = track->GetNdetIDs();
+        else if(var == kTrackTotalDedx)               value = track->GetTotalDedx();
+        else if(var == kTrackDedxPerCluster)          value = track->GetTotalDedx()/track->GetNdetIDs();
+        else if(var == kTrackPt)                      value = track->GetPt();
+        else if(var == kTrackEta)                     value = track->GetEta();
+        else if(var == kTrackPhi)                     value = track->GetPhi();
+        else if(var == kTrackCaloEm)                  value = track->GetCaloEmEnergy();
+        else if(var == kTrackCaloHad)                 value = track->GetCaloHadEnergy();
+        else if(var == kTrackDxy)                     value = track->GetDxy();
+        else if(var == kTrackDz)                      value = track->GetDz();
+        else if(var == kTrackCharge)                  value = track->GetCharge();
+        else if(var == kTrackMass)                    value = track->GetMass();
+        else if(var == kTrackPid)                     value = track->GetPid();
+        else if(var == kTrackMissingOuterTrackerHits) value = track->GetNmissingOuterTrackerHits();
+        else if(var == kTrackPixelHits)               value = track->GetNpixelHits();
+        else if(var == kTrackTrackerHits)             value = track->GetNtrackerHits();
+        else if(var == kTrackRelativeIsolation)       value = track->GetRelativeIsolation();
+        else if(var == kTrackAbsoluteIsolation)       value = track->GetAbsoluteIsolation();
+        else if(var == kTrackMetDphi)                 value = event->GetMetPhi() - track->GetPhi();
+        else if(var == kDedx || var == kSizeX || var == kSizeY){
+          for(int i=0;i<nLayers;i++){
+            int detId = track->GetSubDetIdInLayer(i);
+            if(detId == iDetId){
+              if(var == kDedx)        value = track->GetDedxInSubDet(i);
+              else if(var == kSizeX)  value = track->GetSizeXinLayer(i);
+              else if(var == kSizeY)  value = track->GetSizeYinLayer(i);
+              
+              if(value > 0.00001) hist->Fill(value, event->GetWeight());
+            }
+          }
+          continue;
+        }
+        else if(var == kTrackDedxPerHit){
+          for(int i=0;i<nLayers;i++){
+            value = track->GetDeDxInLayer(i);
             if(value > 0.00001) hist->Fill(value, event->GetWeight());
           }
+          continue;
         }
-      }
-      else if(var == kTrackDedxPerHit){
-        for(int i=0;i<nLayers;i++){
-          value = track->GetDeDxInLayer(i);
-          if(value > 0.00001) hist->Fill(value, event->GetWeight());
-        }
-      }
-      
-      if(var == kTrackNclusters || var == kTrackTotalDedx || var == kTrackDedxPerCluster || var == kTrackPt
-         || var == kTrackEta || var == kTrackPhi || var == kTrackCaloEm || var == kTrackCaloHad
-         || var == kTrackDxy ||var == kTrackDz   || var == kTrackCharge || var == kTrackMass || var == kTrackPid
-         || var == kTrackMissingOuterTrackerHits || var == kTrackPixelHits || var == kTrackTrackerHits || var == kTrackRelativeIsolation || var == kTrackAbsoluteIsolation || var == kTrackMetDphi){
+        
         hist->Fill(value, event->GetWeight());
       }
     }
@@ -375,33 +366,6 @@ bool HistSet::ShouldNormalize()
 {
 //  if(var == kCustom) return false;
 //  if(var == kTrackTotalDedx) return false;
-  return true;
-}
-
-bool HistSet::DoSumw2()
-{
-  if(var == kCustom) return false;
-  
-  if(var == kNvertices)   return false;
-  if(var == kNisoTracks)  return false;
-  if(var == kNjets)       return false;
-  if(var == kNjets30)     return false;
-  if(var == kNjets30a)    return false;
-  if(var == kMetSumEt)    return false;
-  if(var == kMetPt)       return false;
-  if(var == kMetMass)     return false;
-  if(var == kMetEta)      return false;
-  if(var == kMetPhi)      return false;
-  
-  if(var == kTrackNclusters)  return false;
-  if(var == kTrackPt)         return false;
-  if(var == kTrackCaloEm)     return false;
-  if(var == kTrackCaloHad)    return false;
-  
-  if(var == kDedx)  return false;
-  if(var == kSizeX) return false;
-  if(var == kSizeY) return false;
-  
   return true;
 }
 

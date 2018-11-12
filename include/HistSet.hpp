@@ -48,10 +48,10 @@ private:
   vector<vector<TH1D*>> dataPerLayer;       ///< Array of per-layer histograms for data [signalType][layer]
   
   EVar var;                 ///< For which variable the histograms should be filled
-  const char* title;
-  int nBins;
-  double min;
-  double max;
+  const char* title;        ///< Title of the variable
+  int nBins;                ///< Number of bins for this variable
+  double min;               ///< X axis minimum for this variable
+  double max;               ///< X axis maximum for this variable
   
   /// Fills per-layer plots with data from privided EventSet
   /// \param events EventSet from which histograms will be filled
@@ -63,9 +63,6 @@ private:
   
   /// Tells whether given histogram should be normalized or not
   bool ShouldNormalize();
-  
-  /// Tells whether errors should be calculated for given histogram
-  bool DoSumw2();
   
   /// Fills given histogram type with data from the EventSet.
   /// \param hist Histogram which will be filled

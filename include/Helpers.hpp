@@ -366,6 +366,40 @@ const map<EVar, tuple<string, int, double, double>> settings =
   {kSizeY , {"sizeY",10,0,13}},
 };
 
+inline bool IsPerEventVariable(EVar var)
+{
+  if(var == kNvertices || var == kNisoTracks || var == kNjets || var == kNjets30 ||
+     var == kNjets30a || var == kMetSumEt || var == kMetPt || var == kMetMass || var == kMetEta || var == kMetPhi || var == kMetJetDphi)
+    return true;
+  return false;
+}
+
+inline bool IsPerTrackVariable(EVar var)
+{
+  if(var == kTrackNclusters || var == kTrackTotalDedx || var == kTrackDedxPerCluster || var == kTrackPt ||
+     var == kTrackEta || var == kTrackPhi || var == kTrackCaloEm || var == kTrackCaloHad ||
+     var == kTrackDxy || var == kTrackDz || var == kTrackCharge || var == kTrackMass || var == kTrackPid ||
+     var == kTrackMissingOuterTrackerHits || var == kTrackPixelHits || var == kTrackTrackerHits ||
+     var == kTrackRelativeIsolation || var == kTrackAbsoluteIsolation || var == kTrackMetDphi ||
+     var == kTrackDedxPerHit)
+    return true;
+  return false;
+}
+
+inline bool IsPerJetVariable(EVar var)
+{
+  if(var == kJetPt || var == kJetEta || var ==  kJetPhi || var ==  kJetTrackDr || var ==  kJetCHF || var ==  kJetNHF)
+    return true;
+  return false;
+}
+
+inline bool IsPerLayerVariable(EVar var)
+{
+  if(var == kDedx || var == kSizeX || var == kSizeY)
+    return true;
+  return false;
+};
+
 template <class T>
 class range
 {

@@ -12,13 +12,13 @@
 
 EventSet::EventSet()
 {
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    eventsSignal.push_back(vector<shared_ptr<Event>>());
+  }
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     eventsBackground.push_back(vector<shared_ptr<Event>>());
   }
-  for(int iSig=0;iSig<kNbackgrounds;iSig++){
-    eventsSignal.push_back(vector<shared_ptr<Event>>());
-  }
-  for(int iData=0;iData<kNbackgrounds;iData++){
+  for(int iData=0;iData<kNdata;iData++){
     eventsData.push_back(vector<shared_ptr<Event>>());
   }
 }
@@ -31,16 +31,19 @@ EventSet::EventSet(string fileName, EDataType dataType, int maxNevents, ESignal 
 EventSet::EventSet(const EventSet &e)
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
+    eventsSignal.push_back(vector<shared_ptr<Event>>());
     for(auto &event : e.eventsSignal[iSig]){
       eventsSignal[iSig].push_back(make_shared<Event>(*event));
     }
   }
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    eventsBackground.push_back(vector<shared_ptr<Event>>());
     for(auto &event : e.eventsBackground[iBck]){
       eventsBackground[iBck].push_back(make_shared<Event>(*event));
     }
   }
   for(int iData=0;iData<kNdata;iData++){
+    eventsData.push_back(vector<shared_ptr<Event>>());
     for(auto &event : e.eventsData[iData]){
       eventsData[iData].push_back(make_shared<Event>(*event));
     }

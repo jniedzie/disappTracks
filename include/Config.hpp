@@ -13,7 +13,7 @@
 using namespace std;
 
 // Analysis configuration
-const int performCutsLevel = 0;
+const int performCutsLevel = 2;
 
 const bool saveEvents = false;
 const bool printYields = true;
