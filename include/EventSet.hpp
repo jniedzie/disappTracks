@@ -10,8 +10,11 @@
 #include "Helpers.hpp"
 #include "Event.hpp"
 
-#include <optional>
-
+/// This class contains three vectors, for signal, background and data events. In each of those vectors,
+/// there's a vector of events of given type (for instance, in the background vector there will be a
+/// vector of events for Z->mumu, another vector with events for Z->nunu etc.).
+/// The class allows to load those events from files, apply cuts, get basic information about each of
+/// the collections and store filtered events in ROOT files.
 class EventSet {
 public:
   enum EDataType{
@@ -29,12 +32,21 @@ public:
   /// Default destructor
   ~EventSet();
   
+  /// Loads signal, background and data events according to settings in the config.
+  /// \param prefix If specified, prefix will be appended at the end of the path, before "tree.root"
   void LoadEventsFromFiles(string prefix="");
+  
+  /// Loads events from one tree only.
+  /// \param dataType Specifies whether signal, background or data events should be loaded.
+  /// \param setIter Specifies which set should be loaded (e.g. kZmumuJets for Z->mumu)
+  /// \param prefix If specified, prefix will be appended at the end of the path, before "tree.root"
   void LoadEventsFromFiles(EDataType dataType, int setIter, string prefix="");
   
+  /// Saves signal, background and data events in the ROOT files, according to settings in the config.
+  /// \param prefix If specified, prefix will be appended at the end of the path, before "tree.root"
   void SaveEventsToFiles(string prefix="after_L/");
   
- 
+  /// Prints yields of signal, background and data events, as well as S/sqrt(S+B) ratio.
   void PrintYields();
   
   /// Applies cuts in this order: track, jet, lepton, event to three sets of events: signal, background and data.
@@ -44,42 +56,23 @@ public:
   /// \param leptonCut  Cuts to be applied to leptons
   void ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut);
   
- 
+  void DrawStandardPlots(string prefix="");
+  void DrawPerLayerPlots();
   
   /// Returns number of events in this collection
-  int size(EDataType dataType, int setIter){
-    if(dataType == kSignal){
-      return (int)eventsSignal[(ESignal)setIter].size();
-    }
-    else if(dataType == kBackground){
-      return (int)eventsBackground[(EBackground)setIter].size();
-    }
-    else if(dataType == kData){
-      return (int)eventsData[(EData)setIter].size();
-    }
-    else{
-      throw out_of_range("Unknown data type provided");
-    }
-    return 1;
-  }
+  /// \param dataType Specifies which data type should be taken into concideration: signal, background or data
+  /// \param setIter Specifies which set for given dataType to look at (e.g. kZmumuJets for Z->mumu)
+  int size(EDataType dataType, int setIter);
   
-  double weightedSize(EDataType type, int setIter);
+  /// Returns weighted size of a collection (including luminosity, cross section and generator weights.
+  /// \param dataType Specifies which data type should be taken into concideration: signal, background or data
+  /// \param setIter Specifies which set for given dataType to look at (e.g. kZmumuJets for Z->mumu)
+  double weightedSize(EDataType dataType, int setIter);
   
   /// Returns the event with given index
-  shared_ptr<Event> At(EDataType dataType, int setIter, int index){
-    if(dataType == kSignal){
-      return eventsSignal[(ESignal)setIter][index];
-    }
-    else if(dataType == kBackground){
-      return eventsBackground[(EBackground)setIter][index];
-    }
-    else if(dataType == kData){
-      return eventsData[(EData)setIter][index];
-    }
-    else{
-      throw out_of_range("Unknown data type provided");
-    }
-  }
+  /// \param dataType Specifies from which data type: signal, background or data the events should be taken
+  /// \param setIter Specifies which set for given dataType to look at (e.g. kZmumuJets for Z->mumu)
+  shared_ptr<Event> At(EDataType dataType, int setIter, int index);
   
 private:
   /// Default constructor. Loads events from ROOT tree
@@ -95,21 +88,7 @@ private:
   
   /// Adds event to the collection of events
   /// \param event Event object to be added to the collection
-  void AddEvent(shared_ptr<Event> event, EDataType dataType, int setIter){
-    
-    if(dataType == kSignal){
-      eventsSignal[(ESignal)setIter].push_back(event);
-    }
-    else if(dataType == kBackground){
-      eventsBackground[(EBackground)setIter].push_back(event);
-    }
-    else if(dataType == kData){
-      eventsData[(EData)setIter].push_back(event);
-    }
-    else{
-      throw out_of_range("Unknown data type provided");
-    }
-  }
+  void AddEvent(shared_ptr<Event> event, EDataType dataType, int setIter);
   
   /// Adds events from specified path to the existing events collection
   /// \param fileName Path to the ROOT file with ntuples from which events will be loaded

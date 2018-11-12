@@ -23,19 +23,19 @@ public:
   /// Print basic information about the jet
   void Print();
   
-  /// Check if jet passes selection criteria
+  /// Checks if jet passes selection criteria
   /// \param cut Jets selection criteria to be checked
   bool IsPassingCut(JetCut *cut);
   
   
   // Setters
-  inline void SetPt(double _pt){pt = _pt;}
-  inline void SetEta(double _eta){eta = _eta;}
-  inline void SetPhi(double _phi){phi = _phi;}
-  inline void SetMass(double _mass){mass = _mass;}
-  inline void SetChargedHadronEnergyFraction(double frac){chargedHadronEnergyFraction = frac;}
-  inline void SetNeutralHadronEnergyFraction(double frac){neutralHadronEnergyFraction = frac;}
-  inline void SetIsForward(double val){isForward = val;}
+  inline void SetPt(double val){pt = val;}
+  inline void SetEta(double val){eta = val;}
+  inline void SetPhi(double val){phi = val;}
+  inline void SetMass(double val){mass = val;}
+  inline void SetChargedHadronEnergyFraction(double val){chargedHadronEnergyFraction = val;}
+  inline void SetNeutralHadronEnergyFraction(double val){neutralHadronEnergyFraction = val;}
+  inline void SetIsForward(bool val){isForward = val;}
   
   // Getters
   inline double GetPt(){return pt;}
@@ -53,7 +53,7 @@ private:
   double mass;                        ///< Mass
   double chargedHadronEnergyFraction; ///< Energy fraction carried by charged hadrons
   double neutralHadronEnergyFraction; ///< Energy fraction carried by neutral hadrons
-  bool  isForward;                    ///< is this a forward jet, or a regular one
+  bool   isForward;                   ///< is this a forward jet, or a regular one
 };
 
 #endif /* Jet_hpp */

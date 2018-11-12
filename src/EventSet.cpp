@@ -5,10 +5,10 @@
 //
 
 #include "EventSet.hpp"
+#include "HistSet.hpp"
 
 #include <TTreeReaderArray.h>
 #include <TLorentzVector.h>
-//#include <ROOT/TTreeProcessorMT.hxx>
 
 EventSet::EventSet()
 {
@@ -50,289 +50,6 @@ EventSet::EventSet(const EventSet &e)
 EventSet::~EventSet()
 {
   
-}
-
-double EventSet::weightedSize(EDataType type, int setIter)
-{
-  double sum=0;
-  
-  if(type == kSignal){
-    for(auto &ev : eventsSignal[(ESignal)setIter]){sum += ev->GetWeight();}
-  }
-  else if(type == kBackground){
-    for(auto &ev : eventsBackground[(EBackground)setIter]){sum += ev->GetWeight();}
-  }
-  else if(type == kData){
-    for(auto &ev : eventsData[(EData)setIter]){sum += ev->GetWeight();}
-  }
-  else{
-    throw out_of_range("Unknown data type provided");
-  }
-  
-  return sum;
-}
-
-
-void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int maxNevents, int setIter)
-{
-  cout<<"Reading events from:"<<fileName<<endl;
-  TFile *inFile = TFile::Open(fileName.c_str());
-  TTreeReader reader("tree", inFile);
-  
-  TTreeReaderValue<int>   _nTracks(reader, "nIsoTrack");
-  TTreeReaderValue<int>   _nVert(reader, "nVert");
-  TTreeReaderValue<int>   _nJets(reader, "nJet");
-  TTreeReaderValue<int>   _nJetsFwd(reader, "nJetFwd");
-  TTreeReaderValue<int>   _nJet30(reader, "nJet30");
-  TTreeReaderValue<int>   _nJet30a(reader, "nJet30a");
-  TTreeReaderValue<int>   _nLepton(reader, "nLepGood");
-  TTreeReaderValue<int>   _nTau(reader, "nTauGood");
-  TTreeReaderValue<int>   _nGenChargino(reader, "nGenChargino");
-  
-  TTreeReaderValue<float> _xSec  (reader,(dataType==kBackground || dataType==kSignal) ? "xsec" : "rho");
-  TTreeReaderValue<float> _sumWgt(reader,(dataType==kBackground || dataType==kSignal) ? "wgtsum" : "rho");
-  TTreeReaderValue<float> _genWgt(reader,(dataType==kBackground || dataType==kSignal) ? "genWeight" : "rho");
-  
-  TTreeReaderValue<float> _metSumEt(reader, "met_sumEt");
-  TTreeReaderValue<float> _metPt(reader, "met_pt");
-  TTreeReaderValue<float> _metMass(reader, "met_mass");
-  TTreeReaderValue<float> _metPhi(reader, "met_phi");
-  TTreeReaderValue<float> _metEta(reader, "met_eta");
-  
-  TTreeReaderValue<int>   _metNoMuTrigger(reader, "HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight");
-  TTreeReaderValue<int>   _flag_goodVertices(reader, "Flag_goodVertices");
-  TTreeReaderValue<int>   _flag_badPFmuon(reader, "Flag_BadPFMuonFilter");
-  TTreeReaderValue<int>   _flag_HBHEnoise(reader, "Flag_HBHENoiseFilter");
-  TTreeReaderValue<int>   _flag_HBHEnoiseIso(reader, "Flag_HBHENoiseIsoFilter");
-  TTreeReaderValue<int>   _flag_EcalDeadCell(reader, "Flag_EcalDeadCellTriggerPrimitiveFilter");
-  TTreeReaderValue<int>   _flag_eeBadSc(reader, "Flag_eeBadScFilter");
-  TTreeReaderValue<int>   _flag_badChargedCandidate(reader, "Flag_BadChargedCandidateFilter");
-  TTreeReaderValue<int>   _flag_ecalBadCalib(reader, "Flag_ecalBadCalibFilter");
-  TTreeReaderValue<int>   _flag_globalTightHalo2016(reader, "Flag_globalTightHalo2016Filter");
-  
-  TTreeReaderValue<float> _metNoMuPt(reader, "metNoMu_pt");
-  TTreeReaderValue<float> _metNoMuMass(reader, "metNoMu_mass");
-  TTreeReaderValue<float> _metNoMuPhi(reader, "metNoMu_phi");
-  TTreeReaderValue<float> _metNoMuEta(reader, "metNoMu_eta");
-  
-  TTreeReaderArray<float> _trackEta(reader, "IsoTrack_eta");
-  TTreeReaderArray<float> _trackPhi(reader, "IsoTrack_phi");
-  TTreeReaderArray<float> _trackCaloEmEnergy(reader, "IsoTrack_caloEmEnergy");
-  TTreeReaderArray<float> _trackCaloHadEnergy(reader, "IsoTrack_caloHadEnergy");
-  TTreeReaderArray<float> _trackDxyErr(reader, "IsoTrack_edxy");
-  TTreeReaderArray<float> _trackDxy(reader, "IsoTrack_dxy");
-  TTreeReaderArray<float> _trackDzErr(reader, "IsoTrack_edz");
-  TTreeReaderArray<float> _trackDz(reader, "IsoTrack_dz");
-  TTreeReaderArray<int>   _trackCharge(reader, "IsoTrack_charge");
-  TTreeReaderArray<float> _trackMass(reader, "IsoTrack_mass");
-  TTreeReaderArray<float> _trackPt(reader, "IsoTrack_pt");
-  TTreeReaderArray<int>   _trackPid(reader, "IsoTrack_pdgId");
-  TTreeReaderArray<float> _trackRelIso03(reader, "IsoTrack_relIso03");
-  
-  TTreeReaderArray<int>   _trackTrackerLayers(reader, "IsoTrack_trackerLayers");
-  TTreeReaderArray<int>   _trackPixelLayers(reader, "IsoTrack_pixelLayers");
-  TTreeReaderArray<int>   _trackTrackerHits(reader, "IsoTrack_trackerHits");
-  TTreeReaderArray<int>   _trackPixelHits(reader, "IsoTrack_pixelHits");
-  TTreeReaderArray<int>   _trackMissingInnerPixelHits(reader, "IsoTrack_missingInnerPixelHits");
-  TTreeReaderArray<int>   _trackMissingOuterPixelHits(reader, "IsoTrack_missingOuterPixelHits");
-  TTreeReaderArray<int>   _trackMissingInnerStripHits(reader, "IsoTrack_missingInnerStripHits");
-  TTreeReaderArray<int>   _trackMissingOuterStripHits(reader, "IsoTrack_missingOuterStripHits");
-  TTreeReaderArray<int>   _trackMissingInnerTrackerHits(reader, "IsoTrack_missingInnerTrackerHits");
-  TTreeReaderArray<int>   _trackMissingOuterTrackerHits(reader, "IsoTrack_missingOuterTrackerHits");
-  TTreeReaderArray<int>   _trackMissingMiddleTrackerHits(reader, "IsoTrack_missingMiddleTrackerHits");
-  
-  TTreeReaderArray<float> _leptonPt(reader, "LepGood_pt");
-  TTreeReaderArray<float> _leptonPhi(reader, "LepGood_phi");
-  TTreeReaderArray<float> _leptonEta(reader, "LepGood_eta");
-  TTreeReaderArray<int>   _leptonThightId(reader, "LepGood_tightId");
-  TTreeReaderArray<float> _leptonIsolation(reader, "LepGood_relIso04");
-  TTreeReaderArray<int>   _leptonPid(reader, "LepGood_pdgId");
-  
-  TTreeReaderArray<float> _jetPt(reader,  "Jet_pt");
-  TTreeReaderArray<float> _jetEta(reader, "Jet_eta");
-  TTreeReaderArray<float> _jetPhi(reader, "Jet_phi");
-  TTreeReaderArray<float> _jetMass(reader, "Jet_mass");
-  TTreeReaderArray<float> _jetChHEF(reader, "Jet_chHEF");
-  TTreeReaderArray<float> _jetNeHEF(reader, "Jet_neHEF");
-  
-  TTreeReaderArray<float> _jetFwdPt(reader,  "JetFwd_pt");
-  TTreeReaderArray<float> _jetFwdEta(reader, "JetFwd_eta");
-  TTreeReaderArray<float> _jetFwdPhi(reader, "JetFwd_phi");
-  TTreeReaderArray<float> _jetFwdMass(reader, "JetFwd_mass");
-  TTreeReaderArray<float> _jetFwdChHEF(reader, "JetFwd_chHEF");
-  TTreeReaderArray<float> _jetFwdNeHEF(reader, "JetFwd_neHEF");
-  
-  TTreeReaderArray<float> *_dedx[nLayers];
-  TTreeReaderArray<int> *_subDetId[nLayers];
-  TTreeReaderArray<int> *_sizeX[nLayers];
-  TTreeReaderArray<int> *_sizeY[nLayers];
-  
-  for(int iLayer=0;iLayer<nLayers;iLayer++){
-    _dedx[iLayer] =      new TTreeReaderArray<float>(reader,Form("IsoTrack_dedxByLayer%i",iLayer));
-    _subDetId[iLayer] =  new TTreeReaderArray<int>(reader,Form("IsoTrack_subDetIdByLayer%i",iLayer));
-    _sizeX[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeXbyLayer%i",iLayer));
-    _sizeY[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeYbyLayer%i",iLayer));
-  }
-  int iter=-1;
-  while (reader.Next()){
-    iter++;
-    if(maxNevents>0 && iter>maxNevents) break;
-    
-    shared_ptr<Event> newEvent = shared_ptr<Event>(new Event());
-    
-    for(int iTrack=0;iTrack<*_nTracks;iTrack++){
-      Track *track = new Track();
-      track->SetEta(_trackEta[iTrack]);
-      track->SetPhi(_trackPhi[iTrack]);
-      track->SetCaloEmEnergy(_trackCaloEmEnergy[iTrack]);
-      track->SetCaloHadEnergy(_trackCaloHadEnergy[iTrack]);
-      track->SetDxy(_trackDxy[iTrack],_trackDxyErr[iTrack]);
-      track->SetDz(_trackDz[iTrack],_trackDzErr[iTrack]);
-      track->SetCharge(_trackCharge[iTrack]);
-      track->SetMass(_trackMass[iTrack]);
-      track->SetPt(_trackPt[iTrack]);
-      track->SetPid(_trackPid[iTrack]);
-      track->SetRelativeIsolation(_trackRelIso03[iTrack]);
-      
-      track->SetNtrackerLayers(_trackTrackerLayers[iTrack]);
-      track->SetNpixelLayers(_trackPixelLayers[iTrack]);
-      track->SetNtrackerHits(_trackTrackerHits[iTrack]);
-      track->SetNpixelHits(_trackPixelHits[iTrack]);
-      track->SetNmissingInnerPixelHits(_trackMissingInnerPixelHits[iTrack]);
-      track->SetNmissingOuterPixelHits(_trackMissingOuterPixelHits[iTrack]);
-      track->SetNmissingInnerStripHits(_trackMissingInnerStripHits[iTrack]);
-      track->SetNmissingOuterStripHits(_trackMissingOuterStripHits[iTrack]);
-      track->SetNmissingInnerTrackerHits(_trackMissingInnerTrackerHits[iTrack]);
-      track->SetNmissingOuterTrackerHits(_trackMissingOuterTrackerHits[iTrack]);
-      track->SetNmissingMiddleTrackerHits(_trackMissingMiddleTrackerHits[iTrack]);
-      
-      for(int iLayer=0;iLayer<nLayers;iLayer++){
-        track->SetDeDxInLayer(iLayer, (*_dedx[iLayer])[iTrack]);
-        track->SetSubDetIdInLayer(iLayer, (*_subDetId[iLayer])[iTrack]);
-        track->SetSizeXinLayer(iLayer, (*_sizeX[iLayer])[iTrack]);
-        track->SetSizeYinLayer(iLayer, (*_sizeY[iLayer])[iTrack]);
-      }
-      newEvent->AddTrack(track);
-    }
-    
-    for(int iJet=0;iJet<*_nJets;iJet++){
-      Jet *jet = new Jet();
-      jet->SetPt(_jetPt[iJet]);
-      jet->SetEta(_jetEta[iJet]);
-      jet->SetPhi(_jetPhi[iJet]);
-      jet->SetMass(_jetMass[iJet]);
-      jet->SetChargedHadronEnergyFraction(_jetChHEF[iJet]);
-      jet->SetNeutralHadronEnergyFraction(_jetNeHEF[iJet]);
-      jet->SetIsForward(false);
-      newEvent->AddJet(jet);
-    }
-    
-    for(int iJet=0;iJet<*_nJetsFwd;iJet++){
-      Jet *jet = new Jet();
-      jet->SetPt(_jetFwdPt[iJet]);
-      jet->SetEta(_jetFwdEta[iJet]);
-      jet->SetPhi(_jetFwdPhi[iJet]);
-      jet->SetMass(_jetFwdMass[iJet]);
-      jet->SetChargedHadronEnergyFraction(_jetFwdChHEF[iJet]);
-      jet->SetNeutralHadronEnergyFraction(_jetFwdNeHEF[iJet]);
-      jet->SetIsForward(true);
-      newEvent->AddJet(jet);
-    }
-    
-    for(int iLepton=0;iLepton<*_nLepton;iLepton++){
-      Lepton *lepton = new Lepton();
-      lepton->SetPt(_leptonPt[iLepton]);
-      lepton->SetEta(_leptonEta[iLepton]);
-      lepton->SetPhi(_leptonPhi[iLepton]);
-      lepton->SetTightID(_leptonThightId[iLepton]);
-      lepton->SetRelativeIsolation(_leptonIsolation[iLepton]);
-      lepton->SetPid(_leptonPid[iLepton]);
-      newEvent->AddLepton(lepton);
-    }
-    
-    double lumi = 41.37 * 1000.;
-    double weight = lumi * (*_genWgt) / (*_sumWgt);
-    
-    //    static map<string,set<double>> wgts;
-    //
-    //    if(*_genWgt != 1.0 && wgts[fileName].find(*_genWgt) == wgts[fileName].end() ){
-    //      wgts[fileName].insert(*_genWgt);
-    //      cout<<*_genWgt<<"\t"<<fileName<<endl;
-    //    }
-    
-    if(dataType==kBackground){
-      weight *= (*_xSec);
-    }
-    if(dataType==kSignal){
-      // it's not clear how to calculate weights for the signal...
-      
-      // cross section for given signal (stored in fb, here transformed to pb to match background units
-      weight *= 0.001 * (signalCrossSectionOneTrack[(ESignal)setIter] +
-                         signalCrossSectionTwoTracks[(ESignal)setIter]);
-      
-      //      if(*_nGenChargino == 1){
-      //        weight *= 0.001 * signalCrossSectionOneTrack[iSig]; // cross section for given signal (stored in fb, here transformed to pb to match background units
-      //      }
-      //      else if(*_nGenChargino == 2){
-      //        weight *= 0.001 * signalCrossSectionTwoTracks[iSig];
-      //      }
-      //      else{
-      //        cout<<"WARNING -- number of generator-level charginos different than 1 or 2"<<endl;
-      //      }
-    }
-    else if(dataType==kData){
-      weight = 1;
-    }
-    
-    newEvent->SetWeight(weight);
-    
-    newEvent->SetNvertices(*_nVert);
-    newEvent->SetNjet30(*_nJet30);
-    newEvent->SetNjet30a(*_nJet30a);
-    newEvent->SetNlepton(*_nLepton);
-    newEvent->SetNtau(*_nTau);
-    
-    newEvent->SetMetSumEt(*_metSumEt);
-    newEvent->SetMetPt(*_metPt);
-    newEvent->SetMetMass(*_metMass);
-    newEvent->SetMetEta(*_metEta);
-    newEvent->SetMetPhi(*_metPhi);
-    
-    newEvent->SetHasNoMuTrigger(*_metNoMuTrigger);
-    newEvent->SetMetNoMuPt(*_metNoMuPt);
-    newEvent->SetMetNoMuMass(*_metNoMuMass);
-    newEvent->SetMetNoMuEta(*_metNoMuEta);
-    newEvent->SetMetNoMuPhi(*_metNoMuPhi);
-    
-    newEvent->SetGoodVerticesFlag(*_flag_goodVertices);
-    newEvent->SetBadPFmuonFlag(*_flag_badPFmuon);
-    newEvent->SetHBHEnoiseFlag(*_flag_HBHEnoise);
-    newEvent->SetHBHEnoiseIsoFlag(*_flag_HBHEnoiseIso);
-    newEvent->SetEcalDeadCellFlag(*_flag_EcalDeadCell);
-    newEvent->SetEeBadScFlag(*_flag_eeBadSc);
-    newEvent->SetBadChargedCandidateFlag(*_flag_badChargedCandidate);
-    newEvent->SetEcalBadCalibFlag(*_flag_ecalBadCalib);
-    newEvent->SetGlobalTightHalo2016Flag(*_flag_globalTightHalo2016);
-    
-    newEvent->SetNgenChargino(*_nGenChargino);
-    newEvent->SetXsec(*_xSec);
-    newEvent->SetWgtSum(*_sumWgt);
-    newEvent->SetGenWeight(*_genWgt);
-    
-    if(dataType == kSignal){
-      eventsSignal[setIter].push_back(newEvent);
-    }
-    else if(dataType == kBackground){
-      eventsBackground[setIter].push_back(newEvent);
-    }
-    else if(dataType == kData){
-      eventsData[setIter].push_back(newEvent);
-    }
-    else{
-      throw out_of_range("Unknown data type provided");
-    }
-    
-  }
 }
 
 void EventSet::SaveToTree(string fileName, EDataType dataType, int setIter)
@@ -650,22 +367,6 @@ void EventSet::SaveEventsToFiles(string prefix)
   }
 }
 
-void EventSet::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
-{
-  for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig]) continue;
-    eventsSignal[iSig] = ApplyCuts(eventCut, trackCut, jetCut, leptonCut, kSignal, iSig);
-  }
-  for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    if(!runBackground[iBck]) continue;
-    eventsBackground[iBck] = ApplyCuts(eventCut, trackCut, jetCut, leptonCut, kBackground, iBck);
-  }
-  for(int iData=0;iData<kNdata;iData++){
-    if(!runData[iData]) continue;
-    eventsData[iData] = ApplyCuts(eventCut, trackCut, jetCut, leptonCut, kData, iData);
-  }
-}
-
 void EventSet::PrintYields()
 {
   double nBackgroundTotal=0;
@@ -702,6 +403,459 @@ void EventSet::PrintYields()
     cout<<weightedSize(kData,(int)iData)/sqrt(nBackgroundTotal+weightedSize(kData,(int)iData))<<endl;
   }
 }
+
+void EventSet::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
+{
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    if(!runSignal[iSig]) continue;
+    eventsSignal[iSig] = ApplyCuts(eventCut, trackCut, jetCut, leptonCut, kSignal, iSig);
+  }
+  for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    if(!runBackground[iBck]) continue;
+    eventsBackground[iBck] = ApplyCuts(eventCut, trackCut, jetCut, leptonCut, kBackground, iBck);
+  }
+  for(int iData=0;iData<kNdata;iData++){
+    if(!runData[iData]) continue;
+    eventsData[iData] = ApplyCuts(eventCut, trackCut, jetCut, leptonCut, kData, iData);
+  }
+}
+
+void EventSet::DrawStandardPlots(string prefix)
+{
+  // Create standard per event, per track and per jet plots
+  map<string, HistSet*> hists;
+  
+  hists["nVertices"]  = new HistSet(kNvertices);
+  hists["nIsoTrack"]  = new HistSet(kNisoTracks);
+  hists["nJet"]       = new HistSet(kNjets);
+  hists["nJet30"]     = new HistSet(kNjets30);
+  hists["nJet30a"]    = new HistSet(kNjets30a);
+  hists["nMetSumEt"]  = new HistSet(kMetSumEt);
+  hists["nMetPt"]     = new HistSet(kMetPt);
+  hists["nMetMass"]   = new HistSet(kMetMass);
+  hists["nMetEta"]    = new HistSet(kMetEta);
+  hists["nMetPhi"]    = new HistSet(kMetPhi);
+  hists["nMetJetDphi"]= new HistSet(kMetJetDphi);
+  
+  hists["nClustersPerTrack"]  = new HistSet(kTrackNclusters);
+  hists["totalDeDx"]          = new HistSet(kTrackTotalDedx);
+  hists["totalDeDxByNclusters"] = new HistSet(kTrackDedxPerCluster);
+  hists["missingOuterTracker"]  = new HistSet(kTrackMissingOuterTrackerHits);
+  
+  hists["pt"]           = new HistSet(kTrackPt);
+  hists["eta"]          = new HistSet(kTrackEta);
+  hists["phi"]          = new HistSet(kTrackPhi);
+  hists["caloEm"]       = new HistSet(kTrackCaloEm);
+  hists["caloHad"]      = new HistSet(kTrackCaloHad);
+  hists["pixelHits"]    = new HistSet(kTrackPixelHits);
+  hists["trackerHits"]  = new HistSet(kTrackTrackerHits);
+  hists["isolation"]    = new HistSet(kTrackRelativeIsolation);
+  hists["absIsolation"] = new HistSet(kTrackAbsoluteIsolation);
+  hists["trackMetDphi"] = new HistSet(kTrackMetDphi);
+  hists["dedx"]         = new HistSet(kTrackDedxPerHit);
+  
+  hists["dxy"]    = new HistSet(kTrackDxy);
+  hists["dz"]     = new HistSet(kTrackDz);
+  hists["charge"] = new HistSet(kTrackCharge);
+  hists["mass"]   = new HistSet(kTrackMass);
+  hists["pid"]    = new HistSet(kTrackPid);
+  
+  hists["jet_pt"]     = new HistSet(kJetPt);
+  hists["jet_eta"]    = new HistSet(kJetEta);
+  hists["jet_phi"]    = new HistSet(kJetPhi);
+  hists["jetTrackDr"] = new HistSet(kJetTrackDr);
+  hists["jetCHF"] = new HistSet(kJetCHF);
+  hists["jetNHF"] = new HistSet(kJetNHF);
+  
+  for(pair<string, HistSet*> hist : hists){
+    hist.second->FillFromEvents(make_shared<EventSet>(*this));
+  }
+  
+  // Plot histograms
+  TCanvas *canvasEvents = new TCanvas((prefix+"Events").c_str(),(prefix+"Events").c_str(),2880,1800);
+  canvasEvents->Divide(3,2);
+  
+  hists["nVertices"]->Draw(canvasEvents,1);
+  hists["nIsoTrack"]->Draw(canvasEvents,2);
+  hists["nJet"]->Draw(canvasEvents,3);
+  hists["jet_pt"]->Draw(canvasEvents, 4);
+  hists["nMetPt"]->Draw(canvasEvents,5);
+  hists["nMetJetDphi"]->Draw(canvasEvents,6);
+  
+  TCanvas *canvasTrack = new TCanvas((prefix+"Tracks").c_str(),(prefix+"Tracks").c_str(),2880,1800);
+  canvasTrack->Divide(4,3);
+  
+  hists["pt"]->Draw(canvasTrack,1);
+  hists["caloEm"]->Draw(canvasTrack,2);
+  hists["caloHad"]->Draw(canvasTrack,3);
+  hists["missingOuterTracker"]->Draw(canvasTrack,4);
+  hists["pixelHits"]->Draw(canvasTrack,5);
+  hists["trackerHits"]->Draw(canvasTrack,6);
+  hists["isolation"]->Draw(canvasTrack,7);
+  hists["trackMetDphi"]->Draw(canvasTrack,8);
+  hists["eta"]->Draw(canvasTrack,9);
+  hists["dedx"]->Draw(canvasTrack,10);
+  hists["absIsolation"]->Draw(canvasTrack,11);
+  hists["dz"]->Draw(canvasTrack,12);
+  
+  TCanvas *canvasJets = new TCanvas("Jets","Jets",2880,1800);
+  canvasJets->Divide(3,2);
+  
+  hists["jetTrackDr"]->Draw(canvasJets, 1);
+  hists["jet_eta"]->Draw(canvasJets, 2);
+  hists["jet_phi"]->Draw(canvasJets, 3);
+  hists["jetCHF"]->Draw(canvasJets, 4);
+  hists["jetNHF"]->Draw(canvasJets, 5);
+}
+
+void EventSet::DrawPerLayerPlots()
+{
+  HistSet *dedxPerLayer = new HistSet(kDedx);
+  dedxPerLayer->FillFromEvents(make_shared<EventSet>(*this));
+  dedxPerLayer->DrawPerLayer();
+  
+  //  HistSet *sizeXperLayer = new HistSet(kSizeX);
+  //  sizeXperLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  //  sizeXperLayer->DrawPerLayer();
+  //
+  //  HistSet *sizeYperLayer = new HistSet(kSizeY);
+  //  sizeYperLayer->FillFromEvents(eventsSignal, eventsBackground, eventsData);
+  //  sizeYperLayer->DrawPerLayer();
+}
+
+
+int EventSet::size(EDataType dataType, int setIter)
+{
+  if(dataType == kSignal){
+    return (int)eventsSignal[(ESignal)setIter].size();
+  }
+  else if(dataType == kBackground){
+    return (int)eventsBackground[(EBackground)setIter].size();
+  }
+  else if(dataType == kData){
+    return (int)eventsData[(EData)setIter].size();
+  }
+  else{
+    throw out_of_range("Unknown data type provided");
+  }
+  return 1;
+}
+
+double EventSet::weightedSize(EDataType dataType, int setIter)
+{
+  double sum=0;
+  
+  if(dataType == kSignal){
+    for(auto &ev : eventsSignal[(ESignal)setIter]){sum += ev->GetWeight();}
+  }
+  else if(dataType == kBackground){
+    for(auto &ev : eventsBackground[(EBackground)setIter]){sum += ev->GetWeight();}
+  }
+  else if(dataType == kData){
+    for(auto &ev : eventsData[(EData)setIter]){sum += ev->GetWeight();}
+  }
+  else{
+    throw out_of_range("Unknown data type provided");
+  }
+  
+  return sum;
+}
+
+shared_ptr<Event> EventSet::At(EDataType dataType, int setIter, int index)
+{
+  if(dataType == kSignal){
+    return eventsSignal[(ESignal)setIter][index];
+  }
+  else if(dataType == kBackground){
+    return eventsBackground[(EBackground)setIter][index];
+  }
+  else if(dataType == kData){
+    return eventsData[(EData)setIter][index];
+  }
+  else{
+    throw out_of_range("Unknown data type provided");
+  }
+}
+
+void EventSet::AddEvent(shared_ptr<Event> event, EDataType dataType, int setIter)
+{
+  
+  if(dataType == kSignal){
+    eventsSignal[(ESignal)setIter].push_back(event);
+  }
+  else if(dataType == kBackground){
+    eventsBackground[(EBackground)setIter].push_back(event);
+  }
+  else if(dataType == kData){
+    eventsData[(EData)setIter].push_back(event);
+  }
+  else{
+    throw out_of_range("Unknown data type provided");
+  }
+}
+
+void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int maxNevents, int setIter)
+{
+  cout<<"Reading events from:"<<fileName<<endl;
+  TFile *inFile = TFile::Open(fileName.c_str());
+  TTreeReader reader("tree", inFile);
+  
+  TTreeReaderValue<int>   _nTracks(reader, "nIsoTrack");
+  TTreeReaderValue<int>   _nVert(reader, "nVert");
+  TTreeReaderValue<int>   _nJets(reader, "nJet");
+  TTreeReaderValue<int>   _nJetsFwd(reader, "nJetFwd");
+  TTreeReaderValue<int>   _nJet30(reader, "nJet30");
+  TTreeReaderValue<int>   _nJet30a(reader, "nJet30a");
+  TTreeReaderValue<int>   _nLepton(reader, "nLepGood");
+  TTreeReaderValue<int>   _nTau(reader, "nTauGood");
+  TTreeReaderValue<int>   _nGenChargino(reader, "nGenChargino");
+  
+  TTreeReaderValue<float> _xSec  (reader,(dataType==kBackground || dataType==kSignal) ? "xsec" : "rho");
+  TTreeReaderValue<float> _sumWgt(reader,(dataType==kBackground || dataType==kSignal) ? "wgtsum" : "rho");
+  TTreeReaderValue<float> _genWgt(reader,(dataType==kBackground || dataType==kSignal) ? "genWeight" : "rho");
+  
+  TTreeReaderValue<float> _metSumEt(reader, "met_sumEt");
+  TTreeReaderValue<float> _metPt(reader, "met_pt");
+  TTreeReaderValue<float> _metMass(reader, "met_mass");
+  TTreeReaderValue<float> _metPhi(reader, "met_phi");
+  TTreeReaderValue<float> _metEta(reader, "met_eta");
+  
+  TTreeReaderValue<int>   _metNoMuTrigger(reader, "HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight");
+  TTreeReaderValue<int>   _flag_goodVertices(reader, "Flag_goodVertices");
+  TTreeReaderValue<int>   _flag_badPFmuon(reader, "Flag_BadPFMuonFilter");
+  TTreeReaderValue<int>   _flag_HBHEnoise(reader, "Flag_HBHENoiseFilter");
+  TTreeReaderValue<int>   _flag_HBHEnoiseIso(reader, "Flag_HBHENoiseIsoFilter");
+  TTreeReaderValue<int>   _flag_EcalDeadCell(reader, "Flag_EcalDeadCellTriggerPrimitiveFilter");
+  TTreeReaderValue<int>   _flag_eeBadSc(reader, "Flag_eeBadScFilter");
+  TTreeReaderValue<int>   _flag_badChargedCandidate(reader, "Flag_BadChargedCandidateFilter");
+  TTreeReaderValue<int>   _flag_ecalBadCalib(reader, "Flag_ecalBadCalibFilter");
+  TTreeReaderValue<int>   _flag_globalTightHalo2016(reader, "Flag_globalTightHalo2016Filter");
+  
+  TTreeReaderValue<float> _metNoMuPt(reader, "metNoMu_pt");
+  TTreeReaderValue<float> _metNoMuMass(reader, "metNoMu_mass");
+  TTreeReaderValue<float> _metNoMuPhi(reader, "metNoMu_phi");
+  TTreeReaderValue<float> _metNoMuEta(reader, "metNoMu_eta");
+  
+  TTreeReaderArray<float> _trackEta(reader, "IsoTrack_eta");
+  TTreeReaderArray<float> _trackPhi(reader, "IsoTrack_phi");
+  TTreeReaderArray<float> _trackCaloEmEnergy(reader, "IsoTrack_caloEmEnergy");
+  TTreeReaderArray<float> _trackCaloHadEnergy(reader, "IsoTrack_caloHadEnergy");
+  TTreeReaderArray<float> _trackDxyErr(reader, "IsoTrack_edxy");
+  TTreeReaderArray<float> _trackDxy(reader, "IsoTrack_dxy");
+  TTreeReaderArray<float> _trackDzErr(reader, "IsoTrack_edz");
+  TTreeReaderArray<float> _trackDz(reader, "IsoTrack_dz");
+  TTreeReaderArray<int>   _trackCharge(reader, "IsoTrack_charge");
+  TTreeReaderArray<float> _trackMass(reader, "IsoTrack_mass");
+  TTreeReaderArray<float> _trackPt(reader, "IsoTrack_pt");
+  TTreeReaderArray<int>   _trackPid(reader, "IsoTrack_pdgId");
+  TTreeReaderArray<float> _trackRelIso03(reader, "IsoTrack_relIso03");
+  
+  TTreeReaderArray<int>   _trackTrackerLayers(reader, "IsoTrack_trackerLayers");
+  TTreeReaderArray<int>   _trackPixelLayers(reader, "IsoTrack_pixelLayers");
+  TTreeReaderArray<int>   _trackTrackerHits(reader, "IsoTrack_trackerHits");
+  TTreeReaderArray<int>   _trackPixelHits(reader, "IsoTrack_pixelHits");
+  TTreeReaderArray<int>   _trackMissingInnerPixelHits(reader, "IsoTrack_missingInnerPixelHits");
+  TTreeReaderArray<int>   _trackMissingOuterPixelHits(reader, "IsoTrack_missingOuterPixelHits");
+  TTreeReaderArray<int>   _trackMissingInnerStripHits(reader, "IsoTrack_missingInnerStripHits");
+  TTreeReaderArray<int>   _trackMissingOuterStripHits(reader, "IsoTrack_missingOuterStripHits");
+  TTreeReaderArray<int>   _trackMissingInnerTrackerHits(reader, "IsoTrack_missingInnerTrackerHits");
+  TTreeReaderArray<int>   _trackMissingOuterTrackerHits(reader, "IsoTrack_missingOuterTrackerHits");
+  TTreeReaderArray<int>   _trackMissingMiddleTrackerHits(reader, "IsoTrack_missingMiddleTrackerHits");
+  
+  TTreeReaderArray<float> _leptonPt(reader, "LepGood_pt");
+  TTreeReaderArray<float> _leptonPhi(reader, "LepGood_phi");
+  TTreeReaderArray<float> _leptonEta(reader, "LepGood_eta");
+  TTreeReaderArray<int>   _leptonThightId(reader, "LepGood_tightId");
+  TTreeReaderArray<float> _leptonIsolation(reader, "LepGood_relIso04");
+  TTreeReaderArray<int>   _leptonPid(reader, "LepGood_pdgId");
+  
+  TTreeReaderArray<float> _jetPt(reader,  "Jet_pt");
+  TTreeReaderArray<float> _jetEta(reader, "Jet_eta");
+  TTreeReaderArray<float> _jetPhi(reader, "Jet_phi");
+  TTreeReaderArray<float> _jetMass(reader, "Jet_mass");
+  TTreeReaderArray<float> _jetChHEF(reader, "Jet_chHEF");
+  TTreeReaderArray<float> _jetNeHEF(reader, "Jet_neHEF");
+  
+  TTreeReaderArray<float> _jetFwdPt(reader,  "JetFwd_pt");
+  TTreeReaderArray<float> _jetFwdEta(reader, "JetFwd_eta");
+  TTreeReaderArray<float> _jetFwdPhi(reader, "JetFwd_phi");
+  TTreeReaderArray<float> _jetFwdMass(reader, "JetFwd_mass");
+  TTreeReaderArray<float> _jetFwdChHEF(reader, "JetFwd_chHEF");
+  TTreeReaderArray<float> _jetFwdNeHEF(reader, "JetFwd_neHEF");
+  
+  TTreeReaderArray<float> *_dedx[nLayers];
+  TTreeReaderArray<int> *_subDetId[nLayers];
+  TTreeReaderArray<int> *_sizeX[nLayers];
+  TTreeReaderArray<int> *_sizeY[nLayers];
+  
+  for(int iLayer=0;iLayer<nLayers;iLayer++){
+    _dedx[iLayer] =      new TTreeReaderArray<float>(reader,Form("IsoTrack_dedxByLayer%i",iLayer));
+    _subDetId[iLayer] =  new TTreeReaderArray<int>(reader,Form("IsoTrack_subDetIdByLayer%i",iLayer));
+    _sizeX[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeXbyLayer%i",iLayer));
+    _sizeY[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeYbyLayer%i",iLayer));
+  }
+  int iter=-1;
+  while (reader.Next()){
+    iter++;
+    if(maxNevents>0 && iter>maxNevents) break;
+    
+    shared_ptr<Event> newEvent = shared_ptr<Event>(new Event());
+    
+    for(int iTrack=0;iTrack<*_nTracks;iTrack++){
+      Track *track = new Track();
+      track->SetEta(_trackEta[iTrack]);
+      track->SetPhi(_trackPhi[iTrack]);
+      track->SetCaloEmEnergy(_trackCaloEmEnergy[iTrack]);
+      track->SetCaloHadEnergy(_trackCaloHadEnergy[iTrack]);
+      track->SetDxy(_trackDxy[iTrack],_trackDxyErr[iTrack]);
+      track->SetDz(_trackDz[iTrack],_trackDzErr[iTrack]);
+      track->SetCharge(_trackCharge[iTrack]);
+      track->SetMass(_trackMass[iTrack]);
+      track->SetPt(_trackPt[iTrack]);
+      track->SetPid(_trackPid[iTrack]);
+      track->SetRelativeIsolation(_trackRelIso03[iTrack]);
+      
+      track->SetNtrackerLayers(_trackTrackerLayers[iTrack]);
+      track->SetNpixelLayers(_trackPixelLayers[iTrack]);
+      track->SetNtrackerHits(_trackTrackerHits[iTrack]);
+      track->SetNpixelHits(_trackPixelHits[iTrack]);
+      track->SetNmissingInnerPixelHits(_trackMissingInnerPixelHits[iTrack]);
+      track->SetNmissingOuterPixelHits(_trackMissingOuterPixelHits[iTrack]);
+      track->SetNmissingInnerStripHits(_trackMissingInnerStripHits[iTrack]);
+      track->SetNmissingOuterStripHits(_trackMissingOuterStripHits[iTrack]);
+      track->SetNmissingInnerTrackerHits(_trackMissingInnerTrackerHits[iTrack]);
+      track->SetNmissingOuterTrackerHits(_trackMissingOuterTrackerHits[iTrack]);
+      track->SetNmissingMiddleTrackerHits(_trackMissingMiddleTrackerHits[iTrack]);
+      
+      for(int iLayer=0;iLayer<nLayers;iLayer++){
+        track->SetDeDxInLayer(iLayer, (*_dedx[iLayer])[iTrack]);
+        track->SetSubDetIdInLayer(iLayer, (*_subDetId[iLayer])[iTrack]);
+        track->SetSizeXinLayer(iLayer, (*_sizeX[iLayer])[iTrack]);
+        track->SetSizeYinLayer(iLayer, (*_sizeY[iLayer])[iTrack]);
+      }
+      newEvent->AddTrack(track);
+    }
+    
+    for(int iJet=0;iJet<*_nJets;iJet++){
+      Jet *jet = new Jet();
+      jet->SetPt(_jetPt[iJet]);
+      jet->SetEta(_jetEta[iJet]);
+      jet->SetPhi(_jetPhi[iJet]);
+      jet->SetMass(_jetMass[iJet]);
+      jet->SetChargedHadronEnergyFraction(_jetChHEF[iJet]);
+      jet->SetNeutralHadronEnergyFraction(_jetNeHEF[iJet]);
+      jet->SetIsForward(false);
+      newEvent->AddJet(jet);
+    }
+    
+    for(int iJet=0;iJet<*_nJetsFwd;iJet++){
+      Jet *jet = new Jet();
+      jet->SetPt(_jetFwdPt[iJet]);
+      jet->SetEta(_jetFwdEta[iJet]);
+      jet->SetPhi(_jetFwdPhi[iJet]);
+      jet->SetMass(_jetFwdMass[iJet]);
+      jet->SetChargedHadronEnergyFraction(_jetFwdChHEF[iJet]);
+      jet->SetNeutralHadronEnergyFraction(_jetFwdNeHEF[iJet]);
+      jet->SetIsForward(true);
+      newEvent->AddJet(jet);
+    }
+    
+    for(int iLepton=0;iLepton<*_nLepton;iLepton++){
+      Lepton *lepton = new Lepton();
+      lepton->SetPt(_leptonPt[iLepton]);
+      lepton->SetEta(_leptonEta[iLepton]);
+      lepton->SetPhi(_leptonPhi[iLepton]);
+      lepton->SetTightID(_leptonThightId[iLepton]);
+      lepton->SetRelativeIsolation(_leptonIsolation[iLepton]);
+      lepton->SetPid(_leptonPid[iLepton]);
+      newEvent->AddLepton(lepton);
+    }
+    
+    double lumi = 41.37 * 1000.;
+    double weight = lumi * (*_genWgt) / (*_sumWgt);
+    
+    //    static map<string,set<double>> wgts;
+    //
+    //    if(*_genWgt != 1.0 && wgts[fileName].find(*_genWgt) == wgts[fileName].end() ){
+    //      wgts[fileName].insert(*_genWgt);
+    //      cout<<*_genWgt<<"\t"<<fileName<<endl;
+    //    }
+    
+    if(dataType==kBackground){
+      weight *= (*_xSec);
+    }
+    if(dataType==kSignal){
+      // it's not clear how to calculate weights for the signal...
+      
+      // cross section for given signal (stored in fb, here transformed to pb to match background units
+      weight *= 0.001 * (signalCrossSectionOneTrack[(ESignal)setIter] +
+                         signalCrossSectionTwoTracks[(ESignal)setIter]);
+      
+      //      if(*_nGenChargino == 1){
+      //        weight *= 0.001 * signalCrossSectionOneTrack[iSig]; // cross section for given signal (stored in fb, here transformed to pb to match background units
+      //      }
+      //      else if(*_nGenChargino == 2){
+      //        weight *= 0.001 * signalCrossSectionTwoTracks[iSig];
+      //      }
+      //      else{
+      //        cout<<"WARNING -- number of generator-level charginos different than 1 or 2"<<endl;
+      //      }
+    }
+    else if(dataType==kData){
+      weight = 1;
+    }
+    
+    newEvent->SetWeight(weight);
+    
+    newEvent->SetNvertices(*_nVert);
+    newEvent->SetNjet30(*_nJet30);
+    newEvent->SetNjet30a(*_nJet30a);
+    newEvent->SetNlepton(*_nLepton);
+    newEvent->SetNtau(*_nTau);
+    
+    newEvent->SetMetSumEt(*_metSumEt);
+    newEvent->SetMetPt(*_metPt);
+    newEvent->SetMetMass(*_metMass);
+    newEvent->SetMetEta(*_metEta);
+    newEvent->SetMetPhi(*_metPhi);
+    
+    newEvent->SetHasNoMuTrigger(*_metNoMuTrigger);
+    newEvent->SetMetNoMuPt(*_metNoMuPt);
+    newEvent->SetMetNoMuMass(*_metNoMuMass);
+    newEvent->SetMetNoMuEta(*_metNoMuEta);
+    newEvent->SetMetNoMuPhi(*_metNoMuPhi);
+    
+    newEvent->SetGoodVerticesFlag(*_flag_goodVertices);
+    newEvent->SetBadPFmuonFlag(*_flag_badPFmuon);
+    newEvent->SetHBHEnoiseFlag(*_flag_HBHEnoise);
+    newEvent->SetHBHEnoiseIsoFlag(*_flag_HBHEnoiseIso);
+    newEvent->SetEcalDeadCellFlag(*_flag_EcalDeadCell);
+    newEvent->SetEeBadScFlag(*_flag_eeBadSc);
+    newEvent->SetBadChargedCandidateFlag(*_flag_badChargedCandidate);
+    newEvent->SetEcalBadCalibFlag(*_flag_ecalBadCalib);
+    newEvent->SetGlobalTightHalo2016Flag(*_flag_globalTightHalo2016);
+    
+    newEvent->SetNgenChargino(*_nGenChargino);
+    newEvent->SetXsec(*_xSec);
+    newEvent->SetWgtSum(*_sumWgt);
+    newEvent->SetGenWeight(*_genWgt);
+    
+    if(dataType == kSignal){
+      eventsSignal[setIter].push_back(newEvent);
+    }
+    else if(dataType == kBackground){
+      eventsBackground[setIter].push_back(newEvent);
+    }
+    else if(dataType == kData){
+      eventsData[setIter].push_back(newEvent);
+    }
+    else{
+      throw out_of_range("Unknown data type provided");
+    }
+    
+  }
+}
+
 
 vector<shared_ptr<Event>> EventSet::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut, EDataType dataType, int setIter)
 {

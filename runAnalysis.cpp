@@ -24,10 +24,10 @@ void ProcessCuts(shared_ptr<EventSet> events,
     events->SaveEventsToFiles(prefix);
   }
   if(drawStandardPlots){
-    HistSet::DrawStandardPlots(events);
+    events->DrawStandardPlots();
   }
   if(drawPerLayerPlots){
-    HistSet::DrawPerLayerPlots(events);
+    events->DrawPerLayerPlots();
   }
   if(printBackgroundDetails){
     for(int iBck=0;iBck<kNbackgrounds;iBck++){
@@ -127,10 +127,10 @@ int main(int argc, char* argv[])
     eventCut_L2->SetNtracks(range<int>(2,2));
     
     // play with these cuts
-    trackCut_L2->SetNmissingOuterTracker(range<int>(1, inf));
+//    trackCut_L2->SetNmissingOuterTracker(range<int>(1, inf));
 //    trackCut_L2->SetDedxPerCluster(range<double>(1.5,inf));
 //    eventCut_L2->SetMetPt(range<double>(200,inf));
-    trackCut_L2->SetCaloEmEnergy(range<double>(0.0,14.0));
+    trackCut_L2->SetCaloEmEnergy(range<double>(0.0,20.0));
 //    trackCut_L2->SetCaloHadEnergy(range<double>(0.0,30.0));
     
     // cuts not to be optimized

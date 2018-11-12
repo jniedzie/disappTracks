@@ -292,6 +292,8 @@ enum EVar{
   kJetEta,
   kJetPhi,
   kJetTrackDr,
+  kJetCHF,
+  kJetNHF,
   
   // per track per layer variables
   kDedx,  ///< dE/dx per layer
@@ -317,6 +319,52 @@ inline int DataColor(EData data){
 
 //,{157,204,0},{194,0,136},{0,51,128},{255,164,5},{255,168,187},{66,102,0},{255,0,16},{94,241,242},{0,153,143},{224,255,102},{116,10,255},{153,0,0},{255,255,128},{255,255,0},{255,80,5}, {240,163,255}, {0,117,220}, {153,63,0}, {76,0,92}, {25,25,25},{0,92,49}, {43,206,72}, {255,204,153}, {128,128,128}, {148,255,181}, {143,124,0}
 
+
+const map<EVar, tuple<string, int, double, double>> settings =
+{
+  {kNvertices , {"N good vertices",25,0,100}},
+  {kNisoTracks , {"N iso tracks",20,0,10}},
+  {kNjets , {"N jets",15,0,15}},
+  {kNjets30 , {"N jets with pt > 30, |eta|<2.4",15,0.0,15}},
+  {kNjets30a , {"N jets with pt > 30, |eta|<4.7",15,0.0,15}},
+  {kMetSumEt , {"MET sum Et",100,-20,5000}},
+  {kMetPt , {"MET pT",25,200,1000}},
+  {kMetMass , {"MET mass",100,-10e-6,10e6}},
+  {kMetEta , {"MET eta",100,-3.5,3.5}},
+  {kMetPhi , {"MET phi",100,-3.5,3.5}},
+  {kMetJetDphi , {"#Delta #phi (p_{T}^{jet}},p_{T}^{MET})",25,-3.5,3.5}},
+  
+  {kTrackNclusters , {"N detIDs per track",20,0,22}},
+  {kTrackTotalDedx , {"total dedx per track",50,0,140}},
+  {kTrackDedxPerCluster , {"total dedx per track / n clusters",50,0,14}},
+  {kTrackPt , {"Track p_{T} (GeV)",25,0,1000}},
+  {kTrackEta , {"Track #eta",50,-3.0,3.0}},
+  {kTrackPhi , {"Track #phi",50,-3.5,3.5}},
+  {kTrackCaloEm , {"EM calo energy",20,0,10}},
+  {kTrackCaloHad , {"Hadron calo energy",20,0,10}},
+  {kTrackDxy , {"Displacement in XY",100,-0.02,0.02}},
+  {kTrackDz , {"Displacement in Z",100,-0.02,0.02}},
+  {kTrackCharge , {"Charge dist",100,-10,10}},
+  {kTrackMass , {"Mass dist",500,0.0,0.25}},
+  {kTrackPid , {"PDG PID",441,-220,220}},
+  {kTrackMissingOuterTrackerHits , {"Missing outer tracker hits",20,0,20}},
+  {kTrackPixelHits , {"N pixel hits",10,0,10}},
+  {kTrackTrackerHits , {"N tracker hits",40,0,40}},
+  {kTrackRelativeIsolation , {"Relative isolation in dR=0.3",200,0,10}},
+  {kTrackAbsoluteIsolation , {"Absolute isolation in dR=0.3",200,0,10}},
+  {kTrackMetDphi , {"#Delta #phi (p_{T}^{track}},p_{T}^{MET})",25,-3.5,3.5}},
+  {kTrackDedxPerHit , {"dE/dx per hit",50,0,10}},
+  
+  {kJetPt , {"Jet pt",50,0.0,1000}},
+  {kJetEta , {"Jet eta",50,-3.0,3.0}},
+  {kJetPhi , { "Jet phi",50,-3.5,3.5}},
+  {kJetTrackDr , {"#Delta R(jet, track)",100,0,10}},
+  {kJetCHF ,{"Jet f_{CH}",100,0,1.0}},
+  {kJetNHF , {"Jet f_{NH}",100,0,1.0}},
+  {kDedx , {"dedx",50,0,13}},
+  {kSizeX , {"sizeX",10,0,13}},
+  {kSizeY , {"sizeY",10,0,13}},
+};
 
 template <class T>
 class range
