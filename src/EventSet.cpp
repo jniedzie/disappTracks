@@ -422,7 +422,7 @@ void EventSet::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut,
       eventsSignal[iSig][iEvent]->ApplyLeptonCut(leptonCut);
       
       if(!eventsSignal[iSig][iEvent]->IsPassingCut(eventCut)){
-        eventsSignal[iSig].erase(eventsSignal[iSig].begin()+iEvent);
+        EraseFast(eventsSignal[iSig], iEvent);
       }
       else{
         iEvent++;
@@ -439,7 +439,7 @@ void EventSet::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut,
       eventsBackground[iBck][iEvent]->ApplyLeptonCut(leptonCut);
       
       if(!eventsBackground[iBck][iEvent]->IsPassingCut(eventCut)){
-        eventsBackground[iBck].erase(eventsBackground[iBck].begin()+iEvent);
+        EraseFast(eventsBackground[iBck], iEvent);
       }
       else{
         iEvent++;
@@ -456,7 +456,7 @@ void EventSet::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut,
       eventsData[iData][iEvent]->ApplyLeptonCut(leptonCut);
       
       if(!eventsData[iData][iEvent]->IsPassingCut(eventCut)){
-        eventsData[iData].erase(eventsData[iData].begin()+iEvent);
+        EraseFast(eventsData[iData], iEvent);
       }
       else{
         iEvent++;

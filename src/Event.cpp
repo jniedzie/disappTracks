@@ -85,47 +85,6 @@ void Event::Print(){
   cout<<"================================================\n\n"<<endl;
 }
 
-unique_ptr<Event> Event::CopyThisEventProperties()
-{
-  unique_ptr<Event> outputEvent = unique_ptr<Event>(new Event());
-  
-  outputEvent->SetWeight(weight);
-  outputEvent->SetNvertices(nVertices);
-  outputEvent->SetNjet30(nJet30);
-  outputEvent->SetNjet30a(nJet30a);
-  outputEvent->SetNlepton(nLepton);
-  outputEvent->SetNtau(nTau);
-  
-  outputEvent->SetMetSumEt(metSumEt);
-  outputEvent->SetMetPt(metPt);
-  outputEvent->SetMetMass(metMass);
-  outputEvent->SetMetPhi(metPhi);
-  outputEvent->SetMetEta(metEta);
-  
-  outputEvent->SetMetNoMuPt(metNoMuPt);
-  outputEvent->SetMetNoMuMass(metNoMuMass);
-  outputEvent->SetMetNoMuPhi(metNoMuPhi);
-  outputEvent->SetMetNoMuEta(metNoMuEta);
-  outputEvent->SetHasNoMuTrigger(metNoMuTrigger);
-  
-  outputEvent->SetGoodVerticesFlag(flag_goodVertices);
-  outputEvent->SetBadPFmuonFlag(flag_badPFmuon);
-  outputEvent->SetHBHEnoiseFlag(flag_HBHEnoise);
-  outputEvent->SetHBHEnoiseIsoFlag(flag_HBHEnoiseIso);
-  outputEvent->SetEcalDeadCellFlag(flag_EcalDeadCell);
-  outputEvent->SetEeBadScFlag(flag_eeBadSc);
-  outputEvent->SetBadChargedCandidateFlag(flag_badChargedCandidate);
-  outputEvent->SetEcalBadCalibFlag(flag_ecalBadCalib);
-  outputEvent->SetGlobalTightHalo2016Flag(flag_globalTightHalo2016);
-  
-  outputEvent->SetNgenChargino(nGenChargino);
-  outputEvent->SetXsec(xsec);
-  outputEvent->SetWgtSum(wgtsum);
-  outputEvent->SetGenWeight(genWeight);
-  
-  return outputEvent;
-}
-
 void Event::ApplyTrackCut(TrackCut *cut)
 {
   auto track = tracks.begin();

@@ -23,11 +23,16 @@
 /// It also checks if this event passes some set of selection criteria represented by EventCut object.
 class Event{
 public:
+  /// Default constructor
   Event();
+  
+  /// Copy constructor
   Event(const Event &event);
+  
+  /// Default destructor
   ~Event();
   
-  // other methods
+  /// Prints basic information about the event
   void Print();
   
   /// Removes tracks that don't pass the cut from the tracks collection
@@ -41,9 +46,6 @@ public:
   
   /// Check if event passes a cut
   bool IsPassingCut(EventCut *cut);
-  
-  /// Returns an event with global params copied (but no colletions of tracks, jets, leptons
-  std::unique_ptr<Event> CopyThisEventProperties();
   
   // setters
   inline void AddTrack(Track *track){tracks.push_back(track);}
