@@ -16,8 +16,8 @@ int main()
   
   eventCut->SetJetMetDeltaPhi(range<double>(0.5,inf));
   
-  trackCut->SetNpixelLayers(range<int>(4,4));
-  eventCut->SetNtracks(range<int>(1,1));
+//  trackCut->SetNpixelLayers(range<int>(4,4));
+  eventCut->SetNtracks(range<int>(2,2));
   
   // + standard cuts to be applied after L2 selections
   eventCut->SetNjets(range<int>(1,inf));
@@ -26,12 +26,14 @@ int main()
   eventCut->SetLeadingJetNeHEF(range<double>(-inf,0.8));
   eventCut->SetLeadingJetChHEF(range<double>(0.1,inf));
   
-  double dedxMin=0.0, dedxMax=5.1, dedxStep=0.1;
-  double caloEmMin=0.0, caloEmMax=20.0,caloEmStep=1.0;
-  double caloHadMin=0.0, caloHadMax=15.1,caloHadStep=2.0;
+  events->ApplyCuts(eventCut, trackCut, jetCut, nullptr);
+  
+  double dedxMin=0.0, dedxMax=6.0, dedxStep=0.1;
+  double caloEmMin=0.0, caloEmMax=6.0,caloEmStep=0.1;
+  double minNmissingMin=0, minNmissingMax=10, minNmissingStep=1;
+//  double caloHadMin=0.0, caloHadMax=15.1,caloHadStep=2.0;
 //  double metPtMin=200, metPtMax=401, metPtStep=25;
 //  double jetMetPhiMin=0.1, jetMetPhiMax=1.4, jetMetPhiStep=0.1;
-  double minNmissingMin=0, minNmissingMax=10, minNmissingStep=1;
 //  double nPixelHitsMin=0, nPixelHitsMax=8, nPixelHitsStep=1;
   
   double bestSb[kNsignals] = {0};
@@ -44,9 +46,10 @@ int main()
 //  double sb_sum_best = 0;
   
   for(double dedxCut=dedxMin;dedxCut<dedxMax; dedxCut += dedxStep){
-    cout<<'\r'<< setw(2) << setfill('0') << (dedxCut-dedxMin)/(dedxMax-dedxMin)<<"%"<<flush;
-    
     for(double caloEmCut=caloEmMax;caloEmCut>caloEmMin; caloEmCut -= caloEmStep){
+      
+      // we can make a copy of the original events here, as in the next loop cuts will become tighter and tighter,
+      // so events rejected in i-th iteration would be also rejected in (i+1)-th iteration
       eventsAfterCuts = shared_ptr<EventSet>(new EventSet(*events));
       
 //      for(double caloHadCut=caloHadMax;caloHadCut>caloHadMin; caloHadCut -= caloHadStep){
