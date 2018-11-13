@@ -126,22 +126,7 @@ unique_ptr<Event> Event::CopyThisEventProperties()
   return outputEvent;
 }
 
-unique_ptr<Event> Event::ApplyTrackCut(TrackCut *cut)
-{
-  unique_ptr<Event> outputEvent = CopyThisEventProperties();
-  
-  for(auto j : jets){outputEvent->AddJet(j);}
-  for(auto l : leptons){outputEvent->AddLepton(l);}
-  
-  for(auto track : tracks){
-    if(track->IsPassingCut(cut)){
-      outputEvent->AddTrack(track);
-    }
-  }
-  return outputEvent;
-}
-
-void Event::ApplyTrackCutInPlace(TrackCut *cut)
+void Event::ApplyTrackCut(TrackCut *cut)
 {
   auto track = tracks.begin();
 
@@ -152,39 +137,8 @@ void Event::ApplyTrackCutInPlace(TrackCut *cut)
       track++;
   }
 }
-  
-unique_ptr<Event> Event::ApplyJetCut(JetCut *cut)
-{
-  unique_ptr<Event> outputEvent = CopyThisEventProperties();
-  
-  for(auto t : tracks){outputEvent->AddTrack(t);}
-  for(auto l : leptons){outputEvent->AddLepton(l);}
-  
-  for(auto jet : jets){
-    if(jet->IsPassingCut(cut)){
-      
-      // check separation with all tracks in the event
-      bool overlapsWithTrack = false;
-      double minTrackDeltaR = cut->GetTrackDeltaR().GetMin();
-      
-      if(minTrackDeltaR > 0){
-        for(auto track : tracks){
-          double deltaR_2 = pow(track->GetPhi() - jet->GetPhi(),2)+pow(track->GetEta() - jet->GetEta(),2);
-          
-          if(deltaR_2 < (minTrackDeltaR*minTrackDeltaR)){
-            overlapsWithTrack = true;
-            break;
-          }
-        }
-      }
-      
-      if(!overlapsWithTrack)  outputEvent->AddJet(jet);
-    }
-  }
-  return outputEvent;
-}
 
-void Event::ApplyJetCutInPlace(JetCut *cut)
+void Event::ApplyJetCut(JetCut *cut)
 {
   auto jet = jets.begin();
   
@@ -217,23 +171,7 @@ void Event::ApplyJetCutInPlace(JetCut *cut)
   }
 }
 
-unique_ptr<Event> Event::ApplyLeptonCut(LeptonCut *cut)
-{
-  unique_ptr<Event> outputEvent = CopyThisEventProperties();
-  
-  for(auto t : tracks){outputEvent->AddTrack(t);}
-  for(auto j : jets){outputEvent->AddJet(j);}
-  
-  for(auto lepton : leptons){
-    if(lepton->IsPassingCut(cut)){
-      outputEvent->AddLepton(lepton);
-    }
-  }
-  return outputEvent;
-}
-
-
-void Event::ApplyLeptonCutInPlace(LeptonCut *cut)
+void Event::ApplyLeptonCut(LeptonCut *cut)
 {
   auto lepton = leptons.begin();
   

@@ -62,7 +62,7 @@ int main()
           
 //              eventCut->SetMetPt(range<double>(metPtCut,inf));
 //              trackCut->SetNpixelHits(range<int>(nPixelHitsCut,nPixelHitsCut));
-              eventsAfterCuts->ApplyCutsInPlace(eventCut, trackCut, jetCut, nullptr);
+              eventsAfterCuts->ApplyCuts(eventCut, trackCut, jetCut, nullptr);
               
               double nBackgroundTotal=0;
               for(int iBck=0;iBck<kNbackgrounds;iBck++){

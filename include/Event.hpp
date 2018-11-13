@@ -27,6 +27,24 @@ public:
   Event(const Event &event);
   ~Event();
   
+  // other methods
+  void Print();
+  
+  /// Removes tracks that don't pass the cut from the tracks collection
+  void ApplyTrackCut(TrackCut *cut);
+  
+  /// Removes jets that don't pass the cut from the jets collection
+  void ApplyJetCut(JetCut *cut);
+  
+  /// Removes leptons that don't pass the cut from the leptons collection
+  void ApplyLeptonCut(LeptonCut *cut);
+  
+  /// Check if event passes a cut
+  bool IsPassingCut(EventCut *cut);
+  
+  /// Returns an event with global params copied (but no colletions of tracks, jets, leptons
+  std::unique_ptr<Event> CopyThisEventProperties();
+  
   // setters
   inline void AddTrack(Track *track){tracks.push_back(track);}
   inline void AddJet(Jet *jet){jets.push_back(jet);}
@@ -115,29 +133,6 @@ public:
   inline Track*  GetTrack(int i){return tracks[i];}
   inline Jet*    GetJet(int i){return jets[i];}
   inline Lepton* GetLepton(int i){return leptons[i];}
-  
-  // other methods
-  void Print();
-  
-  /// Returns a new event with only tracks passing the cut
-  std::unique_ptr<Event> ApplyTrackCut(TrackCut *cut);
-  
-  void ApplyTrackCutInPlace(TrackCut *cut);
-  void ApplyJetCutInPlace(JetCut *cut);
-  void ApplyLeptonCutInPlace(LeptonCut *cut);
-  
-  /// Returns a new event with only jets passing the cut
-  std::unique_ptr<Event> ApplyJetCut(JetCut *cut);
-  
-  /// Returns a new event with only leptons passing the cut
-  std::unique_ptr<Event> ApplyLeptonCut(LeptonCut *cut);
-  
-  /// Check if event passes a cut
-  bool IsPassingCut(EventCut *cut);
-  
-  /// Returns an event with global params copied (but no colletions of tracks, jets, leptons
-  std::unique_ptr<Event> CopyThisEventProperties();
-  
   
 private:
   vector<Track*>  tracks;   ///< Vector of isolated tracks

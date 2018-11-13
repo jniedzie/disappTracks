@@ -415,27 +415,11 @@ void EventSet::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut,
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]) continue;
-    eventsSignal[iSig] = ApplyCuts(eventCut, trackCut, jetCut, leptonCut, kSignal, iSig);
-  }
-  for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    if(!runBackground[iBck]) continue;
-    eventsBackground[iBck] = ApplyCuts(eventCut, trackCut, jetCut, leptonCut, kBackground, iBck);
-  }
-  for(int iData=0;iData<kNdata;iData++){
-    if(!runData[iData]) continue;
-    eventsData[iData] = ApplyCuts(eventCut, trackCut, jetCut, leptonCut, kData, iData);
-  }
-}
-
-void EventSet::ApplyCutsInPlace(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
-{
-  for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig]) continue;
     for(int iEvent=0;iEvent<eventsSignal[iSig].size();){
       
-      eventsSignal[iSig][iEvent]->ApplyTrackCutInPlace(trackCut);
-      eventsSignal[iSig][iEvent]->ApplyJetCutInPlace(jetCut);
-      eventsSignal[iSig][iEvent]->ApplyLeptonCutInPlace(leptonCut);
+      eventsSignal[iSig][iEvent]->ApplyTrackCut(trackCut);
+      eventsSignal[iSig][iEvent]->ApplyJetCut(jetCut);
+      eventsSignal[iSig][iEvent]->ApplyLeptonCut(leptonCut);
       
       if(!eventsSignal[iSig][iEvent]->IsPassingCut(eventCut)){
         eventsSignal[iSig].erase(eventsSignal[iSig].begin()+iEvent);
@@ -450,9 +434,9 @@ void EventSet::ApplyCutsInPlace(EventCut *eventCut, TrackCut *trackCut, JetCut *
     if(!runBackground[iBck]) continue;
     for(int iEvent=0;iEvent<eventsBackground[iBck].size();){
       
-      eventsBackground[iBck][iEvent]->ApplyTrackCutInPlace(trackCut);
-      eventsBackground[iBck][iEvent]->ApplyJetCutInPlace(jetCut);
-      eventsBackground[iBck][iEvent]->ApplyLeptonCutInPlace(leptonCut);
+      eventsBackground[iBck][iEvent]->ApplyTrackCut(trackCut);
+      eventsBackground[iBck][iEvent]->ApplyJetCut(jetCut);
+      eventsBackground[iBck][iEvent]->ApplyLeptonCut(leptonCut);
       
       if(!eventsBackground[iBck][iEvent]->IsPassingCut(eventCut)){
         eventsBackground[iBck].erase(eventsBackground[iBck].begin()+iEvent);
@@ -467,9 +451,9 @@ void EventSet::ApplyCutsInPlace(EventCut *eventCut, TrackCut *trackCut, JetCut *
     if(!runData[iData]) continue;
     for(int iEvent=0;iEvent<eventsData[iData].size();){
       
-      eventsData[iData][iEvent]->ApplyTrackCutInPlace(trackCut);
-      eventsData[iData][iEvent]->ApplyJetCutInPlace(jetCut);
-      eventsData[iData][iEvent]->ApplyLeptonCutInPlace(leptonCut);
+      eventsData[iData][iEvent]->ApplyTrackCut(trackCut);
+      eventsData[iData][iEvent]->ApplyJetCut(jetCut);
+      eventsData[iData][iEvent]->ApplyLeptonCut(leptonCut);
       
       if(!eventsData[iData][iEvent]->IsPassingCut(eventCut)){
         eventsData[iData].erase(eventsData[iData].begin()+iEvent);
@@ -916,73 +900,4 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
     }
     
   }
-}
-
-
-vector<shared_ptr<Event>> EventSet::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut, EDataType dataType, int setIter)
-{
-  vector<shared_ptr<Event>> outputEvents;
-  
-  if(dataType == kSignal){
-    outputEvents = eventsSignal[(ESignal)setIter];
-  }
-  else if(dataType == kBackground){
-    outputEvents = eventsBackground[(EBackground)setIter];
-  }
-  else if(dataType == kData){
-    outputEvents = eventsData[(EData)setIter];
-  }
-  else{
-    throw out_of_range("Unknown data type provided");
-  }
-  
-  if(trackCut)  outputEvents = ApplyTrackCut(outputEvents, trackCut);
-  if(jetCut)    outputEvents = ApplyJetCut(outputEvents, jetCut);
-  if(leptonCut) outputEvents = ApplyLeptonCut(outputEvents, leptonCut);
-  if(eventCut)  outputEvents = ApplyEventCut(outputEvents, eventCut);
-  
-  return outputEvents;
-}
-
-vector<shared_ptr<Event>> EventSet::ApplyEventCut(vector<shared_ptr<Event>> events, EventCut *cut)
-{
-  vector<shared_ptr<Event>> outputEvents;
-  
-  for(int iEvent=0;iEvent<(int)events.size();iEvent++){
-    if(events[iEvent]->IsPassingCut(cut)){
-      outputEvents.push_back(events[iEvent]);
-    }
-  }
-  
-  return outputEvents;
-}
-
-vector<shared_ptr<Event>> EventSet::ApplyTrackCut(vector<shared_ptr<Event>> events, TrackCut *cut)
-{
-  vector<shared_ptr<Event>> outputEvents;
-  
-  for(int iEvent=0;iEvent<(int)events.size();iEvent++){
-    outputEvents.push_back(events[iEvent]->ApplyTrackCut(cut));
-  }
-  return outputEvents;
-}
-
-vector<shared_ptr<Event>> EventSet::ApplyJetCut(vector<shared_ptr<Event>> events, JetCut *cut)
-{
-  vector<shared_ptr<Event>> outputEvents;
-  
-  for(int iEvent=0;iEvent<(int)events.size();iEvent++){
-    outputEvents.push_back(events[iEvent]->ApplyJetCut(cut));
-  }
-  return outputEvents;
-}
-
-vector<shared_ptr<Event>> EventSet::ApplyLeptonCut(vector<shared_ptr<Event>> events, LeptonCut *cut)
-{
-  vector<shared_ptr<Event>> outputEvents;
-  
-  for(int iEvent=0;iEvent<(int)events.size();iEvent++){
-    outputEvents.push_back(events[iEvent]->ApplyLeptonCut(cut));
-  }
-  return outputEvents;
 }

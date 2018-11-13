@@ -12,8 +12,7 @@
 void ProcessCuts(shared_ptr<EventSet> events,
                  EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
 {
-//  events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
-  events->ApplyCutsInPlace(eventCut, trackCut, jetCut, leptonCut);
+  events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
   if(printYields){
     cout<<"\n\nYields after level "<<performCutsLevel<<" cuts"<<endl;
