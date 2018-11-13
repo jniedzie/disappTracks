@@ -141,6 +141,18 @@ unique_ptr<Event> Event::ApplyTrackCut(TrackCut *cut)
   return outputEvent;
 }
 
+void Event::ApplyTrackCutInPlace(TrackCut *cut)
+{
+  auto track = tracks.begin();
+
+  while(track != tracks.end()){
+    if(!(*track)->IsPassingCut(cut))
+      track = tracks.erase(track);
+    else
+      track++;
+  }
+}
+  
 unique_ptr<Event> Event::ApplyJetCut(JetCut *cut)
 {
   unique_ptr<Event> outputEvent = CopyThisEventProperties();
@@ -172,6 +184,39 @@ unique_ptr<Event> Event::ApplyJetCut(JetCut *cut)
   return outputEvent;
 }
 
+void Event::ApplyJetCutInPlace(JetCut *cut)
+{
+  auto jet = jets.begin();
+  
+  while(jet != jets.end()){
+    if(!(*jet)->IsPassingCut(cut))
+      jet = jets.erase(jet);
+    else{
+      // check separation with all tracks in the event
+      bool overlapsWithTrack = false;
+      double minTrackDeltaR = cut->GetTrackDeltaR().GetMin();
+      
+      if(minTrackDeltaR > 0){
+        for(auto track : tracks){
+          double deltaR_2 = pow(track->GetPhi() - (*jet)->GetPhi(),2)+pow(track->GetEta() - (*jet)->GetEta(),2);
+          
+          if(deltaR_2 < (minTrackDeltaR*minTrackDeltaR)){
+            overlapsWithTrack = true;
+            break;
+          }
+        }
+      }
+      
+      if(overlapsWithTrack){
+        jet = jets.erase(jet);
+      }
+      else{
+        jet++;
+      }
+    }
+  }
+}
+
 unique_ptr<Event> Event::ApplyLeptonCut(LeptonCut *cut)
 {
   unique_ptr<Event> outputEvent = CopyThisEventProperties();
@@ -186,6 +231,20 @@ unique_ptr<Event> Event::ApplyLeptonCut(LeptonCut *cut)
   }
   return outputEvent;
 }
+
+
+void Event::ApplyLeptonCutInPlace(LeptonCut *cut)
+{
+  auto lepton = leptons.begin();
+  
+  while(lepton != leptons.end()){
+    if(!(*lepton)->IsPassingCut(cut))
+      lepton = leptons.erase(lepton);
+    else
+      lepton++;
+  }
+}
+
 
 bool Event::IsPassingCut(EventCut *cut)
 {

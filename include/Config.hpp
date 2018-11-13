@@ -19,7 +19,7 @@ const bool saveEvents = false;
 const bool printYields = true;
 const bool printBackgroundDetails = false;
 
-const bool drawStandardPlots = true;
+const bool drawStandardPlots = false;
 const bool drawPerLayerPlots = false;
 const bool showLegends = false;
 

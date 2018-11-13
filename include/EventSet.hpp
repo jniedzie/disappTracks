@@ -56,6 +56,8 @@ public:
   /// \param leptonCut  Cuts to be applied to leptons
   void ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut);
   
+  void ApplyCutsInPlace(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut);
+  
   void DrawStandardPlots(string prefix="");
   void DrawPerLayerPlots();
   

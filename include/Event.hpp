@@ -122,6 +122,10 @@ public:
   /// Returns a new event with only tracks passing the cut
   std::unique_ptr<Event> ApplyTrackCut(TrackCut *cut);
   
+  void ApplyTrackCutInPlace(TrackCut *cut);
+  void ApplyJetCutInPlace(JetCut *cut);
+  void ApplyLeptonCutInPlace(LeptonCut *cut);
+  
   /// Returns a new event with only jets passing the cut
   std::unique_ptr<Event> ApplyJetCut(JetCut *cut);
   

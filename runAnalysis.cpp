@@ -12,7 +12,8 @@
 void ProcessCuts(shared_ptr<EventSet> events,
                  EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
 {
-  events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+//  events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+  events->ApplyCutsInPlace(eventCut, trackCut, jetCut, leptonCut);
   
   if(printYields){
     cout<<"\n\nYields after level "<<performCutsLevel<<" cuts"<<endl;
@@ -102,6 +103,8 @@ int main(int argc, char* argv[])
     // L1 cuts
     trackCut_L1->SetRelativeIsolation(range<double>(0.0, 0.15));
     jetCut_L1->SetTrackDeltaR(range<double>(0.2,inf));
+    jetCut_L1->SetChargedHadronEnergyFraction(range<double>(0.01,0.99));
+    jetCut_L1->SetNeutralHadronEnergyFraction(range<double>(0.01,1.00));
     
     // + standard cuts to be applied after L2 selections
     eventCut_L1->SetNtracks(range<int>(1, inf));
@@ -123,15 +126,17 @@ int main(int argc, char* argv[])
     JetCut    *jetCut_L2   = new JetCut();
 
     // pick category
-//    trackCut_L2->SetNpixelLayers(4, 4);
-    eventCut_L2->SetNtracks(range<int>(2,2));
+    trackCut_L2->SetNpixelLayers(range<int>(4, 4));
+    eventCut_L2->SetNtracks(range<int>(1,1));
     
     // play with these cuts
-//    trackCut_L2->SetNmissingOuterTracker(range<int>(1, inf));
-//    trackCut_L2->SetDedxPerCluster(range<double>(1.5,inf));
-//    eventCut_L2->SetMetPt(range<double>(200,inf));
-    trackCut_L2->SetCaloEmEnergy(range<double>(0.0,20.0));
-//    trackCut_L2->SetCaloHadEnergy(range<double>(0.0,30.0));
+    trackCut_L2->SetNmissingOuterTracker(range<int>(5, inf));
+    trackCut_L2->SetCaloEmEnergy(range<double>(0.0,10.0));
+    trackCut_L2->SetCaloHadEnergy(range<double>(0.0,10.0));
+//    eventCut_L2->SetMetPt(range<double>(230,inf));
+    
+//    trackCut_L2->SetDedxPerCluster(range<double>(4.5,inf));
+
     
     // cuts not to be optimized
     eventCut_L2->SetJetMetDeltaPhi(range<double>(0.5,inf));

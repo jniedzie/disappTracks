@@ -373,10 +373,12 @@ void EventSet::SaveEventsToFiles(string prefix)
 void EventSet::PrintYields()
 {
   double nBackgroundTotal=0;
+  int nBackgroundTotalRaw=0;
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     if(!runBackground[iBck]) continue;
-    nBackgroundTotal += weightedSize(kBackground,(int)iBck);
+    nBackgroundTotal += weightedSize(kBackground,iBck);
+    nBackgroundTotalRaw += size(kBackground,iBck);
     
     if(printYields){
       cout<<backgroundTitle[iBck]<<"\t";
@@ -386,24 +388,26 @@ void EventSet::PrintYields()
   }
   
   if(printYields){
+    cout<<"Background total:\t"<<nBackgroundTotal<<"\t("<<nBackgroundTotalRaw<<")"<<endl;
+    
     for(int iSig=0;iSig<kNsignals;iSig++){
       if(!runSignal[iSig]) continue;
       cout<<signalTitle[iSig]<<"\tN events:\t";
-      cout<<weightedSize(kSignal,(int)iSig);
-      cout<<"\t("<<size(kSignal,(int)iSig)<<")"<<endl;
+      cout<<weightedSize(kSignal,iSig);
+      cout<<"\t("<<size(kSignal,iSig)<<")"<<endl;
     }
   }
   
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]) continue;
     cout<<signalTitle[iSig]<<"\tS/sqrt(B):\t";
-    cout<<weightedSize(kSignal,(int)iSig)/sqrt(nBackgroundTotal+weightedSize(kSignal,(int)iSig))<<endl;
+    cout<<weightedSize(kSignal,iSig)/sqrt(nBackgroundTotal+weightedSize(kSignal,iSig))<<endl;
   }
   
   for(int iData=0;iData<kNdata;iData++){
     if(!runData[iData]) continue;
     cout<<dataTitle[iData]<<"\tS/sqrt(B):\t";
-    cout<<weightedSize(kData,(int)iData)/sqrt(nBackgroundTotal+weightedSize(kData,(int)iData))<<endl;
+    cout<<weightedSize(kData,iData)/sqrt(nBackgroundTotal+weightedSize(kData,iData))<<endl;
   }
 }
 
@@ -420,6 +424,61 @@ void EventSet::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut,
   for(int iData=0;iData<kNdata;iData++){
     if(!runData[iData]) continue;
     eventsData[iData] = ApplyCuts(eventCut, trackCut, jetCut, leptonCut, kData, iData);
+  }
+}
+
+void EventSet::ApplyCutsInPlace(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
+{
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    if(!runSignal[iSig]) continue;
+    for(int iEvent=0;iEvent<eventsSignal[iSig].size();){
+      
+      eventsSignal[iSig][iEvent]->ApplyTrackCutInPlace(trackCut);
+      eventsSignal[iSig][iEvent]->ApplyJetCutInPlace(jetCut);
+      eventsSignal[iSig][iEvent]->ApplyLeptonCutInPlace(leptonCut);
+      
+      if(!eventsSignal[iSig][iEvent]->IsPassingCut(eventCut)){
+        eventsSignal[iSig].erase(eventsSignal[iSig].begin()+iEvent);
+      }
+      else{
+        iEvent++;
+      }
+      
+    }
+  }
+  for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    if(!runBackground[iBck]) continue;
+    for(int iEvent=0;iEvent<eventsBackground[iBck].size();){
+      
+      eventsBackground[iBck][iEvent]->ApplyTrackCutInPlace(trackCut);
+      eventsBackground[iBck][iEvent]->ApplyJetCutInPlace(jetCut);
+      eventsBackground[iBck][iEvent]->ApplyLeptonCutInPlace(leptonCut);
+      
+      if(!eventsBackground[iBck][iEvent]->IsPassingCut(eventCut)){
+        eventsBackground[iBck].erase(eventsBackground[iBck].begin()+iEvent);
+      }
+      else{
+        iEvent++;
+      }
+      
+    }
+  }
+  for(int iData=0;iData<kNdata;iData++){
+    if(!runData[iData]) continue;
+    for(int iEvent=0;iEvent<eventsData[iData].size();){
+      
+      eventsData[iData][iEvent]->ApplyTrackCutInPlace(trackCut);
+      eventsData[iData][iEvent]->ApplyJetCutInPlace(jetCut);
+      eventsData[iData][iEvent]->ApplyLeptonCutInPlace(leptonCut);
+      
+      if(!eventsData[iData][iEvent]->IsPassingCut(eventCut)){
+        eventsData[iData].erase(eventsData[iData].begin()+iEvent);
+      }
+      else{
+        iEvent++;
+      }
+      
+    }
   }
 }
 
