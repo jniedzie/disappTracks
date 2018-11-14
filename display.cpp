@@ -215,7 +215,7 @@ int main(int argc, char* argv[])
   // create event display
   TEveManager::Create();
   
-  shared_ptr<EventSet> events = shared_ptr<EventSet>(new EventSet());
+  auto events = shared_ptr<EventSet>(new EventSet());
   events->LoadEventsFromFiles("after_L1/");
   
   auto event = events->At(EventSet::kBackground, kVV, 125);

@@ -48,9 +48,9 @@ public:
   bool IsPassingCut(const unique_ptr<EventCut> &cut);
   
   // setters
-  inline void AddTrack(Track *track){tracks.push_back(track);}
-  inline void AddJet(Jet *jet){jets.push_back(jet);}
-  inline void AddLepton(Lepton *lepton){leptons.push_back(lepton);}
+  inline void AddTrack(shared_ptr<Track> track){tracks.push_back(track);}
+  inline void AddJet(shared_ptr<Jet> jet){jets.push_back(jet);}
+  inline void AddLepton(shared_ptr<Lepton> lepton){leptons.push_back(lepton);}
     
   inline void SetWeight(double val){weight = val;}
   
@@ -132,14 +132,14 @@ public:
   inline double GetWgtSum(){return wgtsum;}
   inline double GetGenWeight(){return genWeight;}
   
-  inline Track*  GetTrack(int i){return tracks[i];}
-  inline Jet*    GetJet(int i){return jets[i];}
-  inline Lepton* GetLepton(int i){return leptons[i];}
+  inline shared_ptr<Track>  GetTrack(int i){return tracks[i];}
+  inline shared_ptr<Jet>    GetJet(int i){return jets[i];}
+  inline shared_ptr<Lepton> GetLepton(int i){return leptons[i];}
   
 private:
-  vector<Track*>  tracks;   ///< Vector of isolated tracks
-  vector<Jet*>    jets;     ///< Vector of jets
-  vector<Lepton*> leptons;  ///< Vector of leptons
+  vector<shared_ptr<Track>>  tracks;   ///< Vector of isolated tracks
+  vector<shared_ptr<Jet>>    jets;     ///< Vector of jets
+  vector<shared_ptr<Lepton>> leptons;  ///< Vector of leptons
   
   double weight;          ///< Weight for this event resulting from lumi, cross section and generator weights
   

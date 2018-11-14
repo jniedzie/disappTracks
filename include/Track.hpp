@@ -114,10 +114,10 @@ public:
   inline double GetEventMetMass(){return eventMetMass;}
   
 private:
-  std::vector<float> dedx;    ///< dE/dx in consecutive layers
-  std::vector<int> subDetId;  ///< Sub-detector IDs for each layer
-  std::vector<int> sizeX;     ///< Cluster size X in each layer
-  std::vector<int> sizeY;     ///< Cluster size Y in each layer
+  vector<float> dedx;         ///< dE/dx in consecutive layers
+  vector<int> subDetId;       ///< Sub-detector IDs for each layer
+  vector<int> sizeX;          ///< Cluster size X in each layer
+  vector<int> sizeY;          ///< Cluster size Y in each layer
   double pt;                  ///< Transverse momentum (GeV)
   double eta;                 ///< Pseudorapidity
   double phi;                 ///< Polar angle

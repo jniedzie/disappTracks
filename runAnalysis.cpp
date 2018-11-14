@@ -60,10 +60,10 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
 
   if(performCutsLevel == 0){
-    unique_ptr<EventCut>  eventCut_L0 = unique_ptr<EventCut>(new EventCut());
-    unique_ptr<TrackCut>  trackCut_L0 = unique_ptr<TrackCut>(new TrackCut());
-    unique_ptr<JetCut>    jetCut_L0   = unique_ptr<JetCut>(new JetCut());
-    unique_ptr<LeptonCut> leptonCut_L0= unique_ptr<LeptonCut>(new LeptonCut());
+    auto eventCut_L0 = unique_ptr<EventCut>(new EventCut());
+    auto trackCut_L0 = unique_ptr<TrackCut>(new TrackCut());
+    auto jetCut_L0   = unique_ptr<JetCut>(new JetCut());
+    auto leptonCut_L0= unique_ptr<LeptonCut>(new LeptonCut());
     
     eventCut_L0->SetNtracks(range<int>(1, inf));
     eventCut_L0->SetNjets(range<int>(1,inf));
@@ -97,10 +97,10 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   
   if(performCutsLevel == 1){
-    unique_ptr<EventCut>  eventCut_L1 = unique_ptr<EventCut>(new EventCut());
-    unique_ptr<TrackCut>  trackCut_L1 = unique_ptr<TrackCut>(new TrackCut());
-    unique_ptr<JetCut>    jetCut_L1   = unique_ptr<JetCut>(new JetCut());
-    unique_ptr<LeptonCut> leptonCut_L1= unique_ptr<LeptonCut>(new LeptonCut());
+    auto eventCut_L1 = unique_ptr<EventCut>(new EventCut());
+    auto trackCut_L1 = unique_ptr<TrackCut>(new TrackCut());
+    auto jetCut_L1   = unique_ptr<JetCut>(new JetCut());
+    auto leptonCut_L1= unique_ptr<LeptonCut>(new LeptonCut());
     
     // L1 cuts
     trackCut_L1->SetRelativeIsolation(range<double>(0.0, 0.15));
@@ -126,10 +126,10 @@ int main(int argc, char* argv[])
   // Level 2
   //---------------------------------------------------------------------------
   if(performCutsLevel == 2){
-    unique_ptr<EventCut>  eventCut_L2 = unique_ptr<EventCut>(new EventCut());
-    unique_ptr<TrackCut>  trackCut_L2 = unique_ptr<TrackCut>(new TrackCut());
-    unique_ptr<JetCut>    jetCut_L2   = unique_ptr<JetCut>(new JetCut());
-    unique_ptr<LeptonCut> leptonCut_L2= unique_ptr<LeptonCut>(new LeptonCut());
+    auto eventCut_L2 = unique_ptr<EventCut>(new EventCut());
+    auto trackCut_L2 = unique_ptr<TrackCut>(new TrackCut());
+    auto jetCut_L2   = unique_ptr<JetCut>(new JetCut());
+    auto leptonCut_L2= unique_ptr<LeptonCut>(new LeptonCut());
 
     // pick category
 //    trackCut_L2->SetNpixelLayers(range<int>(3, 3));
@@ -160,10 +160,10 @@ int main(int argc, char* argv[])
   // Adish cuts
   //---------------------------------------------------------------------------
   if(performCutsLevel == 10){
-    unique_ptr<EventCut>  eventCut_adish = unique_ptr<EventCut>(new EventCut());
-    unique_ptr<TrackCut>  trackCut_adish = unique_ptr<TrackCut>(new TrackCut());
-    unique_ptr<JetCut>    jetCut_adish = unique_ptr<JetCut>(new JetCut());
-    unique_ptr<LeptonCut> leptonCut_adish= unique_ptr<LeptonCut>(new LeptonCut());
+    auto eventCut_adish = unique_ptr<EventCut>(new EventCut());
+    auto trackCut_adish = unique_ptr<TrackCut>(new TrackCut());
+    auto jetCut_adish   = unique_ptr<JetCut>(new JetCut());
+    auto leptonCut_adish= unique_ptr<LeptonCut>(new LeptonCut());
     
     // adish cuts
     eventCut_adish->SetRequireMetNoMuTrigger(true);

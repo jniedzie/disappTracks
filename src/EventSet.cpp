@@ -749,7 +749,7 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
     shared_ptr<Event> newEvent = shared_ptr<Event>(new Event());
     
     for(int iTrack=0;iTrack<*_nTracks;iTrack++){
-      Track *track = new Track();
+      auto track = shared_ptr<Track>(new Track());
       track->SetEta(_trackEta[iTrack]);
       track->SetPhi(_trackPhi[iTrack]);
       track->SetCaloEmEnergy(_trackCaloEmEnergy[iTrack]);
@@ -789,7 +789,7 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
     }
     
     for(int iJet=0;iJet<*_nJets;iJet++){
-      Jet *jet = new Jet();
+      auto jet = shared_ptr<Jet>(new Jet());
       jet->SetPt(_jetPt[iJet]);
       jet->SetEta(_jetEta[iJet]);
       jet->SetPhi(_jetPhi[iJet]);
@@ -801,7 +801,7 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
     }
     
     for(int iJet=0;iJet<*_nJetsFwd;iJet++){
-      Jet *jet = new Jet();
+      auto jet = shared_ptr<Jet>(new Jet());
       jet->SetPt(_jetFwdPt[iJet]);
       jet->SetEta(_jetFwdEta[iJet]);
       jet->SetPhi(_jetFwdPhi[iJet]);
@@ -813,7 +813,7 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
     }
     
     for(int iLepton=0;iLepton<*_nLepton;iLepton++){
-      Lepton *lepton = new Lepton();
+      auto lepton = shared_ptr<Lepton>(new Lepton());
       lepton->SetPt(_leptonPt[iLepton]);
       lepton->SetEta(_leptonEta[iLepton]);
       lepton->SetPhi(_leptonPhi[iLepton]);

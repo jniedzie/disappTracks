@@ -163,7 +163,7 @@ bool Event::IsPassingCut(const unique_ptr<EventCut> &cut)
   if(cut->GetNleptons().IsOutside(nLepton))  return false;
   if(cut->GetNtaus().IsOutside(nTau)) return false;
   
-  vector<Lepton*> muons;
+  vector<shared_ptr<Lepton>> muons;
   for(auto l : leptons){
     if(abs(l->GetPid()) == 13) muons.push_back(l);
   }
@@ -224,7 +224,7 @@ bool Event::IsPassingCut(const unique_ptr<EventCut> &cut)
     }
     
     for(int iJet=0;iJet<GetNcentralJets();iJet++){
-      Jet *j = GetJet(iJet);
+      shared_ptr<Jet> j = GetJet(iJet);
       if(!j->IsForward()){
         
         TLorentzVector jetVector;
@@ -252,7 +252,7 @@ bool Event::IsPassingCut(const unique_ptr<EventCut> &cut)
     }
     
     for(int iTrack=0;iTrack<GetNtracks();iTrack++){
-      Track *t = tracks[iTrack];
+      shared_ptr<Track> t = tracks[iTrack];
       
       TLorentzVector trackVector;
       trackVector.SetPtEtaPhiM(t->GetPt(), t->GetEta(), t->GetPhi(), t->GetMass());
@@ -272,7 +272,7 @@ bool Event::IsPassingCut(const unique_ptr<EventCut> &cut)
   if(cut->GetNtracks().IsOutside(GetNtracks())) return false;
 
   // find the jet with the highest pt
-  Jet *leadingJet = nullptr;
+  shared_ptr<Jet> leadingJet = nullptr;
   double highestPt = -1.0;
 
   for(int iJet=0;iJet<GetNjets();iJet++){

@@ -39,16 +39,16 @@ public:
   void DrawPerLayer();
   
 private:
-  vector<TH1D*> signal;     ///< Vector of histograms for signal events
-  vector<TH1D*> background; ///< Vector of histograms for background events
-  vector<TH1D*> data;       ///< Vector of histograms for data events
+  vector<shared_ptr<TH1D>> signal;     ///< Vector of histograms for signal events
+  vector<shared_ptr<TH1D>> background; ///< Vector of histograms for background events
+  vector<shared_ptr<TH1D>> data;       ///< Vector of histograms for data events
   
-  vector<vector<TH1D*>> signalPerLayer;     ///< Array of per-layer histograms for signal [signalType][layer]
-  vector<vector<TH1D*>> backgroundPerLayer; ///< Array of per-layer histograms for background [signalType][layer]
-  vector<vector<TH1D*>> dataPerLayer;       ///< Array of per-layer histograms for data [signalType][layer]
+  vector<vector<shared_ptr<TH1D>>> signalPerLayer;     ///< Array of per-layer histograms for signal [signalType][layer]
+  vector<vector<shared_ptr<TH1D>>> backgroundPerLayer; ///< Array of per-layer histograms for background [signalType][layer]
+  vector<vector<shared_ptr<TH1D>>> dataPerLayer;       ///< Array of per-layer histograms for data [signalType][layer]
   
   EVar var;                 ///< For which variable the histograms should be filled
-  const char* title;        ///< Title of the variable
+  string title;             ///< Title of the variable
   int nBins;                ///< Number of bins for this variable
   double min;               ///< X axis minimum for this variable
   double max;               ///< X axis maximum for this variable
@@ -70,7 +70,8 @@ private:
   /// \param dataType Type of the data for which the histogram will be filled (signal/background/data)
   /// \param setIter Data set for which to fill the histogram
   /// \param iDetId Detector ID for per-layer histograms
-  void Fill(TH1D* hist, shared_ptr<EventSet> events,
+  void Fill(const shared_ptr<TH1D> &hist,
+            const shared_ptr<EventSet> &events,
             EventSet::EDataType dataType, int setIter,
             int iDetId=-1);
 };
