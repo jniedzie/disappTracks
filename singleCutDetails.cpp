@@ -18,9 +18,10 @@ int main(int argc, char* argv[])
   shared_ptr<EventSet> events;
   events->LoadEventsFromFiles("after_L1/");
   
-  EventCut  *eventCut = new EventCut();
-  TrackCut  *trackCut = new TrackCut();
-  JetCut    *jetCut   = new JetCut();
+  auto eventCut = unique_ptr<EventCut>(new EventCut());
+  auto trackCut = unique_ptr<TrackCut>(new TrackCut());
+  auto jetCut   = unique_ptr<JetCut>(new JetCut());
+  auto leptonCut= unique_ptr<LeptonCut>(new LeptonCut());
   
   // + standard cuts to be applied after L2 selections
   eventCut->SetNtracks(range<int>(1, inf));
@@ -53,7 +54,7 @@ int main(int argc, char* argv[])
 //    trackCut->SetNmissingOuterTracker(cut,inf);
     
     eventsAfterCuts = events;
-    events->ApplyCuts(eventCut, trackCut, jetCut, nullptr);
+    events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
     
     double nBackgroundTotal=0;
     for(int iBck=0;iBck<kNbackgrounds;iBck++){

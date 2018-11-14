@@ -40,9 +40,9 @@ int main(int argc, char* argv[])
   // Define event, track and jet cuts
   //---------------------------------------------------------------------------
   
-  EventCut  *eventCutZmm  = new EventCut();
-  EventCut  *eventCutWmv  = new EventCut();
-  EventCut  *eventCutZvv  = new EventCut();
+  unique_ptr<EventCut> eventCutZmm = unique_ptr<EventCut>(new EventCut());
+  unique_ptr<EventCut> eventCutWmv = unique_ptr<EventCut>(new EventCut());
+  unique_ptr<EventCut> eventCutZvv = unique_ptr<EventCut>(new EventCut());
   
   eventCutZmm->SetNtracks(range<int>(1,inf));
   eventCutZmm->SetRequireMetNoMuTrigger(true);
@@ -87,15 +87,15 @@ int main(int argc, char* argv[])
   eventCutZvv->SetRequireMetJetPhi0p5(true);
   eventCutZvv->SetNleptons(range<int>(0,0));
   
-  TrackCut *trackCut = new TrackCut();
+  unique_ptr<TrackCut> trackCut = unique_ptr<TrackCut>(new TrackCut());
   trackCut->SetPt(range<double>(50,inf));
   trackCut->SetEta(range<double>(-2.1, 2.1));
 
-  JetCut *jetCut = new JetCut();
+  unique_ptr<JetCut> jetCut = unique_ptr<JetCut>(new JetCut());
   jetCut->SetPt(range<double>(30,inf));
   jetCut->SetEtaForward(range<double>(-4.7, 4.7));
   
-  LeptonCut *leptonCut = new LeptonCut();
+  unique_ptr<LeptonCut> leptonCut = unique_ptr<LeptonCut>(new LeptonCut());
   
   eventsZmm->ApplyCuts(eventCutZmm, trackCut, jetCut, leptonCut);
   eventsWmv->ApplyCuts(eventCutWmv, trackCut, jetCut, leptonCut);

@@ -216,9 +216,9 @@ int main(int argc, char* argv[])
   TEveManager::Create();
   
   shared_ptr<EventSet> events = shared_ptr<EventSet>(new EventSet());
-  events->LoadEventsFromFiles("after_L2/");
+  events->LoadEventsFromFiles("after_L1/");
   
-  auto event = events->At(EventSet::kBackground, kWmunuJets, 0);
+  auto event = events->At(EventSet::kBackground, kVV, 125);
   DrawEvent(event);
   /*
   TrackCut *trackCut = new TrackCut();

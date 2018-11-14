@@ -416,7 +416,7 @@ void EventSet::ApplyCuts(const unique_ptr<EventCut> &eventCut,const unique_ptr<T
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]) continue;
-    for(int iEvent=0;iEvent<eventsSignal[iSig].size();){
+    for(int iEvent=0;iEvent<(int)eventsSignal[iSig].size();){
       
       eventsSignal[iSig][iEvent]->ApplyTrackCut(trackCut);
       eventsSignal[iSig][iEvent]->ApplyJetCut(jetCut);
@@ -433,7 +433,7 @@ void EventSet::ApplyCuts(const unique_ptr<EventCut> &eventCut,const unique_ptr<T
   }
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     if(!runBackground[iBck]) continue;
-    for(int iEvent=0;iEvent<eventsBackground[iBck].size();){
+    for(int iEvent=0;iEvent<(int)eventsBackground[iBck].size();){
       
       eventsBackground[iBck][iEvent]->ApplyTrackCut(trackCut);
       eventsBackground[iBck][iEvent]->ApplyJetCut(jetCut);
@@ -450,7 +450,7 @@ void EventSet::ApplyCuts(const unique_ptr<EventCut> &eventCut,const unique_ptr<T
   }
   for(int iData=0;iData<kNdata;iData++){
     if(!runData[iData]) continue;
-    for(int iEvent=0;iEvent<eventsData[iData].size();){
+    for(int iEvent=0;iEvent<(int)eventsData[iData].size();){
       
       eventsData[iData][iEvent]->ApplyTrackCut(trackCut);
       eventsData[iData][iEvent]->ApplyJetCut(jetCut);

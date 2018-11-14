@@ -10,9 +10,10 @@ int main()
   shared_ptr<EventSet> events = shared_ptr<EventSet>(new EventSet());
   events->LoadEventsFromFiles("after_L1/");
   
-  EventCut  *eventCut = new EventCut();
-  TrackCut  *trackCut = new TrackCut();
-  JetCut    *jetCut   = new JetCut();
+  auto eventCut = unique_ptr<EventCut>(new EventCut());
+  auto trackCut = unique_ptr<TrackCut>(new TrackCut());
+  auto jetCut   = unique_ptr<JetCut>(new JetCut());
+  auto leptonCut= unique_ptr<LeptonCut>(new LeptonCut());
   
   eventCut->SetJetMetDeltaPhi(range<double>(0.5,inf));
   
@@ -26,7 +27,7 @@ int main()
   eventCut->SetLeadingJetNeHEF(range<double>(-inf,0.8));
   eventCut->SetLeadingJetChHEF(range<double>(0.1,inf));
   
-  events->ApplyCuts(eventCut, trackCut, jetCut, nullptr);
+  events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
   double dedxMin=0.0, dedxMax=6.0, dedxStep=0.1;
   double caloEmMin=0.0, caloEmMax=6.0,caloEmStep=0.1;

@@ -15,11 +15,11 @@ using namespace std;
 // Analysis configuration
 const int performCutsLevel = 2;
 
-const bool saveEvents = false;
+const bool saveEvents = true;
 const bool printYields = true;
 const bool printBackgroundDetails = false;
 
-const bool drawStandardPlots = false;
+const bool drawStandardPlots = true;
 const bool drawPerLayerPlots = false;
 const bool showLegends = false;
 
