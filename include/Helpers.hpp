@@ -17,6 +17,7 @@
 #include <TH2D.h>
 #include <TCanvas.h>
 #include <TColor.h>
+#include <TLorentzVector.h>
 
 #include <vector>
 #include <iostream>
@@ -332,7 +333,7 @@ const map<EVar, tuple<string, int, double, double>> settings =
   {kMetMass , {"MET mass",100,-10e-6,10e6}},
   {kMetEta , {"MET eta",100,-3.5,3.5}},
   {kMetPhi , {"MET phi",100,-3.5,3.5}},
-  {kMetJetDphi , {"#Delta #phi (p_{T}^{jet}},p_{T}^{MET})",25,-3.5,3.5}},
+  {kMetJetDphi , {"#Delta #phi (p_{T}^{jet},p_{T}^{MET})",25,-3.5,3.5}},
   
   {kTrackNclusters , {"N detIDs per track",20,0,22}},
   {kTrackTotalDedx , {"total dedx per track",50,0,140}},
@@ -369,7 +370,7 @@ const map<EVar, tuple<string, int, double, double>> settings =
 inline bool IsPerEventVariable(EVar var)
 {
   if(var == kNvertices || var == kNisoTracks || var == kNjets || var == kNjets30 ||
-     var == kNjets30a || var == kMetSumEt || var == kMetPt || var == kMetMass || var == kMetEta || var == kMetPhi || var == kMetJetDphi)
+     var == kNjets30a || var == kMetSumEt || var == kMetPt || var == kMetMass || var == kMetEta || var == kMetPhi)
     return true;
   return false;
 }
@@ -388,7 +389,8 @@ inline bool IsPerTrackVariable(EVar var)
 
 inline bool IsPerJetVariable(EVar var)
 {
-  if(var == kJetPt || var == kJetEta || var ==  kJetPhi || var ==  kJetTrackDr || var ==  kJetCHF || var ==  kJetNHF)
+  if(var == kJetPt || var == kJetEta || var ==  kJetPhi || var ==  kJetTrackDr || var ==  kJetCHF ||
+     var ==  kJetNHF  || var == kMetJetDphi)
     return true;
   return false;
 }

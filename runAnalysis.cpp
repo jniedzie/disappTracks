@@ -137,6 +137,9 @@ int main(int argc, char* argv[])
 //    trackCut_L2->SetCaloHadEnergy(range<double>(0.0,10.0));
     trackCut_L2->SetDedxPerCluster(range<double>(2.0,inf));
 //    eventCut_L2->SetMetPt(range<double>(230,inf));
+    trackCut_L2->SetPt(range<double>(100,inf));
+    trackCut_L2->SetTrackMetDeltaPhi(range<double>(-2.3,2.3));
+    
     
     // + standard cuts to be applied after L2 selections
     eventCut_L2->SetNjets(range<int>(1,inf));

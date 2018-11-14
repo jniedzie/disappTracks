@@ -32,7 +32,11 @@ nMissingInnerTrackerHits(inf),
 nMissingOuterTrackerHits(inf),
 nMissingMiddleTrackerHits(inf),
 nDetIDs(-1),
-nDedxClusters(-1)
+nDedxClusters(-1),
+eventMetPt(inf),
+eventMetEta(inf),
+eventMetPhi(inf),
+eventMetMass(inf)
 {
   for(int iLayer=0;iLayer<nLayers;iLayer++){
     dedx.push_back(0.0);
@@ -104,6 +108,18 @@ bool Track::IsPassingCut(TrackCut *cut)
   
   // check isolation
   if(cut->GetRelativeIsolation().IsOutside(relativeIsolation))  return false;
+  
+  // Check track-met ΔΦ
+  
+  if(cut->GetTrackMetDeltaPhi().GetMin() > -1000){
+    
+    // We use TLorentzVector to automatically deal with shifting the angle to [-π,π]
+    TLorentzVector metVector, trackVector;
+    metVector.SetPtEtaPhiM(eventMetPt, eventMetEta, eventMetPhi, eventMetMass);
+    trackVector.SetPtEtaPhiM(pt, eta, phi, mass);
+    
+    if(cut->GetTrackMetDeltaPhi().IsOutside(metVector.DeltaPhi(trackVector))) return false;
+  }
   
   return true;
 }

@@ -41,7 +41,7 @@ public:
   inline void SetNdetIDs(range<int> val){nDetIDs=val;}
   inline void SetNdedxClusters(range<int> val){nDedxClusters = val;}
   
-  
+  inline void SetTrackMetDeltaPhi(range<double> val){trackMetDeltaPhi = val;}
   // Getters
   inline range<double> GetPt(){return pt;}
   inline range<double> GetEta(){return eta;}
@@ -63,6 +63,7 @@ public:
   inline range<int>     GetNdetIDs(){return nDetIDs;}
   inline range<int>     GetNdedxClusters(){return nDedxClusters;}
   
+  inline range<double>  GetTrackMetDeltaPhi(){return trackMetDeltaPhi;}
 private:
   range<double> pt;                 ///< allowed transverse momentum of the track
   range<double> eta;                ///< allowed pseudorapidity
@@ -83,6 +84,8 @@ private:
   range<double> totalDeDx;          ///< allowed total dedx along the track
   range<int> nDetIDs;               ///< allowed number of subdetectors
   range<int> nDedxClusters;         ///< allowed number of dedx clusters along the track
+  
+  range<double> trackMetDeltaPhi;
 };
 
 #endif /* TrackCut_hpp */

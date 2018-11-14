@@ -137,7 +137,12 @@ void HistSet::Fill(TH1D* hist, shared_ptr<EventSet> events,
         if(var == kJetPt)           value = jet->GetPt();
         else if(var == kJetEta)     value = jet->GetEta();
         else if(var == kJetPhi)     value = jet->GetPhi();
-        else if(var == kMetJetDphi) value = event->GetMetPhi() - jet->GetPhi();
+        else if(var == kMetJetDphi){
+          TLorentzVector metVector, jetVector;
+          metVector.SetPtEtaPhiM(event->GetMetPt(), event->GetMetEta(), event->GetMetPhi(), event->GetMetMass());
+          jetVector.SetPtEtaPhiM(jet->GetPt(), jet->GetEta(), jet->GetPhi(), jet->GetMass());
+          value = metVector.DeltaPhi(jetVector);
+        }
         else if(var == kJetCHF)     value = jet->GetChargedHadronEnergyFraction();
         else if(var == kJetNHF)     value = jet->GetNeutralHadronEnergyFraction();
         else if(var == kJetTrackDr){
@@ -174,7 +179,12 @@ void HistSet::Fill(TH1D* hist, shared_ptr<EventSet> events,
         else if(var == kTrackTrackerHits)             value = track->GetNtrackerHits();
         else if(var == kTrackRelativeIsolation)       value = track->GetRelativeIsolation();
         else if(var == kTrackAbsoluteIsolation)       value = track->GetAbsoluteIsolation();
-        else if(var == kTrackMetDphi)                 value = event->GetMetPhi() - track->GetPhi();
+        else if(var == kTrackMetDphi){
+          TLorentzVector metVector, trackVector;
+          metVector.SetPtEtaPhiM(event->GetMetPt(), event->GetMetEta(), event->GetMetPhi(), event->GetMetMass());
+          trackVector.SetPtEtaPhiM(track->GetPt(), track->GetEta(), track->GetPhi(), track->GetMass());
+          value = metVector.DeltaPhi(trackVector);
+        }
         else if(var == kDedx || var == kSizeX || var == kSizeY){
           for(int i=0;i<nLayers;i++){
             int detId = track->GetSubDetIdInLayer(i);

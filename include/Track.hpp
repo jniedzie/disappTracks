@@ -61,6 +61,11 @@ public:
   inline void SetNmissingOuterTrackerHits(int n){nMissingOuterTrackerHits = n;}
   inline void SetNmissingMiddleTrackerHits(int n){nMissingMiddleTrackerHits = n;}
   
+  inline void SetEventMetPt(double val){eventMetPt = val;}
+  inline void SetEventMetEta(double val){eventMetEta = val;}
+  inline void SetEventMetPhi(double val){eventMetPhi = val;}
+  inline void SetEventMetMass(double val){eventMetMass = val;}
+  
   // Getters
   inline double  GetDeDxInLayer(int layer){return dedx[layer];}
   inline double  GetTotalDedx(){return accumulate(dedx.begin(),dedx.end(),0.0);}
@@ -103,6 +108,11 @@ public:
   inline int GetNdetIDs(){return nDetIDs;}
   inline int GetNdedxClusters(){return nDedxClusters;}
   
+  inline double GetEventMetPt(){return eventMetPt;}
+  inline double GetEventMetEta(){return eventMetEta;}
+  inline double GetEventMetPhi(){return eventMetPhi;}
+  inline double GetEventMetMass(){return eventMetMass;}
+  
 private:
   std::vector<float> dedx;    ///< dE/dx in consecutive layers
   std::vector<int> subDetId;  ///< Sub-detector IDs for each layer
@@ -138,6 +148,11 @@ private:
   
   int nDetIDs;    ///< Total number of sub-detectors hit by this track
   int nDedxClusters;  ///< Total number of clusters belonging to this track
+  
+  double eventMetPt;   ///< MET transverse momentum of the event that contains this track
+  double eventMetEta;  ///< MET pseudorapidity of the event that contains this track
+  double eventMetPhi;  ///< MET polar angle of the event that contains this track
+  double eventMetMass; ///< MET mass of the event that contains this track
   
   /// Calculates additional properties that are not read directly from ntuples.
   /// Should be called after adding setting some of the track's properties

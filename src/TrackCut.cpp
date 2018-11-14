@@ -26,7 +26,8 @@ nMissingMiddleTracker(range<int>()),
 dedxPerCluster(range<double>()),
 totalDeDx(range<double>()),
 nDetIDs(range<int>()),
-nDedxClusters(range<int>())
+nDedxClusters(range<int>()),
+trackMetDeltaPhi(range<double>())
 {
 
 }

@@ -773,6 +773,11 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
       track->SetNmissingOuterTrackerHits(_trackMissingOuterTrackerHits[iTrack]);
       track->SetNmissingMiddleTrackerHits(_trackMissingMiddleTrackerHits[iTrack]);
       
+      track->SetEventMetPt(*_metPt);
+      track->SetEventMetEta(*_metEta);
+      track->SetEventMetPhi(*_metPhi);
+      track->SetEventMetMass(*_metMass);
+      
       for(int iLayer=0;iLayer<nLayers;iLayer++){
         track->SetDeDxInLayer(iLayer, (*_dedx[iLayer])[iTrack]);
         track->SetSubDetIdInLayer(iLayer, (*_subDetId[iLayer])[iTrack]);
