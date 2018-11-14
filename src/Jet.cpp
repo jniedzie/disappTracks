@@ -34,7 +34,7 @@ void Jet::Print()
   cout<<"forward:"<<isForward<<endl;
 }
 
-bool Jet::IsPassingCut(JetCut *cut)
+bool Jet::IsPassingCut(const unique_ptr<JetCut> &cut)
 {
   // check jet's kinematical properties
   if(cut->GetPt().IsOutside(pt))  return false;

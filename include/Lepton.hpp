@@ -23,7 +23,7 @@ public:
   
   /// Check if lepton passes selection criteria
   /// \param cut Lepton selection criteria to be checked
-  bool IsPassingCut(LeptonCut *cut);
+  bool IsPassingCut(const unique_ptr<LeptonCut> &cut);
   
   
   // Setters

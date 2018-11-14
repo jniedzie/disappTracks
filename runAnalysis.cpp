@@ -10,7 +10,8 @@
 #include <TApplication.h>
 
 void ProcessCuts(shared_ptr<EventSet> events,
-                 EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
+                 const unique_ptr<EventCut> &eventCut,const  unique_ptr<TrackCut> &trackCut,
+                 const unique_ptr<JetCut> &jetCut,const unique_ptr<LeptonCut> &leptonCut)
 {
   events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
@@ -59,9 +60,10 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
 
   if(performCutsLevel == 0){
-    EventCut  *eventCut_L0 = new EventCut();
-    TrackCut  *trackCut_L0 = new TrackCut();
-    JetCut    *jetCut_L0   = new JetCut();
+    unique_ptr<EventCut>  eventCut_L0 = unique_ptr<EventCut>(new EventCut());
+    unique_ptr<TrackCut>  trackCut_L0 = unique_ptr<TrackCut>(new TrackCut());
+    unique_ptr<JetCut>    jetCut_L0   = unique_ptr<JetCut>(new JetCut());
+    unique_ptr<LeptonCut> leptonCut_L0= unique_ptr<LeptonCut>(new LeptonCut());
     
     eventCut_L0->SetNtracks(range<int>(1, inf));
     eventCut_L0->SetNjets(range<int>(1,inf));
@@ -87,7 +89,7 @@ int main(int argc, char* argv[])
 
     jetCut_L0->SetPt(range<double>(30.0, inf));
     
-    ProcessCuts(events,eventCut_L0, trackCut_L0, jetCut_L0, nullptr);
+    ProcessCuts(events,eventCut_L0, trackCut_L0, jetCut_L0, leptonCut_L0);
   }
   
   //---------------------------------------------------------------------------
@@ -95,9 +97,10 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   
   if(performCutsLevel == 1){
-    EventCut  *eventCut_L1 = new EventCut();
-    TrackCut  *trackCut_L1 = new TrackCut();
-    JetCut    *jetCut_L1   = new JetCut();
+    unique_ptr<EventCut>  eventCut_L1 = unique_ptr<EventCut>(new EventCut());
+    unique_ptr<TrackCut>  trackCut_L1 = unique_ptr<TrackCut>(new TrackCut());
+    unique_ptr<JetCut>    jetCut_L1   = unique_ptr<JetCut>(new JetCut());
+    unique_ptr<LeptonCut> leptonCut_L1= unique_ptr<LeptonCut>(new LeptonCut());
     
     // L1 cuts
     trackCut_L1->SetRelativeIsolation(range<double>(0.0, 0.15));
@@ -116,29 +119,31 @@ int main(int argc, char* argv[])
     eventCut_L1->SetLeadingJetNeHEF(range<double>(-inf,0.8));
     eventCut_L1->SetLeadingJetChHEF(range<double>(0.1,inf));
 
-    ProcessCuts(events,eventCut_L1, trackCut_L1, jetCut_L1, nullptr);
+    ProcessCuts(events,eventCut_L1, trackCut_L1, jetCut_L1, leptonCut_L1);
   }
     
   //---------------------------------------------------------------------------
   // Level 2
   //---------------------------------------------------------------------------
   if(performCutsLevel == 2){
-    EventCut  *eventCut_L2 = new EventCut();
-    TrackCut  *trackCut_L2 = new TrackCut();
-    JetCut    *jetCut_L2   = new JetCut();
+    unique_ptr<EventCut>  eventCut_L2 = unique_ptr<EventCut>(new EventCut());
+    unique_ptr<TrackCut>  trackCut_L2 = unique_ptr<TrackCut>(new TrackCut());
+    unique_ptr<JetCut>    jetCut_L2   = unique_ptr<JetCut>(new JetCut());
+    unique_ptr<LeptonCut> leptonCut_L2= unique_ptr<LeptonCut>(new LeptonCut());
 
     // pick category
-    trackCut_L2->SetNpixelLayers(range<int>(4, 4));
-    eventCut_L2->SetNtracks(range<int>(1,1));
+//    trackCut_L2->SetNpixelLayers(range<int>(3, 3));
+    eventCut_L2->SetNtracks(range<int>(2,2));
     
     // play with these cuts
-    trackCut_L2->SetNmissingOuterTracker(range<int>(7, inf));
-    trackCut_L2->SetCaloEmEnergy(range<double>(0.0,0.4));
+    trackCut_L2->SetNmissingOuterTracker(range<int>(1, inf));
+    trackCut_L2->SetCaloEmEnergy(range<double>(0.0,8.0));
 //    trackCut_L2->SetCaloHadEnergy(range<double>(0.0,10.0));
-    trackCut_L2->SetDedxPerCluster(range<double>(2.0,inf));
+//    trackCut_L2->SetDedxPerCluster(range<double>(2.0,inf));
 //    eventCut_L2->SetMetPt(range<double>(230,inf));
-    trackCut_L2->SetPt(range<double>(100,inf));
-    trackCut_L2->SetTrackMetDeltaPhi(range<double>(-2.3,2.3));
+//    trackCut_L2->SetPt(range<double>(100,inf));
+//    trackCut_L2->SetTrackMetDeltaPhi(range<double>(-2.3,2.3));
+//    eventCut_L2->SetJetMetDeltaPhi(range<double>(0.7,inf));
     
     
     // + standard cuts to be applied after L2 selections
@@ -148,16 +153,17 @@ int main(int argc, char* argv[])
     eventCut_L2->SetLeadingJetNeHEF(range<double>(-inf,0.8));
     eventCut_L2->SetLeadingJetChHEF(range<double>(0.1,inf));
     
-    ProcessCuts(events, eventCut_L2, trackCut_L2, jetCut_L2, nullptr);
+    ProcessCuts(events, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2);
   }
   
   //---------------------------------------------------------------------------
   // Adish cuts
   //---------------------------------------------------------------------------
   if(performCutsLevel == 10){
-    EventCut  *eventCut_adish = new EventCut();
-    TrackCut  *trackCut_adish = new TrackCut();
-    JetCut    *jetCut_adish   = new JetCut();
+    unique_ptr<EventCut>  eventCut_adish = unique_ptr<EventCut>(new EventCut());
+    unique_ptr<TrackCut>  trackCut_adish = unique_ptr<TrackCut>(new TrackCut());
+    unique_ptr<JetCut>    jetCut_adish = unique_ptr<JetCut>(new JetCut());
+    unique_ptr<LeptonCut> leptonCut_adish= unique_ptr<LeptonCut>(new LeptonCut());
     
     // adish cuts
     eventCut_adish->SetRequireMetNoMuTrigger(true);
@@ -177,7 +183,7 @@ int main(int argc, char* argv[])
     eventCut_adish->SetNtaus(range<int>(0,0));
     eventCut_adish->SetNleptons(range<int>(0,0));
     
-    ProcessCuts(events,eventCut_adish, trackCut_adish, jetCut_adish, nullptr);
+    ProcessCuts(events,eventCut_adish, trackCut_adish, jetCut_adish, leptonCut_adish);
   }
   
   if(drawStandardPlots || drawPerLayerPlots)  theApp->Run();

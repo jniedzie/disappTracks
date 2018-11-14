@@ -17,7 +17,7 @@ pid(inf)
 
 };
 
-bool Lepton::IsPassingCut(LeptonCut *cut)
+bool Lepton::IsPassingCut(const unique_ptr<LeptonCut> &cut)
 {
   // check pt
   if(cut->GetPt().IsOutside(pt)) return false;

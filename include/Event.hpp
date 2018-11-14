@@ -36,16 +36,16 @@ public:
   void Print();
   
   /// Removes tracks that don't pass the cut from the tracks collection
-  void ApplyTrackCut(TrackCut *cut);
+  void ApplyTrackCut(const unique_ptr<TrackCut> &cut);
   
   /// Removes jets that don't pass the cut from the jets collection
-  void ApplyJetCut(JetCut *cut);
+  void ApplyJetCut(const unique_ptr<JetCut> &cut);
   
   /// Removes leptons that don't pass the cut from the leptons collection
-  void ApplyLeptonCut(LeptonCut *cut);
+  void ApplyLeptonCut(const unique_ptr<LeptonCut> &cut);
   
   /// Check if event passes a cut
-  bool IsPassingCut(EventCut *cut);
+  bool IsPassingCut(const unique_ptr<EventCut> &cut);
   
   // setters
   inline void AddTrack(Track *track){tracks.push_back(track);}

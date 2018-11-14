@@ -411,7 +411,8 @@ void EventSet::PrintYields()
   }
 }
 
-void EventSet::ApplyCuts(EventCut *eventCut, TrackCut *trackCut, JetCut *jetCut, LeptonCut *leptonCut)
+void EventSet::ApplyCuts(const unique_ptr<EventCut> &eventCut,const unique_ptr<TrackCut> &trackCut,
+                         const unique_ptr<JetCut> &jetCut,const unique_ptr<LeptonCut> &leptonCut)
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]) continue;

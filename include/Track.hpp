@@ -26,7 +26,7 @@ public:
   
   /// Check if track passes selection criteria
   /// \param cut Tracks selection criteria to be checked
-  bool IsPassingCut(TrackCut *cut);
+  bool IsPassingCut(const unique_ptr<TrackCut> &cut);
   
   
   // Setters

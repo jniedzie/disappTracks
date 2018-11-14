@@ -70,7 +70,7 @@ void Track::Print()
 //  }
 }
 
-bool Track::IsPassingCut(TrackCut *cut)
+bool Track::IsPassingCut(const unique_ptr<TrackCut> &cut)
 {
   // check number of hits in pixel, stip and tracker in general
   if(cut->GetRequireSameNpixelHitsLayers()){

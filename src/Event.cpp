@@ -85,7 +85,7 @@ void Event::Print(){
   cout<<"================================================\n\n"<<endl;
 }
 
-void Event::ApplyTrackCut(TrackCut *cut)
+void Event::ApplyTrackCut(const unique_ptr<TrackCut> &cut)
 {
   auto track = tracks.begin();
 
@@ -97,7 +97,7 @@ void Event::ApplyTrackCut(TrackCut *cut)
   }
 }
 
-void Event::ApplyJetCut(JetCut *cut)
+void Event::ApplyJetCut(const unique_ptr<JetCut> &cut)
 {
   auto jet = jets.begin();
   
@@ -130,7 +130,7 @@ void Event::ApplyJetCut(JetCut *cut)
   }
 }
 
-void Event::ApplyLeptonCut(LeptonCut *cut)
+void Event::ApplyLeptonCut(const unique_ptr<LeptonCut> &cut)
 {
   auto lepton = leptons.begin();
   
@@ -143,7 +143,7 @@ void Event::ApplyLeptonCut(LeptonCut *cut)
 }
 
 
-bool Event::IsPassingCut(EventCut *cut)
+bool Event::IsPassingCut(const unique_ptr<EventCut> &cut)
 {
   // check the trigger
   if(cut->RequiresMetNoMuTrigger() && !metNoMuTrigger){
@@ -179,7 +179,7 @@ bool Event::IsPassingCut(EventCut *cut)
   
   // apply tight muon cuts (tightID flag, pt > 20 GeV, isolation < 0.15
   if(cut->RequiresTightMuon()){
-    LeptonCut *tightMuonCut = new LeptonCut();
+    unique_ptr<LeptonCut> tightMuonCut = unique_ptr<LeptonCut>(new LeptonCut());
     tightMuonCut->SetRelativeIsolation(range<double>(-inf,0.15));
     tightMuonCut->SetRequireTightID(true);
     tightMuonCut->SetPt(range<double>(20.0,inf));
