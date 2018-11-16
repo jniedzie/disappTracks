@@ -18,6 +18,8 @@
 #include <TCanvas.h>
 #include <TColor.h>
 #include <TLorentzVector.h>
+#include <THStack.h>
+#include <TStyle.h>
 
 #include <vector>
 #include <iostream>

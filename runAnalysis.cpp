@@ -132,19 +132,20 @@ int main(int argc, char* argv[])
     auto leptonCut_L2= unique_ptr<LeptonCut>(new LeptonCut());
 
     // pick category
-//    trackCut_L2->SetNpixelLayers(range<int>(3, 3));
-    eventCut_L2->SetNtracks(range<int>(2,2));
+    trackCut_L2->SetNpixelLayers(range<int>(4, 4));
+    eventCut_L2->SetNtracks(range<int>(1,1));
     
     // play with these cuts
-    trackCut_L2->SetNmissingOuterTracker(range<int>(1, inf));
-    trackCut_L2->SetCaloEmEnergy(range<double>(0.0,8.0));
+    trackCut_L2->SetNmissingOuterTracker(range<int>(7, inf));
+    trackCut_L2->SetCaloEmEnergy(range<double>(0.0,0.4));
+    trackCut_L2->SetDedxPerCluster(range<double>(2.0,inf));
+    eventCut_L2->SetJetMetDeltaPhi(range<double>(0.7,inf));
+    trackCut_L2->SetTrackMetDeltaPhi(range<double>(-2.3,2.3));
+    
 //    trackCut_L2->SetCaloHadEnergy(range<double>(0.0,10.0));
-//    trackCut_L2->SetDedxPerCluster(range<double>(2.0,inf));
 //    eventCut_L2->SetMetPt(range<double>(230,inf));
 //    trackCut_L2->SetPt(range<double>(100,inf));
-//    trackCut_L2->SetTrackMetDeltaPhi(range<double>(-2.3,2.3));
-//    eventCut_L2->SetJetMetDeltaPhi(range<double>(0.7,inf));
-    
+
     
     // + standard cuts to be applied after L2 selections
     eventCut_L2->SetNjets(range<int>(1,inf));
@@ -153,7 +154,81 @@ int main(int argc, char* argv[])
     eventCut_L2->SetLeadingJetNeHEF(range<double>(-inf,0.8));
     eventCut_L2->SetLeadingJetChHEF(range<double>(0.1,inf));
     
-    ProcessCuts(events, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2);
+    
+    if(scanMETbinning){
+      gStyle->SetOptStat(0);
+      TCanvas *c1 = new TCanvas("significance","significance",800,500);
+      c1->cd();
+      
+      TH1D *hists[kNsignals];
+      
+      
+      double min = 201, max = 1001, step = 50;
+      int nBins = (max-min)/step + 1;
+      
+      for(int iSig=0;iSig<kNsignals;iSig++){
+        hists[iSig] = new TH1D(signalTitle[iSig].c_str(),signalTitle[iSig].c_str(),nBins,min,max);
+      }
+      
+      for(int i=0;i<nBins;i++){
+        double split = min+i*step;
+        cout<<"\n\nSplit:"<<split<<"\n";
+        auto events1 = shared_ptr<EventSet>(new EventSet(*events));
+        auto events2 = shared_ptr<EventSet>(new EventSet(*events));
+        
+        eventCut_L2->SetMetPt(range<double>(200,split));
+        ProcessCuts(events1, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2);
+        
+        eventCut_L2->SetMetPt(range<double>(split,inf));
+        ProcessCuts(events2, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2);
+        
+        vector<double> significances1 = events1->GetSignificance();
+        vector<double> significances2 = events2->GetSignificance();
+        
+        for(int iSig=0;iSig<kNsignals;iSig++){
+          if(!runSignal[iSig]) continue;
+          
+          double combinedSignificance = sqrt(pow(significances1[iSig],2) + pow(significances2[iSig],2));
+          cout<<signalTitle[iSig]<<"\t"<<combinedSignificance<<endl;
+          hists[iSig]->SetBinContent(i+1, combinedSignificance);
+        }
+      }
+      
+      bool first = true;
+      for(int iSig=0;iSig<kNsignals;iSig++){
+        if(!runSignal[iSig]) continue;
+        hists[iSig]->SetMarkerSize(2.0);
+        
+        hists[iSig]->SetLineColor(SignalColor((ESignal)iSig));
+        hists[iSig]->SetMarkerStyle(signalMarkers[iSig]);
+        hists[iSig]->SetMarkerColor(SignalColor((ESignal)iSig));
+//        hists[iSig]->Scale(1/hists[iSig]->Integral());
+        
+        double mean = 0;
+        
+        for(int i=0;i<hists[iSig]->GetNbinsX();i++){
+          mean += hists[iSig]->GetBinContent(i+1);
+        }
+        mean /= nBins;
+        
+        for(int i=0;i<hists[iSig]->GetNbinsX();i++){
+          hists[iSig]->SetBinContent(i+1,hists[iSig]->GetBinContent(i+1)-mean);
+        }
+        hists[iSig]->Sumw2(false);
+        if(first){
+          
+          hists[iSig]->Draw("PL");
+          first = false;
+        }
+        else{
+          hists[iSig]->Draw("samePL");
+        }
+      }
+      c1->Update();
+    }
+    else{
+      ProcessCuts(events, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2);
+    }
   }
   
   //---------------------------------------------------------------------------
@@ -186,7 +261,7 @@ int main(int argc, char* argv[])
     ProcessCuts(events,eventCut_adish, trackCut_adish, jetCut_adish, leptonCut_adish);
   }
   
-  if(drawStandardPlots || drawPerLayerPlots)  theApp->Run();
+  if(drawStandardPlots || drawPerLayerPlots || scanMETbinning)  theApp->Run();
   return 0;
 }
 

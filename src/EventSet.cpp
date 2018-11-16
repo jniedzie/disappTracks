@@ -400,15 +400,34 @@ void EventSet::PrintYields()
   
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]) continue;
-    cout<<signalTitle[iSig]<<"\tS/sqrt(B):\t";
+    cout<<signalTitle[iSig]<<"\tS/sqrt(S+B):\t";
     cout<<weightedSize(kSignal,iSig)/sqrt(nBackgroundTotal+weightedSize(kSignal,iSig))<<endl;
   }
   
   for(int iData=0;iData<kNdata;iData++){
     if(!runData[iData]) continue;
-    cout<<dataTitle[iData]<<"\tS/sqrt(B):\t";
+    cout<<dataTitle[iData]<<"\tS/sqrt(S+B):\t";
     cout<<weightedSize(kData,iData)/sqrt(nBackgroundTotal+weightedSize(kData,iData))<<endl;
   }
+}
+
+vector<double> EventSet::GetSignificance()
+{
+  double nBackgroundTotal=0;
+  int nBackgroundTotalRaw=0;
+  
+  for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    if(!runBackground[iBck]) continue;
+    nBackgroundTotal += weightedSize(kBackground,iBck);
+  }
+  
+  vector<double> results;
+  
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    if(!runSignal[iSig]) results.push_back(inf);
+    results.push_back(weightedSize(kSignal,iSig)/sqrt(nBackgroundTotal+weightedSize(kSignal,iSig)));
+  }
+  return results;
 }
 
 void EventSet::ApplyCuts(const unique_ptr<EventCut> &eventCut,const unique_ptr<TrackCut> &trackCut,
