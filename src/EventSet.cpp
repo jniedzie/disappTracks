@@ -701,6 +701,7 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
 {
   cout<<"Reading events from:"<<fileName<<endl;
   TFile *inFile = TFile::Open(fileName.c_str());
+  TTree *tree = (TTree*)inFile->Get("tree");
   TTreeReader reader("tree", inFile);
   
   TTreeReaderValue<int>   _nTracks(reader, "nIsoTrack");
@@ -713,9 +714,9 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
   TTreeReaderValue<int>   _nTau(reader, "nTauGood");
   TTreeReaderValue<int>   _nGenChargino(reader, "nGenChargino");
   
-  TTreeReaderValue<float> _xSec  (reader,(dataType==kBackground || dataType==kSignal) ? "xsec" : "xsec");
-  TTreeReaderValue<float> _sumWgt(reader,(dataType==kBackground || dataType==kSignal) ? "wgtsum" : "wgtsum");
-  TTreeReaderValue<float> _genWgt(reader,(dataType==kBackground || dataType==kSignal) ? "genWeight" : "genWeight");
+  TTreeReaderValue<float> _xSec  (reader,(tree->GetBranchStatus("xsec")) ? "xsec" : "rho");
+  TTreeReaderValue<float> _sumWgt(reader,(tree->GetBranchStatus("wgtsum")) ? "wgtsum" : "rho");
+  TTreeReaderValue<float> _genWgt(reader,(tree->GetBranchStatus("genWeight")) ? "genWeight" : "rho");
   
   TTreeReaderValue<float> _metSumEt(reader, "met_sumEt");
   TTreeReaderValue<float> _metPt(reader, "met_pt");
