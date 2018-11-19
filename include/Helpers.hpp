@@ -186,8 +186,12 @@ const vector<string> inFileNameSignal = {
   "../Signal/Wino_M_1000_cTau_20/",
 };
 
-const vector<string> inFileNameData = {
-  "../SR_DATA/MET_Run2017B_31Mar2018/"
+const vector<vector<string>> inFileNameData = {
+  {
+    "../SR_DATA/MET_Run2017B_31Mar2018/",
+    "../SR_DATA/MET_Run2017C_31Mar2018/",
+    "../SR_DATA/MET_Run2017D_31Mar2018/"
+  }
 };
 
 enum ESignal{

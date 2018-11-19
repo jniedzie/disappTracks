@@ -67,7 +67,7 @@ void DrawEvent(shared_ptr<Event> event)
   gSystem->ProcessEvents();
  
   for(int iJet=0;iJet<event->GetNjets();iJet++){
-    Jet *jet = event->GetJet(iJet);
+    shared_ptr<Jet> jet = event->GetJet(iJet);
     TEveJetCone *jetCone = new TEveJetCone();
     jetCone->SetCylinder(scale*2900, scale*5500);
     jetCone->AddCone(jet->GetEta(), jet->GetPhi(), jetConeRadius);
@@ -81,7 +81,7 @@ void DrawEvent(shared_ptr<Event> event)
   TEvePointSetArray *points = PreparePointsEventDisplay();
   
   for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
-    Track *track = event->GetTrack(iTrack);
+    shared_ptr<Track> track = event->GetTrack(iTrack);
     
     for(int iLayer=0;iLayer<nLayers;iLayer++){
       double R = layerR[iLayer];
@@ -216,10 +216,11 @@ int main(int argc, char* argv[])
   TEveManager::Create();
   
   auto events = shared_ptr<EventSet>(new EventSet());
-  events->LoadEventsFromFiles("after_L1/");
+  events->LoadEventsFromFiles("after_L2/");
   
-  auto event = events->At(EventSet::kBackground, kVV, 125);
+  auto event = events->At(EventSet::kData, kElectron_Run2017B, 0);
   DrawEvent(event);
+  event->Print();
   /*
   TrackCut *trackCut = new TrackCut();
   trackCut->SetNpixelLayers(range<int>(3,4));

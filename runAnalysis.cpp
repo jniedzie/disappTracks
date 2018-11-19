@@ -11,7 +11,8 @@
 
 void ProcessCuts(shared_ptr<EventSet> events,
                  const unique_ptr<EventCut> &eventCut,const  unique_ptr<TrackCut> &trackCut,
-                 const unique_ptr<JetCut> &jetCut,const unique_ptr<LeptonCut> &leptonCut)
+                 const unique_ptr<JetCut> &jetCut,const unique_ptr<LeptonCut> &leptonCut,
+                 string suffix = "")
 {
   events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
@@ -20,7 +21,8 @@ void ProcessCuts(shared_ptr<EventSet> events,
     events->PrintYields();
   }
   if(saveEvents){
-    string prefix = "after_L"+to_string(performCutsLevel)+"/";
+    string prefix = "after_L"+to_string(performCutsLevel);
+    prefix = prefix + "/" + suffix + "/";
     if(performCutsLevel==10) prefix = "adish_cuts";
     events->SaveEventsToFiles(prefix);
   }
@@ -130,22 +132,33 @@ int main(int argc, char* argv[])
     auto trackCut_L2 = unique_ptr<TrackCut>(new TrackCut());
     auto jetCut_L2   = unique_ptr<JetCut>(new JetCut());
     auto leptonCut_L2= unique_ptr<LeptonCut>(new LeptonCut());
-
+    
     // pick category
-    trackCut_L2->SetNpixelLayers(range<int>(4, 4));
-    eventCut_L2->SetNtracks(range<int>(1,1));
-    
-    // play with these cuts
-    trackCut_L2->SetNmissingOuterTracker(range<int>(7, inf));
-    trackCut_L2->SetCaloEmEnergy(range<double>(0.0,0.4));
-    trackCut_L2->SetDedxPerCluster(range<double>(2.0,inf));
-    eventCut_L2->SetJetMetDeltaPhi(range<double>(0.7,inf));
-    trackCut_L2->SetTrackMetDeltaPhi(range<double>(-2.3,2.3));
-    
-//    trackCut_L2->SetCaloHadEnergy(range<double>(0.0,10.0));
-//    eventCut_L2->SetMetPt(range<double>(230,inf));
-//    trackCut_L2->SetPt(range<double>(100,inf));
-
+    if(category == k2tracks){
+      eventCut_L2->SetNtracks(range<int>(2,2));
+      trackCut_L2->SetNmissingOuterTracker(range<int>(1, inf));
+      trackCut_L2->SetCaloEmEnergy(range<double>(0.0,8.0));
+    }
+    else if(category == k3layers){
+      trackCut_L2->SetNpixelLayers(range<int>(3, 3));
+      eventCut_L2->SetNtracks(range<int>(1,1));
+      
+      trackCut_L2->SetNmissingOuterTracker(range<int>(3, inf));
+      trackCut_L2->SetCaloEmEnergy(range<double>(0.0,3.0));
+      trackCut_L2->SetDedxPerCluster(range<double>(2.0,inf));
+      eventCut_L2->SetJetMetDeltaPhi(range<double>(0.7,inf));
+      trackCut_L2->SetTrackMetDeltaPhi(range<double>(-2.3,2.3));
+    }
+    else if(category == k4layers){
+      trackCut_L2->SetNpixelLayers(range<int>(4, 4));
+      eventCut_L2->SetNtracks(range<int>(1,1));
+      
+      trackCut_L2->SetNmissingOuterTracker(range<int>(7, inf));
+      trackCut_L2->SetCaloEmEnergy(range<double>(0.0,0.4));
+      trackCut_L2->SetDedxPerCluster(range<double>(2.0,inf));
+      trackCut_L2->SetPt(range<double>(100,inf));
+      trackCut_L2->SetTrackMetDeltaPhi(range<double>(-2.3,2.3));
+    }
     
     // + standard cuts to be applied after L2 selections
     eventCut_L2->SetNjets(range<int>(1,inf));
@@ -163,7 +176,7 @@ int main(int argc, char* argv[])
       TH1D *hists[kNsignals];
       
       
-      double min = 201, max = 1001, step = 50;
+      double min = 201, max = 1001, step = 20;
       int nBins = (max-min)/step + 1;
       
       for(int iSig=0;iSig<kNsignals;iSig++){
@@ -189,8 +202,8 @@ int main(int argc, char* argv[])
           if(!runSignal[iSig]) continue;
           
           double combinedSignificance = sqrt(pow(significances1[iSig],2) + pow(significances2[iSig],2));
-          cout<<signalTitle[iSig]<<"\t"<<combinedSignificance<<endl;
-          hists[iSig]->SetBinContent(i+1, combinedSignificance);
+          cout<<signalTitle[iSig]<<"\t"<<((isnormal(combinedSignificance) && combinedSignificance < 1000) ? combinedSignificance : 0.0)<<endl;
+          hists[iSig]->SetBinContent(i+1, (isnormal(combinedSignificance) && combinedSignificance < 1000) ? combinedSignificance : 0.0);
         }
       }
       
@@ -202,18 +215,21 @@ int main(int argc, char* argv[])
         hists[iSig]->SetLineColor(SignalColor((ESignal)iSig));
         hists[iSig]->SetMarkerStyle(signalMarkers[iSig]);
         hists[iSig]->SetMarkerColor(SignalColor((ESignal)iSig));
-//        hists[iSig]->Scale(1/hists[iSig]->Integral());
+        
         
         double mean = 0;
+        double minY = inf;
         
         for(int i=0;i<hists[iSig]->GetNbinsX();i++){
           mean += hists[iSig]->GetBinContent(i+1);
+          if(hists[iSig]->GetBinContent(i+1) < minY) minY = hists[iSig]->GetBinContent(i+1);
         }
         mean /= nBins;
         
         for(int i=0;i<hists[iSig]->GetNbinsX();i++){
-          hists[iSig]->SetBinContent(i+1,hists[iSig]->GetBinContent(i+1)-mean);
+          hists[iSig]->SetBinContent(i+1,hists[iSig]->GetBinContent(i+1)-minY);
         }
+        hists[iSig]->Scale(1/hists[iSig]->Integral());
         hists[iSig]->Sumw2(false);
         if(first){
           
@@ -226,8 +242,97 @@ int main(int argc, char* argv[])
       }
       c1->Update();
     }
+    else if(doMETbinning){
+      if(category != k2tracks){
+        for(int iSig=0;iSig<kNsignals;iSig++){
+          if(!runSignal[iSig]) continue;
+          auto events1 = shared_ptr<EventSet>(new EventSet(*events));
+          auto events2 = shared_ptr<EventSet>(new EventSet(*events));
+          double split = -1;
+          
+          if(category == k3layers){
+            if(iSig == kWino_M_300_cTau_3  || iSig == kWino_M_300_cTau_10 || iSig == kWino_M_300_cTau_30 ||
+               iSig == kWino_M_500_cTau_10 || iSig == kWino_M_500_cTau_20){
+              split = 380;
+            }
+            else if(iSig == kWino_M_650_cTau_10 || iSig == kWino_M_650_cTau_20 ||
+                    iSig == kWino_M_800_cTau_20){
+              split = 440;
+            }
+            else if(iSig == kWino_M_800_cTau_10  ||
+                    iSig == kWino_M_1000_cTau_10 || iSig == kWino_M_1000_cTau_20){
+              split = 580;
+            }
+          }
+          else if(category == k4layers){
+            if(iSig == kWino_M_300_cTau_3  || iSig == kWino_M_300_cTau_10 || iSig == kWino_M_300_cTau_30 ||
+               iSig == kWino_M_500_cTau_10 || iSig == kWino_M_500_cTau_20 ||
+               iSig == kWino_M_650_cTau_10 || iSig == kWino_M_650_cTau_20 ||
+               iSig == kWino_M_800_cTau_20){
+              split = 290;
+            }
+            else if(iSig == kWino_M_800_cTau_10  ||
+                    iSig == kWino_M_1000_cTau_10 || iSig == kWino_M_1000_cTau_20){
+              split = 440;
+            }
+          }
+          
+          eventCut_L2->SetMetPt(range<double>(200,split));
+          ProcessCuts(events1, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2);
+          
+          eventCut_L2->SetMetPt(range<double>(split,inf));
+          ProcessCuts(events2, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2);
+          
+          vector<double> significances1 = events1->GetSignificance();
+          vector<double> significances2 = events2->GetSignificance();
+          
+          double combinedSignificance = sqrt(pow(significances1[iSig],2) + pow(significances2[iSig],2));
+          cout<<signalTitle[iSig]<<"\t"<<combinedSignificance<<endl;
+        }
+        
+        for(int iData=0;iData<kNdata;iData++){
+          if(!runData[iData]) continue;
+          
+          vector<double> splits;
+          
+          if(category == k3layers){
+            splits = { 380, 440, 580};
+          }
+          else if(category == k4layers){
+            splits = { 290, 440 };
+          }
+          
+          cout<<dataTitle[iData]<<"\n";
+          
+          for(double split : splits){
+            auto events1 = shared_ptr<EventSet>(new EventSet(*events));
+            auto events2 = shared_ptr<EventSet>(new EventSet(*events));
+            
+            eventCut_L2->SetMetPt(range<double>(200,split));
+            ProcessCuts(events1, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2);
+            
+            eventCut_L2->SetMetPt(range<double>(split,inf));
+            ProcessCuts(events2, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2);
+            
+            vector<double> significances1 = events1->GetSignificance(true);
+            vector<double> significances2 = events2->GetSignificance(true);
+            
+            double combinedSignificance = sqrt(pow(significances1[iData],2) + pow(significances2[iData],2));
+            cout<<"split:"<<split<<"\t"<<combinedSignificance<<endl;
+          }
+        }
+      }
+      else{
+        // for 2 tracks we don't have enough stats to do MET binning, just get a regular S/B
+        ProcessCuts(events, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2);
+      }
+    }
     else{
-      ProcessCuts(events, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2);
+      string suffix = "";
+      if(category == k2tracks) suffix = "2tracks";
+      if(category == k3layers) suffix = "3layers";
+      if(category == k4layers) suffix = "4layers";
+      ProcessCuts(events, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2, suffix);
     }
   }
   

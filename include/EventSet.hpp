@@ -49,7 +49,7 @@ public:
   /// Prints yields of signal, background and data events, as well as S/sqrt(S+B) ratio.
   void PrintYields();
   
-  vector<double> GetSignificance();
+  vector<double> GetSignificance(bool inData=false);
   
   /// Applies cuts in this order: track, jet, lepton, event to three sets of events: signal, background and data.
   /// \param eventCut   Cuts to be applied to events

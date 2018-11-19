@@ -320,7 +320,16 @@ void EventSet::LoadEventsFromFiles(string prefix)
   
   for(int iData=0;iData<kNdata;iData++){
     if(!runData[iData]) continue;
-    AddEventsFromFile((inFileNameData[iData]+prefix+"tree.root"),kData,maxNeventsData,iData);
+    
+    if(prefix==""){
+      for(string path : inFileNameData[iData]){
+        AddEventsFromFile((path+prefix+"tree.root"),kData, maxNeventsData, iData);
+      }
+    }
+    else{
+      string path = inFileNameData[iData][0];
+      AddEventsFromFile((path+prefix+"tree.root"),kData, maxNeventsData, iData);
+    }
   }
 }
 
@@ -341,7 +350,15 @@ void EventSet::LoadEventsFromFiles(EDataType dataType, int setIter, string prefi
     AddEventsFromFile((inFileNameSignal[setIter]+prefix+"tree.root"),kSignal,maxNeventsSignal,setIter);
   }
   else if(dataType == kData){
-    AddEventsFromFile((inFileNameData[setIter]+prefix+"tree.root"),kData,maxNeventsData,setIter);
+    if(prefix==""){
+      for(string path : inFileNameData[setIter]){
+        AddEventsFromFile((path+prefix+"tree.root"),kData, maxNeventsData, setIter);
+      }
+    }
+    else{
+      string path = inFileNameData[setIter][0];
+      AddEventsFromFile((path+prefix+"tree.root"),kData, maxNeventsData, setIter);
+    }
   }
 }
 
@@ -351,7 +368,7 @@ void EventSet::SaveEventsToFiles(string prefix)
     if(!runSignal[iSig]) continue;
     system(("mkdir -p "+inFileNameSignal[iSig]+prefix).c_str());
     
-    SaveToTree((inFileNameSignal[iSig]+prefix+"tree.root").c_str(), kSignal, (int)iSig);
+    SaveToTree((inFileNameSignal[iSig]+prefix+"tree.root").c_str(), kSignal, iSig);
   }
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
@@ -360,13 +377,14 @@ void EventSet::SaveEventsToFiles(string prefix)
     // merged events will be stored in the first directory for given background
     string path = inFileNameBackground[iBck][0];
     system(("mkdir -p "+path+prefix).c_str());
-    SaveToTree((path+prefix+"tree.root").c_str(), kBackground, (int)iBck);
+    SaveToTree((path+prefix+"tree.root").c_str(), kBackground, iBck);
   }
   
   for(int iData=0;iData<kNdata;iData++){
     if(!runData[iData]) continue;
-    system(("mkdir -p "+inFileNameData[iData]+prefix).c_str());
-    SaveToTree((inFileNameData[iData]+prefix+"tree.root").c_str(), kData, (int)iData);
+    string path = inFileNameData[iData][0];
+    system(("mkdir -p "+path+prefix).c_str());
+    SaveToTree((path+prefix+"tree.root").c_str(), kData, iData);
   }
 }
 
@@ -396,6 +414,12 @@ void EventSet::PrintYields()
       cout<<weightedSize(kSignal,iSig);
       cout<<"\t("<<size(kSignal,iSig)<<")"<<endl;
     }
+    
+    for(int iData=0;iData<kNdata;iData++){
+      if(!runData[iData]) continue;
+      cout<<dataTitle[iData]<<"\tsize:\t";
+      cout<<weightedSize(kData,iData)<<"\n";
+    }
   }
   
   for(int iSig=0;iSig<kNsignals;iSig++){
@@ -406,15 +430,14 @@ void EventSet::PrintYields()
   
   for(int iData=0;iData<kNdata;iData++){
     if(!runData[iData]) continue;
-    cout<<dataTitle[iData]<<"\tS/sqrt(S+B):\t";
-    cout<<weightedSize(kData,iData)/sqrt(nBackgroundTotal+weightedSize(kData,iData))<<endl;
+    cout<<dataTitle[iData]<<"\t(M-B)/sqrt(M):\t";
+    cout<<(weightedSize(kData,iData)-nBackgroundTotal)/sqrt(weightedSize(kData,iData))<<endl;
   }
 }
 
-vector<double> EventSet::GetSignificance()
+vector<double> EventSet::GetSignificance(bool inData)
 {
   double nBackgroundTotal=0;
-  int nBackgroundTotalRaw=0;
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     if(!runBackground[iBck]) continue;
@@ -423,9 +446,23 @@ vector<double> EventSet::GetSignificance()
   
   vector<double> results;
   
-  for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig]) results.push_back(inf);
-    results.push_back(weightedSize(kSignal,iSig)/sqrt(nBackgroundTotal+weightedSize(kSignal,iSig)));
+  if(inData){
+    for(int iData=0;iData<kNdata;iData++){
+      if(!runData[iData]){
+        results.push_back(inf);
+        continue;
+      }
+      results.push_back((weightedSize(kData,iData)-nBackgroundTotal)/sqrt(weightedSize(kData,iData)));
+    }
+  }
+  else{
+    for(int iSig=0;iSig<kNsignals;iSig++){
+      if(!runSignal[iSig]){
+        results.push_back(inf);
+        continue;
+      }
+      results.push_back(weightedSize(kSignal,iSig)/sqrt(nBackgroundTotal+weightedSize(kSignal,iSig)));
+    }
   }
   return results;
 }
@@ -676,9 +713,9 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
   TTreeReaderValue<int>   _nTau(reader, "nTauGood");
   TTreeReaderValue<int>   _nGenChargino(reader, "nGenChargino");
   
-  TTreeReaderValue<float> _xSec  (reader,(dataType==kBackground || dataType==kSignal) ? "xsec" : "rho");
-  TTreeReaderValue<float> _sumWgt(reader,(dataType==kBackground || dataType==kSignal) ? "wgtsum" : "rho");
-  TTreeReaderValue<float> _genWgt(reader,(dataType==kBackground || dataType==kSignal) ? "genWeight" : "rho");
+  TTreeReaderValue<float> _xSec  (reader,(dataType==kBackground || dataType==kSignal) ? "xsec" : "xsec");
+  TTreeReaderValue<float> _sumWgt(reader,(dataType==kBackground || dataType==kSignal) ? "wgtsum" : "wgtsum");
+  TTreeReaderValue<float> _genWgt(reader,(dataType==kBackground || dataType==kSignal) ? "genWeight" : "genWeight");
   
   TTreeReaderValue<float> _metSumEt(reader, "met_sumEt");
   TTreeReaderValue<float> _metPt(reader, "met_pt");
@@ -842,7 +879,7 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
       newEvent->AddLepton(lepton);
     }
     
-    double lumi = 41.37 * 1000.;
+    double lumi = totalLuminosity * 1000.; // transform from fb^-1 to pb^-1
     double weight = lumi * (*_genWgt) / (*_sumWgt);
     
     //    static map<string,set<double>> wgts;
