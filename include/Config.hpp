@@ -15,9 +15,10 @@ using namespace std;
 // Analysis configuration
 const int performCutsLevel = 2;
 
-const bool saveEvents = false;
+const bool saveEvents = true;
 const bool printYields = true;
 const bool printBackgroundDetails = false;
+const bool printDataDetails = false;
 
 const bool drawStandardPlots = false;
 const bool drawPerLayerPlots = false;
@@ -32,7 +33,7 @@ const int maxNeventsData        = -1;
 
 //                             2015   2016    2017    2018
 //const double totalLuminosity = 3.81 + 37.76 + 41.37 + 63.97; // in fb^-1
-const double totalLuminosity = 20; // in fb^-1
+const double totalLuminosity = 41.37; // in fb^-1
 
 enum ECategory{
   k2tracks,
@@ -53,21 +54,21 @@ const vector<bool> runBackground = {
 };
 
 const vector<bool> runSignal = {
-  false,   // wino m=300 cτ=3
-  false,   // wino m=300 cτ=10
-  false,   // wino m=300 cτ=30
-  false,   // wino m=500 cτ=10
-  false,   // wino m=500 cτ=20
-  false,   // wino m=650 cτ=10
-  false,   // wino m=650 cτ=20
-  false,   // wino m=800 cτ=10
-  false,   // wino m=800 cτ=20
-  false,   // wino m=1000 cτ=10
-  false,   // wino m=1000 cτ=20
+  true,   // wino m=300 cτ=3
+  true,   // wino m=300 cτ=10
+  true,   // wino m=300 cτ=30
+  true,   // wino m=500 cτ=10
+  true,   // wino m=500 cτ=20
+  true,   // wino m=650 cτ=10
+  true,   // wino m=650 cτ=20
+  true,   // wino m=800 cτ=10
+  true,   // wino m=800 cτ=20
+  true,   // wino m=1000 cτ=10
+  true,   // wino m=1000 cτ=20
 };
 
 const vector<bool> runData = {
-  true,  // 2017 (B+C+D)
+  false,  // 2017 (B+C+D)
 };
 
 #endif /* Config_h */

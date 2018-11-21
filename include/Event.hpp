@@ -51,7 +51,11 @@ public:
   inline void AddTrack(shared_ptr<Track> track){tracks.push_back(track);}
   inline void AddJet(shared_ptr<Jet> jet){jets.push_back(jet);}
   inline void AddLepton(shared_ptr<Lepton> lepton){leptons.push_back(lepton);}
-    
+  
+  inline void SetLumiSection(uint val){lumiSection = val;}
+  inline void SetRunNumber(uint val){runNumber = val;}
+  inline void SetEventNumber(unsigned long long val){eventNumber = val;}
+  
   inline void SetWeight(double val){weight = val;}
   
   inline void SetNvertices(int n){nVertices = n;}
@@ -88,6 +92,10 @@ public:
   inline void SetGenWeight(double val){genWeight = val;}
   
   // getters
+  inline uint  GetLumiSection(){return lumiSection;}
+  inline uint  GetRunNumber(){return runNumber;}
+  inline unsigned long long GetEventNumber(){return eventNumber;}
+  
   inline double GetWeight(){return weight;}
   
   inline int GetNtracks(){return (int)tracks.size(); }
@@ -140,6 +148,10 @@ private:
   vector<shared_ptr<Track>>  tracks;   ///< Vector of isolated tracks
   vector<shared_ptr<Jet>>    jets;     ///< Vector of jets
   vector<shared_ptr<Lepton>> leptons;  ///< Vector of leptons
+  
+  uint lumiSection;        ///< ID of lumi section
+  uint runNumber;          ///< ID of the run
+  unsigned long long eventNumber;        ///< ID of the event
   
   double weight;          ///< Weight for this event resulting from lumi, cross section and generator weights
   

@@ -66,6 +66,8 @@ void EventSet::SaveToTree(string fileName, EDataType dataType, int setIter)
   const int nLeptons = 100;
   const int nJetsFwd = 0;
   
+  unsigned long long evt;
+  uint lumi, run;
   int nIsoTracks, nVert, nJet, nJetFwd, nJet30, nJet30a, nLepGood, nTauGood, nGenChargino;
   float xsec, wgtsum, genWeight, met_sumEt, met_pt, met_mass, met_phi, met_eta;
   int metNoMuTrigger, flag_goodVertices, flag_badPFmuon, flag_HBHEnoise, flag_HBHEnoiseIso, flag_EcalDeadCell, flag_eeBadSc, flag_badChargedCandidate, flag_ecalBadCalib, flag_globalTightHalo2016;
@@ -81,6 +83,10 @@ void EventSet::SaveToTree(string fileName, EDataType dataType, int setIter)
   
   
   float JetFwd_pt[nJetsFwd], JetFwd_eta[nJetsFwd], JetFwd_phi[nJetsFwd], JetFwd_mass[nJetsFwd], JetFwd_chHEF[nJetsFwd], JetFwd_neHEF[nJetsFwd];
+  
+  tree->Branch("lumi", &lumi, "lumi/i");
+  tree->Branch("run", &run, "run/i");
+  tree->Branch("evt", &evt, "evt/l");
   
   tree->Branch("nIsoTrack", &nIsoTracks, "nIsoTrack/I");
   tree->Branch("nVert", &nVert, "nVert/I");
@@ -188,6 +194,10 @@ void EventSet::SaveToTree(string fileName, EDataType dataType, int setIter)
   
   
   function<void(shared_ptr<Event>, TTree*)> func = [&](shared_ptr<Event> event, TTree *tree) -> void {
+    lumi = event->GetLumiSection();
+    run = event->GetRunNumber();
+    evt = event->GetEventNumber();
+    
     nVert = event->GetNvertices();
     nIsoTracks = (int)event->GetNtracks();
     nJet = (int)event->GetNjets();
@@ -704,6 +714,10 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
   TTree *tree = (TTree*)inFile->Get("tree");
   TTreeReader reader("tree", inFile);
   
+  TTreeReaderValue<uint>   _run(reader, "run");
+  TTreeReaderValue<uint>   _lumi(reader, "lumi");
+  TTreeReaderValue<unsigned long long>   _evt(reader, "evt");
+  
   TTreeReaderValue<int>   _nTracks(reader, "nIsoTrack");
   TTreeReaderValue<int>   _nVert(reader, "nVert");
   TTreeReaderValue<int>   _nJets(reader, "nJet");
@@ -913,7 +927,9 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
     else if(dataType==kData){
       weight = 1;
     }
-    
+    newEvent->SetLumiSection(*_lumi);
+    newEvent->SetRunNumber(*_run);
+    newEvent->SetEventNumber(*_evt);
     newEvent->SetWeight(weight);
     
     newEvent->SetNvertices(*_nVert);

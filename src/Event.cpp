@@ -71,6 +71,7 @@ Event::~Event()
 void Event::Print(){
   cout<<"\n\n================================================"<<endl;
   cout<<"Event:"<<endl;
+  cout<<"\t lumi section:"<<lumiSection<<"\trun number:"<<runNumber<<"\tevent number:"<<eventNumber<<endl;
   cout<<"\t n vertices:"<<nVertices<<endl;
   cout<<"\t MET pT:"<<metPt<<"\teta:"<<metEta<<"\tphi:"<<metPhi<<endl;
   cout<<"weigth:"<<genWeight<<endl;

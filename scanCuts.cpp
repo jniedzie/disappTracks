@@ -4,6 +4,12 @@
 #include "HistSet.hpp"
 #include "Helpers.hpp"
 
+struct ForRange {
+  ForRange(){}
+  ForRange(double _min, double _max, double _step) : min(_min), max(_max), step(_step) {}
+  double min, max, step;
+};
+
 int main()
 {
   // All events with initial cuts only
@@ -17,8 +23,8 @@ int main()
   
   eventCut->SetJetMetDeltaPhi(range<double>(0.5,inf));
   
-//  trackCut->SetNpixelLayers(range<int>(4,4));
-  eventCut->SetNtracks(range<int>(2,2));
+  trackCut->SetNpixelLayers(range<int>(4,4));
+  eventCut->SetNtracks(range<int>(1,1));
   
   // + standard cuts to be applied after L2 selections
   eventCut->SetNjets(range<int>(1,inf));
@@ -29,85 +35,79 @@ int main()
   
   events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
-  double dedxMin=0.0, dedxMax=6.0, dedxStep=0.1;
-  double caloEmMin=0.0, caloEmMax=6.0,caloEmStep=0.1;
-  double minNmissingMin=0, minNmissingMax=10, minNmissingStep=1;
-//  double caloHadMin=0.0, caloHadMax=15.1,caloHadStep=2.0;
-//  double metPtMin=200, metPtMax=401, metPtStep=25;
-//  double jetMetPhiMin=0.1, jetMetPhiMax=1.4, jetMetPhiStep=0.1;
-//  double nPixelHitsMin=0, nPixelHitsMax=8, nPixelHitsStep=1;
+  map<string,ForRange> ranges;
+  
+  ranges["dedx"] = ForRange(0.0, 6.0, 0.1);
+  ranges["missingOuter"] = ForRange(0, 10, 1);
+  ranges["trackPt"] = ForRange(30, 300, 10);
+  ranges["trackMetPhi"] = ForRange(1.0, 3.2, 0.1);
+  ranges["relIso"] = ForRange(0.000, 0.151, 0.01);
   
   double bestSb[kNsignals] = {0};
   
   shared_ptr<EventSet> eventsAfterCuts;
-  
-  //     S/B,   dedx,   em cal, had cal, n_miss
-  tuple<double, double, double, double, int> bestResults[kNsignals];
+  map<string,double> bestResults[kNsignals];
   
 //  double sb_sum_best = 0;
   
-  for(double dedxCut=dedxMin;dedxCut<dedxMax; dedxCut += dedxStep){
-    for(double caloEmCut=caloEmMax;caloEmCut>caloEmMin; caloEmCut -= caloEmStep){
-      
-      // we can make a copy of the original events here, as in the next loop cuts will become tighter and tighter,
-      // so events rejected in i-th iteration would be also rejected in (i+1)-th iteration
-      eventsAfterCuts = shared_ptr<EventSet>(new EventSet(*events));
-      
-//      for(double caloHadCut=caloHadMax;caloHadCut>caloHadMin; caloHadCut -= caloHadStep){
-        for(double minNmissingCut=minNmissingMin;minNmissingCut<minNmissingMax; minNmissingCut += minNmissingStep){
-          cout<<"dE/dx:"<<dedxCut<<"\tcalo EM:"<<caloEmCut<<"\tn miss:"<<minNmissingCut<<endl;
-//        for(double metPtCut=metPtMin;metPtCut<metPtMax; metPtCut += metPtStep){
-//            for(double nPixelHitsCut=nPixelHitsMin;nPixelHitsCut<nPixelHitsMax; nPixelHitsCut += nPixelHitsStep){
-              
-              trackCut->SetDedxPerCluster(range<double>(dedxCut,inf));
-              trackCut->SetCaloEmEnergy(range<double>(0.0,caloEmCut));
-//              trackCut->SetCaloHadEnergy(range<double>(0.0,caloHadCut));
-              trackCut->SetNmissingOuterTracker(range<int>(minNmissingCut, inf));
+  for(double dedxCut=ranges["dedx"].min;dedxCut<ranges["dedx"].max; dedxCut += ranges["dedx"].step){
+    for(double missingCut=ranges["missingOuter"].min;missingCut<ranges["missingOuter"].max; missingCut += ranges["missingOuter"].step){
+      for(double trackPtCut=ranges["trackPt"].min;trackPtCut<ranges["trackPt"].max; trackPtCut += ranges["trackPt"].step){
+        for(double trackMetPhiCut=ranges["trackMetPhi"].max;trackMetPhiCut>ranges["trackMetPhi"].min; trackMetPhiCut -= ranges["trackMetPhi"].step){
           
-//              eventCut->SetMetPt(range<double>(metPtCut,inf));
-//              trackCut->SetNpixelHits(range<int>(nPixelHitsCut,nPixelHitsCut));
-              eventsAfterCuts->ApplyCuts(eventCut, trackCut, jetCut, nullptr);
+          // we can make a copy of the original events here, as in the next loop cuts will become tighter and tighter,
+          // so events rejected in i-th iteration would be also rejected in (i+1)-th iteration
+          eventsAfterCuts = shared_ptr<EventSet>(new EventSet(*events));
+          
+          for(double relIsoCut=ranges["relIso"].max;relIsoCut>ranges["relIso"].min; relIsoCut -= ranges["relIso"].step){
+            cout<<"dE/dx:"<<dedxCut<<"\tmissing outer:"<<missingCut<<"\tn track pt:"<<trackPtCut<<"\treliso:"<<relIsoCut<<endl;
+            
+            trackCut->SetDedxPerCluster(range<double>(dedxCut,inf));
+//            trackCut->SetCaloEmEnergy(range<double>(0.0,caloEmCut));
+//            trackCut->SetCaloHadEnergy(range<double>(0.0,caloHadCut));
+            trackCut->SetNmissingOuterTracker(range<int>(missingCut,inf));
+            trackCut->SetPt(range<double>(trackPtCut,inf));
+            trackCut->SetTrackMetDeltaPhi(range<double>(-trackMetPhiCut,trackMetPhiCut));
+            trackCut->SetRelativeIsolation(range<double>(0,relIsoCut));
+//            eventCut->SetMetPt(range<double>(230,inf));
+            
+            eventsAfterCuts->ApplyCuts(eventCut, trackCut, jetCut, nullptr);
+            
+            double nBackgroundTotal=0;
+            for(int iBck=0;iBck<kNbackgrounds;iBck++){
+              if(!runBackground[iBck]) continue;
+              nBackgroundTotal += eventsAfterCuts->weightedSize(EventSet::kBackground, iBck);
+            }
+            double sb_sum=0;
+            
+            for(int iSig=0;iSig<kNsignals;iSig++){
+              if(!runSignal[iSig]) continue;
+              double sb = eventsAfterCuts->weightedSize(EventSet::kSignal,iSig)/sqrt(nBackgroundTotal+eventsAfterCuts->weightedSize(EventSet::kSignal,iSig));
               
-              double nBackgroundTotal=0;
-              for(int iBck=0;iBck<kNbackgrounds;iBck++){
-                if(!runBackground[iBck]) continue;
-                nBackgroundTotal += eventsAfterCuts->weightedSize(EventSet::kBackground, iBck);
-              }
-              double sb_sum=0;
+              sb_sum += sb*sb;
               
-              for(int iSig=0;iSig<kNsignals;iSig++){
-                if(!runSignal[iSig]) continue;
-                double sb = eventsAfterCuts->weightedSize(EventSet::kSignal,iSig)/sqrt(nBackgroundTotal+eventsAfterCuts->weightedSize(EventSet::kSignal,iSig));
-              
-                sb_sum += sb*sb;
-                
-                if(sb > bestSb[iSig]){
-                  bestSb[iSig] = sb;
-                  bestResults[iSig] = make_tuple(sb,dedxCut,caloEmCut,inf,minNmissingCut);
-                }
+              if(sb > bestSb[iSig]){
+                bestSb[iSig] = sb;
+                bestResults[iSig]["dedx"] = dedxCut;
+                bestResults[iSig]["missingOuter"] = missingCut;
+                bestResults[iSig]["trackPt"] = trackPtCut;
+                bestResults[iSig]["trackMetPhi"] = trackMetPhiCut;
+                bestResults[iSig]["relIso"] = relIsoCut;
               }
             }
           }
-//        }
-//      }
-//    }
+        }
+      }
+    }
   }
   
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]) continue;
-    
     cout<<"Best result for "<<signalTitle[iSig]<<":"<<endl;
-    cout<<"S/sqrt(S+B):"<<get<0>(bestResults[iSig])<<endl;
-    cout<<"min dedx:"<<get<1>(bestResults[iSig])<<endl;
-    cout<<"max em calo:"<<get<2>(bestResults[iSig])<<endl;
-    cout<<"max had calo:"<<get<3>(bestResults[iSig])<<endl;
-    //                  cout<<"min MET pt:"<<metPtCut<<endl;
-    //                  cout<<"min jet,met phi:"<<jetMetPhiCut<<endl;
-    cout<<"min N missing hits:"<<get<4>(bestResults[iSig])<<endl;
-    //                  cout<<"N pixel hits:"<<nPixelHitsCut<<endl;
+    for(auto const& [title, val] : bestResults[iSig]){
+      cout<<title<<":"<<val<<endl;
+    }
   }
-  
-  cout<<"\ndone\n"<<endl;
   
   return 0;
 }

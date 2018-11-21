@@ -41,6 +41,15 @@ void ProcessCuts(shared_ptr<EventSet> events,
       }
     }
   }
+  if(printDataDetails){
+    for(int iData=0;iData<kNdata;iData++){
+      if(!runData[iData]) continue;
+      cout<<"Data events in "<<dataTitle[iData]<<":"<<endl;
+      for(int iEvent=0;iEvent<events->size(EventSet::kData,iData);iEvent++){
+        events->At(EventSet::kData,iData,iEvent)->Print();
+      }
+    }
+  }
 }
 
 int main(int argc, char* argv[])
@@ -106,14 +115,13 @@ int main(int argc, char* argv[])
     
     // L1 cuts
     trackCut_L1->SetRelativeIsolation(range<double>(0.0, 0.15));
-    
-    jetCut_L1->SetTrackDeltaR(range<double>(0.2,inf));
     jetCut_L1->SetChargedHadronEnergyFraction(range<double>(0.01,0.99));
-    jetCut_L1->SetNeutralHadronEnergyFraction(range<double>(0.01,1.00));
-    
+    jetCut_L1->SetNeutralHadronEnergyFraction(range<double>(0.01,0.99));
     eventCut_L1->SetJetMetDeltaPhi(range<double>(0.5,inf));
     
-    // + standard cuts to be applied after L2 selections
+//    jetCut_L1->SetTrackDeltaR(range<double>(0.2,inf)); // this cut is not useful, don't turn it on!
+    
+    // + standard cuts to be applied after L1 selections
     eventCut_L1->SetNtracks(range<int>(1, inf));
     eventCut_L1->SetNjets(range<int>(1,inf));
     eventCut_L1->SetLeadingJetPt(range<double>(100,inf));
