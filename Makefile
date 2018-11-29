@@ -1,7 +1,7 @@
 CC  = g++
 
 LDFLAGS = `root-config --libs` -Wall -Wextra -g -O0 -lEve -lGeom
-CCFLAGS = `root-config --cflags` -g -c -Wall -Wextra -O0 -I./include/
+CCFLAGS = `root-config --cflags` -g -c -Wall -Wextra -O0 -I./include/ --std=c++17
 
 TMP_DIR = tmp
 

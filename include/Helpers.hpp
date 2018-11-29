@@ -20,11 +20,14 @@
 #include <TLorentzVector.h>
 #include <THStack.h>
 #include <TStyle.h>
+#include <TApplication.h>
 
 #include <vector>
 #include <iostream>
 #include <map>
 #include <numeric>
+#include <variant>
+#include <any>
 
 using namespace std;
 
@@ -357,8 +360,8 @@ const map<EVar, tuple<string, int, double, double>> settings =
   {kTrackMissingOuterTrackerHits , {"Missing outer tracker hits",20,0,20}},
   {kTrackPixelHits , {"N pixel hits",10,0,10}},
   {kTrackTrackerHits , {"N tracker hits",40,0,40}},
-  {kTrackRelativeIsolation , {"Relative isolation in dR=0.3",200,0,10}},
-  {kTrackAbsoluteIsolation , {"Absolute isolation in dR=0.3",200,0,10}},
+  {kTrackRelativeIsolation , {"Relative isolation in dR=0.3",20,0,1}},
+  {kTrackAbsoluteIsolation , {"Absolute isolation in dR=0.3",20,0,1}},
   {kTrackMetDphi , {"#Delta #phi (p_{T}^{track}},p_{T}^{MET})",25,-3.5,3.5}},
   {kTrackDedxPerHit , {"dE/dx per hit",50,0,10}},
   

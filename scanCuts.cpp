@@ -37,11 +37,11 @@ int main()
   
   map<string,ForRange> ranges;
   
-  ranges["dedx"] = ForRange(0.0, 6.0, 0.1);
-  ranges["missingOuter"] = ForRange(0, 10, 1);
-  ranges["trackPt"] = ForRange(30, 300, 10);
-  ranges["trackMetPhi"] = ForRange(1.0, 3.2, 0.1);
-  ranges["relIso"] = ForRange(0.000, 0.151, 0.01);
+  ranges["dedx"]          = ForRange(0.0,   6.0,    0.5);
+  ranges["missingOuter"]  = ForRange(0,     13,     1);
+  ranges["trackPt"]       = ForRange(50,    400,    25);
+  ranges["trackMetPhi"]   = ForRange(1.9,   3.2,    0.1); // goes from max to min
+  ranges["relIso"]        = ForRange(0.000, 0.151,  0.01);// goes from max to min
   
   double bestSb[kNsignals] = {0};
   
@@ -78,13 +78,10 @@ int main()
               if(!runBackground[iBck]) continue;
               nBackgroundTotal += eventsAfterCuts->weightedSize(EventSet::kBackground, iBck);
             }
-            double sb_sum=0;
-            
+
             for(int iSig=0;iSig<kNsignals;iSig++){
               if(!runSignal[iSig]) continue;
               double sb = eventsAfterCuts->weightedSize(EventSet::kSignal,iSig)/sqrt(nBackgroundTotal+eventsAfterCuts->weightedSize(EventSet::kSignal,iSig));
-              
-              sb_sum += sb*sb;
               
               if(sb > bestSb[iSig]){
                 bestSb[iSig] = sb;
@@ -103,7 +100,7 @@ int main()
   
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]) continue;
-    cout<<"Best result for "<<signalTitle[iSig]<<":"<<endl;
+    cout<<"Best result for "<<signalTitle[iSig]<<":"<<bestSb[iSig]<<endl;
     for(auto const& [title, val] : bestResults[iSig]){
       cout<<title<<":"<<val<<endl;
     }

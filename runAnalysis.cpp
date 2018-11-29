@@ -50,6 +50,15 @@ void ProcessCuts(shared_ptr<EventSet> events,
       }
     }
   }
+  if(printSignalDetails){
+    for(int iSig=0;iSig<kNsignals;iSig++){
+      if(!runSignal[iSig]) continue;
+      cout<<"Signal events in "<<signalTitle[iSig]<<":"<<endl;
+      for(int iEvent=0;iEvent<events->size(EventSet::kSignal,iSig);iEvent++){
+        events->At(EventSet::kSignal,iSig,iEvent)->Print();
+      }
+    }
+  }
 }
 
 int main(int argc, char* argv[])
@@ -114,7 +123,7 @@ int main(int argc, char* argv[])
     auto leptonCut_L1= unique_ptr<LeptonCut>(new LeptonCut());
     
     // L1 cuts
-    trackCut_L1->SetRelativeIsolation(range<double>(0.0, 0.15));
+    trackCut_L1->SetRelativeIsolation(range<double>(0.0, 0.5));
     jetCut_L1->SetChargedHadronEnergyFraction(range<double>(0.01,0.99));
     jetCut_L1->SetNeutralHadronEnergyFraction(range<double>(0.01,0.99));
     eventCut_L1->SetJetMetDeltaPhi(range<double>(0.5,inf));
@@ -130,6 +139,17 @@ int main(int argc, char* argv[])
     eventCut_L1->SetLeadingJetChHEF(range<double>(0.1,inf));
 
     ProcessCuts(events,eventCut_L1, trackCut_L1, jetCut_L1, leptonCut_L1);
+    
+    
+//    for(int iData=0;iData<kNdata;iData++){
+//      if(!runData[iData]) continue;
+//      for(int iEvent=0;iEvent<events->size(EventSet::kData,iData);iEvent++){
+//        auto event = events->At(EventSet::kData,iData,iEvent);
+//        cout<<event->GetRunNumber()<<":"<<event->GetLumiSection()<<":"<<event->GetEventNumber()<<endl;
+//      }
+//    }
+    
+    
   }
     
   //---------------------------------------------------------------------------
@@ -151,6 +171,7 @@ int main(int argc, char* argv[])
       trackCut_L2->SetNpixelLayers(range<int>(3, 3));
       eventCut_L2->SetNtracks(range<int>(1,1));
       
+      trackCut_L2->SetRelativeIsolation(range<double>(0,0.11));
       trackCut_L2->SetNmissingOuterTracker(range<int>(3, inf));
       trackCut_L2->SetCaloEmEnergy(range<double>(0.0,3.0));
       trackCut_L2->SetDedxPerCluster(range<double>(2.0,inf));
@@ -161,10 +182,10 @@ int main(int argc, char* argv[])
       trackCut_L2->SetNpixelLayers(range<int>(4, 4));
       eventCut_L2->SetNtracks(range<int>(1,1));
       
-      trackCut_L2->SetNmissingOuterTracker(range<int>(7, inf));
+//      trackCut_L2->SetNmissingOuterTracker(range<int>(7, inf));
       trackCut_L2->SetCaloEmEnergy(range<double>(0.0,0.4));
       trackCut_L2->SetDedxPerCluster(range<double>(2.0,inf));
-      trackCut_L2->SetPt(range<double>(100,inf));
+//      trackCut_L2->SetPt(range<double>(100,inf));
       trackCut_L2->SetTrackMetDeltaPhi(range<double>(-2.3,2.3));
     }
     
@@ -341,6 +362,14 @@ int main(int argc, char* argv[])
       if(category == k3layers) suffix = "3layers";
       if(category == k4layers) suffix = "4layers";
       ProcessCuts(events, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2, suffix);
+      
+      for(int iData=0;iData<kNdata;iData++){
+        if(!runData[iData]) continue;
+        for(int iEvent=0;iEvent<events->size(EventSet::kData,iData);iEvent++){
+          auto event = events->At(EventSet::kData,iData,iEvent);
+          cout<<event->GetRunNumber()<<":"<<event->GetLumiSection()<<":"<<event->GetEventNumber()<<endl;
+        }
+      }
     }
   }
   

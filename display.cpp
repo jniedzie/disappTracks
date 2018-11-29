@@ -18,12 +18,32 @@ const double scale = 0.1;
 const bool showUnderflowBins = false;
 const bool showOverflowBins = true;
 
-const int hitMarkerStyle = 20;
-const int hitMarkerSize = 2.0;
+const map<string,any> dedxOptions = {
+  {"title", "dE/dx clusters"},
+  {"binsMin" , 1},
+  {"binsMax" , 10},
+  {"nBins" , 5},
+  {"markerStyle", 20},
+  {"markerSize", 2.0}
+};
 
-const double dedxBinsMin = 1;
-const double dedxBinsMax = 10;
-const int dedxNbins = 5;
+const map<string,any> pixelHitsOptions = {
+  {"title", "Pixel hits"},
+  {"binsMin" , 0},
+  {"binsMax" , 100000},
+  {"nBins" , 5},
+  {"markerStyle", 20},
+  {"markerSize", 0.2}
+};
+
+const map<string,any> stripHitsOptions = {
+  {"title", "Strip hits"},
+  {"binsMin" , 0},
+  {"binsMax" , 5000},
+  {"nBins" , 5},
+  {"markerStyle", 20},
+  {"markerSize", 1.0}
+};
 
 const double jetConeRadius = scale*0.4;
 
@@ -33,34 +53,60 @@ const double metBoxAngularSize = 0.1;
 
 const int geomTransparency = 90; // 30 - 100
 
-                                  //     Underflow                                       Overflow
-const int dedxBinColors[dedxNbins+2] = { kGray,     kBlue, kCyan, kGreen, kYellow, kRed, kMagenta };
+                            //     Underflow                                       Overflow
+const vector<int> dedxBinColors = { kGray,     kBlue, kCyan, kGreen, kYellow, kRed, kMagenta };
 
-TEvePointSetArray* PreparePointsEventDisplay()
+// Parameters for all hits in the pixel barrel
+const double chargeThreshold = 0; // 2000, 5000, 25000
+const double minClusterSize = 0;
+const double maxClusterSize = 100;
+
+TEvePointSetArray* PreparePointsEventDisplay(map<string,any> options)
 {
-  TEvePointSetArray *points = new TEvePointSetArray("Hits");
-  points->SetMarkerStyle(hitMarkerStyle);
-  points->SetMarkerSize(hitMarkerSize);
+  TEvePointSetArray *points = new TEvePointSetArray(any_cast<const char*>(options["title"]));
+  points->SetMarkerStyle(any_cast<int>(options["markerStyle"]));
+  points->SetMarkerSize(any_cast<double>(options["markerSize"]));
   
-  points->InitBins("Cluster Charge", dedxNbins, dedxBinsMin,dedxBinsMax);
+  points->InitBins(any_cast<const char*>(options["title"]),
+                   any_cast<int>(options["nBins"]),
+                   any_cast<int>(options["binsMin"]),
+                   any_cast<int>(options["binsMax"]));
 
-  for(int i=0;i<(dedxNbins+2);i++){
+  for(int i=0;i<(any_cast<int>(options["nBins"])+2);i++){
     points->GetBin(i)->SetMainColor(dedxBinColors[i]);
   }
   
   points->GetBin(0)->SetRnrSelf(showUnderflowBins);
-  points->GetBin(dedxNbins+1)->SetRnrSelf(showOverflowBins);
+  points->GetBin(any_cast<int>(options["nBins"])+1)->SetRnrSelf(showOverflowBins);
   
   return points;
 }
 
-void DrawPoints(TEvePointSetArray *points)
+void DrawMET(double metPhi, double metTheta)
 {
-  points->SetRnrSelf(kTRUE);
-  gEve->AddElement(points);
+  TEveBox *metBox = new TEveBox("MET");
+  
+  vector<int> a = {-1, 1, 1,-1,-1, 1, 1,-1};
+  vector<int> b = { 1, 1,-1,-1, 1, 1,-1,-1};
+  vector<int> c = { 1, 1, 1, 1,-1,-1,-1,-1};
+  
+  // iterate over vertices of the box
+  for(int i=0;i<8;i++){
+    // calculate proper size of the box
+    double R      = metRadius+a[i]*metBoxSize;
+    double theta  = metTheta+b[i]*metBoxAngularSize;
+    double phi    = metPhi+c[i]*metBoxAngularSize;
+    // convert to XYZ coordinates
+    metBox->SetVertex(i,R*sin(theta)*cos(phi),R*sin(theta)*sin(phi),R*cos(theta));
+  }
+  
+  metBox->SetMainColorRGB((Float_t)0.0, 1.0, 1.0);
+  metBox->SetRnrSelf(true);
+  
+  gEve->AddElement(metBox);
   gEve->Redraw3D();
 }
-
+  
 void DrawEvent(shared_ptr<Event> event)
 {
   gEve->GetEventScene()->DestroyElements();
@@ -77,8 +123,7 @@ void DrawEvent(shared_ptr<Event> event)
     gEve->Redraw3D();
   }
   
-  
-  TEvePointSetArray *points = PreparePointsEventDisplay();
+  TEvePointSetArray *points = PreparePointsEventDisplay(dedxOptions);
   
   for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
     shared_ptr<Track> track = event->GetTrack(iTrack);
@@ -92,84 +137,17 @@ void DrawEvent(shared_ptr<Event> event)
       double y = R*sin(theta)*sin(phi);
       double z = R*cos(theta);
       
-      //          cout<<"Point R:"<<R<<"\teta:"<<eta<<"\tphi:"<<phi<<"\ttheta:"<<theta<<endl;
-  //      cout<<"Point x:"<<x<<"\ty:"<<y<<"\tz:"<<z<<"\tvalue:"<<track->dedx[iLayer]<<endl;
-      
       points->Fill(scale*x,scale*y,scale*z,track->GetDeDxInLayer(iLayer));
     }
   }
-  DrawPoints(points);
-  
+  points->SetRnrSelf(kTRUE);
+  gEve->AddElement(points);
+  gEve->Redraw3D();
   
   // MET
-  
-  TEveBox *metBox = new TEveBox("MET");
-  
   double metPhi = event->GetMetPhi();
   double metTheta = 2*atan(exp(-event->GetMetEta()));
-  
-//  double metX = metRadius*sin(metTheta)*cos(metPhi);
-//  double metY = metRadius*sin(metTheta)*sin(metPhi);
-//  double metZ = metRadius*cos(metTheta);
-//
-//  metBox->SetVertex(0, metX-metBoxSize, metY+metBoxSize, metZ+metBoxSize);
-//  metBox->SetVertex(1, metX+metBoxSize, metY+metBoxSize, metZ+metBoxSize);
-//  metBox->SetVertex(2, metX+metBoxSize, metY-metBoxSize, metZ+metBoxSize);
-//  metBox->SetVertex(3, metX-metBoxSize, metY-metBoxSize, metZ+metBoxSize);
-//
-//  metBox->SetVertex(4, metX-metBoxSize, metY+metBoxSize, metZ-metBoxSize);
-//  metBox->SetVertex(5, metX+metBoxSize, metY+metBoxSize, metZ-metBoxSize);
-//  metBox->SetVertex(6, metX+metBoxSize, metY-metBoxSize, metZ-metBoxSize);
-//  metBox->SetVertex(7, metX-metBoxSize, metY-metBoxSize, metZ-metBoxSize);
-  
-  
-  metBox->SetVertex(0,
-                    (metRadius-metBoxSize)*sin(metTheta+metBoxAngularSize)*cos(metPhi+metBoxAngularSize),
-                    (metRadius-metBoxSize)*sin(metTheta+metBoxAngularSize)*sin(metPhi+metBoxAngularSize),
-                    (metRadius-metBoxSize)*cos(metTheta+metBoxAngularSize));
-  
-  metBox->SetVertex(1,
-                    (metRadius+metBoxSize)*sin(metTheta+metBoxAngularSize)*cos(metPhi+metBoxAngularSize),
-                    (metRadius+metBoxSize)*sin(metTheta+metBoxAngularSize)*sin(metPhi+metBoxAngularSize),
-                    (metRadius+metBoxSize)*cos(metTheta+metBoxAngularSize));
-  
-  metBox->SetVertex(2,
-                    (metRadius+metBoxSize)*sin(metTheta-metBoxAngularSize)*cos(metPhi+metBoxAngularSize),
-                    (metRadius+metBoxSize)*sin(metTheta-metBoxAngularSize)*sin(metPhi+metBoxAngularSize),
-                    (metRadius+metBoxSize)*cos(metTheta-metBoxAngularSize));
-  
-  metBox->SetVertex(3,
-                    (metRadius-metBoxSize)*sin(metTheta-metBoxAngularSize)*cos(metPhi+metBoxAngularSize),
-                    (metRadius-metBoxSize)*sin(metTheta-metBoxAngularSize)*sin(metPhi+metBoxAngularSize),
-                    (metRadius-metBoxSize)*cos(metTheta-metBoxAngularSize));
-
-  
-  metBox->SetVertex(4,
-                    (metRadius-metBoxSize)*sin(metTheta+metBoxAngularSize)*cos(metPhi-metBoxAngularSize),
-                    (metRadius-metBoxSize)*sin(metTheta+metBoxAngularSize)*sin(metPhi-metBoxAngularSize),
-                    (metRadius-metBoxSize)*cos(metTheta+metBoxAngularSize));
-  
-  metBox->SetVertex(5,
-                    (metRadius+metBoxSize)*sin(metTheta+metBoxAngularSize)*cos(metPhi-metBoxAngularSize),
-                    (metRadius+metBoxSize)*sin(metTheta+metBoxAngularSize)*sin(metPhi-metBoxAngularSize),
-                    (metRadius+metBoxSize)*cos(metTheta+metBoxAngularSize));
-  
-  metBox->SetVertex(6,
-                    (metRadius+metBoxSize)*sin(metTheta-metBoxAngularSize)*cos(metPhi-metBoxAngularSize),
-                    (metRadius+metBoxSize)*sin(metTheta-metBoxAngularSize)*sin(metPhi-metBoxAngularSize),
-                    (metRadius+metBoxSize)*cos(metTheta-metBoxAngularSize));
-  
-  metBox->SetVertex(7,
-                    (metRadius-metBoxSize)*sin(metTheta-metBoxAngularSize)*cos(metPhi-metBoxAngularSize),
-                    (metRadius-metBoxSize)*sin(metTheta-metBoxAngularSize)*sin(metPhi-metBoxAngularSize),
-                    (metRadius-metBoxSize)*cos(metTheta-metBoxAngularSize));
-  
-  
-  metBox->SetMainColorRGB((Float_t)0.0, 1.0, 1.0);
-  metBox->SetRnrSelf(true);
-  
-  gEve->AddElement(metBox);
-  gEve->Redraw3D();
+  DrawMET(metPhi, metTheta);
   
   // Geometry:
   
@@ -209,6 +187,94 @@ void DrawEvent(shared_ptr<Event> event)
   gEve->Redraw3D();
 }
 
+void LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber)
+{
+  TFile *inFile = TFile::Open("/afs/cern.ch/work/j/jniedzie/private/pickhists.root");
+  TTree *tree = (TTree*)inFile->Get("hitsExtractor/hits");
+  
+  vector<double> *hitX = nullptr;
+  vector<double> *hitY = nullptr;
+  vector<double> *hitZ = nullptr;
+  vector<double> *hitCharge = nullptr;
+  vector<double> *hitSizeX = nullptr;
+  vector<double> *hitSizeY = nullptr;
+  vector<double> *detX = nullptr;
+  vector<double> *detY = nullptr;
+  vector<double> *detZ = nullptr;
+  vector<double> *stripX = nullptr;
+  vector<double> *stripY = nullptr;
+  vector<double> *stripZ = nullptr;
+  vector<double> *stripCharge = nullptr;
+  
+  uint run;
+  uint lumi;
+  unsigned long long event;
+  
+  tree->SetBranchAddress("hitX",&hitX);
+  tree->SetBranchAddress("hitY",&hitY);
+  tree->SetBranchAddress("hitZ",&hitZ);
+  tree->SetBranchAddress("hitCharge",&hitCharge);
+  tree->SetBranchAddress("hitSizeX",&hitSizeX);
+  tree->SetBranchAddress("hitSizeY",&hitSizeY);
+  tree->SetBranchAddress("detX",&detX);
+  tree->SetBranchAddress("detY",&detY);
+  tree->SetBranchAddress("detZ",&detZ);
+  tree->SetBranchAddress("stripX",&stripX);
+  tree->SetBranchAddress("stripY",&stripY);
+  tree->SetBranchAddress("stripZ",&stripZ);
+  tree->SetBranchAddress("stripCharge",&stripCharge);
+  
+  tree->SetBranchAddress("runNumber",&run);
+  tree->SetBranchAddress("lumiBlock",&lumi);
+  tree->SetBranchAddress("eventNumber",&event);
+  
+  bool eventFound = false;
+  
+  for(int i=0;i<tree->GetEntries();i++){
+    tree->GetEntry(i);
+    
+    if(run == runNumber && lumi == lumiSection && event == eventNumber){
+      eventFound = true;
+      break;
+    }
+  }
+  
+  if(!eventFound){
+    cout<<"\n\nERROR - could not find all hits for requested event!\n\n"<<endl;
+    return;
+  }
+  
+  TEvePointSetArray *pixelPoints = PreparePointsEventDisplay(pixelHitsOptions);
+  
+  for(int i=0;i<hitX->size();i++){
+    if(hitCharge->at(i) < chargeThreshold) continue;
+    double clusterSize = sqrt(pow(hitSizeX->at(i),2)+pow(hitSizeY->at(i),2));
+    if(clusterSize < minClusterSize || clusterSize > maxClusterSize) continue;
+    
+    pixelPoints->Fill(hitX->at(i),
+                 hitY->at(i),
+                 hitZ->at(i),
+                 hitCharge->at(i));
+  }
+  pixelPoints->SetRnrSelf(kTRUE);
+  gEve->AddElement(pixelPoints);
+  gEve->Redraw3D();
+  
+  TEvePointSetArray *stripPoints = PreparePointsEventDisplay(stripHitsOptions);
+  
+  for(int i=0;i<stripX->size();i++){
+    if(stripCharge->at(i) < chargeThreshold) continue;
+    
+    stripPoints->Fill(stripX->at(i),
+                      stripY->at(i),
+                      stripZ->at(i),
+                      stripCharge->at(i));
+  }
+  stripPoints->SetRnrSelf(kTRUE);
+  gEve->AddElement(stripPoints);
+  gEve->Redraw3D();
+}
+
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
@@ -216,11 +282,26 @@ int main(int argc, char* argv[])
   TEveManager::Create();
   
   auto events = shared_ptr<EventSet>(new EventSet());
-  events->LoadEventsFromFiles("after_L2/");
+  events->LoadEventsFromFiles("after_L2/3layers/");
+//  events->LoadEventsFromFiles("after_L0/");
   
-  auto event = events->At(EventSet::kData, kElectron_Run2017B, 0);
+//  auto event = events->At(EventSet::kSignal, kWino_M_300_cTau_3, 0);
+  
+  uint searchRun = 297100;
+  uint searchLumi = 136;
+  unsigned long long searchEvent = 245000232;
+  
+  auto event = events->GetEvent(EventSet::kData, searchRun, searchLumi, searchEvent);
+  if(!event){
+    cout<<"event not found"<<endl;
+    exit(0);
+  }
+  
   DrawEvent(event);
   event->Print();
+  
+  LoadAllHits(searchRun, searchLumi, searchEvent);
+  
   /*
   TrackCut *trackCut = new TrackCut();
   trackCut->SetNpixelLayers(range<int>(3,4));

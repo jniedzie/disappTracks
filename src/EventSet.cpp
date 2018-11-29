@@ -690,6 +690,47 @@ shared_ptr<Event> EventSet::At(EDataType dataType, int setIter, int index)
   }
 }
 
+shared_ptr<Event> EventSet::GetEvent(EDataType dataType, uint run, uint lumi, unsigned long long eventNumber)
+{
+  if(dataType == kSignal){
+    for(auto events : eventsSignal){
+      for(auto event : events){
+        if(event->GetRunNumber() == run &&
+           event->GetLumiSection() == lumi &&
+           event->GetEventNumber() == eventNumber){
+          return event;
+        }
+      }
+    }
+  }
+  else if(dataType == kBackground){
+    for(auto events : eventsBackground){
+      for(auto event : events){
+        if(event->GetRunNumber() == run &&
+           event->GetLumiSection() == lumi &&
+           event->GetEventNumber() == eventNumber){
+          return event;
+        }
+      }
+    }
+  }
+  else if(dataType == kData){
+    for(auto events : eventsData){
+      for(auto event : events){
+        if(event->GetRunNumber() == run &&
+           event->GetLumiSection() == lumi &&
+           event->GetEventNumber() == eventNumber){
+          return event;
+        }
+      }
+    }
+  }
+  else{
+    throw out_of_range("Unknown data type provided");
+  }
+  return nullptr;
+}
+
 void EventSet::AddEvent(shared_ptr<Event> event, EDataType dataType, int setIter)
 {
   

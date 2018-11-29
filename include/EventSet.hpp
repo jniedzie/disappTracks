@@ -77,6 +77,9 @@ public:
   /// \param setIter Specifies which set for given dataType to look at (e.g. kZmumuJets for Z->mumu)
   shared_ptr<Event> At(EDataType dataType, int setIter, int index);
   
+  /// Tries to find an event by run:lumi:event
+  shared_ptr<Event> GetEvent(EDataType dataType, uint run, uint lumi, unsigned long long event);
+  
 private:
   /// Default constructor. Loads events from ROOT tree
   /// \param fileName Path to the ROOT file with ntuples from which events will be loaded
