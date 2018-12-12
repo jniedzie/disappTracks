@@ -21,6 +21,11 @@
 #include <THStack.h>
 #include <TStyle.h>
 #include <TApplication.h>
+#include <TFitter.h>
+#include <TMath.h>
+#include <TGraph2D.h>
+#include <TGraph.h>
+
 
 #include <vector>
 #include <iostream>

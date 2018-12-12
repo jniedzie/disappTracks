@@ -75,7 +75,7 @@ void EventSet::SaveToTree(string fileName, EDataType dataType, int setIter)
   
   float IsoTrack_eta[nTracks], IsoTrack_phi[nTracks], IsoTrack_caloEmEnergy[nTracks], IsoTrack_caloHadEnergy[nTracks], IsoTrack_edxy[nTracks], IsoTrack_dxy[nTracks], IsoTrack_edz[nTracks], IsoTrack_dz[nTracks], IsoTrack_mass[nTracks], IsoTrack_pt[nTracks], IsoTrack_relIso03[nTracks];
   
-  int IsoTrack_charge[nTracks], IsoTrack_pdgId[nTracks];
+  int IsoTrack_charge[nTracks], IsoTrack_pdgId[nTracks], IsoTrack_mcMatch[nTracks];
   int IsoTrack_trackerLayers[nTracks], IsoTrack_pixelLayers[nTracks], IsoTrack_trackerHits[nTracks], IsoTrack_pixelHits[nTracks], IsoTrack_missingInnerPixelHits[nTracks], IsoTrack_missingOuterPixelHits[nTracks], IsoTrack_missingInnerStripHits[nTracks], IsoTrack_missingOuterStripHits[nTracks], IsoTrack_missingInnerTrackerHits[nTracks], IsoTrack_missingOuterTrackerHits[nTracks], IsoTrack_missingMiddleTrackerHits[nTracks];
   
   float LepGood_pt[nLeptons], LepGood_phi[nLeptons], LepGood_eta[nLeptons], LepGood_tightId[nLeptons], LepGood_relIso04[nLeptons], LepGood_pdgId[nLeptons];
@@ -138,6 +138,7 @@ void EventSet::SaveToTree(string fileName, EDataType dataType, int setIter)
   tree->Branch("IsoTrack_pt", &IsoTrack_pt, "IsoTrack_pt[nIsoTrack]/F");
   tree->Branch("IsoTrack_pdgId", &IsoTrack_pdgId, "IsoTrack_pdgId[nIsoTrack]/I");
   tree->Branch("IsoTrack_relIso03", &IsoTrack_relIso03, "IsoTrack_relIso03[nIsoTrack]/F");
+  tree->Branch("IsoTrack_mcMatch", &IsoTrack_mcMatch, "IsoTrack_mcMatch[nIsoTrack]/I");
   
   tree->Branch("IsoTrack_trackerLayers", &IsoTrack_trackerLayers, "IsoTrack_trackerLayers[nIsoTrack]/I");
   tree->Branch("IsoTrack_pixelLayers", &IsoTrack_pixelLayers, "IsoTrack_pixelLayers[nIsoTrack]/I");
@@ -247,6 +248,7 @@ void EventSet::SaveToTree(string fileName, EDataType dataType, int setIter)
       
       IsoTrack_charge[iTrack] = event->GetTrack(iTrack)->GetCharge();
       IsoTrack_pdgId[iTrack] = event->GetTrack(iTrack)->GetPid();
+      IsoTrack_mcMatch[iTrack] = event->GetTrack(iTrack)->GetMcMatch();
       
       IsoTrack_trackerLayers[iTrack] = event->GetTrack(iTrack)->GetNtrackerLayers();
       IsoTrack_pixelLayers[iTrack] = event->GetTrack(iTrack)->GetNpixelLayers();
@@ -808,6 +810,7 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
   TTreeReaderArray<float> _trackPt(reader, "IsoTrack_pt");
   TTreeReaderArray<int>   _trackPid(reader, "IsoTrack_pdgId");
   TTreeReaderArray<float> _trackRelIso03(reader, "IsoTrack_relIso03");
+  TTreeReaderArray<int>   _trackMcMatch(reader,(tree->GetBranchStatus("IsoTrack_mcMatch")) ? "IsoTrack_mcMatch" : "IsoTrack_pdgId");
   
   TTreeReaderArray<int>   _trackTrackerLayers(reader, "IsoTrack_trackerLayers");
   TTreeReaderArray<int>   _trackPixelLayers(reader, "IsoTrack_pixelLayers");
@@ -873,6 +876,7 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
       track->SetPt(_trackPt[iTrack]);
       track->SetPid(_trackPid[iTrack]);
       track->SetRelativeIsolation(_trackRelIso03[iTrack]);
+      track->SetMcMatch(_trackMcMatch[iTrack]);
       
       track->SetNtrackerLayers(_trackTrackerLayers[iTrack]);
       track->SetNpixelLayers(_trackPixelLayers[iTrack]);
@@ -968,6 +972,7 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
     else if(dataType==kData){
       weight = 1;
     }
+    
     newEvent->SetLumiSection(*_lumi);
     newEvent->SetRunNumber(*_run);
     newEvent->SetEventNumber(*_evt);

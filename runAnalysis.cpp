@@ -139,17 +139,6 @@ int main(int argc, char* argv[])
     eventCut_L1->SetLeadingJetChHEF(range<double>(0.1,inf));
 
     ProcessCuts(events,eventCut_L1, trackCut_L1, jetCut_L1, leptonCut_L1);
-    
-    
-//    for(int iData=0;iData<kNdata;iData++){
-//      if(!runData[iData]) continue;
-//      for(int iEvent=0;iEvent<events->size(EventSet::kData,iData);iEvent++){
-//        auto event = events->At(EventSet::kData,iData,iEvent);
-//        cout<<event->GetRunNumber()<<":"<<event->GetLumiSection()<<":"<<event->GetEventNumber()<<endl;
-//      }
-//    }
-    
-    
   }
     
   //---------------------------------------------------------------------------
@@ -160,6 +149,8 @@ int main(int argc, char* argv[])
     auto trackCut_L2 = unique_ptr<TrackCut>(new TrackCut());
     auto jetCut_L2   = unique_ptr<JetCut>(new JetCut());
     auto leptonCut_L2= unique_ptr<LeptonCut>(new LeptonCut());
+    
+    trackCut_L2->SetRequireMcMatch(true);
     
     // pick category
     if(category == k2tracks){
@@ -362,14 +353,6 @@ int main(int argc, char* argv[])
       if(category == k3layers) suffix = "3layers";
       if(category == k4layers) suffix = "4layers";
       ProcessCuts(events, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2, suffix);
-      
-      for(int iData=0;iData<kNdata;iData++){
-        if(!runData[iData]) continue;
-        for(int iEvent=0;iEvent<events->size(EventSet::kData,iData);iEvent++){
-          auto event = events->At(EventSet::kData,iData,iEvent);
-          cout<<event->GetRunNumber()<<":"<<event->GetLumiSection()<<":"<<event->GetEventNumber()<<endl;
-        }
-      }
     }
   }
   

@@ -20,6 +20,7 @@ dz(inf),
 dzErr(inf),
 charge(inf),
 pid(inf),
+mcMatch(inf),
 nTrackerLayers(inf),
 nPixelLayers(inf),
 nTrackerHits(inf),
@@ -79,6 +80,10 @@ bool Track::IsPassingCut(const unique_ptr<TrackCut> &cut)
   
   if(cut->GetRequireSameNtrackerHitsLayers()){
     if(nTrackerHits != nTrackerLayers) return false;
+  }
+  
+  if(cut->GetRequireMcMatch()){
+    if(mcMatch == 0) return false;
   }
   
   if(cut->GetNpixelHits().IsOutside(nPixelHits))  return false;

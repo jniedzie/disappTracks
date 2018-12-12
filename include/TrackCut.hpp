@@ -29,6 +29,7 @@ public:
   
   inline void SetRequireSameNpixelHitsLayers(bool val){sameNpixelHitsLayers=val;}
   inline void SetRequireSameNtrackerHitsLayers(bool val){sameNtrackerHitsLayers=val;}
+  inline void SetRequireMcMatch(bool val){requireMcMatch=val;}
   
   inline void SetNpixelLayers(range<int> val){nPixelLayers=val;}
   inline void SetNpixelHits(range<int> val){nPixelHits=val;}
@@ -51,6 +52,7 @@ public:
   
   inline bool GetRequireSameNpixelHitsLayers(){return sameNpixelHitsLayers;}
   inline bool GetRequireSameNtrackerHitsLayers(){return sameNtrackerHitsLayers;}
+  inline bool GetRequireMcMatch(){return requireMcMatch;}
   
   inline range<int> GetNpixelLayers(){return nPixelLayers;}
   inline range<int> GetNpixelHits(){return nPixelHits;}
@@ -73,6 +75,7 @@ private:
   
   bool sameNpixelHitsLayers;        ///< require the same number of hits and layers in the pixel
   bool sameNtrackerHitsLayers;      ///< require the same number of hits and layers in the tracker
+  bool requireMcMatch;              ///< require mcMatch flag to be different than 0
   
   range<int> nPixelLayers;          ///< allowed number of pixel layers
   range<int> nPixelHits;            ///< allowed number of pixel hits

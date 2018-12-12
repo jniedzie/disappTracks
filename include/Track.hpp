@@ -48,6 +48,7 @@ public:
   
   inline void SetCharge(int val){charge = val;}
   inline void SetPid(int val){pid = val;}
+  inline void SetMcMatch(int val){mcMatch = val;}
   
   inline void SetNtrackerLayers(int n){nTrackerLayers = n;}
   inline void SetNpixelLayers(int n){nPixelLayers = n;}
@@ -92,6 +93,7 @@ public:
   
   inline int     GetCharge(){return charge;}
   inline int     GetPid(){return pid;}
+  inline int     GetMcMatch(){return mcMatch;}
   
   inline int GetNtrackerLayers(){return nTrackerLayers;}
   inline int GetNpixelLayers(){return nPixelLayers;}
@@ -131,6 +133,7 @@ private:
   double dzErr;               ///< Uncertainty on the distance from primary vertex in Z
   int charge;                 ///< Particle's charge
   int pid;                    ///< Particle's PDG PID code
+  int mcMatch;                ///< Does the reconstructed particle match an mc generated one
   
   
   int nTrackerLayers;             ///< Number of tracker layers
