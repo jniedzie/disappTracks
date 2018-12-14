@@ -524,7 +524,7 @@ struct Helix
       y = R*sin(t) + y0;
       z = c*t      + z0;
       
-      for(int iLayer=0;iLayer<5/*nLayers*/;iLayer++){
+      for(int iLayer=0;iLayer<4/*nLayers*/;iLayer++){
         if(fabs(sqrt(x*x+y*y)-layerR[iLayer]) < threshold){
           points.push_back(Point(x,y,z));
         }

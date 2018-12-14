@@ -9,6 +9,8 @@
 Fitter::Fitter(int _nPar) : nPar(_nPar)
 {
   fitter = new ROOT::Fit::Fitter();
+  auto f = [&](const double *par) {return 0;};
+  SetFitFunction(f);
 }
 
 Fitter::~Fitter()
