@@ -30,6 +30,18 @@
 #include <TEllipse.h>
 #include <TArc.h>
 #include <Fit/BinData.h>
+#include <TSystem.h>
+#include <TEveManager.h>
+#include <TEveScene.h>
+#include <TEvePointSet.h>
+#include <TEveJetCone.h>
+#include <TEveBox.h>
+#include <TApplication.h>
+#include <TGeoShape.h>
+#include <TGeoTube.h>
+#include <TEveGeoShape.h>
+#include <TF3.h>
+#include <TH3F.h>
 
 #include <vector>
 #include <iostream>
@@ -464,17 +476,25 @@ private:
 
 struct Point
 {
-  Point(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {}
-  double x,y,z;
+  Point(double _x, double _y, double _z, double _val=0) : x(_x), y(_y), z(_z), val(_val) {}
+  double x,y,z, val;
   void Print(){cout<<"("<<x<<","<<y<<","<<z<<")"<<endl;}
   double distance(Point p){return sqrt(pow(x-p.x,2)+pow(y-p.y,2)+pow(z-p.z,2));}
   bool isPionHit = false;
   
-  void PerpendicularShift(double R){
-    x += R/sqrt(pow(x/y,2)+1);
-    y -= x/y*R/sqrt(pow(x/y,2)+1);
+  void PerpendicularShift(double R,double c, double tShift, int charge=1){
+    int xSign=1, ySign=1;
+    if(x> 0 && y> 0){xSign= 1; ySign=-1;}
+    if(x<=0 && y> 0){xSign= 1; ySign= 1;}
+    if(x<=0 && y<=0){xSign=-1; ySign= 1;}
+    if(x> 0 && y<=0){xSign=-1; ySign=-1;}
+    double dx = x, dy=y;
+    
+    // the charge may be inverted here... to be checked later
+    x +=  charge * xSign * R/sqrt(pow(dx/dy,2)+1);
+    y +=  charge * ySign * R/sqrt(pow(dy/dx,2)+1);
+    z += tShift*c;
   }
-
 };
 
 struct Helix
@@ -504,7 +524,7 @@ struct Helix
       y = R*sin(t) + y0;
       z = c*t      + z0;
       
-      for(int iLayer=0;iLayer<nLayers;iLayer++){
+      for(int iLayer=0;iLayer<5/*nLayers*/;iLayer++){
         if(fabs(sqrt(x*x+y*y)-layerR[iLayer]) < threshold){
           points.push_back(Point(x,y,z));
         }

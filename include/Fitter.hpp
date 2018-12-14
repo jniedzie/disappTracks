@@ -18,7 +18,7 @@ public:
   void SetFitFunction(const Func &function){
     fitFunction = ROOT::Math::Functor(function, nPar);
     double pStart[nPar];
-    fitter.SetFCN(fitFunction, pStart);
+    fitter->SetFCN(fitFunction, pStart);
   }
   
   void SetParameter(int i, string name, double start, double min, double max, bool fix=false);
@@ -33,7 +33,7 @@ private:
   int nPar;
   
   ROOT::Math::Functor fitFunction;
-  ROOT::Fit::Fitter fitter;
+  ROOT::Fit::Fitter *fitter;
 };
 
 #endif /* Fitter_hpp */

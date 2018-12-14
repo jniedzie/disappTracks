@@ -51,7 +51,7 @@ namespace HelixFitter {
     double z0 = L*cos(theta);
   
     Point helixCenter(x0,y0,z0);
-    helixCenter.PerpendicularShift(R);
+    helixCenter.PerpendicularShift(R,c,0);
     return Helix(R,c,helixCenter,helixThickness);
   }
   
@@ -89,7 +89,7 @@ namespace HelixFitter {
     double z0 = par[2]*cos(theta);
     
     Point helixCenter(x0,y0,z0);
-    helixCenter.PerpendicularShift(R);
+    helixCenter.PerpendicularShift(R,c,0);
     Helix helix(R,c,helixCenter,helixThickness);
     
     int nPoints=0;
@@ -148,7 +148,7 @@ namespace HelixFitter {
       
       // build helix from this seed (shifted approprietly)
       Point helixCenter(x0,y0,z0);
-      helixCenter.PerpendicularShift(R);
+      helixCenter.PerpendicularShift(R,c,0);
       helix = Helix(R,c,helixCenter,helixThickness);
       
       double nPoints=0;
