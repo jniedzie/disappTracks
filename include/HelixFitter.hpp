@@ -10,26 +10,7 @@
 #include "Helpers.hpp"
 
 namespace HelixFitter {
-  struct Point
-  {
-    Point(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {}
-    double x,y,z;
-    void Print(){cout<<"("<<x<<","<<y<<","<<z<<")"<<endl;}
-    double distance(Point p){return sqrt(pow(x-p.x,2)+pow(y-p.y,2)+pow(z-p.z,2));}
-    bool isPionHit = false;
-  };
-  
-  struct Helix
-  {
-    Helix(double _R, double _c, double _x0, double _y0, double _z0) : R(_R), c(_c), x0(_x0), y0(_y0), z0(_z0) {}
-    Helix(){}
-    double R,c;
-    double x0,y0,z0;
-    void Print(){cout<<"R:"<<R<<"\tc:"<<c<<"\toffset:("<<x0<<","<<y0<<","<<z0<<")\tnPoints:"<<nPoints<<"\tnPionPoints:"<<nPionPoints<<endl;}
-    int nPoints = 0;
-    int nPionPoints = 0;
-  };
-  
+ 
   double helixMarkerSize = 0.1;
   double xAxisMin = -1;
   double xAxisMax =  1;
@@ -64,61 +45,58 @@ namespace HelixFitter {
   {
     double R = fitter->GetParameter(0);
     double c = fitter->GetParameter(1);
-    
     double L = fitter->GetParameter(2);
     double x0 = L*sin(theta)*cos(phi);
     double y0 = L*sin(theta)*sin(phi);
     double z0 = L*cos(theta);
   
-    return Helix(R,c,x0+R,y0,z0-c*TMath::Pi());
+    Point helixCenter(x0,y0,z0);
+    helixCenter.PerpendicularShift(R);
+    return Helix(R,c,helixCenter,helixThickness);
   }
   
-  Point GetClosestPointOnHelix(Point p, Helix h)
-  {
-    double t = atan2(p.y-h.y0, p.x-h.x0);
+  vector<vector<Point>>* SplitPointsToLines(vector<Point> *input){
+    vector<vector<Point>> *result = new vector<vector<Point>>();
     
-    double x = h.R*cos(t) + h.x0;
-    double y = h.R*sin(t) + h.y0;
-    double z = h.c*t      + h.z0 + 2*h.c*TMath::Pi();
-    
-    double c = fabs(h.c);
-    
-    while(fabs(z-p.z) >= c){
-      if(z < p.z) z += c;
-      else        z -= c;
-    }
-    
-    return Point(x,y,z);
-  }
-  
-  void CountPionPointsOnHelix(Helix &helix)
-  {
-    for(Point p : points){
-      Point q = GetClosestPointOnHelix(p,helix);
-      
-      double d = p.distance(q);
-      
-      if(d < helixThickness){
-        helix.nPoints++;
-        if(p.isPionHit) helix.nPionPoints++;
+    for(auto &p : *input){
+      if(result->size() == 0){
+        vector<Point> line;
+        line.push_back(p);
+        result->push_back(line);
+      }
+      else{
+        for(int iLine=0;iLine<result->size();iLine++){
+          if(p.distance(result->at(iLine)[0]) < helixThickness){
+            result->at(iLine).push_back(p);
+          }
+          else{
+            vector<Point> line;
+            line.push_back(p);
+            result->push_back(line);
+          }
+        }
       }
     }
+    return result;
   }
   
   void fitFunction(Int_t&, Double_t *, Double_t &chi2, Double_t *par, Int_t)
   {
+    double R = par[0];
+    double c = par[1];
     double x0 = par[2]*sin(theta)*cos(phi);
     double y0 = par[2]*sin(theta)*sin(phi);
     double z0 = par[2]*cos(theta);
     
-    Helix helix(par[0],par[1], x0+par[0], y0, z0-par[1]*TMath::Pi());
+    Point helixCenter(x0,y0,z0);
+    helixCenter.PerpendicularShift(R);
+    Helix helix(R,c,helixCenter,helixThickness);
     
     int nPoints=0;
-    
     double chi2local = 0;
     
     for(Point p : points){
-      Point q = GetClosestPointOnHelix(p,helix);
+      Point q = helix.GetClosestPoint(p);
       double d = p.distance(q);
       
       if(d < helixThickness){
@@ -131,7 +109,7 @@ namespace HelixFitter {
     
     chi2 = chi2local;
     
-    cout<<"R:"<<par[0]<<"\tc:"<<par[1]<<"\tL:"<<par[2]<<"\tchi2/nPoints:"<<chi2<<"\n";
+//    cout<<"R:"<<par[0]<<"\tc:"<<par[1]<<"\tL:"<<par[2]<<"\tchi2/nPoints:"<<chi2<<"\n";
     
     return;
   }
@@ -169,7 +147,9 @@ namespace HelixFitter {
       bool first = true;
       
       // build helix from this seed (shifted approprietly)
-      helix = Helix(R,c,x0+R,y0,z0-c*TMath::Pi());
+      Point helixCenter(x0,y0,z0);
+      helixCenter.PerpendicularShift(R);
+      helix = Helix(R,c,helixCenter,helixThickness);
       
       double nPoints=0;
       
@@ -177,7 +157,7 @@ namespace HelixFitter {
         if(iPoint==iSeed) continue;
         
         Point p = points[iPoint];
-        Point closestOnHelix = GetClosestPointOnHelix(p, helix);
+        Point closestOnHelix = helix.GetClosestPoint(p);
         
         if(p.distance(closestOnHelix) < helixThickness){
           nPoints++;

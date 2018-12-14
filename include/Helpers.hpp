@@ -25,7 +25,11 @@
 #include <TMath.h>
 #include <TGraph2D.h>
 #include <TGraph.h>
-
+#include <Fit/Fitter.h>
+#include <Math/Functor.h>
+#include <TEllipse.h>
+#include <TArc.h>
+#include <Fit/BinData.h>
 
 #include <vector>
 #include <iostream>
@@ -458,5 +462,144 @@ private:
   T max;
 };
 
+struct Point
+{
+  Point(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {}
+  double x,y,z;
+  void Print(){cout<<"("<<x<<","<<y<<","<<z<<")"<<endl;}
+  double distance(Point p){return sqrt(pow(x-p.x,2)+pow(y-p.y,2)+pow(z-p.z,2));}
+  bool isPionHit = false;
+  
+  void PerpendicularShift(double R){
+    x += R/sqrt(pow(x/y,2)+1);
+    y -= x/y*R/sqrt(pow(x/y,2)+1);
+  }
+
+};
+
+struct Helix
+{
+  Helix(double _R, double _c, double _x0, double _y0, double _z0, double _thickness)
+  : R(_R), c(_c), x0(_x0), y0(_y0), z0(_z0), thickness(_thickness) {}
+  
+  Helix(double _R, double _c, Point p, double _thickness)
+  : R(_R), c(_c), x0(p.x), y0(p.y), z0(p.z), thickness(_thickness) {}
+  
+  Helix(){}
+  
+  void Print(){cout<<"R:"<<R<<"\tc:"<<c<<"\toffset:("<<x0<<","<<y0<<","<<z0<<")\tnPoints:"<<nPoints<<"\tnPionPoints:"<<nPionPoints<<endl;}
+  
+  /// Returns vector of points along helix trajectory that hit the tracker
+  /// \param tMin t parameter minimum
+  /// \param tMax t parameter maximum
+  /// \param tStep t parameter step
+  /// \param threshold // how close to the tracker layer hits must be
+  vector<Point> GetPointsHittingSilicon(double tMin=0, double tMax=5*2*TMath::Pi(), double tStep=0.01, double threshold = 1.0)
+  {
+    vector<Point> points;
+    
+    double x,y,z;
+    for(double t=tMin;t<tMax;t+=tStep){
+      x = R*cos(t) + x0;
+      y = R*sin(t) + y0;
+      z = c*t      + z0;
+      
+      for(int iLayer=0;iLayer<nLayers;iLayer++){
+        if(fabs(sqrt(x*x+y*y)-layerR[iLayer]) < threshold){
+          points.push_back(Point(x,y,z));
+        }
+      }
+    }
+    return points;
+  }
+  
+  Point GetClosestPoint(Point p)
+  {
+    double t = atan2(p.y-y0, p.x-x0);
+    
+    double x = R*cos(t) + x0;
+    double y = R*sin(t) + y0;
+    double z = c*t      + z0 + 2*c*TMath::Pi();
+    
+    double absC = fabs(c);
+    
+    while(fabs(z-p.z) >= absC){
+      if(z < p.z) z += absC;
+      else        z -= absC;
+    }
+    
+    return Point(x,y,z);
+  }
+  
+  vector<Point>* GetMatchingPoints(vector<Point> &points)
+  {
+    vector<Point> *result = new vector<Point>();
+    
+    for(Point p : points){
+      Point q = GetClosestPoint(p);
+      double d = p.distance(q);
+      if(d < thickness) result->push_back(p);
+    }
+    return result;
+  }
+  
+  void CountMatchingPoints(vector<Point> &points)
+  {
+    nPoints = 0;
+    nPionPoints = 0;
+    
+    for(Point p : points){
+      Point q = GetClosestPoint(p);
+      double d = p.distance(q);
+      
+      if(d < thickness){
+        nPoints++;
+        if(p.isPionHit) nPionPoints++;
+      }
+    }
+  }
+  
+  double thickness;
+  double R,c,x0,y0,z0;
+  int nPoints = 0;
+  int nPionPoints = 0;
+};
+
+struct Circle
+{
+  Circle(double _x, double _y, double _R) : x(_x), y(_y), R(_R) {}
+  Circle(){}
+  
+  void Print(){cout<<"Circle x:"<<x<<"\ty:"<<y<<"\tR:"<<R<<endl;}
+  
+  int GetNbinsOverlappingWithHist(TH2D *hist)
+  {
+    int nPoints = 0;
+    TH2D *circle = new TH2D(*hist);
+    
+    for(int binX=0;binX<circle->GetNbinsX();binX++){
+      for(int binY=0;binY<circle->GetNbinsY();binY++){
+        circle->SetBinContent(binX,binY, 0);
+      }
+    }
+    for(double t=0;t<2*TMath::Pi();t+=0.01){
+      circle->Fill(x + R*cos(t),y + R*sin(t));
+    }
+    
+    for(int binX=0;binX<circle->GetNbinsX();binX++){
+      for(int binY=0;binY<circle->GetNbinsY();binY++){
+        if(circle->GetBinContent(binX,binY) > 0 &&
+           hist->GetBinContent(binX,binY) > 0){
+          nPoints++;
+        }
+      }
+    }
+    return nPoints;
+  }
+  
+  TArc* GetArc(){return new TArc(x,y,R);}
+  
+  double x,y,R;
+};
 
 #endif /* Helpers_h */
