@@ -482,18 +482,20 @@ struct Point
   double distance(Point p){return sqrt(pow(x-p.x,2)+pow(y-p.y,2)+pow(z-p.z,2));}
   bool isPionHit = false;
   
-  void PerpendicularShift(double R,double c, double tShift, int charge=1){
+  double PerpendicularShift(double R,double c, int charge=1){
     int xSign=1, ySign=1;
     if(x> 0 && y> 0){xSign= 1; ySign=-1;}
     if(x<=0 && y> 0){xSign= 1; ySign= 1;}
     if(x<=0 && y<=0){xSign=-1; ySign= 1;}
     if(x> 0 && y<=0){xSign=-1; ySign=-1;}
+    double tShift = acos(1/sqrt(pow(x/y,2)+1));
     double dx = x, dy=y;
     
     // the charge may be inverted here... to be checked later
-    x +=  charge * xSign * R/sqrt(pow(dx/dy,2)+1);
-    y +=  charge * ySign * R/sqrt(pow(dy/dx,2)+1);
+    x += charge * xSign * R/sqrt(pow(dx/dy,2)+1);
+    y += charge * ySign * R/sqrt(pow(dy/dx,2)+1);
     z += tShift*c;
+    return tShift;
   }
 };
 
@@ -539,13 +541,13 @@ struct Helix
     
     double x = R*cos(t) + x0;
     double y = R*sin(t) + y0;
-    double z = c*t      + z0 + 2*c*TMath::Pi();
+    double z = c*t      + z0;
     
     double absC = fabs(c);
     
-    while(fabs(z-p.z) >= absC){
-      if(z < p.z) z += absC;
-      else        z -= absC;
+    while(fabs(z-p.z) >= absC*2*TMath::Pi()){
+      if(z < p.z) z += absC*2*TMath::Pi();
+      else        z -= absC*2*TMath::Pi();
     }
     
     return Point(x,y,z);
@@ -557,24 +559,23 @@ struct Helix
     
     for(Point p : points){
       Point q = GetClosestPoint(p);
-      double d = p.distance(q);
-      if(d < thickness) result->push_back(p);
+      if(p.distance(q) < thickness) result->push_back(p);
     }
     return result;
   }
   
-  void CountMatchingPoints(vector<Point> &points)
+  void CountMatchingPoints(const vector<Point> &points)
   {
     nPoints = 0;
     nPionPoints = 0;
+    this->points.clear();
     
     for(Point p : points){
       Point q = GetClosestPoint(p);
-      double d = p.distance(q);
-      
-      if(d < thickness){
+      if(p.distance(q) < thickness){
         nPoints++;
         if(p.isPionHit) nPionPoints++;
+        this->points.push_back(p);
       }
     }
   }
@@ -583,6 +584,8 @@ struct Helix
   double R,c,x0,y0,z0;
   int nPoints = 0;
   int nPionPoints = 0;
+  vector<Point> points;
+  double tShift;
 };
 
 struct Circle
@@ -616,10 +619,22 @@ struct Circle
     }
     return nPoints;
   }
+  Point GetClosestPoint(Point p)
+  {
+    double t = atan2(p.y-y, p.x-x);
+    double xx = R*cos(t) + x;
+    double yy = R*sin(t) + y;
+    return Point(xx,yy,0);
+  }
   
   TArc* GetArc(){return new TArc(x,y,R);}
   
   double x,y,R;
+  double z;
+  vector<Point> points;
+  Helix helix;
+  double chi2;
+  double tShift;
 };
 
 #endif /* Helpers_h */

@@ -12,6 +12,17 @@ bool showStipClusters = false;
  // determines how far points can be from helix to be assigned to it (in mm)
 double helixThickness = 3.0;
 
+// constants
+double B = 3.7; // T
+
+// assumptions about the pion
+double decayR = 140; // secondary vertex R (from 0,0,0) just somewhere between 3rd and 4th layer
+double pionMomentum = 200; // MeV
+double pionCharge = 1;
+double pionR = pionMomentum/B*0.3*10; // radius of the pion spiral in mm
+double pionC = 4;  // helix slope in Z direction (should be properly calculated from momentum vector
+double pionNturns = 5;
+
 const map<string,any> dedxOptions = {
   {"title", "dE/dx clusters"},
   {"binsMin" , 1},
@@ -48,8 +59,8 @@ const map<string,any> decayPointOptions = {
 
 const map<string,any> pionPointsOptions = {
   {"title", "Pion points"},
-  {"markerStyle", 20},
-  {"markerSize", 1.0},
+  {"markerStyle", 21},
+  {"markerSize", 1.6},
   {"color", kMagenta}
 };
 
@@ -107,17 +118,6 @@ int main(int argc, char* argv[])
   vector<Point> allSimplePoints; // all hits in the event
   allSimplePoints = LoadAllHits(searchRun, searchLumi, searchEvent);
   
-  // constants
-  double B = 3.7; // T
-  
-  // assumptions about the pion
-  double decayR = 140; // secondary vertex R (from 0,0,0) just somewhere between 3rd and 4th layer
-  double pionMomentum = 200; // MeV
-  double pionCharge = 1;
-  double pionR = pionMomentum/B*0.3*10; // radius of the pion spiral in mm
-  double pionC = 4;  // helix slope in Z direction (should be properly calculated from momentum vector
-  double pionNturns = 5;
-  
   cout<<"Pion R:"<<pionR<<endl;
   
   // what we can calculate from the assumptions
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
   
   // Draw true pion helix
   Point pionHelixCenter(decayX,decayY,decayZ);
-  pionHelixCenter.PerpendicularShift(pionR,pionC,tShift,pionCharge); // shift helix to start in the decay point
+  pionHelixCenter.PerpendicularShift(pionR,pionC,pionCharge); // shift helix to start in the decay point
   Helix pionHelix(pionR,pionC,pionHelixCenter,helixThickness);
   display->DrawHelix(pionHelix,helixOptions,-tShift,pionNturns*2*TMath::Pi());
   
@@ -169,7 +169,7 @@ int main(int argc, char* argv[])
   // Pion helix parameters:
   double minR   = 25; // can't be smaller than the minimum to reach 2 different layers. Physically, from pion momentum it should be around 130 mm
   double maxR   = 200;
-  double minC   = 2; // Fitter could try to make it very small, to gahter some additional points by chance while still fitting perfectly the real pion hits. This should be given more attention later...
+  double minC   = 3; // Fitter could try to make it very small, to gahter some additional points by chance while still fitting perfectly the real pion hits. This should be given more attention later...
   double maxC   = 70;
   
   // Position of the decay vertex along chargino's track (later should take into account that it's not a straight line)
@@ -206,12 +206,12 @@ int main(int argc, char* argv[])
   // Store fitted circles for each triplet of points
   vector<Circle> circles;
   
-  int nPoints = 10;//(int)points2D.size();
+  int nPoints = (int)points2D.size();
   
   for(int i=0;i<nPoints;i++){
     for(int j=i+1;j<nPoints;j++){
       for(int k=j+1;k<nPoints;k++){
-        
+
         auto chi2Function = [&](const double *par) {
           double f = 0;
           
@@ -222,7 +222,7 @@ int main(int argc, char* argv[])
           double y0 = L*sin(theta)*sin(phi);
           
           Point c(x0,y0,0.0);
-          c.PerpendicularShift(R, 0.0, 0.0);
+          c.PerpendicularShift(R, 0.0);
           
           double xa = points2D[i].first;
           double ya = points2D[i].second;
@@ -230,7 +230,6 @@ int main(int argc, char* argv[])
           double yb = points2D[j].second;
           double xc = points2D[k].first;
           double yc = points2D[k].second;
-          
           
           f  = pow(sqrt(pow(xa-c.x,2)+pow(ya-c.y,2))-R,2);
           f += pow(sqrt(pow(xb-c.x,2)+pow(yb-c.y,2))-R,2);
@@ -245,11 +244,15 @@ int main(int argc, char* argv[])
           
           double x0 = result.GetParams()[0]*sin(theta)*cos(phi);
           double y0 = result.GetParams()[0]*sin(theta)*sin(phi);
+          double z0 = result.GetParams()[0]*cos(theta);
+          
           double R  = result.GetParams()[1];
           
-          Point cc(x0,y0,0.0);
-          cc.PerpendicularShift(R, 0.0, 0.0);
+          Point cc(x0,y0,z0);
+          double tShift = cc.PerpendicularShift(R, 0.0);
           Circle circle(cc.x,cc.y,R);
+          circle.z = cc.z;
+          circle.tShift = tShift;
           
           int nCircleBins = circle.GetNbinsOverlappingWithHist(pointsXY);
           
@@ -264,12 +267,9 @@ int main(int argc, char* argv[])
   
   // Plot the results
   TCanvas *c1 = new TCanvas("c1","c1",1280,1800);
-  
   c1->Divide(2,2);
   c1->cd(1);
   pointsXY->DrawCopy("colz");
-  
-  
   
   for(auto circle : circles){
     TArc *circleArc = circle.GetArc();
@@ -286,113 +286,178 @@ int main(int argc, char* argv[])
   pionCircleArc->ResetAttFill();
   pionCircleArc->Draw("sameL");
   
-  c1->Update();
+  cout<<"N circles found:"<<circles.size()<<endl;
   
+  //
+  // verified up to this point
+  //
+  
+  cout<<"Assigning points to circles"<<endl;
+  for(auto &circle : circles){
+    for(auto point : allSimplePoints){
+      Point q = circle.GetClosestPoint(point);
+      q.z = point.z;
+      double d = q.distance(point);
+      if(d < helixThickness){
+        circle.points.push_back(point);
+      }
+    }
+  }
+  
+  cout<<"n circles before:"<<circles.size()<<endl;
+  for(int i=0;i<circles.size();i++){
+    if(circles[i].points.size() < 8){
+      circles.erase(circles.begin()+i);
+      i--;
+    }
+  }
+  cout<<"n circles after:"<<circles.size()<<endl;
+ 
+  // Create fitter to fit helices to 3D points assigned to circles
   /*
-//  HelixFitter::fitFunctionWithSeeds(a, nullptr, chi2, par, 0);
-
-  TH2D *hist = new TH2D("hist","hist",
-                        (HelixFitter::maxR-HelixFitter::minR)+1,HelixFitter::minR,HelixFitter::maxR,
-                        (HelixFitter::maxC-HelixFitter::minC)+1,HelixFitter::minC,HelixFitter::maxC);
+  double minZ = minL*cos(theta);
+  double maxZ = maxL*cos(theta);
   
-  TH2D *hist2 = new TH2D("hist2","hist2",
-                        (HelixFitter::maxR-HelixFitter::minR)+1,HelixFitter::minR,HelixFitter::maxR,
-                        (HelixFitter::maxL-HelixFitter::minL)+1,HelixFitter::minL,HelixFitter::maxL);
+  cout<<"Fitter 3D min z:"<<minZ-helixThickness<<"\tmax z:"<<maxZ+helixThickness<<endl;
+  cout<<"\tmin c:"<<minC<<"\tmax c:"<<maxC<<endl;
   
-  /*
-  //  chi2            R     c     L
-  map<double,tuple<double,double,double>> results;
+  Fitter *fitter3D = new Fitter(1);
+//  fitter3D->SetParameter(0, "z0", (maxZ+minZ)/2., minZ-helixThickness, maxZ+helixThickness);
+  fitter3D->SetParameter(0, "c" , (maxC+minC)/2., minC, maxC);
   
-  for(double R=HelixFitter::minR;R<HelixFitter::maxR;R+=1.0){
-    for(double c=HelixFitter::minC;c<HelixFitter::maxC;c+=1.0){
-      for(double L=HelixFitter::minL;L<HelixFitter::maxL;L+=1.0){
-//      for(double L=140;L<141;L+=1.0){
-        int a;
-        double chi2;
-        double par[3] = {R,c,L};
+  for(auto &circle : circles){
+    vector<Point> points = circle.points;
+    
+    double x0 = circle.x;
+    double y0 = circle.y;
+    double z0 = circle.z;
+    double R = circle.R;
+    double tShift = acos(1/sqrt(pow(x0/y0,2)+1));
+    
+    auto chi2Function = [&](const double *par){
+      double f = 0;
+      
+      double c  = par[0];
+      
+      
+      Helix helix(R, c, x0, y0, z0+tShift*c, helixThickness);
+      
+      for(auto point : points){
+        Point q = helix.GetClosestPoint(point);
+        double d = q.distance(point);
         
-        HelixFitter::fitFunction(a, nullptr, chi2, par, 0);
-        if(chi2 < 1000){
-          hist->Fill(R,c,chi2);
-          hist2->Fill(R,L,chi2);
-          
-          results[chi2] = make_tuple(R,c,L);
-        }
+        f+= d*d;
+      }
+      f /= points.size();
+      return f;
+    };
+    fitter3D->SetFitFunction(chi2Function);
+    bool fitterStatus = fitter3D->RunFitting();
+    
+    if(1){
+      auto result = fitter3D->GetResult();
+      result.Print(std::cout);
+      
+      double c = result.GetParams()[0];
+      
+      Helix helix(R,c,x0,y0,z0+tShift*c,helixThickness);
+      helix.CountMatchingPoints(points);
+      
+      circle.helix = helix;
+      circle.chi2 = result.MinFcnValue();
+    }
+  }
+  */
+  
+  Helix bestHelix;
+  Circle bestCircle;
+  int maxNpoints = 0;
+  double bestChi2 = 9999999;
+  vector<Point> bestPointsOnHelix;
+  
+  for(auto &circle : circles){
+    vector<Point> points = circle.points;
+    
+    double x0 = circle.x;
+    double y0 = circle.y;
+    double R = circle.R;
+    
+    int xSign=1, ySign=1;
+    if(x0> 0 && y0> 0){xSign= 1; ySign=-1;}
+    if(x0<=0 && y0> 0){xSign= 1; ySign= 1;}
+    if(x0<=0 && y0<=0){xSign=-1; ySign= 1;}
+    if(x0> 0 && y0<=0){xSign=-1; ySign=-1;}
+    double x = x0 - xSign * R/sqrt(pow(x0/y0,2)+1);
+    double y = y0 - ySign * R/sqrt(pow(y0/x0,2)+1);
+    double tShift = acos(1/sqrt(pow(x/y,2)+1));
+  
+    for(double c=maxC;c>=minC;c-=0.1){
+      double z0 = circle.z + c*tShift;
+      Helix helix(R, c, x0, y0, z0, helixThickness);
+      helix.CountMatchingPoints(points);
+      
+      double chi2=0;
+      vector<Point> pointsOnHelix;
+      for(auto point : points){
+        Point q = helix.GetClosestPoint(point);
+        pointsOnHelix.push_back(q);
+        double d = q.distance(point);
+        chi2 += d*d;
+      }
+      chi2 /= points.size();
+      
+      if(helix.nPoints > maxNpoints){
+        bestCircle = circle;
+        maxNpoints = helix.nPoints;
+        bestChi2 = chi2;
+        bestHelix = helix;
+        bestPointsOnHelix = pointsOnHelix;
+      }
+      else if(helix.nPoints == maxNpoints){
         if(chi2 < bestChi2){
+          bestCircle = circle;
           bestChi2 = chi2;
-          bestR = R;
-          bestC = c;
-          bestL = L;
+          bestHelix = helix;
+          bestHelix.tShift = circle.tShift;
+          bestPointsOnHelix = pointsOnHelix;
         }
       }
     }
   }
-  */
- 
-  /*
- 
-  c1->cd(2);
-  chi2hist->Draw();
-//  hist->ProjectionX()->DrawCopy();
-  c1->cd(3);
   
-  pointsXY->Draw("colz");
+  // Try to increase c and check if we don't loose points
+  tShift = acos(1/sqrt(pow(bestHelix.x0/bestHelix.y0,2)+1));
   
-  TH1D *radii = new TH1D("radii","radii",
-                         (HelixFitter::maxR-HelixFitter::minR)+1,HelixFitter::minR,HelixFitter::maxR);
+  map<string,any> bestHelixOptions = {
+    {"title", "Best helix"},
+    {"markerStyle", 20},
+    {"markerSize", 0.2},
+    {"color", kRed}
+  };
+
+  display->DrawHelix(bestHelix, bestHelixOptions,-bestHelix.tShift,pionNturns*2*TMath::Pi());
   
-  TH1D *Xs = new TH1D("Xs","Xs",
-                      (maxX-minX)+1,minX,maxX);
+  map<string,any> fitPointsOptions = {
+    {"title", "Fit helix points"},
+    {"markerStyle", 20},
+    {"markerSize", 1.0},
+    {"color", kRed}
+  };
+  display->DrawSimplePoints(bestHelix.points, fitPointsOptions);
   
-  TH1D *Ys = new TH1D("Ys","Ys",
-                      (maxY-minY)+1,minY,maxY);
+  map<string,any> closestPointsOptions = {
+    {"title", "Closest points"},
+    {"markerStyle", 20},
+    {"markerSize", 1.0},
+    {"color", kOrange}
+  };
+  display->DrawSimplePoints(bestPointsOnHelix, closestPointsOptions);
   
-  for(auto circle : circles){
-    TArc *circleArc = circle.GetArc();
-    circleArc->SetLineColor(kRed);
-    circleArc->SetLineWidth(2);
-    circleArc->ResetAttFill();
-    circleArc->Draw("sameL");
-    
-    radii->Fill(circle.R);
-    Xs->Fill(circle.x);
-    Ys->Fill(circle.y);
-  }
-  c1->cd(5);
-  radii->Draw();
-  c1->cd(6);
-  Xs->Draw();
-  c1->cd(7);
-  Ys->Draw();
-  
-  cout<<"N matching circles:"<<circles.size()<<endl;
-  
-  Circle trueCircle(pionHelixCenter.x,pionHelixCenter.y,pionR);
-  int nTruePoints = trueCircle.GetNbinsOverlappingWithHist(pointsXY);
-  cout<<"N points on true pion helix:"<<nTruePoints<<endl;
-  
-  TArc *trueCircleArc = trueCircle.GetArc();
-  trueCircleArc->SetLineColor(kGreen);
-  trueCircleArc->SetLineWidth(2);
-  trueCircleArc->ResetAttFill();
-  trueCircleArc->Draw("sameL");
-  /*
-  c1->cd(4);
-  hist2->DrawCopy("colz");
-  c1->Update();
-  */
-//  HelixFitter::RunFitter();
-//  Helix fittedHelix = HelixFitter::GetFittedHelix();
-//  HelixFitter::CountPionPointsOnHelix(fittedHelix);
-//  Helix fittedHelix = HelixFitter::bestSeedHelix;
+  cout<<"\n\nBest helix is:"<<endl;
+  bestHelix.Print();
   
   cout<<"\nPion helix:"<<endl;
   pionHelix.Print();
-  
-//  cout<<"\n\nFitted helix:"<<endl;
-//  fittedHelix.Print();
-
-//  DrawHelix(fittedHelix,TMath::Pi(),5*2*TMath::Pi());
   
   
   /*
@@ -407,87 +472,10 @@ int main(int argc, char* argv[])
     DrawEvent(event);
     break;
   }
-  
-  
-  auto chi2Function3D = [&](const Double_t *par) {
-    Helix helix(par[3],par[4], par[0], par[1], par[2],helixThickness);
-    
-    int nPoints=0;
-    double chi2 = 0;
-    
-    for(Point p : allSimplePoints){
-      Point q = helix.GetClosestPoint(p);
-      double d = p.distance(q);
-      
-      if(d < HelixFitter::helixThickness){
-        nPoints++;
-        chi2 += pow(p.x-q.x,2)/fabs(q.x);
-        chi2 += pow(p.y-q.y,2)/fabs(q.y);
-        chi2 += pow(p.z-q.z,2)/fabs(q.z);
-        
-//        chi2 += 1+d*d;
-      }
-    }
-    if(nPoints > 2) chi2 /= nPoints;
-    else            chi2 = 99999;
-//    cout<<"z0:"<<par[2]<<"\tc:"<<par[4]<<"\tchi2:"<<chi2<<endl;
-    return chi2;
-  };
-  
-  Fitter *fitter3D = new Fitter(5);
-  fitter->SetFitFunction(chi2Function3D);
-  
-  circles.clear();
-  circles.push_back(trueCircle);
-  
-  allSimplePoints.clear();
-  allSimplePoints = pionPoints;
-  
-  Helix bestHelixFromCircles;
-  double bestChi2fromCircles = 99999;
-  
-  ROOT::Fit::BinData data(100,2);
-  
-  for(auto p : allSimplePoints){
-    data.Add(p.x,p.y,p.z);
-  }
-  
-  bool fixCircles = true;
-  
-  for(auto circle : circles){
-    fitter3D->SetParameter(0, "x0", circle.x, 0.95*circle.x, 1.05*circle.x, fixCircles);
-    fitter3D->SetParameter(1, "y0", circle.y, 0.95*circle.y, 1.05*circle.y, fixCircles);
-    fitter3D->SetParameter(3, "R" , circle.R, 0.95*circle.R, 1.05*circle.R, fixCircles);
-    
-    fitter3D->SetParameter(2, "z0", decayZ, decayZ-maxR, decayZ+maxR);
-    fitter3D->SetParameter(4, "c" , pionC , minC, maxC);
-    
-    bool fitOk =true;// fitter3D.FitFCN();
-//    fitter3D.CalculateHessErrors();
-    
-    auto result = fitter3D->GetResult();
-    result.Print(std::cout);
-    cout<<"Fit ok? - "<<fitOk<<endl;
-    
-    if(result.MinFcnValue() < bestChi2fromCircles && fitOk){
-      bestChi2fromCircles = result.MinFcnValue();
-      
-      bestHelixFromCircles = Helix(result.GetParams()[3],
-                                   result.GetParams()[4],
-                                   result.GetParams()[0],
-                                   result.GetParams()[1],
-                                   result.GetParams()[2],
-                                   helixThickness);
-      
-      cout<<result.Chi2()<<"\t"<<result.MinFcnValue()<<endl;
-      
-    }
-  }
   */
-//  display->DrawHelix(bestHelixFromCircles,helixOptions);
   
   cout<<"\n\ndone\n\n"<<endl;
-  
+  c1->Update();
   theApp.Run();
   return 0;
 }
@@ -501,7 +489,8 @@ int main(int argc, char* argv[])
 
 vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber)
 {
-  TFile *inFile = TFile::Open("/afs/cern.ch/work/j/jniedzie/private/pickhists.root");
+  TFile *inFile = TFile::Open("pickhists.root");
+//  TFile *inFile = TFile::Open("/afs/cern.ch/work/j/jniedzie/private/pickhists.root");
   //  TFile *inFile = TFile::Open("/afs/cern.ch/work/j/jniedzie/private/pickhists_unfiltered.root");
   if(!inFile){
     cout<<"ERROR -- no file with all hits was found"<<endl;
