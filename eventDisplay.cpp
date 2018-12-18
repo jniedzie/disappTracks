@@ -1,7 +1,6 @@
 #include "Helpers.hpp"
 #include "Event.hpp"
 #include "EventSet.hpp"
-#include "HelixFitter.hpp"
 #include "Fitter.hpp"
 #include "Display.hpp"
 
@@ -148,6 +147,7 @@ int main(int argc, char* argv[])
   allSimplePoints.insert(allSimplePoints.end(),pionPoints.begin(), pionPoints.end());
   
   // remove hits that for sure don't belong to the pion's helix
+  
   cout<<"size before:"<<allSimplePoints.size()<<endl;
   for(int i=0;i<allSimplePoints.size();i++){
     Point p = allSimplePoints[i];
@@ -161,6 +161,7 @@ int main(int argc, char* argv[])
     }
   }
   cout<<"size after:"<<allSimplePoints.size()<<endl;
+  
 //  display->DrawSimplePoints(allSimplePoints, filteredPointsOptions);
   
   

@@ -502,10 +502,10 @@ struct Point
 struct Helix
 {
   Helix(double _R, double _c, double _x0, double _y0, double _z0, double _thickness)
-  : R(_R), c(_c), x0(_x0), y0(_y0), z0(_z0), thickness(_thickness) {}
+  : R(_R), c(_c), x0(_x0), y0(_y0), z0(_z0), thickness(_thickness){}
   
   Helix(double _R, double _c, Point p, double _thickness)
-  : R(_R), c(_c), x0(p.x), y0(p.y), z0(p.z), thickness(_thickness) {}
+  : R(_R), c(_c), x0(p.x), y0(p.y), z0(p.z), thickness(_thickness){}
   
   Helix(){}
   
@@ -516,7 +516,7 @@ struct Helix
   /// \param tMax t parameter maximum
   /// \param tStep t parameter step
   /// \param threshold // how close to the tracker layer hits must be
-  vector<Point> GetPointsHittingSilicon(double tMin=0, double tMax=5*2*TMath::Pi(), double tStep=0.01, double threshold = 1.0)
+  vector<Point> GetPointsHittingSilicon(double tMin=0, double tMax=5*2*TMath::Pi(), double tStep=0.01, double threshold = 0.2)
   {
     vector<Point> points;
     
@@ -586,6 +586,7 @@ struct Helix
   int nPionPoints = 0;
   vector<Point> points;
   double tShift;
+  double chi2 = inf;
 };
 
 struct Circle
@@ -598,7 +599,7 @@ struct Circle
   int GetNbinsOverlappingWithHist(TH2D *hist)
   {
     int nPoints = 0;
-    TH2D *circle = new TH2D(*hist);
+    unique_ptr<TH2D> circle = unique_ptr<TH2D>(new TH2D(*hist));
     
     for(int binX=0;binX<circle->GetNbinsX();binX++){
       for(int binY=0;binY<circle->GetNbinsY();binY++){
