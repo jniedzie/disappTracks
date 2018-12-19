@@ -5,6 +5,9 @@
 //
 
 #include "Helpers.hpp"
+#include "Helix.hpp"
+#include "Circle.hpp"
+#include "Point.hpp"
 #include "Event.hpp"
 #include "EventSet.hpp"
 #include "Fitter.hpp"

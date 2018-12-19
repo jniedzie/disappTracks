@@ -12,6 +12,10 @@
 #include "Jet.hpp"
 #include "Track.hpp"
 
+#include "Helix.hpp"
+#include "Circle.hpp"
+#include "Point.hpp"
+
 class Display {
 public:
   Display();
