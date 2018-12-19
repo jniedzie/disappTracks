@@ -10,7 +10,7 @@ all: runAnalysis eventDisplay helixFitter getFfactor scanCuts singleCutDetails
 runAnalysis: ${TMP_DIR}/runAnalysis.o ${TMP_DIR}/Event.o ${TMP_DIR}/EventSet.o ${TMP_DIR}/EventCut.o ${TMP_DIR}/Track.o ${TMP_DIR}/TrackCut.o ${TMP_DIR}/Jet.o ${TMP_DIR}/JetCut.o ${TMP_DIR}/HistSet.o ${TMP_DIR}/Lepton.o ${TMP_DIR}/LeptonCut.o
 	$(CC) $^ -o $@ $(LDFLAGS)
 
-eventDisplay: ${TMP_DIR}/eventDisplay.o ${TMP_DIR}/Event.o ${TMP_DIR}/EventSet.o ${TMP_DIR}/Track.o ${TMP_DIR}/TrackCut.o ${TMP_DIR}/Jet.o ${TMP_DIR}/HistSet.o ${TMP_DIR}/Lepton.o ${TMP_DIR}/LeptonCut.o ${TMP_DIR}/Display.o ${TMP_DIR}/Fitter.o
+eventDisplay: ${TMP_DIR}/eventDisplay.o ${TMP_DIR}/Event.o ${TMP_DIR}/EventSet.o ${TMP_DIR}/Track.o ${TMP_DIR}/TrackCut.o ${TMP_DIR}/Jet.o ${TMP_DIR}/HistSet.o ${TMP_DIR}/Lepton.o ${TMP_DIR}/LeptonCut.o ${TMP_DIR}/Display.o ${TMP_DIR}/Fitter.o ${TMP_DIR}/Helix.o ${TMP_DIR}/Circle.o ${TMP_DIR}/Point.o
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 helixFitter: ${TMP_DIR}/helixFitter.o ${TMP_DIR}/Event.o ${TMP_DIR}/EventSet.o ${TMP_DIR}/Track.o ${TMP_DIR}/TrackCut.o ${TMP_DIR}/Jet.o ${TMP_DIR}/HistSet.o ${TMP_DIR}/Lepton.o ${TMP_DIR}/LeptonCut.o ${TMP_DIR}/Display.o ${TMP_DIR}/Fitter.o ${TMP_DIR}/Helix.o ${TMP_DIR}/Circle.o ${TMP_DIR}/Point.o

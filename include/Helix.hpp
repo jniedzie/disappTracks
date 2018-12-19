@@ -26,6 +26,8 @@ public:
   
   void Shift(int charge=1);
   
+  void ShiftByVector(Point v, int charge=1);
+  
   /// Returns vector of points along helix trajectory that hit the tracker
   vector<Point> GetPointsHittingSilicon();
   

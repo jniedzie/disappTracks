@@ -21,6 +21,7 @@ public:
   void Print();
   
   void Shift(int charge=1);
+  void ShiftByVector(Point v, int charge=1);
   
   int GetNbinsOverlappingWithHist(TH2D *hist);
  
@@ -34,6 +35,7 @@ public:
   vector<Point> points;
   double chi2;
   double tShift;
+  Point shiftVector = Point(0,0,0);
   
 private:
   Circle();

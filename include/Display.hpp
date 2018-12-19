@@ -26,11 +26,7 @@ public:
   
   /// Draws a helix in given t parameter range
   /// \param helix Object of type Helix
-  /// \param tMin t parameter minimum
-  /// \param tMax t parameter maximum
-  /// \param tStep t parameter step
-  void DrawHelix(Helix helix, const map<string,any> options,
-                 double tMin=0, double tMax=5*2*TMath::Pi(), double tStep=0.01);
+  void DrawHelix(Helix helix, const map<string,any> options);
   
   void DrawEvent(shared_ptr<Event> event, const map<string,any> options);
   

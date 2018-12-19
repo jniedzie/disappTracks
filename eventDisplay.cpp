@@ -16,11 +16,24 @@ double B = 3.7; // T
 
 // assumptions about the pion
 double decayR = 140; // secondary vertex R (from 0,0,0) just somewhere between 3rd and 4th layer
-double pionMomentum = 200; // MeV
 double pionCharge = 1;
-double pionR = pionMomentum/B*0.3*10; // radius of the pion spiral in mm
-double pionC = 4;  // helix slope in Z direction (should be properly calculated from momentum vector
 double pionNturns = 5;
+
+Point pionVector(115,115,115); // Total momentum ~200 MeV
+
+double minPx = 50;
+double minPy = 50;
+double minPz = 50;
+
+double maxPx = 250;
+double maxPy = 250;
+double maxPz = 250;
+
+// Position of the decay vertex along chargino's track (later should take into account that it's not a straight line)
+double minL   = layerR[2]; // minimum on the surface of 3rd layer
+double maxL   = layerR[3]; // maximum on the surface of 4th layer
+
+int minNpointsAlongZ = 2; // minimum number of hits for each line parallel to Z axis
 
 const map<string,any> dedxOptions = {
   {"title", "dE/dx clusters"},
@@ -84,6 +97,19 @@ const double maxClusterSize = 100;
 
 vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber);
 
+double GetRadiusInMagField(double px, double py, double B)
+{
+  return sqrt(pow(px,2)+pow(py,2))/(B*3)*10;
+}
+
+double GetVectorSlopeC(double px, double py, double pz)
+{
+  return tan(TMath::Pi()/2.-acos(pz/sqrt(px*px+py*py+pz*pz)));
+}
+
+double pionR = GetRadiusInMagField(pionVector.x, pionVector.y, B); // radius of the pion spiral in mm
+double pionC = GetVectorSlopeC(pionVector.x, pionVector.y, pionVector.z);  // helix slope in Z direction
+  
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
@@ -120,12 +146,11 @@ int main(int argc, char* argv[])
   cout<<"Pion R:"<<pionR<<endl;
   
   // what we can calculate from the assumptions
-  double theta  = 2*atan(exp(-event->GetTrack(0)->GetEta()));
-  double phi    = event->GetTrack(0)->GetPhi();
+  double theta  = 2*atan(exp(-1.08));//2*atan(exp(-event->GetTrack(0)->GetEta()));
+  double phi    = -2.16;//event->GetTrack(0)->GetPhi();
   double decayX = decayR*sin(theta)*cos(phi);
   double decayY = decayR*sin(theta)*sin(phi);
   double decayZ = decayR*cos(theta);
-  double tShift = acos(1/sqrt(pow(decayX/decayY,2)+1));
   
   // Draw decay point to make sure that it's correctly located
   vector<Point> decayPoint = {Point(decayX,decayY,decayZ)};
@@ -134,8 +159,9 @@ int main(int argc, char* argv[])
   // Draw true pion helix
   Point pionHelixCenter(decayX,decayY,decayZ);
   Helix pionHelix(pionR,pionC,pionHelixCenter,pionNturns, helixThickness);
-  pionHelix.Shift(pionCharge); // shift helix to start in the decay point
-  display->DrawHelix(pionHelix,helixOptions,-pionHelix.tShift,pionNturns*2*TMath::Pi());
+//  pionHelix.Shift(pionCharge); // shift helix to start in the decay point
+  pionHelix.ShiftByVector(pionVector, pionCharge); // shift helix to start in the decay point
+  display->DrawHelix(pionHelix,helixOptions);
   
   // Calculate and draw points along the helix that hit the silicon
   vector<Point> pionPoints = pionHelix.GetPointsHittingSilicon();
@@ -164,21 +190,6 @@ int main(int argc, char* argv[])
   
 //  display->DrawSimplePoints(allSimplePoints, filteredPointsOptions);
   
-  
-  // Set some limits on parameters (all distances in [mm])
-  
-  // Pion helix parameters:
-  double minR   = 25; // can't be smaller than the minimum to reach 2 different layers. Physically, from pion momentum it should be around 130 mm
-  double maxR   = 200;
-  double minC   = 3; // Fitter could try to make it very small, to gahter some additional points by chance while still fitting perfectly the real pion hits. This should be given more attention later...
-  double maxC   = 70;
-  
-  // Position of the decay vertex along chargino's track (later should take into account that it's not a straight line)
-  double minL   = layerR[2]; // minimum on the surface of 3rd layer
-  double maxL   = layerR[3]; // maximum on the surface of 4th layer
-  
-  int minNpointsAlongZ = 2; // minimum number of hits for each line parallel to Z axis
-  
   // Prepare 2D projections in XY
   TH2D *pointsXY = new TH2D("pointsXY","pointsXY",500/helixThickness,-250,250,500/helixThickness,-250,250);
   pointsXY->GetXaxis()->SetTitle("X");
@@ -200,9 +211,10 @@ int main(int argc, char* argv[])
   }
   
   // Create fitter to fit circles to 2D distribution
-  Fitter *fitter = new Fitter(2);
+  Fitter *fitter = new Fitter(3);
   fitter->SetParameter(0, "L", (maxL+minL)/2., minL-helixThickness, maxL+helixThickness);
-  fitter->SetParameter(1, "R", (maxR+minR)/2., minR, maxR);
+  fitter->SetParameter(1, "px", (maxPx-minPx)/2., minPx, maxPx);
+  fitter->SetParameter(2, "py", (maxPy-minPy)/2., minPy, maxPy);
   
   // Store fitted circles for each triplet of points
   vector<Circle> circles;
@@ -213,17 +225,20 @@ int main(int argc, char* argv[])
     for(int j=i+1;j<nPoints;j++){
       for(int k=j+1;k<nPoints;k++){
 
-        auto chi2Function = [&](const double *par) {
+        auto chi2Function = [&](const double *par){
           double f = 0;
           
-          double L = par[0];
-          double R  = par[1];
+          double L  = par[0];
+          double px = par[1];
+          double py = par[2];
+          double R = GetRadiusInMagField(px,py,B);
           
           double x0 = L*sin(theta)*cos(phi);
           double y0 = L*sin(theta)*sin(phi);
-          
+
+          Point v(px,py,0);
           Circle c(x0,y0,R);
-          c.Shift();
+          c.ShiftByVector(v,pionCharge);
           
           double xa = points2D[i].first;
           double ya = points2D[i].second;
@@ -243,23 +258,21 @@ int main(int argc, char* argv[])
         if(fitter->RunFitting()) {
           auto result = fitter->GetResult();
           
-          double L = result.GetParams()[0];
-          double R  = result.GetParams()[1];
+          double L  = result.GetParams()[0];
+          double px = result.GetParams()[1];
+          double py = result.GetParams()[2];
+          double R = GetRadiusInMagField(px,py,B);
           
           double x0 = L*sin(theta)*cos(phi);
           double y0 = L*sin(theta)*sin(phi);
           double z0 = L*cos(theta);
           
+          Point v(px,py,0);
           Circle circle(x0,y0,R);
-          circle.Shift();
+          circle.ShiftByVector(v,pionCharge);
           circle.z = z0;
 
-          int nCircleBins = circle.GetNbinsOverlappingWithHist(pointsXY);
-          
-          if(nCircleBins > 3){
-            circles.push_back(circle);
-//            result.Print(std::cout);
-          }
+          if(circle.GetNbinsOverlappingWithHist(pointsXY) > 3) circles.push_back(circle);
         }
       }
     }
@@ -279,7 +292,7 @@ int main(int argc, char* argv[])
     circleArc->Draw("sameL");
   }
   Circle pionCircle = Circle(pionHelixCenter.x, pionHelixCenter.y, pionR);
-  pionCircle.Shift();
+  pionCircle.ShiftByVector(pionVector,pionCharge);
   TArc *pionCircleArc = pionCircle.GetArc();
   
   pionCircleArc->SetLineColor(kGreen);
@@ -323,7 +336,9 @@ int main(int argc, char* argv[])
   for(auto &circle : circles){
     vector<Point> points = circle.points;
     
-    for(double c=maxC;c>=minC;c-=0.1){
+    for(double pz = pionVector.z; pz >= pionVector.z ; pz-=1.0 ){
+      double c = GetVectorSlopeC(circle.shiftVector.x, circle.shiftVector.y, pz);
+      
       Helix helix(c, circle, pionNturns, helixThickness);
       helix.CountMatchingPoints(points);
       
@@ -355,9 +370,6 @@ int main(int argc, char* argv[])
     }
   }
   
-  // Try to increase c and check if we don't loose points
-  tShift = acos(1/sqrt(pow(bestHelix.x0/bestHelix.y0,2)+1));
-  
   map<string,any> bestHelixOptions = {
     {"title", "Best helix"},
     {"markerStyle", 20},
@@ -365,7 +377,7 @@ int main(int argc, char* argv[])
     {"color", kRed}
   };
 
-  display->DrawHelix(bestHelix, bestHelixOptions,-bestHelix.tShift,pionNturns*2*TMath::Pi());
+  display->DrawHelix(bestHelix, bestHelixOptions);
   
   map<string,any> fitPointsOptions = {
     {"title", "Fit helix points"},

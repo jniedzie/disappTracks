@@ -14,7 +14,9 @@ Helix::Helix()
 Helix::Helix(double _R, double _c, double _x0, double _y0, double _z0,int _nCycles, double _thickness)
 : R(_R), c(_c), x0(_x0), y0(_y0), z0(_z0), nCycles(_nCycles), thickness(_thickness)
 {
-  tShift = acos(1/sqrt(pow(x0/y0,2)+1));
+//  tShift = acos(1/sqrt(pow(x0/y0,2)+1));
+  tShift = acos(-x0/sqrt(x0*x0+y0*y0));
+  
   tMin = -tShift;
   tMax = nCycles*2*TMath::Pi();
   tStep = 0.01;
@@ -23,7 +25,8 @@ Helix::Helix(double _R, double _c, double _x0, double _y0, double _z0,int _nCycl
 Helix::Helix(double _R, double _c, Point p,int _nCycles, double _thickness)
 : R(_R), c(_c), x0(p.x), y0(p.y), z0(p.z), nCycles(_nCycles), thickness(_thickness)
 {
-  tShift = acos(1/sqrt(pow(x0/y0,2)+1));
+//  tShift = acos(1/sqrt(pow(x0/y0,2)+1));
+  tShift = acos(-x0/sqrt(x0*x0+y0*y0));
   tMin = -tShift;
   tMax = nCycles*2*TMath::Pi();
   tStep = 0.01;
@@ -37,9 +40,10 @@ Helix::Helix(double _c, Circle circle, int _nCycles, double _thickness)
   R = circle.R;
 
   // not sure why tShifts like that - to be understood
-  tShift = acos(1/sqrt(pow(x0/y0,2)+1));
-  z0 = circle.z + tShift*c;
+//  tShift = acos(1/sqrt(pow(x0/y0,2)+1));
   tShift = circle.tShift;
+  z0 = circle.z + tShift*c;
+//  tShift = circle.tShift;
 }
 
 void Helix::Print()
@@ -60,6 +64,23 @@ void Helix::Shift(int charge)
   // the charge may be inverted here... to be checked later
   x0 += charge * xSign * R/sqrt(pow(xInit/yInit,2)+1);
   y0 += charge * ySign * R/sqrt(pow(yInit/xInit,2)+1);
+  z0 += tShift*c;
+}
+
+void Helix::ShiftByVector(Point v, int charge)
+{
+  v = Point(charge * -v.y,charge * v.x, v.z); // take a vector perpendicular to the pion's momentum vector
+  
+  double vTransverseLength = sqrt(v.x*v.x+v.y*v.y);
+  tShift = acos(-v.x/vTransverseLength);
+  
+  double scale = R/vTransverseLength;
+  
+  v.x *= scale;
+  v.y *= scale;
+  
+  x0 += v.x;
+  y0 += v.y;
   z0 += tShift*c;
 }
 

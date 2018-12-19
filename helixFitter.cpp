@@ -18,38 +18,38 @@ double helixThickness = 3.0;
 
 bool injectPionHits = true;
 int nTests = 100;
-const char* outFileName = "tests.root";
+const char* outFileName = "signalFitterResults.root";
 
-// constants
-double B = 3.7; // T
+// Parameters to tune
+double pionNturns = 5;    // How many turns the pion does (should be removed and it should just go until the end of the pixel barrel
 
-// assumptions about the pion
-double decayR = 140; // secondary vertex R (from 0,0,0) just somewhere between 3rd and 4th layer
-double pionMomentum = 200; // MeV
-double pionCharge = 1;
-double pionR = pionMomentum/B*0.3*10; // radius of the pion spiral in mm
-double pionC = 4;  // helix slope in Z direction (should be properly calculated from momentum vector
-double pionNturns = 5;
-
-// Set some limits on parameters (all distances in [mm])
-
-// Pion helix parameters:
+// Pion helix limits (distances in mm):
 double minR   = 25; // can't be smaller than the minimum to reach 2 different layers. Physically, from pion momentum it should be around 130 mm
 double maxR   = 200;
 double minC   = 3; // Fitter could try to make it very small, to gahter some additional points by chance while still fitting perfectly the real pion hits. This should be given more attention later...
 double maxC   = 70;
-
-// Position of the decay vertex along chargino's track (later should take into account that it's not a straight line)
 double minL   = layerR[2]; // minimum on the surface of 3rd layer
 double maxL   = layerR[3]; // maximum on the surface of 4th layer
 
 int minNpointsAlongZ = 2; // minimum number of hits for each line parallel to Z axis
 
+// Conditinos to accept fitted helix as a proper solution
+const double toleranceR = 10; // mm
+const double toleranceC = 1;
+const double toleranceX = 10; // mm
+const double toleranceY = 10; // mm
+const double toleranceZ = 10; // mm
 
-// what we can calculate from the assumptions
-double eta = 1.8;
-double theta  = 2*atan(exp(-eta));
-double phi    = 0.45*TMath::Pi();
+
+// Will be calculated automatically or don't matter
+double trackEta, trackTheta, trackPhi; // parameters of the chargino track
+double decayR; // secondary vertex R (from 0,0,0) just somewhere between 3rd and 4th layer
+double pionR;// = pionMomentum/B*0.3*10; // radius of the pion spiral in mm
+double pionC;  // helix slope in Z direction (should be properly calculated from momentum vector
+double pionCharge = 1;
+
+// constants
+const double B = 3.7; // T
 
 unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix);
 vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber);
@@ -76,22 +76,29 @@ void FillRandomPoints(int nPoints)
   }
 }
 
+void SetRandomTrack()
+{
+  trackEta = 1.08;//RandDouble(-1.2, 1.2);
+  trackTheta = 2*atan(exp(-trackEta));
+  trackPhi = -2.16;//RandDouble(0, 2*TMath::Pi());
+}
+
+bool AreHelicesIdentical(const unique_ptr<Helix> &h1, const unique_ptr<Helix> &h2)
+{
+  if(fabs(h1->x0 - h2->x0) > toleranceX) return false;
+  if(fabs(h1->y0 - h2->y0) > toleranceY) return false;
+  if(fabs(h1->z0 - h2->z0) > toleranceZ) return false;
+  if(fabs(h1->R  - h2->R ) > toleranceR) return false;
+  if(fabs(h1->c  - h2->c ) > toleranceC) return false;
+  return true;
+}
+
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
   
   // load hits from an event (could be replaced by random points)
 //  originalPixelPoints = LoadAllHits(297100, 136, 245000232);
-//  Display *display = new Display();
-//
-//  map<string,any> options = {
-//    {"title", "points"},
-//    {"color", kRed},
-//    {"markerStyle", 20},
-//    {"markerSize", 1.0}
-//  };
-//
-//  display->DrawSimplePoints(originalPixelPoints, options);
   
   TH2D *radiusResponse = new TH2D("radiusResponse","radiusResponse",100,minR,maxR,100,minR,maxR);
   radiusResponse->GetXaxis()->SetTitle("R_{true}");
@@ -122,8 +129,11 @@ int main(int argc, char* argv[])
   TH1D *nPionPoints = new TH1D("nPionPoints","nPionPoints",1000,0,10);
   nPionPoints->GetXaxis()->SetTitle("N_{fit}/N_{true}");
   
+  int nSuccess = 0;
+  
   for(int i=0;i<nTests;i++){
-    FillRandomPoints(500);
+    SetRandomTrack();         // Randomly generate chargino's track
+    FillRandomPoints(500);    // Randomly fill in pixel barrel with noise hits
     
     pionR = RandDouble(minR, maxR);
     pionC = RandDouble(minC, maxC);
@@ -131,9 +141,9 @@ int main(int argc, char* argv[])
     cout<<"R iter:"<<i<<"\tR:"<<pionR<<"\tc:"<<pionC<<"\tdecayR:"<<decayR<<endl;
     
     // Create true pion helix
-    double decayX = decayR*sin(theta)*cos(phi);
-    double decayY = decayR*sin(theta)*sin(phi);
-    double decayZ = decayR*cos(theta);
+    double decayX = decayR*sin(trackTheta)*cos(trackPhi);
+    double decayY = decayR*sin(trackTheta)*sin(trackPhi);
+    double decayZ = decayR*cos(trackTheta);
     
     Point pionHelixCenter(decayX,decayY,decayZ);
     unique_ptr<Helix> pionHelix = unique_ptr<Helix>(new Helix(pionR,pionC,pionHelixCenter,pionNturns, helixThickness));
@@ -149,6 +159,8 @@ int main(int argc, char* argv[])
     nPointsOnHelix->Fill(bestHelix->nPoints);
     chi2ofHelix->Fill(bestHelix->chi2 < 500 ? bestHelix->chi2 : 499);
     nPionPoints->Fill(bestHelix->nPionPoints/(double)pionHelix->nPionPoints);
+    
+    if(AreHelicesIdentical(pionHelix, bestHelix)) nSuccess++;
     
     cout<<"Pion helix:"<<endl;
     pionHelix->Print();
@@ -187,6 +199,8 @@ int main(int argc, char* argv[])
   chi2ofHelix->Write();
   nPionPoints->Write();
   outFile->Close();
+  
+  cout<<"Percentage of successful fits:"<<nSuccess/(double)nTests<<endl;
   
   c1->Update();
   theApp.Run();
@@ -258,8 +272,8 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
           double L = par[0];
           double R  = par[1];
           
-          double x0 = L*sin(theta)*cos(phi);
-          double y0 = L*sin(theta)*sin(phi);
+          double x0 = L*sin(trackTheta)*cos(trackPhi);
+          double y0 = L*sin(trackTheta)*sin(trackPhi);
           
           Circle c(x0,y0,R);
           c.Shift();
@@ -285,9 +299,9 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
           double L = result.GetParams()[0];
           double R  = result.GetParams()[1];
           
-          double x0 = L*sin(theta)*cos(phi);
-          double y0 = L*sin(theta)*sin(phi);
-          double z0 = L*cos(theta);
+          double x0 = L*sin(trackTheta)*cos(trackPhi);
+          double y0 = L*sin(trackTheta)*sin(trackPhi);
+          double z0 = L*cos(trackTheta);
           
           Circle circle(x0,y0,R);
           circle.Shift();

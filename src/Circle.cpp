@@ -8,7 +8,7 @@
 
 Circle::Circle(double _x, double _y, double _R) : x(_x), y(_y), R(_R)
 {
-  tShift = acos(1/sqrt(pow(x/y,2)+1));
+//  tShift = acos(1/sqrt(pow(x/y,2)+1));
 }
 
 Circle::Circle()
@@ -49,6 +49,23 @@ void Circle::Shift(int charge)
   y += charge * ySign * R/sqrt(pow(yInit/xInit,2)+1);
   
 //  tShift = atan2((yInit+y)/(yInit-y)-x,y);
+}
+
+void Circle::ShiftByVector(Point v, int charge)
+{
+  shiftVector = v;
+  v = Point(charge * -v.y,charge * v.x, v.z); // take a vector perpendicular to the pion's momentum vector
+  
+  double vTransverseLength = sqrt(v.x*v.x+v.y*v.y);
+  tShift = acos(-v.x/vTransverseLength);
+  
+  double scale = R/vTransverseLength;
+  
+  v.x *= scale;
+  v.y *= scale;
+  
+  x += v.x;
+  y += v.y;
 }
 
 int Circle::GetNbinsOverlappingWithHist(TH2D *hist)
