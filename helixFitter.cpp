@@ -17,7 +17,7 @@
 double helixThickness = 3.0;
 
 bool injectPionHits = true;
-int nTests = 300;
+int nTests = 100;
 const char* outFileName = "tests.root";
 
 // constants
@@ -119,6 +119,9 @@ int main(int argc, char* argv[])
   TH1D *chi2ofHelix = new TH1D("chi2ofHelix","chi2ofHelix",500,0,500);
   chi2ofHelix->GetXaxis()->SetTitle("Chi2");
   
+  TH1D *nPionPoints = new TH1D("nPionPoints","nPionPoints",1000,0,10);
+  nPionPoints->GetXaxis()->SetTitle("N_{fit}/N_{true}");
+  
   for(int i=0;i<nTests;i++){
     FillRandomPoints(500);
     
@@ -133,9 +136,8 @@ int main(int argc, char* argv[])
     double decayZ = decayR*cos(theta);
     
     Point pionHelixCenter(decayX,decayY,decayZ);
-    pionHelixCenter.PerpendicularShift(pionR,pionC,pionCharge); // shift helix to start in the decay point
-    unique_ptr<Helix> pionHelix = unique_ptr<Helix>(new Helix(pionR,pionC,pionHelixCenter,helixThickness));
-    pionHelix->tShift = acos(1/sqrt(pow(decayX/decayY,2)+1));
+    unique_ptr<Helix> pionHelix = unique_ptr<Helix>(new Helix(pionR,pionC,pionHelixCenter,pionNturns, helixThickness));
+    pionHelix->Shift(pionCharge); // shift helix to start in the decay point
     
     unique_ptr<Helix> bestHelix = GetBestFittingHelix(pionHelix);
     
@@ -146,6 +148,7 @@ int main(int argc, char* argv[])
     zResponse->Fill(pionHelix->z0, bestHelix->z0);
     nPointsOnHelix->Fill(bestHelix->nPoints);
     chi2ofHelix->Fill(bestHelix->chi2 < 500 ? bestHelix->chi2 : 499);
+    nPionPoints->Fill(bestHelix->nPionPoints/(double)pionHelix->nPionPoints);
     
     cout<<"Pion helix:"<<endl;
     pionHelix->Print();
@@ -170,6 +173,8 @@ int main(int argc, char* argv[])
   nPointsOnHelix->Draw();
   c1->cd(7);
   chi2ofHelix->Draw();
+  c1->cd(8);
+  nPionPoints->Draw();
   
   TFile *outFile = new TFile(outFileName,"recreate");
   outFile->cd();
@@ -180,6 +185,7 @@ int main(int argc, char* argv[])
   zResponse->Write();
   nPointsOnHelix->Write();
   chi2ofHelix->Write();
+  nPionPoints->Write();
   outFile->Close();
   
   c1->Update();
@@ -190,7 +196,7 @@ int main(int argc, char* argv[])
 unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
 {
   // Calculate points along the helix that hit the silicon and inject them into all points in the tracker
-  vector<Point> pionPoints = pionHelix->GetPointsHittingSilicon(-pionHelix->tShift,pionNturns*2*TMath::Pi());
+  vector<Point> pionPoints = pionHelix->GetPointsHittingSilicon();
   for(auto &p : pionPoints){p.isPionHit = true;}
   pionHelix->nPionPoints = pionHelix->nPoints = (int)pionPoints.size();
   vector<Point> allSimplePoints = originalPixelPoints;
@@ -255,8 +261,8 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
           double x0 = L*sin(theta)*cos(phi);
           double y0 = L*sin(theta)*sin(phi);
           
-          Point c(x0,y0,0.0);
-          c.PerpendicularShift(R, 0.0);
+          Circle c(x0,y0,R);
+          c.Shift();
           
           double xa = points2D[i].first;
           double ya = points2D[i].second;
@@ -276,17 +282,16 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
         if(fitter->RunFitting()) {
           auto result = fitter->GetResult();
           
-          double x0 = result.GetParams()[0]*sin(theta)*cos(phi);
-          double y0 = result.GetParams()[0]*sin(theta)*sin(phi);
-          double z0 = result.GetParams()[0]*cos(theta);
-          
+          double L = result.GetParams()[0];
           double R  = result.GetParams()[1];
           
-          Point cc(x0,y0,z0);
-          double tShift = cc.PerpendicularShift(R, 0.0);
-          Circle circle(cc.x,cc.y,R);
-          circle.z = cc.z;
-          circle.tShift = tShift;
+          double x0 = L*sin(theta)*cos(phi);
+          double y0 = L*sin(theta)*sin(phi);
+          double z0 = L*cos(theta);
+          
+          Circle circle(x0,y0,R);
+          circle.Shift();
+          circle.z = z0;
           
           if(circle.GetNbinsOverlappingWithHist(pointsXY) > 3) circles.push_back(circle);
         }
@@ -312,60 +317,38 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
   }
   
   unique_ptr<Helix> bestHelix = unique_ptr<Helix>(new Helix());
-  Circle bestCircle;
+  Circle bestCircle(0,0,0);
   int maxNpoints = 0;
   double bestChi2 = 9999999;
   
   for(auto &circle : circles){
     vector<Point> points = circle.points;
     
-    double x0 = circle.x;
-    double y0 = circle.y;
-    double R = circle.R;
-    
-    int xSign=1, ySign=1;
-    if(x0> 0 && y0> 0){xSign= 1; ySign=-1;}
-    if(x0<=0 && y0> 0){xSign= 1; ySign= 1;}
-    if(x0<=0 && y0<=0){xSign=-1; ySign= 1;}
-    if(x0> 0 && y0<=0){xSign=-1; ySign=-1;}
-    double x = x0 - xSign * R/sqrt(pow(x0/y0,2)+1);
-    double y = y0 - ySign * R/sqrt(pow(y0/x0,2)+1);
-    double tShift = acos(1/sqrt(pow(x/y,2)+1));
-    
     for(double c=maxC;c>=minC;c-=0.1){
-      double z0 = circle.z + c*tShift;
-      unique_ptr<Helix> helix = unique_ptr<Helix>(new Helix(R, c, x0, y0, z0, helixThickness));
+      unique_ptr<Helix> helix = unique_ptr<Helix>(new Helix(c, circle, pionNturns, helixThickness));
       helix->CountMatchingPoints(points);
       
       double chi2=0;
-      
-      if(helix->nPoints < 8){
-        chi2 = inf;
+      vector<Point> pointsOnHelix;
+      for(auto point : points){
+        Point q = helix->GetClosestPoint(point);
+        pointsOnHelix.push_back(q);
+        double d = q.distance(point);
+        chi2 += d*d;
       }
-      else{
-        for(auto point : points){
-          Point q = helix->GetClosestPoint(point);
-          double d = q.distance(point);
-          chi2 += d*d;
-        }
-        chi2 /= points.size();
-      }
+      chi2 /= points.size();
       
       if(helix->nPoints > maxNpoints){
         bestCircle = circle;
         maxNpoints = helix->nPoints;
         bestChi2 = chi2;
         bestHelix = move(helix);
-        bestHelix->chi2 = chi2;
-        bestHelix->tShift = circle.tShift;
       }
       else if(helix->nPoints == maxNpoints){
         if(chi2 < bestChi2){
           bestCircle = circle;
           bestChi2 = chi2;
           bestHelix = move(helix);
-          bestHelix->chi2 = chi2;
-          bestHelix->tShift = circle.tShift;
         }
       }
     }
