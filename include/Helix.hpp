@@ -39,6 +39,8 @@ public:
   
   vector<vector<Point>> SplitPointsIntoLines();
   
+  void CalculateNregularPoints(double zRegularityTolerance);
+  
   double thickness;
   double R,c,x0,y0,z0;
   int nPoints = 0;
@@ -50,6 +52,7 @@ public:
   int nCycles;
   int xSign, ySign;
   double px,py,pz;
+  int nRegularPoints = 0;
 };
 
 #endif /* Helix_hpp */

@@ -227,3 +227,35 @@ vector<vector<Point>> Helix::SplitPointsIntoLines()
   
   return pointsByLines;
 }
+
+void Helix::CalculateNregularPoints(double zRegularityTolerance)
+{
+  vector<vector<Point>> pointsByLine = SplitPointsIntoLines();
+  vector<double> possibleDistances;
+  
+  for(auto line : pointsByLine){
+    bool first=true;
+    for(auto p : line){
+      if(first){first=false;continue;}
+      possibleDistances.push_back(line[0].distance(p));
+    }
+  }
+  
+  nRegularPoints = 0;
+  
+  for(double testingDistance : possibleDistances){
+    int nPointsForDistance = 0;
+    
+    for(auto line : pointsByLine){
+      for(int n=0;n<20;n++){ // should just go till the edge of the pixel barrel
+        for(auto q : line){
+          if(fabs(q.distance(line[0])-n*testingDistance) < zRegularityTolerance){
+            nPointsForDistance++;
+          }
+        }
+      }
+    }
+    
+    if(nPointsForDistance > nRegularPoints) nRegularPoints = nPointsForDistance;
+  }
+}

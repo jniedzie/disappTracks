@@ -14,13 +14,13 @@
 #include "Display.hpp"
 
 // determines how far points can be from helix to be assigned to it (in mm)
-double helixThickness = 3.0;
+double helixThickness = 1.0;
 double stepPz = 0.5;
 double zRegularityTolerance = 1.0;
 
 bool injectPionHits = true;
-int nTests = 5;
-const char* outFileName = "tests.root";
+int nTests = 100;
+const char* outFileName = "signalHelices_new.root";
 
 // Parameters to tune
 double pionNturns = 5;    // How many turns the pion does (should be removed and it should just go until the end of the pixel barrel
@@ -90,14 +90,16 @@ void SetRandomTrack()
   trackPhi = -2.16;//RandDouble(0, 2*TMath::Pi());
 }
 
-bool AreHelicesIdentical(const unique_ptr<Helix> &h1, const unique_ptr<Helix> &h2)
+/// Checks if input and output helices are identical.
+/// \return Returns zero if identical, otherwise returns failure reason code
+int AreHelicesIdentical(const unique_ptr<Helix> &h1, const unique_ptr<Helix> &h2)
 {
-  if(fabs(h1->x0 - h2->x0) > toleranceX) return false;
-  if(fabs(h1->y0 - h2->y0) > toleranceY) return false;
-  if(fabs(h1->z0 - h2->z0) > toleranceZ) return false;
-  if(fabs(h1->R  - h2->R ) > toleranceR) return false;
-  if(fabs(h1->c  - h2->c ) > toleranceC) return false;
-  return true;
+  if(fabs(h1->x0 - h2->x0) > toleranceX) return 1;
+  if(fabs(h1->y0 - h2->y0) > toleranceY) return 2;
+  if(fabs(h1->z0 - h2->z0) > toleranceZ) return 3;
+  if(fabs(h1->R  - h2->R ) > toleranceR) return 4;
+  if(fabs(h1->c  - h2->c ) > toleranceC) return 5;
+  return 0;
 }
 
 double minR = GetRadiusInMagField(minPx, minPy, B);
@@ -109,8 +111,9 @@ double maxC = GetVectorSlopeC(maxPx, maxPy, maxPz);
 vector<tuple<const char*,int,double,double>> monitors1Dparams = {
   {"nPointsOnHelix",100 ,0,100},
   {"chi2ofHelix",   500 ,0,500},
-  {"nPionPoints",   1000,0,10 },
+  {"nPionPoints",   100, 0,1.2},
   {"nFakeHits",     1000,0,10 },
+  {"failReason",    10,  0,10 },
 };
 
 vector<tuple<const char*,int,double,double,int,double,double>> monitors2Dparams = {
@@ -179,7 +182,9 @@ int main(int argc, char* argv[])
     monitors1D["nPionPoints"]->Fill(bestHelix->nPionPoints/(double)pionHelix->nPionPoints);
     monitors1D["nFakeHits"]->Fill((bestHelix->nPoints-bestHelix->nPionPoints)/(double)bestHelix->nPoints);
     
-    if(AreHelicesIdentical(pionHelix, bestHelix)) nSuccess++;
+    int failureCode = AreHelicesIdentical(pionHelix, bestHelix);
+    if(!failureCode) nSuccess++;
+    else monitors1D["failReason"]->Fill(failureCode);
     
     cout<<"Pion helix:"<<endl;
     pionHelix->Print();
@@ -189,7 +194,7 @@ int main(int argc, char* argv[])
   
   // Plot the results
   TCanvas *c1 = new TCanvas("c1","c1",1280,1000);
-  c1->Divide(3,3);
+  c1->Divide(4,3);
   TFile *outFile = new TFile(outFileName,"recreate");
   outFile->cd();
   
@@ -355,40 +360,12 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
       double c = GetVectorSlopeC(circle.shiftVector.x, circle.shiftVector.y, pz);
       unique_ptr<Helix> helix = unique_ptr<Helix>(new Helix(c, circle, pionNturns, helixThickness));
       helix->CountMatchingPoints(points);
-      vector<vector<Point>> pointsByLine = helix->SplitPointsIntoLines();
+      helix->CalculateNregularPoints(zRegularityTolerance);
       
-      vector<double> possibleDistances;
-      
-      for(auto line : pointsByLine){
-        bool first=true;
-        for(auto p : line){
-          if(first){first=false;continue;}
-          possibleDistances.push_back(line[0].distance(p));
-        }
-      }
-      
-      int nRegularPoints = 0;
-      
-      for(double testingDistance : possibleDistances){
-        int nPointsForDistance = 0;
-        
-        for(auto line : pointsByLine){
-          for(int n=0;n<20;n++){ // should just go till the edge of the pixel barrel
-            for(auto q : line){
-              if(fabs(q.distance(line[0])-n*testingDistance) < zRegularityTolerance){
-                nPointsForDistance++;
-              }
-            }
-          }
-        }
-        
-        if(nPointsForDistance > nRegularPoints) nRegularPoints = nPointsForDistance;
-      }
-      
-      if(nRegularPoints <= maxNregularPoints) continue;
-      maxNregularPoints = nRegularPoints;
+      if(helix->nRegularPoints <= maxNregularPoints) continue;
+      maxNregularPoints = helix->nRegularPoints;
 
-      // If we reach till this point, save this solution as the best one sp far
+      // If we reach till this point, save this solution as the best one so far
       helix->pz = pz;
       bestHelix = move(helix);
     }
