@@ -15,6 +15,8 @@
 
 // determines how far points can be from helix to be assigned to it (in mm)
 double helixThickness = 3.0;
+double stepPz = 0.5;
+double zRegularityTolerance = 1.0;
 
 bool injectPionHits = true;
 int nTests = 5;
@@ -50,6 +52,8 @@ double decayR; // secondary vertex R (from 0,0,0) just somewhere between 3rd and
 double pionR;// = pionMomentum/B*0.3*10; // radius of the pion spiral in mm
 double pionC;  // helix slope in Z direction (should be properly calculated from momentum vector
 double pionCharge = 1;
+
+Point pionVector(0,0,0);
 
 // constants
 const double B = 3.7; // T
@@ -124,7 +128,6 @@ int main(int argc, char* argv[])
   // load hits from an event (could be replaced by random points)
 //  originalPixelPoints = LoadAllHits(297100, 136, 245000232);
   
-  
   map<string, TH1D*> monitors1D;
   map<string, TH2D*> monitors2D;
   
@@ -144,9 +147,11 @@ int main(int argc, char* argv[])
     SetRandomTrack();         // Randomly generate chargino's track
     FillRandomPoints(500);    // Randomly fill in pixel barrel with noise hits
     
-    Point pionVector(RandDouble(minPx, maxPx),
-                     RandDouble(minPy, maxPy),
-                     RandDouble(minPz, maxPz));
+    pionVector = Point(RandDouble(minPx, maxPx),
+                       RandDouble(minPy, maxPy),
+                       RandDouble(minPz, maxPz));
+    
+    cout<<"True pion momentum vector:"; pionVector.Print();
     
     pionR = GetRadiusInMagField(pionVector.x, pionVector.y, B);
     pionC = GetVectorSlopeC(pionVector.x, pionVector.y, pionVector.z);
@@ -340,44 +345,55 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
   }
   
   unique_ptr<Helix> bestHelix = unique_ptr<Helix>(new Helix());
-  Circle bestCircle(0,0,0);
-  int maxNpoints = 0;
-  double bestChi2 = 9999999;
+  int maxNregularPoints = 0;
   
   for(auto &circle : circles){
     vector<Point> points = circle.points;
     
-    for(double pz = maxPz; pz >= minPz ; pz-=1.0 ){
-      double c = GetVectorSlopeC(circle.shiftVector.x, circle.shiftVector.y, pz);
+    for(double pz = pionVector.z; pz >= pionVector.z ; pz-=stepPz ){
       
+      double c = GetVectorSlopeC(circle.shiftVector.x, circle.shiftVector.y, pz);
       unique_ptr<Helix> helix = unique_ptr<Helix>(new Helix(c, circle, pionNturns, helixThickness));
       helix->CountMatchingPoints(points);
+      vector<vector<Point>> pointsByLine = helix->SplitPointsIntoLines();
       
-      double chi2=0;
-      vector<Point> pointsOnHelix;
-      for(auto point : points){
-        Point q = helix->GetClosestPoint(point);
-        pointsOnHelix.push_back(q);
-        double d = q.distance(point);
-        chi2 += d*d;
-      }
-      chi2 /= points.size();
+      vector<double> possibleDistances;
       
-      if(helix->nPoints > maxNpoints){
-        bestCircle = circle;
-        maxNpoints = helix->nPoints;
-        bestChi2 = chi2;
-        bestHelix = move(helix);
-      }
-      else if(helix->nPoints == maxNpoints){
-        if(chi2 < bestChi2){
-          bestCircle = circle;
-          bestChi2 = chi2;
-          bestHelix = move(helix);
+      for(auto line : pointsByLine){
+        bool first=true;
+        for(auto p : line){
+          if(first){first=false;continue;}
+          possibleDistances.push_back(line[0].distance(p));
         }
       }
+      
+      int nRegularPoints = 0;
+      
+      for(double testingDistance : possibleDistances){
+        int nPointsForDistance = 0;
+        
+        for(auto line : pointsByLine){
+          for(int n=0;n<20;n++){ // should just go till the edge of the pixel barrel
+            for(auto q : line){
+              if(fabs(q.distance(line[0])-n*testingDistance) < zRegularityTolerance){
+                nPointsForDistance++;
+              }
+            }
+          }
+        }
+        
+        if(nPointsForDistance > nRegularPoints) nRegularPoints = nPointsForDistance;
+      }
+      
+      if(nRegularPoints <= maxNregularPoints) continue;
+      maxNregularPoints = nRegularPoints;
+
+      // If we reach till this point, save this solution as the best one sp far
+      helix->pz = pz;
+      bestHelix = move(helix);
     }
   }
+  
   return bestHelix;
 }
 

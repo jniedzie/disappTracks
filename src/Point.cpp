@@ -38,3 +38,9 @@ double Point::distance(Point p)
 {
   return sqrt(pow(x-p.x,2)+pow(y-p.y,2)+pow(z-p.z,2));
 }
+
+double Point::distanceXY(Point p)
+{
+  return sqrt(pow(x-p.x,2)+pow(y-p.y,2));
+}
+

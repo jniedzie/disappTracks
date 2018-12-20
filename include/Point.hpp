@@ -19,6 +19,7 @@ public:
   
   /// Returns distance between this and another point
   double distance(Point p);
+  double distanceXY(Point p);
   
   bool isPionHit = false;
   double x,y,z, val;

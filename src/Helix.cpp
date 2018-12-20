@@ -48,7 +48,8 @@ Helix::Helix(double _c, Circle circle, int _nCycles, double _thickness)
 
 void Helix::Print()
 {
-  cout<<"R:"<<R<<"\tc:"<<c<<"\toffset:("<<x0<<","<<y0<<","<<z0<<")\tnPoints:"<<nPoints<<"\tnPionPoints:"<<nPionPoints<<endl;
+  cout<<"R:"<<R<<"\tc:"<<c<<"\toffset:("<<x0<<","<<y0<<","<<z0<<")\tnPoints:"<<nPoints<<"\tnPionPoints:"<<nPionPoints;
+  cout<<"\tpz:"<<pz<<endl;
   
 }
 
@@ -70,6 +71,7 @@ void Helix::Shift(int charge)
 void Helix::ShiftByVector(Point v, int charge)
 {
   v = Point(charge * -v.y,charge * v.x, v.z); // take a vector perpendicular to the pion's momentum vector
+  pz = v.z;
   
   double vTransverseLength = sqrt(v.x*v.x+v.y*v.y);
   tShift = acos(-v.x/vTransverseLength);
@@ -157,6 +159,16 @@ Point Helix::GetClosestPoint(Point p)
     else        z -= absC*2*TMath::Pi();
   }
   
+  double currentDistanceZ = fabs(p.z-z);
+  
+  if(fabs(p.z-(z-absC*2*TMath::Pi())) < currentDistanceZ){
+    z -= absC*2*TMath::Pi();
+    currentDistanceZ = fabs(p.z-z);
+  }
+  else if(fabs(p.z-(z+absC*2*TMath::Pi())) < currentDistanceZ){
+    z += absC*2*TMath::Pi();
+  }
+  
   return Point(x,y,z);
 }
 
@@ -185,4 +197,33 @@ void Helix::CountMatchingPoints(const vector<Point> &points)
       this->points.push_back(p);
     }
   }
+}
+
+vector<vector<Point>> Helix::SplitPointsIntoLines()
+{
+  vector<vector<Point>> pointsByLines;
+  bool addedToExisting;
+  
+  for(Point p : points){
+    addedToExisting = false;
+    
+    // loop over existing lines and check if this point belongs to one of them
+    for(vector<Point> &line : pointsByLines){
+      // if distance to this line is small enough, just add the point to this line and go to next point
+      if(line[0].distanceXY(p) < 10){
+        line.push_back(p);
+        addedToExisting = true;
+        break;
+      }
+    }
+    if(addedToExisting) continue;
+    
+    // If the point was not added to any line, create a new line for it
+    vector<Point> line;
+    line.push_back(p);
+    sort(line.begin(), line.end(),[](Point i1, Point i2){return i1.z < i2.z;});
+    pointsByLines.push_back(line);
+  }
+  
+  return pointsByLines;
 }

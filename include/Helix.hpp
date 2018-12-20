@@ -37,6 +37,8 @@ public:
   
   void CountMatchingPoints(const vector<Point> &points);
   
+  vector<vector<Point>> SplitPointsIntoLines();
+  
   double thickness;
   double R,c,x0,y0,z0;
   int nPoints = 0;
@@ -47,6 +49,7 @@ public:
   double chi2 = inf;
   int nCycles;
   int xSign, ySign;
+  double px,py,pz;
 };
 
 #endif /* Helix_hpp */

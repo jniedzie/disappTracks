@@ -42,11 +42,14 @@
 #include <TEveGeoShape.h>
 #include <TF3.h>
 #include <TH3F.h>
+#include <TLine.h>
 
 #include <vector>
 #include <iostream>
 #include <map>
 #include <numeric>
+#include <algorithm>
+#include <memory>
 #include <variant>
 #include <any>
 
@@ -484,6 +487,5 @@ inline double GetVectorSlopeC(double px, double py, double pz)
 {
   return tan(TMath::Pi()/2.-acos(pz/sqrt(px*px+py*py+pz*pz)));
 }
-
 
 #endif /* Helpers_h */

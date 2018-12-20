@@ -155,7 +155,8 @@ int main(int argc, char* argv[])
   // Calculate and draw points along the helix that hit the silicon
   vector<Point> pionPoints = pionHelix.GetPointsHittingSilicon();
   for(auto &p : pionPoints){p.isPionHit = true;}
-  pionHelix.nPionPoints = pionHelix.nPoints = (int)pionPoints.size();
+  pionHelix.points = pionPoints;
+  pionHelix.CountMatchingPoints(pionPoints);
   display->DrawSimplePoints(pionPoints, pionPointsOptions);
   
   // inject hits from pion into all points in the tracker
