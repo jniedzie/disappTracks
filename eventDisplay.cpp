@@ -10,6 +10,8 @@ bool showStipClusters = false;
 
  // determines how far points can be from helix to be assigned to it (in mm)
 double helixThickness = 3.0;
+const double stepPz = 0.5;
+const double zRegularityTolerance = 1.0;
 
 // constants
 double B = 3.7; // T
@@ -148,7 +150,7 @@ int main(int argc, char* argv[])
   
   // Draw true pion helix
   Point pionHelixCenter(decayX,decayY,decayZ);
-  Helix pionHelix(pionR,pionC,pionHelixCenter,pionNturns, helixThickness);
+  Helix pionHelix(pionR,pionC,pionHelixCenter, helixThickness);
   pionHelix.ShiftByVector(pionVector, pionCharge); // shift helix to start in the decay point
   display->DrawHelix(pionHelix,helixOptions);
   
@@ -323,41 +325,39 @@ int main(int argc, char* argv[])
   double bestChi2 = 9999999;
   vector<Point> bestPointsOnHelix;
   
+  int maxNregularPoints = 0;
+  double maxFractionRegularPoints = 0;
+  
   for(auto &circle : circles){
     vector<Point> points = circle.points;
     
-    for(double pz = maxPz; pz >= minPz ; pz-=1.0 ){
+    for(double pz = maxPz; pz >= minPz ; pz-=stepPz ){
+      
       double c = GetVectorSlopeC(circle.shiftVector.x, circle.shiftVector.y, pz);
       
       Helix helix(c, circle, pionNturns, helixThickness);
       helix.CountMatchingPoints(points);
+      helix.CalculateNregularPoints(zRegularityTolerance);
       
-      double chi2=0;
-      vector<Point> pointsOnHelix;
-      for(auto point : points){
-        Point q = helix.GetClosestPoint(point);
-        pointsOnHelix.push_back(q);
-        double d = q.distance(point);
-        chi2 += d*d;
-      }
-      chi2 /= points.size();
+      int nRegularPoints = helix.nRegularPoints;
+      double fractionRegularPoints = nRegularPoints/(double)helix.nPoints;
       
-      if(helix.nPoints > maxNpoints){
-        bestCircle = circle;
-        maxNpoints = helix.nPoints;
-        bestChi2 = chi2;
-        bestHelix = helix;
-        bestPointsOnHelix = pointsOnHelix;
+      if(nRegularPoints < maxNregularPoints) continue;
+      else if(nRegularPoints == maxNregularPoints){
+        if(fractionRegularPoints - maxFractionRegularPoints < 0.001) continue;
       }
-      else if(helix.nPoints == maxNpoints){
-        if(chi2 < bestChi2){
-          bestCircle = circle;
-          bestChi2 = chi2;
-          bestHelix = helix;
-          bestPointsOnHelix = pointsOnHelix;
-        }
-      }
+      
+      // If we reach till this point, save this solution as the best one so far
+      helix.pz = pz;
+      maxNregularPoints = nRegularPoints;
+      maxFractionRegularPoints = fractionRegularPoints;
+      
+      bestCircle = circle;
+      maxNpoints = helix.nPoints;
+      bestHelix = helix;
+      bestPointsOnHelix = helix.points;
     }
+    
   }
   
   map<string,any> bestHelixOptions = {

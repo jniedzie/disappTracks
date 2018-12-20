@@ -13,14 +13,17 @@
 #include "Fitter.hpp"
 #include "Display.hpp"
 
-// determines how far points can be from helix to be assigned to it (in mm)
-double helixThickness = 1.0;
-double stepPz = 0.5;
-double zRegularityTolerance = 1.0;
 
+// Tunable parameters of the algorithm
+const double helixThickness = 1.0;  // determines how far points can be from helix to be assigned to it (in mm)
+const double stepPz = 0.5;
+const double zRegularityTolerance = 1.0;
+const int minNpointsAlongZ = 2; // minimum number of hits for each line parallel to Z axis
+
+// Settings
 bool injectPionHits = true;
-int nTests = 100;
-const char* outFileName = "signalHelices_new.root";
+int nTests = 5;
+const char* outFileName = "tests.root";
 
 // Parameters to tune
 double pionNturns = 5;    // How many turns the pion does (should be removed and it should just go until the end of the pixel barrel
@@ -36,7 +39,7 @@ double maxPz = 250;
 double minL   = layerR[2]; // minimum on the surface of 3rd layer
 double maxL   = layerR[3]; // maximum on the surface of 4th layer
 
-int minNpointsAlongZ = 2; // minimum number of hits for each line parallel to Z axis
+
 
 // Conditinos to accept fitted helix as a proper solution
 const double toleranceR = 10; // mm
@@ -92,14 +95,17 @@ void SetRandomTrack()
 
 /// Checks if input and output helices are identical.
 /// \return Returns zero if identical, otherwise returns failure reason code
-int AreHelicesIdentical(const unique_ptr<Helix> &h1, const unique_ptr<Helix> &h2)
+vector<int> AreHelicesIdentical(const unique_ptr<Helix> &h1, const unique_ptr<Helix> &h2)
 {
-  if(fabs(h1->x0 - h2->x0) > toleranceX) return 1;
-  if(fabs(h1->y0 - h2->y0) > toleranceY) return 2;
-  if(fabs(h1->z0 - h2->z0) > toleranceZ) return 3;
-  if(fabs(h1->R  - h2->R ) > toleranceR) return 4;
-  if(fabs(h1->c  - h2->c ) > toleranceC) return 5;
-  return 0;
+  vector<int> reasons;
+  
+  if(fabs(h1->x0 - h2->x0) > toleranceX) reasons.push_back(1);
+  if(fabs(h1->y0 - h2->y0) > toleranceY) reasons.push_back(2);
+  if(fabs(h1->z0 - h2->z0) > toleranceZ) reasons.push_back(3);
+  if(fabs(h1->R  - h2->R ) > toleranceR) reasons.push_back(4);
+  if(fabs(h1->c  - h2->c ) > toleranceC) reasons.push_back(5);
+  
+  return reasons;
 }
 
 double minR = GetRadiusInMagField(minPx, minPy, B);
@@ -182,9 +188,11 @@ int main(int argc, char* argv[])
     monitors1D["nPionPoints"]->Fill(bestHelix->nPionPoints/(double)pionHelix->nPionPoints);
     monitors1D["nFakeHits"]->Fill((bestHelix->nPoints-bestHelix->nPionPoints)/(double)bestHelix->nPoints);
     
-    int failureCode = AreHelicesIdentical(pionHelix, bestHelix);
-    if(!failureCode) nSuccess++;
-    else monitors1D["failReason"]->Fill(failureCode);
+    vector<int> failureCodes = AreHelicesIdentical(pionHelix, bestHelix);
+    if(failureCodes.size()==0) nSuccess++;
+    else{
+      for(int f : failureCodes) monitors1D["failReason"]->Fill(f);
+    }
     
     cout<<"Pion helix:"<<endl;
     pionHelix->Print();
@@ -351,23 +359,31 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
   
   unique_ptr<Helix> bestHelix = unique_ptr<Helix>(new Helix());
   int maxNregularPoints = 0;
+  double maxFractionRegularPoints = 0;
   
   for(auto &circle : circles){
     vector<Point> points = circle.points;
     
-    for(double pz = pionVector.z; pz >= pionVector.z ; pz-=stepPz ){
+    for(double pz = maxPz; pz >= minPz ; pz-=stepPz ){
       
       double c = GetVectorSlopeC(circle.shiftVector.x, circle.shiftVector.y, pz);
       unique_ptr<Helix> helix = unique_ptr<Helix>(new Helix(c, circle, pionNturns, helixThickness));
       helix->CountMatchingPoints(points);
       helix->CalculateNregularPoints(zRegularityTolerance);
       
-      if(helix->nRegularPoints <= maxNregularPoints) continue;
-      maxNregularPoints = helix->nRegularPoints;
+      int nRegularPoints = helix->nRegularPoints;
+      double fractionRegularPoints = nRegularPoints/(double)helix->nPoints;
+      
+      if(nRegularPoints < maxNregularPoints) continue;
+      else if(nRegularPoints == maxNregularPoints){
+        if(fractionRegularPoints - maxFractionRegularPoints < 0.001) continue;
+      }
 
       // If we reach till this point, save this solution as the best one so far
       helix->pz = pz;
       bestHelix = move(helix);
+      maxNregularPoints = nRegularPoints;
+      maxFractionRegularPoints = fractionRegularPoints;
     }
   }
   
