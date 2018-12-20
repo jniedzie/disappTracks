@@ -97,16 +97,6 @@ const double maxClusterSize = 100;
 
 vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber);
 
-double GetRadiusInMagField(double px, double py, double B)
-{
-  return sqrt(pow(px,2)+pow(py,2))/(B*3)*10;
-}
-
-double GetVectorSlopeC(double px, double py, double pz)
-{
-  return tan(TMath::Pi()/2.-acos(pz/sqrt(px*px+py*py+pz*pz)));
-}
-
 double pionR = GetRadiusInMagField(pionVector.x, pionVector.y, B); // radius of the pion spiral in mm
 double pionC = GetVectorSlopeC(pionVector.x, pionVector.y, pionVector.z);  // helix slope in Z direction
   
@@ -159,7 +149,6 @@ int main(int argc, char* argv[])
   // Draw true pion helix
   Point pionHelixCenter(decayX,decayY,decayZ);
   Helix pionHelix(pionR,pionC,pionHelixCenter,pionNturns, helixThickness);
-//  pionHelix.Shift(pionCharge); // shift helix to start in the decay point
   pionHelix.ShiftByVector(pionVector, pionCharge); // shift helix to start in the decay point
   display->DrawHelix(pionHelix,helixOptions);
   
@@ -336,7 +325,7 @@ int main(int argc, char* argv[])
   for(auto &circle : circles){
     vector<Point> points = circle.points;
     
-    for(double pz = pionVector.z; pz >= pionVector.z ; pz-=1.0 ){
+    for(double pz = maxPz; pz >= minPz ; pz-=1.0 ){
       double c = GetVectorSlopeC(circle.shiftVector.x, circle.shiftVector.y, pz);
       
       Helix helix(c, circle, pionNturns, helixThickness);

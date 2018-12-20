@@ -475,7 +475,15 @@ private:
 };
 
 
+inline double GetRadiusInMagField(double px, double py, double B)
+{
+  return sqrt(pow(px,2)+pow(py,2))/(B*3)*10;
+}
 
+inline double GetVectorSlopeC(double px, double py, double pz)
+{
+  return tan(TMath::Pi()/2.-acos(pz/sqrt(px*px+py*py+pz*pz)));
+}
 
 
 #endif /* Helpers_h */

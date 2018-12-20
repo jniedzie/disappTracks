@@ -17,17 +17,20 @@
 double helixThickness = 3.0;
 
 bool injectPionHits = true;
-int nTests = 100;
-const char* outFileName = "signalFitterResults.root";
+int nTests = 5;
+const char* outFileName = "tests.root";
 
 // Parameters to tune
 double pionNturns = 5;    // How many turns the pion does (should be removed and it should just go until the end of the pixel barrel
 
-// Pion helix limits (distances in mm):
-double minR   = 25; // can't be smaller than the minimum to reach 2 different layers. Physically, from pion momentum it should be around 130 mm
-double maxR   = 200;
-double minC   = 3; // Fitter could try to make it very small, to gahter some additional points by chance while still fitting perfectly the real pion hits. This should be given more attention later...
-double maxC   = 70;
+double minPx = 50;
+double minPy = 50;
+double minPz = 50;
+
+double maxPx = 250;
+double maxPy = 250;
+double maxPz = 250;
+
 double minL   = layerR[2]; // minimum on the surface of 3rd layer
 double maxL   = layerR[3]; // maximum on the surface of 4th layer
 
@@ -35,7 +38,7 @@ int minNpointsAlongZ = 2; // minimum number of hits for each line parallel to Z 
 
 // Conditinos to accept fitted helix as a proper solution
 const double toleranceR = 10; // mm
-const double toleranceC = 1;
+const double toleranceC = 0.1;
 const double toleranceX = 10; // mm
 const double toleranceY = 10; // mm
 const double toleranceZ = 10; // mm
@@ -93,6 +96,27 @@ bool AreHelicesIdentical(const unique_ptr<Helix> &h1, const unique_ptr<Helix> &h
   return true;
 }
 
+double minR = GetRadiusInMagField(minPx, minPy, B);
+double maxR = GetRadiusInMagField(maxPx, maxPy, B);
+
+double minC = GetVectorSlopeC(minPx, minPy, minPz);
+double maxC = GetVectorSlopeC(maxPx, maxPy, maxPz);
+
+vector<tuple<const char*,int,double,double>> monitors1Dparams = {
+  {"nPointsOnHelix",100 ,0,100},
+  {"chi2ofHelix",   500 ,0,500},
+  {"nPionPoints",   1000,0,10 },
+  {"nFakeHits",     1000,0,10 },
+};
+
+vector<tuple<const char*,int,double,double,int,double,double>> monitors2Dparams = {
+  {"radiusResponse",100,minR,maxR,100,minR,maxR},
+  {"cResponse",     100,minC,maxC,100,minC,maxC},
+  {"xResponse",     500,-250,250, 500,-250,250 },
+  {"yResponse",     500,-250,250, 500,-250,250 },
+  {"zResponse",     500,-250,250, 500,-250,250 },
+};
+
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
@@ -100,34 +124,19 @@ int main(int argc, char* argv[])
   // load hits from an event (could be replaced by random points)
 //  originalPixelPoints = LoadAllHits(297100, 136, 245000232);
   
-  TH2D *radiusResponse = new TH2D("radiusResponse","radiusResponse",100,minR,maxR,100,minR,maxR);
-  radiusResponse->GetXaxis()->SetTitle("R_{true}");
-  radiusResponse->GetYaxis()->SetTitle("R_{fit}");
   
-  TH2D *cResponse = new TH2D("cResponse","cResponse",100,minC,maxC,100,minC,maxC);
-  cResponse->GetXaxis()->SetTitle("c_{true}");
-  cResponse->GetYaxis()->SetTitle("c_{fit}");
+  map<string, TH1D*> monitors1D;
+  map<string, TH2D*> monitors2D;
   
-  TH2D *xResponse = new TH2D("xResponse","xResponse",500,-250,250,500,-250,250);
-  xResponse->GetXaxis()->SetTitle("x_{true}");
-  xResponse->GetYaxis()->SetTitle("x_{fit}");
+  for(auto params : monitors1Dparams){
+    monitors1D[get<0>(params)] = new TH1D(get<0>(params),get<0>(params),get<1>(params),get<2>(params),get<3>(params));
+  }
   
-  TH2D *yResponse = new TH2D("yResponse","yResponse",500,-250,250,500,-250,250);
-  yResponse->GetXaxis()->SetTitle("y_{true}");
-  yResponse->GetYaxis()->SetTitle("y_{fit}");
-  
-  TH2D *zResponse = new TH2D("zResponse","zResponse",500,-500,500,500,-500,500);
-  zResponse->GetXaxis()->SetTitle("z_{true}");
-  zResponse->GetYaxis()->SetTitle("z_{fit}");
-  
-  TH1D *nPointsOnHelix = new TH1D("nPointsOnHelix","nPointsOnHelix",100,0,100);
-  nPointsOnHelix->GetXaxis()->SetTitle("N point on helix");
-  
-  TH1D *chi2ofHelix = new TH1D("chi2ofHelix","chi2ofHelix",500,0,500);
-  chi2ofHelix->GetXaxis()->SetTitle("Chi2");
-  
-  TH1D *nPionPoints = new TH1D("nPionPoints","nPionPoints",1000,0,10);
-  nPionPoints->GetXaxis()->SetTitle("N_{fit}/N_{true}");
+  for(auto params : monitors2Dparams){
+    monitors2D[get<0>(params)] = new TH2D(get<0>(params),get<0>(params),
+                                          get<1>(params),get<2>(params),get<3>(params),
+                                          get<4>(params),get<5>(params),get<6>(params));
+  }
   
   int nSuccess = 0;
   
@@ -135,8 +144,12 @@ int main(int argc, char* argv[])
     SetRandomTrack();         // Randomly generate chargino's track
     FillRandomPoints(500);    // Randomly fill in pixel barrel with noise hits
     
-    pionR = RandDouble(minR, maxR);
-    pionC = RandDouble(minC, maxC);
+    Point pionVector(RandDouble(minPx, maxPx),
+                     RandDouble(minPy, maxPy),
+                     RandDouble(minPz, maxPz));
+    
+    pionR = GetRadiusInMagField(pionVector.x, pionVector.y, B);
+    pionC = GetVectorSlopeC(pionVector.x, pionVector.y, pionVector.z);
     decayR = RandDouble(minL, maxL);
     cout<<"R iter:"<<i<<"\tR:"<<pionR<<"\tc:"<<pionC<<"\tdecayR:"<<decayR<<endl;
     
@@ -147,18 +160,19 @@ int main(int argc, char* argv[])
     
     Point pionHelixCenter(decayX,decayY,decayZ);
     unique_ptr<Helix> pionHelix = unique_ptr<Helix>(new Helix(pionR,pionC,pionHelixCenter,pionNturns, helixThickness));
-    pionHelix->Shift(pionCharge); // shift helix to start in the decay point
+    pionHelix->ShiftByVector(pionVector, pionCharge);
     
     unique_ptr<Helix> bestHelix = GetBestFittingHelix(pionHelix);
     
-    radiusResponse->Fill(pionHelix->R, bestHelix->R);
-    cResponse->Fill(pionHelix->c, bestHelix->c);
-    xResponse->Fill(pionHelix->x0, bestHelix->x0);
-    yResponse->Fill(pionHelix->y0, bestHelix->y0);
-    zResponse->Fill(pionHelix->z0, bestHelix->z0);
-    nPointsOnHelix->Fill(bestHelix->nPoints);
-    chi2ofHelix->Fill(bestHelix->chi2 < 500 ? bestHelix->chi2 : 499);
-    nPionPoints->Fill(bestHelix->nPionPoints/(double)pionHelix->nPionPoints);
+    monitors2D["radiusResponse"]->Fill(pionHelix->R, bestHelix->R);
+    monitors2D["cResponse"]->Fill(pionHelix->c, bestHelix->c);
+    monitors2D["xResponse"]->Fill(pionHelix->x0, bestHelix->x0);
+    monitors2D["yResponse"]->Fill(pionHelix->y0, bestHelix->y0);
+    monitors2D["zResponse"]->Fill(pionHelix->z0, bestHelix->z0);
+    monitors1D["nPointsOnHelix"]->Fill(bestHelix->nPoints);
+    monitors1D["chi2ofHelix"]->Fill(bestHelix->chi2 < 500 ? bestHelix->chi2 : 499);
+    monitors1D["nPionPoints"]->Fill(bestHelix->nPionPoints/(double)pionHelix->nPionPoints);
+    monitors1D["nFakeHits"]->Fill((bestHelix->nPoints-bestHelix->nPionPoints)/(double)bestHelix->nPoints);
     
     if(AreHelicesIdentical(pionHelix, bestHelix)) nSuccess++;
     
@@ -171,33 +185,21 @@ int main(int argc, char* argv[])
   // Plot the results
   TCanvas *c1 = new TCanvas("c1","c1",1280,1000);
   c1->Divide(3,3);
-  c1->cd(1);
-  radiusResponse->Draw("colz");
-  c1->cd(2);
-  cResponse->Draw("colz");
-  c1->cd(3);
-  xResponse->Draw("colz");
-  c1->cd(4);
-  yResponse->Draw("colz");
-  c1->cd(5);
-  zResponse->Draw("colz");
-  c1->cd(6);
-  nPointsOnHelix->Draw();
-  c1->cd(7);
-  chi2ofHelix->Draw();
-  c1->cd(8);
-  nPionPoints->Draw();
-  
   TFile *outFile = new TFile(outFileName,"recreate");
   outFile->cd();
-  radiusResponse->Write();
-  cResponse->Write();
-  xResponse->Write();
-  yResponse->Write();
-  zResponse->Write();
-  nPointsOnHelix->Write();
-  chi2ofHelix->Write();
-  nPionPoints->Write();
+  
+  int i=1;
+  for(auto &[title, hist] : monitors2D){
+    c1->cd(i++);
+    hist->Draw("colz");
+    hist->Write();
+  }
+
+  for(auto &[title, hist] : monitors1D){
+    c1->cd(i++);
+    hist->Draw();
+    hist->Write();
+  }
   outFile->Close();
   
   cout<<"Percentage of successful fits:"<<nSuccess/(double)nTests<<endl;
@@ -253,9 +255,10 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
   }
   
   // Create fitter to fit circles to 2D distribution
-  unique_ptr<Fitter> fitter = unique_ptr<Fitter>(new Fitter(2));
+  unique_ptr<Fitter> fitter = unique_ptr<Fitter>(new Fitter(3));
   fitter->SetParameter(0, "L", (maxL+minL)/2., minL-helixThickness, maxL+helixThickness);
-  fitter->SetParameter(1, "R", (maxR+minR)/2., minR, maxR);
+  fitter->SetParameter(1, "px", (maxPx-minPx)/2., minPx, maxPx);
+  fitter->SetParameter(2, "py", (maxPy-minPy)/2., minPy, maxPy);
   
   // Store fitted circles for each triplet of points
   vector<Circle> circles;
@@ -270,13 +273,16 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
           double f = 0;
           
           double L = par[0];
-          double R  = par[1];
+          double px = par[1];
+          double py = par[2];
+          double R = GetRadiusInMagField(px,py,B);
           
           double x0 = L*sin(trackTheta)*cos(trackPhi);
           double y0 = L*sin(trackTheta)*sin(trackPhi);
           
+          Point v(px,py,0);
           Circle c(x0,y0,R);
-          c.Shift();
+          c.ShiftByVector(v,pionCharge);
           
           double xa = points2D[i].first;
           double ya = points2D[i].second;
@@ -297,14 +303,17 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
           auto result = fitter->GetResult();
           
           double L = result.GetParams()[0];
-          double R  = result.GetParams()[1];
+          double px = result.GetParams()[1];
+          double py = result.GetParams()[2];
+          double R = GetRadiusInMagField(px,py,B);
           
           double x0 = L*sin(trackTheta)*cos(trackPhi);
           double y0 = L*sin(trackTheta)*sin(trackPhi);
           double z0 = L*cos(trackTheta);
           
+          Point v(px,py,0);
           Circle circle(x0,y0,R);
-          circle.Shift();
+          circle.ShiftByVector(v,pionCharge);
           circle.z = z0;
           
           if(circle.GetNbinsOverlappingWithHist(pointsXY) > 3) circles.push_back(circle);
@@ -338,7 +347,9 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
   for(auto &circle : circles){
     vector<Point> points = circle.points;
     
-    for(double c=maxC;c>=minC;c-=0.1){
+    for(double pz = maxPz; pz >= minPz ; pz-=1.0 ){
+      double c = GetVectorSlopeC(circle.shiftVector.x, circle.shiftVector.y, pz);
+      
       unique_ptr<Helix> helix = unique_ptr<Helix>(new Helix(c, circle, pionNturns, helixThickness));
       helix->CountMatchingPoints(points);
       
