@@ -14,23 +14,23 @@ momentum(make_unique<Point>(*_momentum)),
 charge(_charge),
 thickness(_thickness)
 {
-  radius = GetRadiusInMagField(momentum->x, momentum->y, solenoidField);
+  radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
   
   // take a vector perpendicular to the pion's momentum vector
-  Point v = Point(charge * -momentum->y,charge * momentum->x, momentum->z);
+  Point v = Point(charge * -momentum->GetY(),charge * momentum->GetX(), momentum->GetZ());
   
-  double vTransverseLength = sqrt(v.x*v.x+v.y*v.y);
-  tShift = acos(-v.x/vTransverseLength);
+  double vTransverseLength = sqrt(pow(v.GetX(),2)+pow(v.GetY(),2));
+  tShift = acos(-v.GetX()/vTransverseLength);
   double scale = radius/vTransverseLength;
   
   center = make_unique<Point>(*decayPoint);
-  center->x += scale*v.x;
-  center->y += scale*v.y;
+  center->SetX(center->GetX() + scale*v.GetX());
+  center->SetY(center->GetY() + scale*v.GetY());
 }
 
 void Circle::Print()
 {
-  cout<<"Circle center ("<<center->x<<","<<center->y<<")\tR:"<<radius<<endl;
+  cout<<"Circle center ("<<center->GetX()<<","<<center->GetY()<<")\tR:"<<radius<<endl;
 }
 
 int Circle::GetNbinsOverlappingWithHist(TH2D *hist)
@@ -44,7 +44,7 @@ int Circle::GetNbinsOverlappingWithHist(TH2D *hist)
     }
   }
   for(double t=0;t<2*TMath::Pi();t+=0.01){
-    circle->Fill(center->x + radius*cos(t),center->y + radius*sin(t));
+    circle->Fill(center->GetX() + radius*cos(t),center->GetY() + radius*sin(t));
   }
   
   for(int binX=0;binX<circle->GetNbinsX();binX++){
@@ -60,10 +60,10 @@ int Circle::GetNbinsOverlappingWithHist(TH2D *hist)
 
 double Circle::GetDistanceToPoint(Point p)
 {
-  double t = atan2(p.y-center->y, p.x-center->x);
-  double x = radius*cos(t) + center->x;
-  double y = radius*sin(t) + center->y;
-  return sqrt(pow(p.x-x,2)+pow(p.y-y,2));
+  double t = atan2(p.GetY()-center->GetY(), p.GetX()-center->GetX());
+  double x = radius*cos(t) + center->GetX();
+  double y = radius*sin(t) + center->GetY();
+  return sqrt(pow(p.GetX()-x,2)+pow(p.GetY()-y,2));
 }
 
 void Circle::SetPoints(vector<Point> _points)
@@ -76,6 +76,6 @@ void Circle::SetPoints(vector<Point> _points)
 
 TArc* Circle::GetArc()
 {
-  return new TArc(center->x,center->y,radius);
+  return new TArc(center->GetX(),center->GetY(),radius);
 }
 

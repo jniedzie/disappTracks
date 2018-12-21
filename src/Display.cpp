@@ -21,7 +21,7 @@ void Display::DrawSimplePoints(vector<Point> points, const map<string,any> optio
   TEvePointSetArray *simplePoints = PreparePointsEventDisplay(options);
   
   for(auto p : points){
-    simplePoints->Fill(scale*p.x,scale*p.y,scale*p.z, p.val);
+    simplePoints->Fill(scale*p.GetX(),scale*p.GetY(),scale*p.GetZ(), p.GetValue());
   }
   
   simplePoints->SetRnrSelf(kTRUE);
@@ -34,9 +34,9 @@ void Display::DrawHelix(const unique_ptr<Helix> &helix, const map<string,any> op
   TEvePointSetArray *helixPoints = PreparePointsEventDisplay(options);
   
   for(double t=-helix->GetToffset();t<helix->nCycles*2*TMath::Pi();t+=0.01){
-    double x = helix->GetRadius()*cos(t) + helix->GetOrigin()->x;
-    double y = helix->GetRadius()*sin(t) + helix->GetOrigin()->y;
-    double z = helix->GetSlope()*t       + helix->GetOrigin()->z;
+    double x = helix->GetRadius()*cos(t) + helix->GetOrigin()->GetX();
+    double y = helix->GetRadius()*sin(t) + helix->GetOrigin()->GetY();
+    double z = helix->GetSlope()*t       + helix->GetOrigin()->GetZ();
     
     helixPoints->Fill(scale*x,scale*y,scale*z, 0);
   }

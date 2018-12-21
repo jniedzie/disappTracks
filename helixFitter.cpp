@@ -94,9 +94,9 @@ vector<int> AreHelicesIdentical(const unique_ptr<Helix> &h1, const unique_ptr<He
 {
   vector<int> reasons;
   
-  if(fabs(h1->GetOrigin()->x - h2->GetOrigin()->x) > toleranceX) reasons.push_back(1);
-  if(fabs(h1->GetOrigin()->y - h2->GetOrigin()->y) > toleranceY) reasons.push_back(2);
-  if(fabs(h1->GetOrigin()->z - h2->GetOrigin()->z) > toleranceZ) reasons.push_back(3);
+  if(fabs(h1->GetOrigin()->GetX() - h2->GetOrigin()->GetX()) > toleranceX) reasons.push_back(1);
+  if(fabs(h1->GetOrigin()->GetY() - h2->GetOrigin()->GetY()) > toleranceY) reasons.push_back(2);
+  if(fabs(h1->GetOrigin()->GetZ() - h2->GetOrigin()->GetZ()) > toleranceZ) reasons.push_back(3);
   if(fabs(h1->GetRadius()    - h2->GetRadius()   ) > toleranceR) reasons.push_back(4);
   if(fabs(h1->GetSlope()     - h2->GetSlope()    ) > toleranceC) reasons.push_back(5);
   
@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
     
     cout<<"True pion momentum vector:"; pionVector->Print();
     
-    pionR = GetRadiusInMagField(pionVector->x, pionVector->y, solenoidField);
+    pionR = GetRadiusInMagField(pionVector->GetX(), pionVector->GetY(), solenoidField);
     pionC = pionVector->GetVectorSlopeC();
     decayR = RandDouble(minL, maxL);
     cout<<"R iter:"<<i<<"\tR:"<<pionR<<"\tc:"<<pionC<<"\tdecayR:"<<decayR<<endl;
@@ -178,12 +178,12 @@ int main(int argc, char* argv[])
     
     monitors2D["radiusResponse"]->Fill(pionHelix->GetRadius(), bestHelix->GetRadius());
     monitors2D["cResponse"]->Fill(pionHelix->GetSlope(), bestHelix->GetSlope());
-    monitors2D["xResponse"]->Fill(pionHelix->GetOrigin()->x, bestHelix->GetOrigin()->x);
-    monitors2D["yResponse"]->Fill(pionHelix->GetOrigin()->y, bestHelix->GetOrigin()->y);
-    monitors2D["zResponse"]->Fill(pionHelix->GetOrigin()->z, bestHelix->GetOrigin()->z);
-    monitors2D["pxResponse"]->Fill(pionVector->x, bestHelix->GetMomentum()->x);
-    monitors2D["pyResponse"]->Fill(pionVector->y, bestHelix->GetMomentum()->y);
-    monitors2D["pzResponse"]->Fill(pionVector->z, bestHelix->GetMomentum()->z);
+    monitors2D["xResponse"]->Fill(pionHelix->GetOrigin()->GetX(), bestHelix->GetOrigin()->GetX());
+    monitors2D["yResponse"]->Fill(pionHelix->GetOrigin()->GetY(), bestHelix->GetOrigin()->GetY());
+    monitors2D["zResponse"]->Fill(pionHelix->GetOrigin()->GetZ(), bestHelix->GetOrigin()->GetZ());
+    monitors2D["pxResponse"]->Fill(pionVector->GetX(), bestHelix->GetMomentum()->GetX());
+    monitors2D["pyResponse"]->Fill(pionVector->GetY(), bestHelix->GetMomentum()->GetY());
+    monitors2D["pzResponse"]->Fill(pionVector->GetZ(), bestHelix->GetMomentum()->GetZ());
     monitors1D["nPointsOnHelix"]->Fill(bestHelix->GetNpoints());
     monitors1D["chi2ofHelix"]->Fill(bestHelix->GetChi2() < 50 ? bestHelix->GetChi2() : 49);
     monitors1D["nPionPoints"]->Fill(bestHelix->GetNpionPoints()/(double)pionHelix->GetNpionPoints());
@@ -232,7 +232,7 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
 {
   // Calculate points along the helix that hit the silicon and inject them into all points in the tracker
   vector<Point> pionPoints = pionHelix->GetPointsHittingSilicon();
-  for(auto &p : pionPoints){p.isPionHit = true;}
+  for(auto &p : pionPoints){p.SetIsPionHit(true);}
   pionHelix->SetPoints(pionPoints);
   vector<Point> allSimplePoints = originalPixelPoints;
   if(injectPionHits) allSimplePoints.insert(allSimplePoints.end(),pionPoints.begin(), pionPoints.end());
@@ -245,8 +245,8 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
     // TODO: Here I use truth info to remove some htis -> should be independent of pionHelix and decay point params!!!
     // --------------------------------
     
-    if((pionHelix->GetOrigin()->z > 0 && p.z < (pionHelix->GetOrigin()->z - helixThickness)) || // remove wrong Z points
-       (pionHelix->GetOrigin()->z <=0 && p.z > (pionHelix->GetOrigin()->z + helixThickness))){
+    if((pionHelix->GetOrigin()->GetZ() > 0 && p.GetZ() < (pionHelix->GetOrigin()->GetZ() - helixThickness)) || // remove wrong Z points
+       (pionHelix->GetOrigin()->GetZ() <=0 && p.GetZ() > (pionHelix->GetOrigin()->GetZ() + helixThickness))){
       allSimplePoints.erase(allSimplePoints.begin()+i);
       i--;
     }
@@ -257,7 +257,7 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
   plotIter++;
   pointsXY->GetXaxis()->SetTitle("X");
   pointsXY->GetYaxis()->SetTitle("Y");
-  for(auto point : allSimplePoints){pointsXY->Fill(point.x,point.y);}
+  for(auto point : allSimplePoints){pointsXY->Fill(point.GetX(),point.GetY());}
   
   vector<Point> points2D;
   
@@ -352,7 +352,7 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
     
     for(double pz = maxPz; pz >= minPz ; pz-=stepPz ){
       
-      double c = Point(circle->GetMomentum()->x, circle->GetMomentum()->y, pz).GetVectorSlopeC();
+      double c = Point(circle->GetMomentum()->GetX(), circle->GetMomentum()->GetY(), pz).GetVectorSlopeC();
       unique_ptr<Helix> helix = make_unique<Helix>(c, circle, pionNturns, helixThickness, zRegularityTolerance);
       helix->SetPoints(points);
       

@@ -41,7 +41,7 @@ public:
   vector<Point> GetPointsHittingSilicon();
   
   
-  void SetPz(double val){momentum->z = val;}
+  void SetPz(double val){momentum->SetZ(val);}
   
   /// It will pick only points that are on the helix (within its thickness)
   /// and count how many of them are pion points

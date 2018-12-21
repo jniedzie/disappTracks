@@ -12,24 +12,40 @@
 class Point
 {
 public:
-  Point(double _x, double _y, double _z, double _val=0);
+  /// Default constructor taking XYZ coordinates and optionally a value in this point
+  Point(double _x, double _y, double _z, double _value=0);
   
   /// Prints basic info about the point
   void Print();
   
   /// Returns distance between this and another point
   double distance(Point p);
+  
+  /// Returns distance between this and another point in the transverse plane
   double distanceXY(Point p);
   
-  bool isPionHit = false;
-  double x,y,z, val;
+  /// Returns slope of vector defined by this point calculated from the Y axis
+  double GetVectorSlopeC();
   
-  inline double GetVectorSlopeC(){
-    return tan(TMath::Pi()/2.-acos(z/sqrt(x*x+y*y+z*z)));
-  }
+  /// Tells whether or not this point belongs to a true pion's helix
+  inline bool IsPionHit(){return isPionHit;}
   
+  // Trivial getters
+  inline double GetX(){return x;}
+  inline double GetY(){return y;}
+  inline double GetZ(){return z;}
+  inline double GetValue(){return value;}
+  
+  // Trivial setters
+  inline void SetX(double val){x = val;}
+  inline void SetY(double val){y = val;}
+  inline void SetZ(double val){z = val;}
+  inline void SetIsPionHit(bool val){isPionHit = val;}
 private:
-  double PerpendicularShift(double R,double c, int charge=1);
+  double x,y,z; ///< XYZ coordinates of the point
+  double value; ///< Value at this point
+  
+  bool isPionHit; ///< Flag saying whether or not this point belongs to a true pion's helix
   
 };
 

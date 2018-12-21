@@ -17,22 +17,22 @@ nCycles(_nCycles),
 thickness(_thickness),
 zRegularityTolerance(_zRegularityTolerance)
 {
-  radius = GetRadiusInMagField(momentum->x, momentum->y, solenoidField);
+  radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
   slope = momentum->GetVectorSlopeC();
   
   tMax = nCycles*2*TMath::Pi();
   tStep = 0.01;
   
   // take a vector perpendicular to the pion's momentum vector
-  Point v = Point(charge * -momentum->y,charge * momentum->x, momentum->z);
+  Point v = Point(charge * -momentum->GetY(),charge * momentum->GetX(), momentum->GetZ());
   
-  double vTransverseLength = sqrt(v.x*v.x+v.y*v.y);
-  tShift = acos(-v.x/vTransverseLength);
+  double vTransverseLength = sqrt(pow(v.GetX(),2)+pow(v.GetY(),2));
+  tShift = acos(-v.GetX()/vTransverseLength);
   double scale = radius/vTransverseLength;
   
-  origin->x += scale*v.x;
-  origin->y += scale*v.y;
-  origin->z += tShift*slope;
+  origin->SetX(origin->GetX() + scale*v.GetX());
+  origin->SetY(origin->GetY() + scale*v.GetY());
+  origin->SetZ(origin->GetZ() + tShift*slope);
 }
 
 Helix::Helix(double _slope, const unique_ptr<Circle> &_circle,
@@ -44,16 +44,16 @@ zRegularityTolerance(_zRegularityTolerance)
 {
   radius    = _circle->GetRadius();
   tShift    = _circle->GetToffset();
-  origin    = make_unique<Point>(_circle->GetCenter()->x,
-                                 _circle->GetCenter()->y,
-                                 _circle->GetCenter()->z + tShift*slope);
+  origin    = make_unique<Point>(_circle->GetCenter()->GetX(),
+                                 _circle->GetCenter()->GetY(),
+                                 _circle->GetCenter()->GetZ() + tShift*slope);
   momentum  = _circle->GetMomentum();
 }
 
 void Helix::Print()
 {
-  cout<<"R:"<<radius<<"\tc:"<<slope<<"\toffset:("<<origin->x<<","<<origin->y<<","<<origin->z<<")\tnPoints:"<<points.size()<<"\tnPionPoints:"<<nPionPoints;
-  cout<<"\tpz:"<<momentum->z<<endl;
+  cout<<"R:"<<radius<<"\tc:"<<slope<<"\toffset:("<<origin->GetX()<<","<<origin->GetY()<<","<<origin->GetZ()<<")\tnPoints:"<<points.size()<<"\tnPionPoints:"<<nPionPoints;
+  cout<<"\tpz:"<<momentum->GetZ()<<endl;
   
 }
 
@@ -61,7 +61,7 @@ vector<Point> Helix::GetPointsHittingSilicon()
 {
   vector<Point> points;
   
-  double dh = sqrt(origin->x*origin->x+origin->y*origin->y);
+  double dh = sqrt(pow(origin->GetX(),2)+pow(origin->GetY(),2));
   double Rl, C, delta;
   double x1,y1,x2,y2,z1,z2,t1,t2;
   
@@ -69,25 +69,25 @@ vector<Point> Helix::GetPointsHittingSilicon()
     Rl = layerR[iLayer];
     C = (Rl*Rl+dh*dh-radius*radius)/2.;
     
-    delta = 4*origin->y*origin->y*C*C-4*dh*dh*(C*C-Rl*Rl*origin->x*origin->x);
+    delta = 4*origin->GetY()*origin->GetY()*C*C-4*dh*dh*(C*C-Rl*Rl*origin->GetX()*origin->GetX());
     if(delta < 0) continue;
     
-    y1 = (2*origin->y*C+sqrt(delta))/(2*dh*dh);
-    y2 = (2*origin->y*C-sqrt(delta))/(2*dh*dh);
+    y1 = (2*origin->GetY()*C+sqrt(delta))/(2*dh*dh);
+    y2 = (2*origin->GetY()*C-sqrt(delta))/(2*dh*dh);
     
-    x1 = (C-y1*origin->y)/origin->x;
-    x2 = (C-y2*origin->y)/origin->x;
+    x1 = (C-y1*origin->GetY())/origin->GetX();
+    x2 = (C-y2*origin->GetY())/origin->GetX();
     
-    t1 = atan2(y1-origin->y,x1-origin->x);
-    t2 = atan2(y2-origin->y,x2-origin->x);
+    t1 = atan2(y1-origin->GetY(),x1-origin->GetX());
+    t2 = atan2(y2-origin->GetY(),x2-origin->GetX());
     
     for(int n=0;n<nCycles;n++){
       if(n>0 || t1 > -tShift){
-        z1 = origin->z + slope*(t1+n*2*TMath::Pi());
+        z1 = origin->GetZ() + slope*(t1+n*2*TMath::Pi());
         points.push_back(Point(x1, y1, z1));
       }
       if(n>0 || t2 > -tShift){
-        z2 = origin->z + slope*(t2+n*2*TMath::Pi());
+        z2 = origin->GetZ() + slope*(t2+n*2*TMath::Pi());
         points.push_back(Point(x2, y2, z2));
       }
     }
@@ -104,7 +104,7 @@ void Helix::SetPoints(const vector<Point> &_points)
   for(Point p : _points){
     Point q = GetClosestPoint(p);
     if(p.distance(q) < thickness){
-      if(p.isPionHit) nPionPoints++;
+      if(p.IsPionHit()) nPionPoints++;
       points.push_back(p);
     }
   }
@@ -122,26 +122,26 @@ double Helix::GetChi2()
 
 Point Helix::GetClosestPoint(Point p)
 {
-  double t = atan2(p.y-origin->y, p.x-origin->x);
+  double t = atan2(p.GetY()-origin->GetY(), p.GetX()-origin->GetX());
   
-  double x = radius*cos(t) + origin->x;
-  double y = radius*sin(t) + origin->y;
-  double z = slope*t       + origin->z;
+  double x = radius*cos(t) + origin->GetX();
+  double y = radius*sin(t) + origin->GetY();
+  double z = slope*t       + origin->GetZ();
   
   double absC = fabs(slope);
   
-  while(fabs(z-p.z) >= absC*2*TMath::Pi()){
-    if(z < p.z) z += absC*2*TMath::Pi();
-    else        z -= absC*2*TMath::Pi();
+  while(fabs(z-p.GetZ()) >= absC*2*TMath::Pi()){
+    if(z < p.GetZ())  z += absC*2*TMath::Pi();
+    else              z -= absC*2*TMath::Pi();
   }
   
-  double currentDistanceZ = fabs(p.z-z);
+  double currentDistanceZ = fabs(p.GetZ()-z);
   
-  if(fabs(p.z-(z-absC*2*TMath::Pi())) < currentDistanceZ){
+  if(fabs(p.GetZ()-(z-absC*2*TMath::Pi())) < currentDistanceZ){
     z -= absC*2*TMath::Pi();
-    currentDistanceZ = fabs(p.z-z);
+    currentDistanceZ = fabs(p.GetZ()-z);
   }
-  else if(fabs(p.z-(z+absC*2*TMath::Pi())) < currentDistanceZ){
+  else if(fabs(p.GetZ()-(z+absC*2*TMath::Pi())) < currentDistanceZ){
     z += absC*2*TMath::Pi();
   }
   
@@ -170,7 +170,7 @@ vector<vector<Point>> Helix::SplitPointsIntoLines()
     // If the point was not added to any line, create a new line for it
     vector<Point> line;
     line.push_back(p);
-    sort(line.begin(), line.end(),[](Point i1, Point i2){return i1.z < i2.z;});
+    sort(line.begin(), line.end(),[](Point p1, Point p2){return p1.GetZ() < p2.GetZ();});
     pointsByLines.push_back(line);
   }
   
