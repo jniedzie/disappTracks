@@ -26,7 +26,7 @@ public:
   
   /// Draws a helix in given t parameter range
   /// \param helix Object of type Helix
-  void DrawHelix(Helix helix, const map<string,any> options);
+  void DrawHelix(const unique_ptr<Helix> &helix, const map<string,any> options);
   
   void DrawEvent(shared_ptr<Event> event, const map<string,any> options);
   

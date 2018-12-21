@@ -6,10 +6,12 @@
 
 #include "Helix.hpp"
 
-Helix::Helix(Point *_origin, shared_ptr<Point> _momentum, int _charge,
+Helix::Helix(const unique_ptr<Point> &_origin,
+             const unique_ptr<Point> &_momentum,
+             int _charge,
              int _nCycles, double _thickness, double _zRegularityTolerance) :
-origin(_origin),
-momentum(_momentum),
+origin(make_unique<Point>(*_origin)),
+momentum(make_unique<Point>(*_momentum)),
 charge(_charge),
 nCycles(_nCycles),
 thickness(_thickness),
@@ -18,50 +20,41 @@ zRegularityTolerance(_zRegularityTolerance)
   radius = GetRadiusInMagField(momentum->x, momentum->y, solenoidField);
   slope = momentum->GetVectorSlopeC();
   
-  tShift = acos(-origin->x/sqrt(pow(origin->x,2)+pow(origin->y,2)));
-  tMin = -tShift;
   tMax = nCycles*2*TMath::Pi();
   tStep = 0.01;
   
-  ShiftByVector();
+  // take a vector perpendicular to the pion's momentum vector
+  Point v = Point(charge * -momentum->y,charge * momentum->x, momentum->z);
+  
+  double vTransverseLength = sqrt(v.x*v.x+v.y*v.y);
+  tShift = acos(-v.x/vTransverseLength);
+  double scale = radius/vTransverseLength;
+  
+  origin->x += scale*v.x;
+  origin->y += scale*v.y;
+  origin->z += tShift*slope;
 }
 
-Helix::Helix(double _slope, Circle circle,
+Helix::Helix(double _slope, const unique_ptr<Circle> &_circle,
              int _nCycles, double _thickness, double _zRegularityTolerance) :
 slope(_slope),
 nCycles(_nCycles),
 thickness(_thickness),
 zRegularityTolerance(_zRegularityTolerance)
 {
-  radius    = circle.R;
-  tShift    = circle.tShift;
-  origin    = new Point(circle.x, circle.y, circle.z + tShift*slope);
-  momentum  = shared_ptr<Point>(new Point(circle.px, circle.py, 0.0));
+  radius    = _circle->GetRadius();
+  tShift    = _circle->GetToffset();
+  origin    = make_unique<Point>(_circle->GetCenter()->x,
+                                 _circle->GetCenter()->y,
+                                 _circle->GetCenter()->z + tShift*slope);
+  momentum  = _circle->GetMomentum();
 }
 
 void Helix::Print()
 {
-  cout<<"R:"<<radius<<"\tc:"<<slope<<"\toffset:("<<origin->x<<","<<origin->y<<","<<origin->z<<")\tnPoints:"<<nPoints<<"\tnPionPoints:"<<nPionPoints;
+  cout<<"R:"<<radius<<"\tc:"<<slope<<"\toffset:("<<origin->x<<","<<origin->y<<","<<origin->z<<")\tnPoints:"<<points.size()<<"\tnPionPoints:"<<nPionPoints;
   cout<<"\tpz:"<<momentum->z<<endl;
   
-}
-
-void Helix::ShiftByVector()
-{
-  // take a vector perpendicular to the pion's momentum vector
-  Point v = Point(charge * -momentum->y,charge * momentum->x, momentum->z);
-  
-  double vTransverseLength = sqrt(v.x*v.x+v.y*v.y);
-  tShift = acos(-v.x/vTransverseLength);
-  
-  double scale = radius/vTransverseLength;
-  
-  v.x *= scale;
-  v.y *= scale;
-  
-  origin->x += v.x;
-  origin->y += v.y;
-  origin->z += tShift*slope;
 }
 
 vector<Point> Helix::GetPointsHittingSilicon()
@@ -103,23 +96,18 @@ vector<Point> Helix::GetPointsHittingSilicon()
   return points;
 }
 
-
-
 void Helix::SetPoints(const vector<Point> &_points)
 {
-  nPoints = 0;
   nPionPoints = 0;
   points.clear();
   
   for(Point p : _points){
     Point q = GetClosestPoint(p);
     if(p.distance(q) < thickness){
-      nPoints++;
       if(p.isPionHit) nPionPoints++;
       points.push_back(p);
     }
   }
-  
   CalculateNregularPoints();
 }
 
@@ -127,10 +115,9 @@ double Helix::GetChi2()
 {
   double chi2 = 0;
   for(Point p : points){
-    Point q = GetClosestPoint(p);
-    chi2 += pow(p.distance(q), 2);
+    chi2 += pow(p.distance(GetClosestPoint(p)), 2);
   }
-  return chi2 / nPoints;
+  return chi2 / points.size();
 }
 
 Point Helix::GetClosestPoint(Point p)
@@ -139,7 +126,7 @@ Point Helix::GetClosestPoint(Point p)
   
   double x = radius*cos(t) + origin->x;
   double y = radius*sin(t) + origin->y;
-  double z = slope*t      + origin->z;
+  double z = slope*t       + origin->z;
   
   double absC = fabs(slope);
   

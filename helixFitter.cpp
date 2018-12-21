@@ -16,6 +16,7 @@
 
 // Tunable parameters of the algorithm
 const double helixThickness = 1.0;  // determines how far points can be from helix to be assigned to it (in mm)
+const double circleThickness = 1.0; // determines how far points can be from circle to be assigned to it (in mm)
 const double stepPz = 0.5;
 const double zRegularityTolerance = 1.0;
 const int minNpointsAlongZ = 2; // minimum number of hits for each line parallel to Z axis
@@ -39,8 +40,6 @@ double maxPz = 250;
 double minL   = layerR[2]; // minimum on the surface of 3rd layer
 double maxL   = layerR[3]; // maximum on the surface of 4th layer
 
-
-
 // Conditinos to accept fitted helix as a proper solution
 const double toleranceR = 10; // mm
 const double toleranceC = 0.1;
@@ -48,18 +47,14 @@ const double toleranceX = 10; // mm
 const double toleranceY = 10; // mm
 const double toleranceZ = 10; // mm
 
-
 // Will be calculated automatically or don't matter
 double trackEta, trackTheta, trackPhi; // parameters of the chargino track
-double decayR; // secondary vertex R (from 0,0,0) just somewhere between 3rd and 4th layer
-double pionR;// = pionMomentum/B*0.3*10; // radius of the pion spiral in mm
-double pionC;  // helix slope in Z direction (should be properly calculated from momentum vector
+double decayR;  // secondary vertex R (from 0,0,0) just somewhere between 3rd and 4th layer
+double pionR;   // radius of the pion spiral in mm
+double pionC;   // helix slope in Z direction (should be properly calculated from momentum vector
 double pionCharge = 1;
 
-shared_ptr<Point> pionVector = nullptr;
-
-// constants
-const double B = 3.7; // T
+unique_ptr<Point> pionVector = nullptr;
 
 unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix);
 vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber);
@@ -108,8 +103,8 @@ vector<int> AreHelicesIdentical(const unique_ptr<Helix> &h1, const unique_ptr<He
   return reasons;
 }
 
-double minR = GetRadiusInMagField(minPx, minPy, B);
-double maxR = GetRadiusInMagField(maxPx, maxPy, B);
+double minR = GetRadiusInMagField(minPx, minPy, solenoidField);
+double maxR = GetRadiusInMagField(maxPx, maxPy, solenoidField);
 
 double minC = Point(maxPx, maxPy, minPz).GetVectorSlopeC();
 double maxC = Point(maxPx, maxPy, maxPz).GetVectorSlopeC();
@@ -159,13 +154,13 @@ int main(int argc, char* argv[])
     SetRandomTrack();         // Randomly generate chargino's track
     FillRandomPoints(500);    // Randomly fill in pixel barrel with noise hits
     
-    pionVector = shared_ptr<Point>(new Point(RandDouble(minPx, maxPx),
-                                             RandDouble(minPy, maxPy),
-                                             RandDouble(minPz, maxPz)));
+    pionVector = make_unique<Point>(RandDouble(minPx, maxPx),
+                                    RandDouble(minPy, maxPy),
+                                    RandDouble(minPz, maxPz));
     
     cout<<"True pion momentum vector:"; pionVector->Print();
     
-    pionR = GetRadiusInMagField(pionVector->x, pionVector->y, B);
+    pionR = GetRadiusInMagField(pionVector->x, pionVector->y, solenoidField);
     pionC = pionVector->GetVectorSlopeC();
     decayR = RandDouble(minL, maxL);
     cout<<"R iter:"<<i<<"\tR:"<<pionR<<"\tc:"<<pionC<<"\tdecayR:"<<decayR<<endl;
@@ -175,9 +170,9 @@ int main(int argc, char* argv[])
     double decayY = decayR*sin(trackTheta)*sin(trackPhi);
     double decayZ = decayR*cos(trackTheta);
     
-    Point *pionHelixCenter = new Point(decayX,decayY,decayZ);
-    unique_ptr<Helix> pionHelix = unique_ptr<Helix>(new Helix(pionHelixCenter, pionVector, pionCharge,
-                                                              pionNturns, helixThickness, zRegularityTolerance));
+    unique_ptr<Point> pionHelixCenter = make_unique<Point>(decayX,decayY,decayZ);
+    unique_ptr<Helix> pionHelix = make_unique<Helix>(pionHelixCenter, pionVector, pionCharge,
+                                                     pionNturns, helixThickness, zRegularityTolerance);
     
     unique_ptr<Helix> bestHelix = GetBestFittingHelix(pionHelix);
     
@@ -264,7 +259,7 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
   pointsXY->GetYaxis()->SetTitle("Y");
   for(auto point : allSimplePoints){pointsXY->Fill(point.x,point.y);}
   
-  vector<pair<double, double>> points2D;
+  vector<Point> points2D;
   
   for(int binX=0;binX<pointsXY->GetNbinsX();binX++){
     for(int binY=0;binY<pointsXY->GetNbinsY();binY++){
@@ -272,8 +267,9 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
         pointsXY->SetBinContent(binX,binY, 0);
       }
       else{
-        points2D.push_back(make_pair(pointsXY->GetXaxis()->GetBinCenter(binX),
-                                     pointsXY->GetYaxis()->GetBinCenter(binY)));
+        points2D.push_back(Point(pointsXY->GetXaxis()->GetBinCenter(binX),
+                                 pointsXY->GetYaxis()->GetBinCenter(binY),
+                                 0.0));
       }
     }
   }
@@ -285,7 +281,7 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
   fitter->SetParameter(2, "py", (maxPy-minPy)/2., minPy, maxPy);
   
   // Store fitted circles for each triplet of points
-  vector<Circle> circles;
+  vector<unique_ptr<Circle>> circles;
   
   int nPoints = (int)points2D.size();
   
@@ -299,25 +295,18 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
           double L = par[0];
           double px = par[1];
           double py = par[2];
-          double R = GetRadiusInMagField(px,py,B);
           
           double x0 = L*sin(trackTheta)*cos(trackPhi);
           double y0 = L*sin(trackTheta)*sin(trackPhi);
+          double z0 = L*cos(trackTheta);
+
+          unique_ptr<Point> decayPoint  = make_unique<Point>(x0,y0,z0);
+          unique_ptr<Point> momentum    = make_unique<Point>(px,py,0);
+          Circle circle(decayPoint, momentum, pionCharge, circleThickness);
           
-          Point v(px,py,0);
-          Circle c(x0,y0,R);
-          c.ShiftByVector(v,pionCharge);
-          
-          double xa = points2D[i].first;
-          double ya = points2D[i].second;
-          double xb = points2D[j].first;
-          double yb = points2D[j].second;
-          double xc = points2D[k].first;
-          double yc = points2D[k].second;
-          
-          f  = pow(sqrt(pow(xa-c.x,2)+pow(ya-c.y,2))-R,2);
-          f += pow(sqrt(pow(xb-c.x,2)+pow(yb-c.y,2))-R,2);
-          f += pow(sqrt(pow(xc-c.x,2)+pow(yc-c.y,2))-R,2);
+          f  = pow(circle.GetDistanceToPoint(points2D[i]),2);
+          f += pow(circle.GetDistanceToPoint(points2D[j]),2);
+          f += pow(circle.GetDistanceToPoint(points2D[k]),2);
           
           return f;
         };
@@ -329,53 +318,42 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
           double L = result.GetParams()[0];
           double px = result.GetParams()[1];
           double py = result.GetParams()[2];
-          double R = GetRadiusInMagField(px,py,B);
           
           double x0 = L*sin(trackTheta)*cos(trackPhi);
           double y0 = L*sin(trackTheta)*sin(trackPhi);
           double z0 = L*cos(trackTheta);
           
-          Point v(px,py,0);
-          Circle circle(x0,y0,R);
-          circle.ShiftByVector(v,pionCharge);
-          circle.z = z0;
-          circle.px = px;
-          circle.py = py;
+          unique_ptr<Point> decayPoint = make_unique<Point>(x0,y0,z0);
+          unique_ptr<Point> momentum = make_unique<Point>(px,py,0);
+          unique_ptr<Circle> circle = make_unique<Circle>(decayPoint, momentum, pionCharge, circleThickness);
           
-          if(circle.GetNbinsOverlappingWithHist(pointsXY) > 3) circles.push_back(circle);
+          if(circle->GetNbinsOverlappingWithHist(pointsXY) > 3) circles.push_back(move(circle));
         }
       }
     }
   }
   
-  for(auto &circle : circles){
-    for(auto point : allSimplePoints){
-      Point q = circle.GetClosestPoint(point);
-      q.z = point.z;
-      if(q.distance(point) < helixThickness){
-        circle.points.push_back(point);
-      }
-    }
-  }
-  
+  cout<<"N circles found:"<<circles.size()<<endl;
   for(int i=0;i<circles.size();i++){
-    if(circles[i].points.size() < 8){
+    circles[i]->SetPoints(allSimplePoints);
+    if(circles[i]->GetNpoints() < 8){
       circles.erase(circles.begin()+i);
       i--;
     }
   }
+  cout<<"N circles after cleaning:"<<circles.size()<<endl;
   
   unique_ptr<Helix> bestHelix = nullptr;
   int maxNregularPoints = 0;
   double maxFractionRegularPoints = 0;
   
   for(auto &circle : circles){
-    vector<Point> points = circle.points;
+    vector<Point> points = circle->GetPoints();
     
     for(double pz = maxPz; pz >= minPz ; pz-=stepPz ){
       
-      double c = Point(circle.shiftVector.x, circle.shiftVector.y, pz).GetVectorSlopeC();
-      unique_ptr<Helix> helix = unique_ptr<Helix>(new Helix(c, circle, pionNturns, helixThickness, zRegularityTolerance));
+      double c = Point(circle->GetMomentum()->x, circle->GetMomentum()->y, pz).GetVectorSlopeC();
+      unique_ptr<Helix> helix = make_unique<Helix>(c, circle, pionNturns, helixThickness, zRegularityTolerance);
       helix->SetPoints(points);
       
       int nRegularPoints = helix->GetNregularPoints();

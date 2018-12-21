@@ -29,14 +29,14 @@ void Display::DrawSimplePoints(vector<Point> points, const map<string,any> optio
   gEve->Redraw3D();
 }
 
-void Display::DrawHelix(Helix helix, const map<string,any> options)
+void Display::DrawHelix(const unique_ptr<Helix> &helix, const map<string,any> options)
 {
   TEvePointSetArray *helixPoints = PreparePointsEventDisplay(options);
   
-  for(double t=-helix.GetToffset();t<helix.nCycles*2*TMath::Pi();t+=0.01){
-    double x = helix.GetRadius()*cos(t) + helix.GetOrigin()->x;
-    double y = helix.GetRadius()*sin(t) + helix.GetOrigin()->y;
-    double z = helix.GetSlope()*t       + helix.GetOrigin()->z;
+  for(double t=-helix->GetToffset();t<helix->nCycles*2*TMath::Pi();t+=0.01){
+    double x = helix->GetRadius()*cos(t) + helix->GetOrigin()->x;
+    double y = helix->GetRadius()*sin(t) + helix->GetOrigin()->y;
+    double z = helix->GetSlope()*t       + helix->GetOrigin()->z;
     
     helixPoints->Fill(scale*x,scale*y,scale*z, 0);
   }
