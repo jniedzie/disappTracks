@@ -33,10 +33,10 @@ void Display::DrawHelix(Helix helix, const map<string,any> options)
 {
   TEvePointSetArray *helixPoints = PreparePointsEventDisplay(options);
   
-  for(double t=-helix.tShift;t<helix.nCycles*2*TMath::Pi();t+=0.01){
-    double x = helix.R*cos(t) + helix.x0;
-    double y = helix.R*sin(t) + helix.y0;
-    double z = helix.c*t      + helix.z0;
+  for(double t=-helix.GetToffset();t<helix.nCycles*2*TMath::Pi();t+=0.01){
+    double x = helix.GetRadius()*cos(t) + helix.GetOrigin()->x;
+    double y = helix.GetRadius()*sin(t) + helix.GetOrigin()->y;
+    double z = helix.GetSlope()*t       + helix.GetOrigin()->z;
     
     helixPoints->Fill(scale*x,scale*y,scale*z, 0);
   }

@@ -24,6 +24,10 @@ public:
   bool isPionHit = false;
   double x,y,z, val;
   
+  inline double GetVectorSlopeC(){
+    return tan(TMath::Pi()/2.-acos(z/sqrt(x*x+y*y+z*z)));
+  }
+  
 private:
   double PerpendicularShift(double R,double c, int charge=1);
   

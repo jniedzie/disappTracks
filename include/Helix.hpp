@@ -14,45 +14,81 @@
 class Helix
 {
 public:
-  Helix();
+  /// Constructor taking as an input origin and momentum vector (will be automatically shifted to begin in the origin point)
+  /// \param _origin Helix origin point (e.g. chargino decay point)
+  /// \param _momentum  Momentum of the particle that creates a helix
+  /// \param _charge Charge of the particle (determines helix direction)
+  /// \param _nCycles Number of cycles the helix should have
+  /// \param _thickness Tolerance to determine whether or not a hit belongs to the helix
+  /// \param _zRegularityTolerance Tolerance in Z for regularity calculation
+  Helix(Point *_origin, shared_ptr<Point> _momentum, int _charge,
+        int _nCycles, double _thickness, double _zRegularityTolerance);
   
-  Helix(double _R, double _c, double _x0, double _y0, double _z0, int _nCycles, double _thickness);
-
-  Helix(double _R, double _c, Point p, int _nCycles, double _thickness);
+  /// Constructor taking as an input a circle and slope
+  /// \param _slope Slope of the helix in Z direction
+  /// \param _circle Circle that determines helix radius and center (should be already shifted by a pions vector)
+  /// \param _nCycles Number of cycles the helix should have
+  /// \param _thickness Tolerance to determine whether or not a hit belongs to the helix
+  /// \param _zRegularityTolerance Tolerance in Z for regularity calculation
+  Helix(double _slope, Circle _circle,
+        int _nCycles, double _thickness, double _zRegularityTolerance);
   
-  Helix(double _c, Circle circle, int _nCycles, double _thickness);
-  
+  /// Prints basic information about the helix
   void Print();
-  
-  void Shift(int charge=1);
-  
-  void ShiftByVector(Point v, int charge=1);
   
   /// Returns vector of points along helix trajectory that hit the tracker
   vector<Point> GetPointsHittingSilicon();
   
-  Point GetClosestPoint(Point p);
   
-  vector<Point>* GetMatchingPoints(vector<Point> &points);
+  void SetPz(double val){momentum->z = val;}
   
-  void CountMatchingPoints(const vector<Point> &points);
+  /// It will pick only points that are on the helix (within its thickness)
+  /// and count how many of them are pion points
+  void SetPoints(const vector<Point> &_points);
   
-  vector<vector<Point>> SplitPointsIntoLines();
+  // Getters
+  vector<Point>*  GetPoints(){return &points;}
   
-  void CalculateNregularPoints(double zRegularityTolerance);
+  inline Point*   GetOrigin(){return origin;}
+  inline shared_ptr<Point>  GetMomentum(){return momentum;}
+  inline double   GetRadius(){return radius;}
+  inline double   GetSlope(){return slope;}
   
-  double thickness;
-  double R,c,x0,y0,z0;
-  int nPoints = 0;
-  int nPionPoints = 0;
-  vector<Point> points;
-  double tShift;
-  double tMin, tMax, tStep;
-  double chi2 = inf;
+  inline double   GetToffset(){return tShift;}
+  inline int      GetNpoints(){return nPoints;}
+  inline int      GetNpionPoints(){return nPionPoints;}
+  inline int      GetNregularPoints(){return nRegularPoints;}
+  
   int nCycles;
-  int xSign, ySign;
-  double px,py,pz;
-  int nRegularPoints = 0;
+  
+  /// Calculates average of the squared distances between points (hits) and the helix
+  double GetChi2();
+  
+private:
+  vector<Point> points;   ///< Vector of points laying on the helix (withing thickness)
+  double tShift;          ///< Angle by which beginning of the helix is shifted due to the shift of its origin
+  double tMin;            ///< Starting angle
+  double tMax;            ///< Max angle (taking into account number of cycles
+  double tStep;           ///< Step determining drawing precision
+  
+  
+  int nRegularPoints = 0; ///< Number of points that are distributed regularly along Z axis
+  int nPoints = 0;        ///< Number of all points along the helix
+  int nPionPoints = 0;    ///< Number of points along the helix that are true pion hits
+  
+  double zRegularityTolerance;  ///< Tolerance in Z for regularity calculation
+  double thickness;             ///< Tolerance to determine whether or not a hit belongs to the helix
+  Point *origin;                ///< Center of the helix
+  shared_ptr<Point> momentum;   ///< Pions momentum vector
+  double radius;                ///< Radius of the helix
+  double slope;                 ///< Slope of the helix in Z direction
+  int    charge;                ///< Charge of the particle (determines helix direction)
+  
+  void ShiftByVector();
+  Point GetClosestPoint(Point p);
+  vector<vector<Point>> SplitPointsIntoLines();
+  void CalculateNregularPoints();
+  
 };
 
 #endif /* Helix_hpp */

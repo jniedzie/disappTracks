@@ -13,15 +13,12 @@ double helixThickness = 3.0;
 const double stepPz = 0.5;
 const double zRegularityTolerance = 1.0;
 
-// constants
-double B = 3.7; // T
-
 // assumptions about the pion
 double decayR = 140; // secondary vertex R (from 0,0,0) just somewhere between 3rd and 4th layer
 double pionCharge = 1;
 double pionNturns = 5;
 
-Point pionVector(115,115,115); // Total momentum ~200 MeV
+shared_ptr<Point> pionVector = shared_ptr<Point>(new Point(115,115,115)); // Total momentum ~200 MeV
 
 double minPx = 50;
 double minPy = 50;
@@ -99,8 +96,8 @@ const double maxClusterSize = 100;
 
 vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber);
 
-double pionR = GetRadiusInMagField(pionVector.x, pionVector.y, B); // radius of the pion spiral in mm
-double pionC = GetVectorSlopeC(pionVector.x, pionVector.y, pionVector.z);  // helix slope in Z direction
+double pionR = GetRadiusInMagField(pionVector->x, pionVector->y, solenoidField); // radius of the pion spiral in mm
+double pionC = pionVector->GetVectorSlopeC();  // helix slope in Z direction
   
 int main(int argc, char* argv[])
 {
@@ -149,16 +146,15 @@ int main(int argc, char* argv[])
   display->DrawSimplePoints(decayPoint, decayPointOptions);
   
   // Draw true pion helix
-  Point pionHelixCenter(decayX,decayY,decayZ);
-  Helix pionHelix(pionR,pionC,pionHelixCenter, helixThickness);
-  pionHelix.ShiftByVector(pionVector, pionCharge); // shift helix to start in the decay point
+  Point *pionHelixCenter = new Point(decayX,decayY,decayZ);
+  Helix pionHelix(pionHelixCenter, pionVector, pionCharge,
+                  pionNturns, helixThickness, zRegularityTolerance);
   display->DrawHelix(pionHelix,helixOptions);
   
   // Calculate and draw points along the helix that hit the silicon
   vector<Point> pionPoints = pionHelix.GetPointsHittingSilicon();
   for(auto &p : pionPoints){p.isPionHit = true;}
-  pionHelix.points = pionPoints;
-  pionHelix.CountMatchingPoints(pionPoints);
+  pionHelix.SetPoints(pionPoints);
   display->DrawSimplePoints(pionPoints, pionPointsOptions);
   
   // inject hits from pion into all points in the tracker
@@ -223,7 +219,7 @@ int main(int argc, char* argv[])
           double L  = par[0];
           double px = par[1];
           double py = par[2];
-          double R = GetRadiusInMagField(px,py,B);
+          double R = GetRadiusInMagField(px,py,solenoidField);
           
           double x0 = L*sin(theta)*cos(phi);
           double y0 = L*sin(theta)*sin(phi);
@@ -253,7 +249,7 @@ int main(int argc, char* argv[])
           double L  = result.GetParams()[0];
           double px = result.GetParams()[1];
           double py = result.GetParams()[2];
-          double R = GetRadiusInMagField(px,py,B);
+          double R = GetRadiusInMagField(px,py,solenoidField);
           
           double x0 = L*sin(theta)*cos(phi);
           double y0 = L*sin(theta)*sin(phi);
@@ -283,8 +279,7 @@ int main(int argc, char* argv[])
     circleArc->ResetAttFill();
     circleArc->Draw("sameL");
   }
-  Circle pionCircle = Circle(pionHelixCenter.x, pionHelixCenter.y, pionR);
-  pionCircle.ShiftByVector(pionVector,pionCharge);
+  Circle pionCircle = Circle(pionHelixCenter->x, pionHelixCenter->y, pionR);
   TArc *pionCircleArc = pionCircle.GetArc();
   
   pionCircleArc->SetLineColor(kGreen);
@@ -293,10 +288,6 @@ int main(int argc, char* argv[])
   pionCircleArc->Draw("sameL");
   
   cout<<"N circles found:"<<circles.size()<<endl;
-  
-  //
-  // verified up to this point
-  //
   
   cout<<"Assigning points to circles"<<endl;
   for(auto &circle : circles){
@@ -319,12 +310,9 @@ int main(int argc, char* argv[])
   }
   cout<<"n circles after:"<<circles.size()<<endl;
   
-  Helix bestHelix;
+  Helix *bestHelix = nullptr;
   Circle bestCircle(0,0,0);
   int maxNpoints = 0;
-  double bestChi2 = 9999999;
-  vector<Point> bestPointsOnHelix;
-  
   int maxNregularPoints = 0;
   double maxFractionRegularPoints = 0;
   
@@ -333,14 +321,12 @@ int main(int argc, char* argv[])
     
     for(double pz = maxPz; pz >= minPz ; pz-=stepPz ){
       
-      double c = GetVectorSlopeC(circle.shiftVector.x, circle.shiftVector.y, pz);
+      double c = Point(circle.shiftVector.x, circle.shiftVector.y, pz).GetVectorSlopeC();
+      Helix *helix = new Helix(c, circle, pionNturns, helixThickness, zRegularityTolerance);
+      helix->SetPoints(points);
       
-      Helix helix(c, circle, pionNturns, helixThickness);
-      helix.CountMatchingPoints(points);
-      helix.CalculateNregularPoints(zRegularityTolerance);
-      
-      int nRegularPoints = helix.nRegularPoints;
-      double fractionRegularPoints = nRegularPoints/(double)helix.nPoints;
+      int nRegularPoints = helix->GetNregularPoints();
+      double fractionRegularPoints = nRegularPoints/(double)helix->GetNpoints();
       
       if(nRegularPoints < maxNregularPoints) continue;
       else if(nRegularPoints == maxNregularPoints){
@@ -348,16 +334,14 @@ int main(int argc, char* argv[])
       }
       
       // If we reach till this point, save this solution as the best one so far
-      helix.pz = pz;
+      helix->SetPz(pz);
       maxNregularPoints = nRegularPoints;
       maxFractionRegularPoints = fractionRegularPoints;
       
       bestCircle = circle;
-      maxNpoints = helix.nPoints;
+      maxNpoints = helix->GetNpoints();
       bestHelix = helix;
-      bestPointsOnHelix = helix.points;
     }
-    
   }
   
   map<string,any> bestHelixOptions = {
@@ -367,7 +351,7 @@ int main(int argc, char* argv[])
     {"color", kRed}
   };
 
-  display->DrawHelix(bestHelix, bestHelixOptions);
+  display->DrawHelix(*bestHelix, bestHelixOptions);
   
   map<string,any> fitPointsOptions = {
     {"title", "Fit helix points"},
@@ -375,18 +359,10 @@ int main(int argc, char* argv[])
     {"markerSize", 1.0},
     {"color", kRed}
   };
-  display->DrawSimplePoints(bestHelix.points, fitPointsOptions);
-  
-  map<string,any> closestPointsOptions = {
-    {"title", "Closest points"},
-    {"markerStyle", 20},
-    {"markerSize", 1.0},
-    {"color", kOrange}
-  };
-  display->DrawSimplePoints(bestPointsOnHelix, closestPointsOptions);
+  display->DrawSimplePoints(*bestHelix->GetPoints(), fitPointsOptions);
   
   cout<<"\n\nBest helix is:"<<endl;
-  bestHelix.Print();
+  bestHelix->Print();
   
   cout<<"\nPion helix:"<<endl;
   pionHelix.Print();

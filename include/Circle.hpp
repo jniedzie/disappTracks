@@ -36,6 +36,7 @@ public:
   double chi2;
   double tShift;
   Point shiftVector = Point(0,0,0);
+  double px,py;
   
 private:
   Circle();

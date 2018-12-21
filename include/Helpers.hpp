@@ -282,8 +282,10 @@ enum EData{
 // Constants for tracker layers
 const int nLayers = 14;
 const int nPixelLayers = 4;
-const double pixelBarrelZsize = 265; // mm
+const double pixelBarrelZsize = 2650; // mm
 const double layerR[nLayers] = { 29, 68, 109, 160, 250, 340, 430, 520, 610, 696, 782, 868, 965, 1080 };
+
+const double solenoidField = 3.7; // T
 
 enum EVar{
   kCustom,
@@ -483,11 +485,6 @@ private:
 inline double GetRadiusInMagField(double px, double py, double B)
 {
   return sqrt(pow(px,2)+pow(py,2))/(B*3)*10;
-}
-
-inline double GetVectorSlopeC(double px, double py, double pz)
-{
-  return tan(TMath::Pi()/2.-acos(pz/sqrt(px*px+py*py+pz*pz)));
 }
 
 #endif /* Helpers_h */
