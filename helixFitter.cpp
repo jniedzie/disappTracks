@@ -18,12 +18,12 @@
 const double helixThickness = 1.0;  // determines how far points can be from helix to be assigned to it (in mm)
 const double circleThickness = 1.0; // determines how far points can be from circle to be assigned to it (in mm)
 const double stepPz = 0.5;
-const double zRegularityTolerance = 1.0;
+const double zRegularityTolerance = 1.0; // in mm
 const int minNpointsAlongZ = 2; // minimum number of hits for each line parallel to Z axis
 
 // Settings
 bool injectPionHits = true;
-int nTests = 5;
+int nTests = 100;
 const char* outFileName = "tests.root";
 
 // Parameters to tune
@@ -359,6 +359,10 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
       int nRegularPoints = helix->GetNregularPoints();
       double fractionRegularPoints = nRegularPoints/(double)helix->GetNpoints();
       
+      // Here is a condition to accept new solution as the best one
+      // Accept as a new best solution if:
+      // - it gives more reqular points than before or,
+      // - it gives the same number of regular points, but they counstitute higher fraction of all points than before
       if(nRegularPoints < maxNregularPoints) continue;
       else if(nRegularPoints == maxNregularPoints){
         if(fractionRegularPoints - maxFractionRegularPoints < 0.001) continue;

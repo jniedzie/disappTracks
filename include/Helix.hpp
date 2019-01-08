@@ -85,6 +85,11 @@ private:
   
   Point GetClosestPoint(Point p);
   vector<vector<Point>> SplitPointsIntoLines();
+  
+  /// Calculates number of regular points.
+  /// Splits all points into lines along Z axis. For each line, checks all possible distances between points.
+  /// For each possible distance, calculates number of regular points (for all points in the collection,
+  /// within zRegularityTolarance) and finds a maximum number of such points.
   void CalculateNregularPoints();
   
 };

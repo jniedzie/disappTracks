@@ -97,7 +97,7 @@ const double maxClusterSize = 100;
 
 vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber);
 
-double pionR = GetRadiusInMagField(pionVector->x, pionVector->y, solenoidField); // radius of the pion spiral in mm
+double pionR = GetRadiusInMagField(pionVector->GetX(), pionVector->GetY(), solenoidField); // radius of the pion spiral in mm
 double pionC = pionVector->GetVectorSlopeC();  // helix slope in Z direction
   
 int main(int argc, char* argv[])
@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
   
   // Calculate and draw points along the helix that hit the silicon
   vector<Point> pionPoints = pionHelix->GetPointsHittingSilicon();
-  for(auto &p : pionPoints){p.isPionHit = true;}
+  for(auto &p : pionPoints){p.SetIsPionHit(true);}
   pionHelix->SetPoints(pionPoints);
   display->DrawSimplePoints(pionPoints, pionPointsOptions);
   
@@ -167,8 +167,8 @@ int main(int argc, char* argv[])
   for(int i=0;i<allSimplePoints.size();i++){
     Point p = allSimplePoints[i];
     
-    if((decayZ > 0 && p.z < (decayZ-helixThickness)) || // remove wrong Z points
-       (decayZ <=0 && p.z > (decayZ+helixThickness))
+    if((decayZ > 0 && p.GetZ() < (decayZ-helixThickness)) || // remove wrong Z points
+       (decayZ <=0 && p.GetZ() > (decayZ+helixThickness))
 //       || (sqrt(pow(p.x - decayX,2) + pow(p.y - decayY,2)) > 2*pionR)
        ){
       allSimplePoints.erase(allSimplePoints.begin()+i);
@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
   TH2D *pointsXY = new TH2D("pointsXY","pointsXY",500/circleThickness,-250,250,500/circleThickness,-250,250);
   pointsXY->GetXaxis()->SetTitle("X");
   pointsXY->GetYaxis()->SetTitle("Y");
-  for(auto point : allSimplePoints){pointsXY->Fill(point.x,point.y);}
+  for(auto point : allSimplePoints){pointsXY->Fill(point.GetX(),point.GetY());}
   
   vector<Point> points2D;
   
@@ -300,7 +300,7 @@ int main(int argc, char* argv[])
     
     for(double pz = maxPz; pz >= minPz ; pz-=stepPz ){
       
-      double c = Point(circle->GetMomentum()->x, circle->GetMomentum()->y, pz).GetVectorSlopeC();
+      double c = Point(circle->GetMomentum()->GetX(), circle->GetMomentum()->GetY(), pz).GetVectorSlopeC();
       unique_ptr<Helix> helix = make_unique<Helix>(c, circle, pionNturns, helixThickness, zRegularityTolerance);
       helix->SetPoints(points);
       
