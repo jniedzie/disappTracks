@@ -15,15 +15,16 @@
 
 
 // Tunable parameters of the algorithm
-const double helixThickness = 1.0;  // determines how far points can be from helix to be assigned to it (in mm)
-const double circleThickness = 1.0; // determines how far points can be from circle to be assigned to it (in mm)
-const double stepPz = 0.5;
+const double helixThickness   = 1.0; // determines how far points can be from helix to be assigned to it (in mm)
+const double circleThickness  = 1.2; // determines how far points can be from circle to be assigned to it (in mm)
+const double linesTolerance   = 1.2; // determines how far points can be from each other to be counted as the same line (in mm)
+const double stepPz = 1.0;
 const double zRegularityTolerance = 1.0; // in mm
-const int minNpointsAlongZ = 2; // minimum number of hits for each line parallel to Z axis
+const int minNpointsAlongZ = 3; // minimum number of hits for each line parallel to Z axis
 
 // Settings
 bool injectPionHits = true;
-int nTests = 100;
+int nTests = 5;
 const char* outFileName = "tests.root";
 
 // Parameters to tune
@@ -127,6 +128,49 @@ vector<tuple<const char*,int,double,double,int,double,double>> monitors2Dparams 
   {"pyResponse",    200,-maxPy,maxPy, 200,-maxPy,maxPy },
   {"pzResponse",    200,-maxPz,maxPz, 200,-maxPz,maxPz },
 };
+
+Point AveragePoints(vector<Point> points)
+{
+  double x=0, y=0, z=0;
+  for(Point p : points){
+    x += p.GetX();
+    y += p.GetY();
+    z += p.GetZ();
+  }
+  x /= points.size();
+  y /= points.size();
+  z /= points.size();
+  
+  return Point(x,y,z);
+}
+
+vector<vector<Point>> SplitPointsIntoLines(vector<Point> points)
+{
+  vector<vector<Point>> pointsByLines;
+  bool addedToExisting;
+  
+  for(Point p : points){
+    addedToExisting = false;
+    
+    // loop over existing lines and check if this point belongs to one of them
+    for(vector<Point> &line : pointsByLines){
+      // if distance to this line is small enough, just add the point to this line and go to next point
+      if(AveragePoints(line).distanceXY(p) < linesTolerance){
+        line.push_back(p);
+        addedToExisting = true;
+        break;
+      }
+    }
+    if(addedToExisting) continue;
+    
+    // If the point was not added to any line, create a new line for it
+    vector<Point> line;
+    line.push_back(p);
+    pointsByLines.push_back(line);
+  }
+  
+  return pointsByLines;
+}
 
 int main(int argc, char* argv[])
 {
@@ -251,26 +295,14 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
       i--;
     }
   }
-  static int plotIter=0;
+  
   // Prepare 2D projections in XY
-  TH2D *pointsXY = new TH2D(Form("pointsXY%i",plotIter),Form("pointsXY%i",plotIter),500/helixThickness,-250,250,500/helixThickness,-250,250);
-  plotIter++;
-  pointsXY->GetXaxis()->SetTitle("X");
-  pointsXY->GetYaxis()->SetTitle("Y");
-  for(auto point : allSimplePoints){pointsXY->Fill(point.GetX(),point.GetY());}
-  
   vector<Point> points2D;
+  vector<vector<Point>> pointsByLine = SplitPointsIntoLines(allSimplePoints);
   
-  for(int binX=0;binX<pointsXY->GetNbinsX();binX++){
-    for(int binY=0;binY<pointsXY->GetNbinsY();binY++){
-      if(pointsXY->GetBinContent(binX,binY) < minNpointsAlongZ){
-        pointsXY->SetBinContent(binX,binY, 0);
-      }
-      else{
-        points2D.push_back(Point(pointsXY->GetXaxis()->GetBinCenter(binX),
-                                 pointsXY->GetYaxis()->GetBinCenter(binY),
-                                 0.0));
-      }
+  for(vector<Point> line : pointsByLine){
+    if(line.size() >= minNpointsAlongZ){
+      points2D.push_back(AveragePoints(line));
     }
   }
   
@@ -327,7 +359,11 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
           unique_ptr<Point> momentum = make_unique<Point>(px,py,0);
           unique_ptr<Circle> circle = make_unique<Circle>(decayPoint, momentum, pionCharge, circleThickness);
           
-          if(circle->GetNbinsOverlappingWithHist(pointsXY) > 3) circles.push_back(move(circle));
+          int nPoints=0;
+          for(Point p : points2D){
+            if(circle->GetDistanceToPoint(p) < circleThickness) nPoints++;
+          }
+          if(nPoints > 3) circles.push_back(move(circle));
         }
       }
     }

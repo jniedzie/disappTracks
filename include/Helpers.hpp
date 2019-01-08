@@ -50,7 +50,6 @@
 #include <numeric>
 #include <algorithm>
 #include <memory>
-#include <variant>
 #include <any>
 
 using namespace std;
