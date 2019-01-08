@@ -24,7 +24,7 @@ const int minNpointsAlongZ = 3; // minimum number of hits for each line parallel
 
 // Settings
 bool injectPionHits = true;
-int nTests = 5;
+int nTests = 100;
 const char* outFileName = "tests.root";
 
 // Parameters to tune
@@ -84,9 +84,9 @@ void FillRandomPoints(int nPoints)
 
 void SetRandomTrack()
 {
-  trackEta = 1.08;//RandDouble(-1.2, 1.2);
+  trackEta = /*1.08;*/RandDouble(-1.2, 1.2);
   trackTheta = 2*atan(exp(-trackEta));
-  trackPhi = -2.16;//RandDouble(0, 2*TMath::Pi());
+  trackPhi = /*-2.16;*/RandDouble(0, 2*TMath::Pi());
 }
 
 /// Checks if input and output helices are identical.
@@ -220,6 +220,11 @@ int main(int argc, char* argv[])
     
     unique_ptr<Helix> bestHelix = GetBestFittingHelix(pionHelix);
     
+    if(!bestHelix){
+      monitors1D["failReason"]->Fill(7);
+      continue;
+    }
+    
     monitors2D["radiusResponse"]->Fill(pionHelix->GetRadius(), bestHelix->GetRadius());
     monitors2D["cResponse"]->Fill(pionHelix->GetSlope(), bestHelix->GetSlope());
     monitors2D["xResponse"]->Fill(pionHelix->GetOrigin()->GetX(), bestHelix->GetOrigin()->GetX());
@@ -282,6 +287,7 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
   if(injectPionHits) allSimplePoints.insert(allSimplePoints.end(),pionPoints.begin(), pionPoints.end());
   
   // remove hits that for sure don't belong to the pion's helix
+  /*
   for(int i=0;i<allSimplePoints.size();i++){
     Point p = allSimplePoints[i];
     
@@ -295,7 +301,7 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
       i--;
     }
   }
-  
+  */
   // Prepare 2D projections in XY
   vector<Point> points2D;
   vector<vector<Point>> pointsByLine = SplitPointsIntoLines(allSimplePoints);
