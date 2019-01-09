@@ -12,7 +12,9 @@
 #include "EventSet.hpp"
 #include "Fitter.hpp"
 #include "Display.hpp"
+#include "FitterConfig.hpp"
 
+unique_ptr<FitterConfig> config;
 
 // Tunable parameters of the algorithm
 const double helixThickness   = 1.0; // determines how far points can be from helix to be assigned to it (in mm)
@@ -67,6 +69,12 @@ inline double RandDouble(double min, double max)
   return min + static_cast<double>(rand()) /( static_cast<double>(RAND_MAX/(max-min)));
 }
 
+inline int RandSign()
+{
+  if(static_cast<double>(rand())/static_cast<double>(RAND_MAX) < 0.5) return -1;
+  return 1;
+}
+
 void FillRandomPoints(int nPoints)
 {
   originalPixelPoints.clear();
@@ -84,9 +92,9 @@ void FillRandomPoints(int nPoints)
 
 void SetRandomTrack()
 {
-  trackEta = /*1.08;*/RandDouble(-1.2, 1.2);
+  trackEta = RandDouble(-1.2, 1.2);
   trackTheta = 2*atan(exp(-trackEta));
-  trackPhi = /*-2.16;*/RandDouble(0, 2*TMath::Pi());
+  trackPhi = RandDouble(0, 2*TMath::Pi());
 }
 
 /// Checks if input and output helices are identical.
@@ -176,6 +184,8 @@ int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
   
+  config = make_unique<FitterConfig>("configs/helixFitter.md");
+  
   // load hits from an event (could be replaced by random points)
 //  originalPixelPoints = LoadAllHits(297100, 136, 245000232);
   
@@ -198,9 +208,9 @@ int main(int argc, char* argv[])
     SetRandomTrack();         // Randomly generate chargino's track
     FillRandomPoints(500);    // Randomly fill in pixel barrel with noise hits
     
-    pionVector = make_unique<Point>(RandDouble(minPx, maxPx),
-                                    RandDouble(minPy, maxPy),
-                                    RandDouble(minPz, maxPz));
+    pionVector = make_unique<Point>(/*RandSign()*/RandDouble(minPx, maxPx),
+                                    /*RandSign()*/RandDouble(minPy, maxPy),
+                                    /*RandSign()*/RandDouble(minPz, maxPz));
     
     cout<<"True pion momentum vector:"; pionVector->Print();
     
@@ -286,22 +296,6 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
   vector<Point> allSimplePoints = originalPixelPoints;
   if(injectPionHits) allSimplePoints.insert(allSimplePoints.end(),pionPoints.begin(), pionPoints.end());
   
-  // remove hits that for sure don't belong to the pion's helix
-  /*
-  for(int i=0;i<allSimplePoints.size();i++){
-    Point p = allSimplePoints[i];
-    
-    // --------------------------------
-    // TODO: Here I use truth info to remove some htis -> should be independent of pionHelix and decay point params!!!
-    // --------------------------------
-    
-    if((pionHelix->GetOrigin()->GetZ() > 0 && p.GetZ() < (pionHelix->GetOrigin()->GetZ() - helixThickness)) || // remove wrong Z points
-       (pionHelix->GetOrigin()->GetZ() <=0 && p.GetZ() > (pionHelix->GetOrigin()->GetZ() + helixThickness))){
-      allSimplePoints.erase(allSimplePoints.begin()+i);
-      i--;
-    }
-  }
-  */
   // Prepare 2D projections in XY
   vector<Point> points2D;
   vector<vector<Point>> pointsByLine = SplitPointsIntoLines(allSimplePoints);
@@ -369,21 +363,14 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
           for(Point p : points2D){
             if(circle->GetDistanceToPoint(p) < circleThickness) nPoints++;
           }
-          if(nPoints > 3) circles.push_back(move(circle));
+          if(nPoints > 3){
+            circle->SetPoints(allSimplePoints);
+            circles.push_back(move(circle));
+          }
         }
       }
     }
   }
-  
-  cout<<"N circles found:"<<circles.size()<<endl;
-  for(int i=0;i<circles.size();i++){
-    circles[i]->SetPoints(allSimplePoints);
-    if(circles[i]->GetNpoints() < 8){
-      circles.erase(circles.begin()+i);
-      i--;
-    }
-  }
-  cout<<"N circles after cleaning:"<<circles.size()<<endl;
   
   unique_ptr<Helix> bestHelix = nullptr;
   int maxNregularPoints = 0;
