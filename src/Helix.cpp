@@ -196,16 +196,12 @@ void Helix::CalculateNregularPoints()
     int nPointsForDistance = 0;
     
     for(auto line : pointsByLine){
-      for(int n=0;n<20;n++){ // should just go till the edge of the pixel barrel or the most distant hit
-        for(auto q : line){
-          // Should be average of points in line instead of line[0]
-          if(fabs(q.distance(line[0])-n*testingDistance) < zRegularityTolerance){
-            nPointsForDistance++;
-          }
+      for(int i=0;i<line.size();i++){
+        if(fabs(line[i].distance(line[0])-i*testingDistance) < zRegularityTolerance){
+          nPointsForDistance++;
         }
       }
     }
-    
     if(nPointsForDistance > nRegularPoints) nRegularPoints = nPointsForDistance;
   }
 }
