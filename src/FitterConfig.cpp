@@ -106,16 +106,6 @@ const char* FitterConfig::GetOutputPath()
   return config->GetValue("output_path","unnamed.root");
 }
 
-double FitterConfig::GetToleranceR()
-{
-  return config->GetValue("tolerance_r",10.0);
-}
-
-double FitterConfig::GetToleranceC()
-{
-  return config->GetValue("tolerance_c",10.0);
-}
-
 double FitterConfig::GetToleranceX()
 {
   return config->GetValue("tolerance_x",10.0);
@@ -129,4 +119,19 @@ double FitterConfig::GetToleranceY()
 double FitterConfig::GetToleranceZ()
 {
   return config->GetValue("tolerance_z",10.0);
+}
+
+double FitterConfig::GetTolerancePx()
+{
+  return config->GetValue("tolerance_px",30.0);
+}
+
+double FitterConfig::GetTolerancePy()
+{
+  return config->GetValue("tolerance_py",30.0);
+}
+
+double FitterConfig::GetTolerancePz()
+{
+  return config->GetValue("tolerance_pz",30.0);
 }

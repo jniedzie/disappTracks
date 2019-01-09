@@ -487,4 +487,15 @@ inline double GetRadiusInMagField(double px, double py, double B)
   return sqrt(pow(px,2)+pow(py,2))/(B*3)*10;
 }
 
+inline double RandDouble(double min, double max)
+{
+  return min + static_cast<double>(rand()) /( static_cast<double>(RAND_MAX/(max-min)));
+}
+
+inline int RandSign()
+{
+  if(static_cast<double>(rand())/static_cast<double>(RAND_MAX) < 0.5) return -1;
+  return 1;
+}
+
 #endif /* Helpers_h */

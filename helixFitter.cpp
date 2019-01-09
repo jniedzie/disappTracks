@@ -14,47 +14,13 @@
 #include "Display.hpp"
 #include "FitterConfig.hpp"
 
-unique_ptr<FitterConfig> config;
-
-// Tunable parameters of the algorithm
-const double helixThickness   = 1.0; // determines how far points can be from helix to be assigned to it (in mm)
-const double circleThickness  = 1.2; // determines how far points can be from circle to be assigned to it (in mm)
-const double linesTolerance   = 1.2; // determines how far points can be from each other to be counted as the same line (in mm)
-const double stepPz = 1.0;
-const double zRegularityTolerance = 1.0; // in mm
-const int minNpointsAlongZ = 3; // minimum number of hits for each line parallel to Z axis
-
-// Settings
-bool injectPionHits = true;
-int nTests = 100;
-const char* outFileName = "tests.root";
-
-// Parameters to tune
 double pionNturns = 5;    // How many turns the pion does (should be removed and it should just go until the end of the pixel barrel
 
-double minPx = 50;
-double minPy = 50;
-double minPz = 50;
+unique_ptr<FitterConfig> config;
 
-double maxPx = 250;
-double maxPy = 250;
-double maxPz = 250;
-
-double minL   = layerR[2]; // minimum on the surface of 3rd layer
-double maxL   = layerR[3]; // maximum on the surface of 4th layer
-
-// Conditinos to accept fitted helix as a proper solution
-const double toleranceR = 10; // mm
-const double toleranceC = 0.1;
-const double toleranceX = 10; // mm
-const double toleranceY = 10; // mm
-const double toleranceZ = 10; // mm
-
-// Will be calculated automatically or don't matter
+// Will be calculated automatically
 double trackEta, trackTheta, trackPhi; // parameters of the chargino track
 double decayR;  // secondary vertex R (from 0,0,0) just somewhere between 3rd and 4th layer
-double pionR;   // radius of the pion spiral in mm
-double pionC;   // helix slope in Z direction (should be properly calculated from momentum vector
 double pionCharge = 1;
 
 unique_ptr<Point> pionVector = nullptr;
@@ -63,17 +29,6 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix);
 vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber);
 
 vector<Point> originalPixelPoints;
-
-inline double RandDouble(double min, double max)
-{
-  return min + static_cast<double>(rand()) /( static_cast<double>(RAND_MAX/(max-min)));
-}
-
-inline int RandSign()
-{
-  if(static_cast<double>(rand())/static_cast<double>(RAND_MAX) < 0.5) return -1;
-  return 1;
-}
 
 void FillRandomPoints(int nPoints)
 {
@@ -92,7 +47,7 @@ void FillRandomPoints(int nPoints)
 
 void SetRandomTrack()
 {
-  trackEta = RandDouble(-1.2, 1.2);
+  trackEta = RandDouble(-config->GetMaxTrackEta(), config->GetMaxTrackEta());
   trackTheta = 2*atan(exp(-trackEta));
   trackPhi = RandDouble(0, 2*TMath::Pi());
 }
@@ -103,39 +58,15 @@ vector<int> AreHelicesIdentical(const unique_ptr<Helix> &h1, const unique_ptr<He
 {
   vector<int> reasons;
   
-  if(fabs(h1->GetOrigin()->GetX() - h2->GetOrigin()->GetX()) > toleranceX) reasons.push_back(1);
-  if(fabs(h1->GetOrigin()->GetY() - h2->GetOrigin()->GetY()) > toleranceY) reasons.push_back(2);
-  if(fabs(h1->GetOrigin()->GetZ() - h2->GetOrigin()->GetZ()) > toleranceZ) reasons.push_back(3);
-  if(fabs(h1->GetRadius()    - h2->GetRadius()   ) > toleranceR) reasons.push_back(4);
-  if(fabs(h1->GetSlope()     - h2->GetSlope()    ) > toleranceC) reasons.push_back(5);
+  if(fabs(h1->GetOrigin()->GetX() - h2->GetOrigin()->GetX()) > config->GetToleranceX()) reasons.push_back(1);
+  if(fabs(h1->GetOrigin()->GetY() - h2->GetOrigin()->GetY()) > config->GetToleranceY()) reasons.push_back(2);
+  if(fabs(h1->GetOrigin()->GetZ() - h2->GetOrigin()->GetZ()) > config->GetToleranceZ()) reasons.push_back(3);
+  if(fabs(h1->GetMomentum()->GetX() - h2->GetMomentum()->GetX()) > config->GetTolerancePx()) reasons.push_back(4);
+  if(fabs(h1->GetMomentum()->GetY() - h2->GetMomentum()->GetY()) > config->GetTolerancePy()) reasons.push_back(5);
+  if(fabs(h1->GetMomentum()->GetZ() - h2->GetMomentum()->GetZ()) > config->GetTolerancePz()) reasons.push_back(6);
   
   return reasons;
 }
-
-double minR = GetRadiusInMagField(minPx, minPy, solenoidField);
-double maxR = GetRadiusInMagField(maxPx, maxPy, solenoidField);
-
-double minC = Point(maxPx, maxPy, minPz).GetVectorSlopeC();
-double maxC = Point(maxPx, maxPy, maxPz).GetVectorSlopeC();
-
-vector<tuple<const char*,int,double,double>> monitors1Dparams = {
-  {"nPointsOnHelix",100 ,0,100},
-  {"chi2ofHelix",   50  ,0,50 },
-  {"nPionPoints",   100, 0,1.2},
-  {"nFakeHits",     1000,0,10 },
-  {"failReason",    10,  0,10 },
-};
-
-vector<tuple<const char*,int,double,double,int,double,double>> monitors2Dparams = {
-  {"radiusResponse",100,minR,maxR,100,minR,maxR},
-  {"cResponse",     100,minC,maxC,100,minC,maxC},
-  {"xResponse",     500,-250,250, 500,-250,250 },
-  {"yResponse",     500,-250,250, 500,-250,250 },
-  {"zResponse",     500,-250,250, 500,-250,250 },
-  {"pxResponse",    200,-maxPx,maxPx, 200,-maxPx,maxPx },
-  {"pyResponse",    200,-maxPy,maxPy, 200,-maxPy,maxPy },
-  {"pzResponse",    200,-maxPz,maxPz, 200,-maxPz,maxPz },
-};
 
 Point AveragePoints(vector<Point> points)
 {
@@ -163,7 +94,7 @@ vector<vector<Point>> SplitPointsIntoLines(vector<Point> points)
     // loop over existing lines and check if this point belongs to one of them
     for(vector<Point> &line : pointsByLines){
       // if distance to this line is small enough, just add the point to this line and go to next point
-      if(AveragePoints(line).distanceXY(p) < linesTolerance){
+      if(AveragePoints(line).distanceXY(p) < config->GetLinesTolerance()){
         line.push_back(p);
         addedToExisting = true;
         break;
@@ -180,6 +111,8 @@ vector<vector<Point>> SplitPointsIntoLines(vector<Point> points)
   return pointsByLines;
 }
 
+double minPx, minPy, minPz, maxPx, maxPy, maxPz, minL, maxL;
+
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
@@ -192,6 +125,30 @@ int main(int argc, char* argv[])
   map<string, TH1D*> monitors1D;
   map<string, TH2D*> monitors2D;
   
+  const vector<tuple<const char*,int,double,double>> monitors1Dparams = {
+    {"nPointsOnHelix",100 ,0,100},
+    {"chi2ofHelix",   50  ,0,50 },
+    {"nPionPoints",   100, 0,1.2},
+    {"nFakeHits",     1000,0,10 },
+    {"failReason",    10,  0,10 },
+  };
+  
+  minPx = config->GetMinPx();
+  minPy = config->GetMinPy();
+  minPz = config->GetMinPz();
+  maxPx = config->GetMaxPx();
+  maxPy = config->GetMaxPy();
+  maxPz = config->GetMaxPz();
+  
+  const vector<tuple<const char*,int,double,double,int,double,double>> monitors2Dparams = {
+    {"xResponse",     500,-250,250, 500,-250,250 },
+    {"yResponse",     500,-250,250, 500,-250,250 },
+    {"zResponse",     500,-250,250, 500,-250,250 },
+    {"pxResponse",    200,-maxPx,maxPx, 200,-maxPx,maxPx },
+    {"pyResponse",    200,-maxPy,maxPy, 200,-maxPy,maxPy },
+    {"pzResponse",    200,-maxPz,maxPz, 200,-maxPz,maxPz },
+  };
+  
   for(auto params : monitors1Dparams){
     monitors1D[get<0>(params)] = new TH1D(get<0>(params),get<0>(params),get<1>(params),get<2>(params),get<3>(params));
   }
@@ -203,7 +160,7 @@ int main(int argc, char* argv[])
   }
   
   int nSuccess = 0;
-  
+  int nTests = config->GetNtests();
   for(int i=0;i<nTests;i++){
     SetRandomTrack();         // Randomly generate chargino's track
     FillRandomPoints(500);    // Randomly fill in pixel barrel with noise hits
@@ -214,10 +171,10 @@ int main(int argc, char* argv[])
     
     cout<<"True pion momentum vector:"; pionVector->Print();
     
-    pionR = GetRadiusInMagField(pionVector->GetX(), pionVector->GetY(), solenoidField);
-    pionC = pionVector->GetVectorSlopeC();
+    minL = config->GetMinL();
+    maxL = config->GetMaxL();
     decayR = RandDouble(minL, maxL);
-    cout<<"R iter:"<<i<<"\tR:"<<pionR<<"\tc:"<<pionC<<"\tdecayR:"<<decayR<<endl;
+    cout<<"R iter:"<<i<<"\tdecayR:"<<decayR<<endl;
     
     // Create true pion helix
     double decayX = decayR*sin(trackTheta)*cos(trackPhi);
@@ -226,7 +183,7 @@ int main(int argc, char* argv[])
     
     unique_ptr<Point> pionHelixCenter = make_unique<Point>(decayX,decayY,decayZ);
     unique_ptr<Helix> pionHelix = make_unique<Helix>(pionHelixCenter, pionVector, pionCharge,
-                                                     pionNturns, helixThickness, zRegularityTolerance);
+                                                     pionNturns, config->GetHelixThickness(), config->GetZregularityTolerance());
     
     unique_ptr<Helix> bestHelix = GetBestFittingHelix(pionHelix);
     
@@ -235,8 +192,6 @@ int main(int argc, char* argv[])
       continue;
     }
     
-    monitors2D["radiusResponse"]->Fill(pionHelix->GetRadius(), bestHelix->GetRadius());
-    monitors2D["cResponse"]->Fill(pionHelix->GetSlope(), bestHelix->GetSlope());
     monitors2D["xResponse"]->Fill(pionHelix->GetOrigin()->GetX(), bestHelix->GetOrigin()->GetX());
     monitors2D["yResponse"]->Fill(pionHelix->GetOrigin()->GetY(), bestHelix->GetOrigin()->GetY());
     monitors2D["zResponse"]->Fill(pionHelix->GetOrigin()->GetZ(), bestHelix->GetOrigin()->GetZ());
@@ -263,7 +218,7 @@ int main(int argc, char* argv[])
   // Plot the results
   TCanvas *c1 = new TCanvas("c1","c1",1280,1000);
   c1->Divide(4,4);
-  TFile *outFile = new TFile(outFileName,"recreate");
+  TFile *outFile = new TFile(config->GetOutputPath(),"recreate");
   outFile->cd();
   
   int i=1;
@@ -294,20 +249,21 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
   for(auto &p : pionPoints){p.SetIsPionHit(true);}
   pionHelix->SetPoints(pionPoints);
   vector<Point> allSimplePoints = originalPixelPoints;
-  if(injectPionHits) allSimplePoints.insert(allSimplePoints.end(),pionPoints.begin(), pionPoints.end());
+  if(config->GetInjectPionHits()) allSimplePoints.insert(allSimplePoints.end(),pionPoints.begin(), pionPoints.end());
   
   // Prepare 2D projections in XY
   vector<Point> points2D;
   vector<vector<Point>> pointsByLine = SplitPointsIntoLines(allSimplePoints);
   
   for(vector<Point> line : pointsByLine){
-    if(line.size() >= minNpointsAlongZ){
+    if(line.size() >= config->GetMinPointsAlongZ()){
       points2D.push_back(AveragePoints(line));
     }
   }
   
   // Create fitter to fit circles to 2D distribution
   unique_ptr<Fitter> fitter = unique_ptr<Fitter>(new Fitter(3));
+  double helixThickness = config->GetHelixThickness();
   fitter->SetParameter(0, "L", (maxL+minL)/2., minL-helixThickness, maxL+helixThickness);
   fitter->SetParameter(1, "px", (maxPx-minPx)/2., minPx, maxPx);
   fitter->SetParameter(2, "py", (maxPy-minPy)/2., minPy, maxPy);
@@ -316,7 +272,7 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
   vector<unique_ptr<Circle>> circles;
   
   int nPoints = (int)points2D.size();
-  
+  double circleThickness = config->GetCircleThickness();
   for(int i=0;i<nPoints;i++){
     for(int j=i+1;j<nPoints;j++){
       for(int k=j+1;k<nPoints;k++){
@@ -379,10 +335,10 @@ unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
   for(auto &circle : circles){
     vector<Point> points = circle->GetPoints();
     
-    for(double pz = maxPz; pz >= minPz ; pz-=stepPz ){
+    for(double pz = maxPz; pz >= minPz ; pz-=config->GetStepPz() ){
       
       double c = Point(circle->GetMomentum()->GetX(), circle->GetMomentum()->GetY(), pz).GetVectorSlopeC();
-      unique_ptr<Helix> helix = make_unique<Helix>(c, circle, pionNturns, helixThickness, zRegularityTolerance);
+      unique_ptr<Helix> helix = make_unique<Helix>(c, circle, pionNturns, helixThickness, config->GetZregularityTolerance());
       helix->SetPoints(points);
       
       int nRegularPoints = helix->GetNregularPoints();

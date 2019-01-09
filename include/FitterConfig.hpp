@@ -40,11 +40,12 @@ public:
   const char* GetOutputPath();
   
   // Benchmark parameters
-  double GetToleranceR();
-  double GetToleranceC();
   double GetToleranceX();
   double GetToleranceY();
   double GetToleranceZ();
+  double GetTolerancePx();
+  double GetTolerancePy();
+  double GetTolerancePz();
 
 private:
   unique_ptr<TEnv> config;
