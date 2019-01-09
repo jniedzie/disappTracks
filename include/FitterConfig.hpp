@@ -38,6 +38,7 @@ public:
   bool GetInjectPionHits();
   int GetNtests();
   const char* GetOutputPath();
+  int GetNnoiseHits();
   
   // Benchmark parameters
   double GetToleranceX();

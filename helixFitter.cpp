@@ -23,27 +23,8 @@ double trackEta, trackTheta, trackPhi; // parameters of the chargino track
 double decayR;  // secondary vertex R (from 0,0,0) just somewhere between 3rd and 4th layer
 double pionCharge = 1;
 
-unique_ptr<Point> pionVector = nullptr;
-
-unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix);
+unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints);
 vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber);
-
-vector<Point> originalPixelPoints;
-
-void FillRandomPoints(int nPoints)
-{
-  originalPixelPoints.clear();
-  double phi, R;
-  int layerIndex;
-  
-  for(int i=0;i<nPoints;i++){
-    phi = RandDouble(0, 2*TMath::Pi());
-    layerIndex = RandDouble(0, 4);
-    R = layerR[layerIndex];
-    Point p(R*cos(phi), R*sin(phi), RandDouble(-500, 500));
-    originalPixelPoints.push_back(p);
-  }
-}
 
 void SetRandomTrack()
 {
@@ -66,49 +47,6 @@ vector<int> AreHelicesIdentical(const unique_ptr<Helix> &h1, const unique_ptr<He
   if(fabs(h1->GetMomentum()->GetZ() - h2->GetMomentum()->GetZ()) > config->GetTolerancePz()) reasons.push_back(6);
   
   return reasons;
-}
-
-Point AveragePoints(vector<Point> points)
-{
-  double x=0, y=0, z=0;
-  for(Point p : points){
-    x += p.GetX();
-    y += p.GetY();
-    z += p.GetZ();
-  }
-  x /= points.size();
-  y /= points.size();
-  z /= points.size();
-  
-  return Point(x,y,z);
-}
-
-vector<vector<Point>> SplitPointsIntoLines(vector<Point> points)
-{
-  vector<vector<Point>> pointsByLines;
-  bool addedToExisting;
-  
-  for(Point p : points){
-    addedToExisting = false;
-    
-    // loop over existing lines and check if this point belongs to one of them
-    for(vector<Point> &line : pointsByLines){
-      // if distance to this line is small enough, just add the point to this line and go to next point
-      if(AveragePoints(line).distanceXY(p) < config->GetLinesTolerance()){
-        line.push_back(p);
-        addedToExisting = true;
-        break;
-      }
-    }
-    if(addedToExisting) continue;
-    
-    // If the point was not added to any line, create a new line for it
-    vector<Point> line;
-    line.push_back(p);
-    pointsByLines.push_back(line);
-  }
-  
-  return pointsByLines;
 }
 
 double minPx, minPy, minPz, maxPx, maxPy, maxPz, minL, maxL;
@@ -163,11 +101,11 @@ int main(int argc, char* argv[])
   int nTests = config->GetNtests();
   for(int i=0;i<nTests;i++){
     SetRandomTrack();         // Randomly generate chargino's track
-    FillRandomPoints(500);    // Randomly fill in pixel barrel with noise hits
+    vector<Point> pixelPoints = Point::GetRandomPoints(config->GetNnoiseHits());
     
-    pionVector = make_unique<Point>(/*RandSign()*/RandDouble(minPx, maxPx),
-                                    /*RandSign()*/RandDouble(minPy, maxPy),
-                                    /*RandSign()*/RandDouble(minPz, maxPz));
+    unique_ptr<Point> pionVector = make_unique<Point>(/*RandSign()*/RandDouble(minPx, maxPx),
+                                                      /*RandSign()*/RandDouble(minPy, maxPy),
+                                                      /*RandSign()*/RandDouble(minPz, maxPz));
     
     cout<<"True pion momentum vector:"; pionVector->Print();
     
@@ -185,7 +123,13 @@ int main(int argc, char* argv[])
     unique_ptr<Helix> pionHelix = make_unique<Helix>(pionHelixCenter, pionVector, pionCharge,
                                                      pionNturns, config->GetHelixThickness(), config->GetZregularityTolerance());
     
-    unique_ptr<Helix> bestHelix = GetBestFittingHelix(pionHelix);
+    // Calculate points along the helix that hit the silicon and inject them into all points in the tracker
+    vector<Point> pionPoints = pionHelix->GetPointsHittingSilicon();
+    for(auto &p : pionPoints){p.SetIsPionHit(true);}
+    pionHelix->SetPoints(pionPoints);
+    if(config->GetInjectPionHits()) pixelPoints.insert(pixelPoints.end(),pionPoints.begin(), pionPoints.end());
+    
+    unique_ptr<Helix> bestHelix = GetBestFittingHelix(pixelPoints);
     
     if(!bestHelix){
       monitors1D["failReason"]->Fill(7);
@@ -242,22 +186,15 @@ int main(int argc, char* argv[])
   return 0;
 }
 
-unique_ptr<Helix> GetBestFittingHelix(const unique_ptr<Helix> &pionHelix)
+unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints)
 {
-  // Calculate points along the helix that hit the silicon and inject them into all points in the tracker
-  vector<Point> pionPoints = pionHelix->GetPointsHittingSilicon();
-  for(auto &p : pionPoints){p.SetIsPionHit(true);}
-  pionHelix->SetPoints(pionPoints);
-  vector<Point> allSimplePoints = originalPixelPoints;
-  if(config->GetInjectPionHits()) allSimplePoints.insert(allSimplePoints.end(),pionPoints.begin(), pionPoints.end());
-  
   // Prepare 2D projections in XY
   vector<Point> points2D;
-  vector<vector<Point>> pointsByLine = SplitPointsIntoLines(allSimplePoints);
+  vector<vector<Point>> pointsByLine = Point::SplitPointsIntoLines(allSimplePoints, config->GetLinesTolerance());
   
   for(vector<Point> line : pointsByLine){
     if(line.size() >= config->GetMinPointsAlongZ()){
-      points2D.push_back(AveragePoints(line));
+      points2D.push_back(Point(line));
     }
   }
   

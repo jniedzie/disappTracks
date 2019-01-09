@@ -15,6 +15,9 @@ public:
   /// Default constructor taking XYZ coordinates and optionally a value in this point
   Point(double _x, double _y, double _z, double _value=0);
   
+  /// Constructs a point that is an average of provided vector of points
+  Point(vector<Point> points);
+  
   /// Prints basic info about the point
   void Print();
   
@@ -29,6 +32,13 @@ public:
   
   /// Tells whether or not this point belongs to a true pion's helix
   inline bool IsPionHit(){return isPionHit;}
+  
+  /// Separates vector of points into groups with the same XY position (within tolerance)
+  static vector<vector<Point>> SplitPointsIntoLines(vector<Point> points, double tolerance);
+  
+  /// Returns a vector filled with random points in the pixel barrel
+  /// \param nPoints Number of points that will be generated
+  static vector<Point> GetRandomPoints(int nPoints);
   
   // Trivial getters
   inline double GetX(){return x;}

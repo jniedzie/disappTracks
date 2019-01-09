@@ -135,3 +135,8 @@ double FitterConfig::GetTolerancePz()
 {
   return config->GetValue("tolerance_pz",30.0);
 }
+
+int FitterConfig::GetNnoiseHits()
+{
+  return config->GetValue("n_noise_hits",500);
+}
