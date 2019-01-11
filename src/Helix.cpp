@@ -8,19 +8,17 @@
 
 Helix::Helix(const unique_ptr<Point> &_origin,
              const unique_ptr<Point> &_momentum,
-             int _charge,
-             int _nCycles, double _thickness, double _zRegularityTolerance) :
+             int _charge, double _thickness, double _zRegularityTolerance) :
 origin(make_unique<Point>(*_origin)),
 momentum(make_unique<Point>(*_momentum)),
 charge(_charge),
-nCycles(_nCycles),
 thickness(_thickness),
 zRegularityTolerance(_zRegularityTolerance)
 {
   radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
   slope = momentum->GetVectorSlopeC();
   
-  tMax = nCycles*2*TMath::Pi();
+  tMax = GetNcycles()*2*TMath::Pi();
   tStep = 0.01;
   
   // take a vector perpendicular to the pion's momentum vector
@@ -35,10 +33,8 @@ zRegularityTolerance(_zRegularityTolerance)
   origin->SetZ(origin->GetZ() + tShift*slope);
 }
 
-Helix::Helix(double _slope, const unique_ptr<Circle> &_circle,
-             int _nCycles, double _thickness, double _zRegularityTolerance) :
+Helix::Helix(double _slope, const unique_ptr<Circle> &_circle, double _thickness, double _zRegularityTolerance) :
 slope(_slope),
-nCycles(_nCycles),
 thickness(_thickness),
 zRegularityTolerance(_zRegularityTolerance)
 {
@@ -52,9 +48,9 @@ zRegularityTolerance(_zRegularityTolerance)
 
 void Helix::Print()
 {
-  cout<<"R:"<<radius<<"\tc:"<<slope<<"\toffset:("<<origin->GetX()<<","<<origin->GetY()<<","<<origin->GetZ()<<")\tnPoints:"<<points.size()<<"\tnPionPoints:"<<nPionPoints;
-  cout<<"\tpz:"<<momentum->GetZ()<<endl;
-  
+  cout<<"R:"<<radius<<"\tc:"<<slope<<"\toffset:("<<origin->GetX()<<","<<origin->GetY()<<","<<origin->GetZ()<<")\t";
+  cout<<"nPoints:"<<points.size()<<"\tnPionPoints:"<<nPionPoints<<"\tnRegularPoints:"<<nRegularPoints<<"\t";
+  cout<<"pz:"<<momentum->GetZ()<<endl;
 }
 
 vector<Point> Helix::GetPointsHittingSilicon()
@@ -81,7 +77,7 @@ vector<Point> Helix::GetPointsHittingSilicon()
     t1 = atan2(y1-origin->GetY(),x1-origin->GetX());
     t2 = atan2(y2-origin->GetY(),x2-origin->GetX());
     
-    for(int n=0;n<nCycles;n++){
+    for(int n=0;n<GetNcycles();n++){
       if(n>0 || t1 > -tShift){
         z1 = origin->GetZ() + slope*(t1+n*2*TMath::Pi());
         points.push_back(Point(x1, y1, z1));
@@ -128,24 +124,64 @@ Point Helix::GetClosestPoint(Point p)
   double y = radius*sin(t) + origin->GetY();
   double z = slope*t       + origin->GetZ();
   
+
+  int nCycles = floor( (p.GetZ() - z) / (slope * 2 * TMath::Pi()));
+  z += nCycles * slope * 2 * TMath::Pi();
+  
+  
   double absC = fabs(slope);
-  
-  while(fabs(z-p.GetZ()) >= absC*2*TMath::Pi()){
-    if(z < p.GetZ())  z += absC*2*TMath::Pi();
-    else              z -= absC*2*TMath::Pi();
-  }
-  
   double currentDistanceZ = fabs(p.GetZ()-z);
   
-  if(fabs(p.GetZ()-(z-absC*2*TMath::Pi())) < currentDistanceZ){
-    z -= absC*2*TMath::Pi();
-    currentDistanceZ = fabs(p.GetZ()-z);
-  }
-  else if(fabs(p.GetZ()-(z+absC*2*TMath::Pi())) < currentDistanceZ){
+  if(fabs(p.GetZ()-(z+slope*2*TMath::Pi())) < currentDistanceZ){
     z += absC*2*TMath::Pi();
   }
-  
+
   return Point(x,y,z);
+  
+  // This is an attempt to calculate real distance between point and helix:
+  //
+//  TF1 *fun = new TF1("fun","[0]*sin(x)*([1]-[2]) + [0]*cos(x)*([3]-[4]) + [5]*([6]-[7])-pow([5],2)*x",-TMath::Pi(),TMath::Pi());
+//  fun->SetParameter(0, radius);
+//  fun->SetParameter(1, origin->GetX());
+//  fun->SetParameter(4, origin->GetY());
+//  fun->SetParameter(5, slope);
+//  fun->SetParameter(7, origin->GetZ());
+  //  fun->SetParameter(2, p.GetX());
+  //  fun->SetParameter(3, p.GetY());
+  //
+  //  double pz = p.GetZ();
+  ////  cout<<"pz before:"<<pz-origin->GetZ()<<"\t";
+  //
+  //  int nCycles = floor((p.GetZ() - origin->GetZ())/(slope * 2*TMath::Pi()));
+  //  pz -= nCycles * slope * 2*TMath::Pi();
+  ////  cout<<"after:"<< (pz-origin->GetZ())/(slope * 2*TMath::Pi())<<endl;
+  //
+  //  fun->SetParameter(6, pz);
+  //
+  //  double t1 = fun->GetX(0.0, -TMath::Pi(), 0.0);
+  //  double t2 = fun->GetX(0.0, 0.0, TMath::Pi());
+  //
+  //  double x = radius*cos(t1) + origin->GetX();
+  //  double y = radius*sin(t1) + origin->GetY();
+  //  double z = slope*t1       + origin->GetZ();
+  //
+  ////  int nCycles = floor((p.GetZ() - origin->GetZ())/(slope * 2*TMath::Pi()));
+  //  z += nCycles * slope * 2*TMath::Pi();
+  //
+  //  Point q(x,y,z);
+  //
+  //  if(p.distance(q) > 1.0){
+  //    x = radius*cos(t2) + origin->GetX();
+  //    y = radius*sin(t2) + origin->GetY();
+  //    z = slope*t2       + origin->GetZ();
+  //    q = Point(x,y,z);
+  //
+  //    if(p.distance(q) > 1.0){
+  //      cout<<"Point P:"; p.Print();
+  //      cout<<"\tPoint Q:"; q.Print();
+  //      cout<<"\tdistance:"<<p.distance(q)<<endl;
+  //    }
+  //  }
 }
 
 vector<vector<Point>> Helix::SplitPointsIntoLines()

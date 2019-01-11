@@ -14,8 +14,6 @@
 #include "Display.hpp"
 #include "FitterConfig.hpp"
 
-double pionNturns = 5;    // How many turns the pion does (should be removed and it should just go until the end of the pixel barrel
-
 unique_ptr<FitterConfig> config;
 
 // Will be calculated automatically
@@ -54,7 +52,6 @@ double minPx, minPy, minPz, maxPx, maxPy, maxPz, minL, maxL;
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
-  
   config = make_unique<FitterConfig>("configs/helixFitter.md");
   
   // load hits from an event (could be replaced by random points)
@@ -121,7 +118,7 @@ int main(int argc, char* argv[])
     
     unique_ptr<Point> pionHelixCenter = make_unique<Point>(decayX,decayY,decayZ);
     unique_ptr<Helix> pionHelix = make_unique<Helix>(pionHelixCenter, pionVector, pionCharge,
-                                                     pionNturns, config->GetHelixThickness(), config->GetZregularityTolerance());
+                                                     config->GetHelixThickness(), config->GetZregularityTolerance());
     
     // Calculate points along the helix that hit the silicon and inject them into all points in the tracker
     vector<Point> pionPoints = pionHelix->GetPointsHittingSilicon();
@@ -275,7 +272,7 @@ unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints)
     for(double pz = maxPz; pz >= minPz ; pz-=config->GetStepPz() ){
       
       double c = Point(circle->GetMomentum()->GetX(), circle->GetMomentum()->GetY(), pz).GetVectorSlopeC();
-      unique_ptr<Helix> helix = make_unique<Helix>(c, circle, pionNturns, helixThickness, config->GetZregularityTolerance());
+      unique_ptr<Helix> helix = make_unique<Helix>(c, circle, helixThickness, config->GetZregularityTolerance());
       helix->SetPoints(points);
       
       int nRegularPoints = helix->GetNregularPoints();

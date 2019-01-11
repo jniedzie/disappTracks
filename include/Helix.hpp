@@ -18,21 +18,18 @@ public:
   /// \param _origin Helix origin point (e.g. chargino decay point)
   /// \param _momentum  Momentum of the particle that creates a helix
   /// \param _charge Charge of the particle (determines helix direction)
-  /// \param _nCycles Number of cycles the helix should have
   /// \param _thickness Tolerance to determine whether or not a hit belongs to the helix
   /// \param _zRegularityTolerance Tolerance in Z for regularity calculation
   Helix(const unique_ptr<Point> &_origin,
         const unique_ptr<Point> &_momentum,
-        int _charge, int _nCycles, double _thickness, double _zRegularityTolerance);
+        int _charge, double _thickness, double _zRegularityTolerance);
   
   /// Constructor taking as an input a circle and slope
   /// \param _slope Slope of the helix in Z direction
   /// \param _circle Circle that determines helix radius and center (should be already shifted by a pions vector)
-  /// \param _nCycles Number of cycles the helix should have
   /// \param _thickness Tolerance to determine whether or not a hit belongs to the helix
   /// \param _zRegularityTolerance Tolerance in Z for regularity calculation
-  Helix(double _slope, const unique_ptr<Circle> &_circle,
-        int _nCycles, double _thickness, double _zRegularityTolerance);
+  Helix(double _slope, const unique_ptr<Circle> &_circle, double _thickness, double _zRegularityTolerance);
   
   /// Prints basic information about the helix
   void Print();
@@ -60,7 +57,7 @@ public:
   inline int      GetNpionPoints(){return nPionPoints;}
   inline int      GetNregularPoints(){return nRegularPoints;}
   
-  int nCycles;
+  inline int      GetNcycles(){return (sgn(slope) * pixelBarrelZsize - origin->GetZ())/(slope*2*TMath::Pi());}
   
   /// Calculates average of the squared distances between points (hits) and the helix
   double GetChi2();
@@ -91,7 +88,6 @@ private:
   /// For each possible distance, calculates number of regular points (for all points in the collection,
   /// within zRegularityTolarance) and finds a maximum number of such points.
   void CalculateNregularPoints();
-  
 };
 
 #endif /* Helix_hpp */
