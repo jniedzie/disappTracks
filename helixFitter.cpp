@@ -14,7 +14,8 @@
 #include "Display.hpp"
 #include "FitterConfig.hpp"
 
-unique_ptr<FitterConfig> config;
+string configPath = "configs/helixFitter.md";
+shared_ptr<FitterConfig> config;
 
 // Will be calculated automatically
 double trackEta, trackTheta, trackPhi; // parameters of the chargino track
@@ -52,7 +53,7 @@ double minPx, minPy, minPz, maxPx, maxPy, maxPz, minL, maxL;
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
-  config = make_unique<FitterConfig>("configs/helixFitter.md");
+  config = make_shared<FitterConfig>(configPath);
   
   // load hits from an event (could be replaced by random points)
 //  originalPixelPoints = LoadAllHits(297100, 136, 245000232);
@@ -117,8 +118,7 @@ int main(int argc, char* argv[])
     double decayZ = decayR*cos(trackTheta);
     
     unique_ptr<Point> pionHelixCenter = make_unique<Point>(decayX,decayY,decayZ);
-    unique_ptr<Helix> pionHelix = make_unique<Helix>(pionHelixCenter, pionVector, pionCharge,
-                                                     config->GetHelixThickness(), config->GetZregularityTolerance());
+    unique_ptr<Helix> pionHelix = make_unique<Helix>(pionHelixCenter, pionVector, pionCharge, config);
     
     // Calculate points along the helix that hit the silicon and inject them into all points in the tracker
     vector<Point> pionPoints = pionHelix->GetPointsHittingSilicon();
@@ -194,6 +194,7 @@ unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints)
       points2D.push_back(Point(line));
     }
   }
+  cout<<"N 2D points:"<<points2D.size()<<endl;
   
   // Create fitter to fit circles to 2D distribution
   unique_ptr<Fitter> fitter = unique_ptr<Fitter>(new Fitter(3));
@@ -261,6 +262,7 @@ unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints)
       }
     }
   }
+  cout<<"N circles:"<<circles.size()<<endl;
   
   unique_ptr<Helix> bestHelix = nullptr;
   int maxNregularPoints = 0;
@@ -272,8 +274,9 @@ unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints)
     for(double pz = maxPz; pz >= minPz ; pz-=config->GetStepPz() ){
       
       double c = Point(circle->GetMomentum()->GetX(), circle->GetMomentum()->GetY(), pz).GetVectorSlopeC();
-      unique_ptr<Helix> helix = make_unique<Helix>(c, circle, helixThickness, config->GetZregularityTolerance());
+      unique_ptr<Helix> helix = make_unique<Helix>(c, circle, config);
       helix->SetPoints(points);
+      helix->CalculateNregularPoints();
       
       int nRegularPoints = helix->GetNregularPoints();
       double fractionRegularPoints = nRegularPoints/(double)helix->GetNpoints();

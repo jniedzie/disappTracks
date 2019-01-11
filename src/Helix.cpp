@@ -8,12 +8,11 @@
 
 Helix::Helix(const unique_ptr<Point> &_origin,
              const unique_ptr<Point> &_momentum,
-             int _charge, double _thickness, double _zRegularityTolerance) :
+             int _charge, shared_ptr<FitterConfig> _config) :
 origin(make_unique<Point>(*_origin)),
 momentum(make_unique<Point>(*_momentum)),
 charge(_charge),
-thickness(_thickness),
-zRegularityTolerance(_zRegularityTolerance)
+config(_config)
 {
   radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
   slope = momentum->GetVectorSlopeC();
@@ -33,10 +32,9 @@ zRegularityTolerance(_zRegularityTolerance)
   origin->SetZ(origin->GetZ() + tShift*slope);
 }
 
-Helix::Helix(double _slope, const unique_ptr<Circle> &_circle, double _thickness, double _zRegularityTolerance) :
+Helix::Helix(double _slope, const unique_ptr<Circle> &_circle, shared_ptr<FitterConfig> _config) :
 slope(_slope),
-thickness(_thickness),
-zRegularityTolerance(_zRegularityTolerance)
+config(_config)
 {
   radius    = _circle->GetRadius();
   tShift    = _circle->GetToffset();
@@ -99,12 +97,11 @@ void Helix::SetPoints(const vector<Point> &_points)
   
   for(Point p : _points){
     Point q = GetClosestPoint(p);
-    if(p.distance(q) < thickness){
+    if(p.distance(q) < config->GetHelixThickness()){
       if(p.IsPionHit()) nPionPoints++;
       points.push_back(p);
     }
   }
-  CalculateNregularPoints();
 }
 
 double Helix::GetChi2()
@@ -184,60 +181,41 @@ Point Helix::GetClosestPoint(Point p)
   //  }
 }
 
-vector<vector<Point>> Helix::SplitPointsIntoLines()
+void Helix::CalculateNregularPoints(int limit)
 {
-  vector<vector<Point>> pointsByLines;
-  bool addedToExisting;
-  
-  for(Point p : points){
-    addedToExisting = false;
-    
-    // loop over existing lines and check if this point belongs to one of them
-    for(vector<Point> &line : pointsByLines){
-      // if distance to this line is small enough, just add the point to this line and go to next point
-      if(line[0].distanceXY(p) < 10){
-        line.push_back(p);
-        addedToExisting = true;
-        break;
-      }
-    }
-    if(addedToExisting) continue;
-    
-    // If the point was not added to any line, create a new line for it
-    vector<Point> line;
-    line.push_back(p);
-    sort(line.begin(), line.end(),[](Point p1, Point p2){return p1.GetZ() < p2.GetZ();});
-    pointsByLines.push_back(line);
-  }
-  
-  return pointsByLines;
-}
-
-void Helix::CalculateNregularPoints()
-{
-  vector<vector<Point>> pointsByLine = SplitPointsIntoLines();
+  vector<vector<Point>> pointsByLine = Point::SplitPointsIntoLines(points, config->GetLinesTolerance());
   vector<double> possibleDistances;
+  set<double> possibleDistancesSet;
+  nRegularPoints = 0;
+  int nPointsForDistance;
+  double zRegularityTolerance = config->GetZregularityTolerance();
+  bool first, found;
+  double testingDistance;
   
   for(auto line : pointsByLine){
-    bool first=true;
-    for(auto p : line){
-      if(first){first=false;continue;}
-      possibleDistances.push_back(line[0].distance(p));
-    }
-  }
-  
-  nRegularPoints = 0;
-  
-  for(double testingDistance : possibleDistances){
-    int nPointsForDistance = 0;
-    
-    for(auto line : pointsByLine){
-      for(int i=0;i<line.size();i++){
-        if(fabs(line[i].distance(line[0])-i*testingDistance) < zRegularityTolerance){
-          nPointsForDistance++;
+    first=true;
+    int iPoint;
+    for(iPoint=0; iPoint < line.size()-1; iPoint++){
+      testingDistance = line[iPoint].distance(line[iPoint+1]);
+      found = false;
+      for(double dd : possibleDistances){
+        if(fabs(testingDistance-dd) < zRegularityTolerance){found = true;break;}
+      }
+      if(found) continue;
+      
+      possibleDistances.push_back(testingDistance);
+      nPointsForDistance = 0;
+      
+      for(auto line2 : pointsByLine){
+        for(int i=0;i<line2.size();i++){
+          if(std::abs(line2[0].distance(line2[i])-i*testingDistance) < zRegularityTolerance)  nPointsForDistance++;
         }
       }
+      if(nPointsForDistance > nRegularPoints){
+        nRegularPoints = nPointsForDistance;
+        if(nRegularPoints > limit) return;
+      }
     }
-    if(nPointsForDistance > nRegularPoints) nRegularPoints = nPointsForDistance;
   }
+  
 }

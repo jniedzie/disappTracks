@@ -44,6 +44,11 @@ double Point::distanceXY(Point p)
   return sqrt(pow(x-p.x,2)+pow(y-p.y,2));
 }
 
+double Point::distanceXYsquared(Point p)
+{
+  return (x-p.x)*(x-p.x)+(y-p.y)*(y-p.y);
+}
+
 double Point::GetVectorSlopeC()
 {
   return tan(TMath::Pi()/2.-acos(z/sqrt(x*x+y*y+z*z)));
@@ -53,6 +58,7 @@ vector<vector<Point>> Point::SplitPointsIntoLines(vector<Point> points, double t
 {
   vector<vector<Point>> pointsByLines;
   bool addedToExisting;
+  double toleranceSquared = tolerance*tolerance;
   
   for(Point p : points){
     addedToExisting = false;
@@ -60,7 +66,7 @@ vector<vector<Point>> Point::SplitPointsIntoLines(vector<Point> points, double t
     // loop over existing lines and check if this point belongs to one of them
     for(vector<Point> &line : pointsByLines){
       // if distance to this line is small enough, just add the point to this line and go to next point
-      if(Point(line).distanceXY(p) < tolerance){
+      if(Point(line).distanceXYsquared(p) < toleranceSquared){
         line.push_back(p);
         addedToExisting = true;
         break;
@@ -71,6 +77,7 @@ vector<vector<Point>> Point::SplitPointsIntoLines(vector<Point> points, double t
     // If the point was not added to any line, create a new line for it
     vector<Point> line;
     line.push_back(p);
+    sort(line.begin(), line.end(),[](Point p1, Point p2){return p1.GetZ() < p2.GetZ();});
     pointsByLines.push_back(line);
   }
   

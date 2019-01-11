@@ -6,7 +6,7 @@
 #include "FitterConfig.hpp"
 
 Display *display;
-unique_ptr<FitterConfig> config;
+shared_ptr<FitterConfig> config;
 
 bool showStipClusters = false;
 
@@ -176,7 +176,7 @@ unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints)
     for(double pz = config->GetMaxPz(); pz >= config->GetMinPz() ; pz-=config->GetStepPz() ){
       
       double c = Point(circle->GetMomentum()->GetX(), circle->GetMomentum()->GetY(), pz).GetVectorSlopeC();
-      unique_ptr<Helix> helix = make_unique<Helix>(c, circle, helixThickness, config->GetZregularityTolerance());
+      unique_ptr<Helix> helix = make_unique<Helix>(c, circle, config);
       helix->SetPoints(points);
       
       int nRegularPoints = helix->GetNregularPoints();
@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
   // create event display
-  config = make_unique<FitterConfig>("configs/helixFitter.md");
+  config = make_shared<FitterConfig>("configs/helixFitter.md");
   display = new Display();
   
   auto events = shared_ptr<EventSet>(new EventSet());
@@ -253,7 +253,7 @@ int main(int argc, char* argv[])
   
   // Draw true pion helix
   unique_ptr<Point> pionHelixCenter = unique_ptr<Point>(new Point(decayX,decayY,decayZ));
-  unique_ptr<Helix> pionHelix = unique_ptr<Helix>(new Helix(pionHelixCenter, pionVector, pionCharge, config->GetHelixThickness(), config->GetZregularityTolerance()));
+  unique_ptr<Helix> pionHelix = make_unique<Helix>(pionHelixCenter, pionVector, pionCharge, config);
   display->DrawHelix(pionHelix,helixOptions);
   
   // Calculate and draw points along the helix that hit the silicon

@@ -14,42 +14,68 @@ public:
   FitterConfig(string _path);
   
   // Fitter parameters
-  double GetHelixThickness();
-  double GetCircleThickness();
-  double GetLinesTolerance();
-  double GetStepPz();
-  double GetZregularityTolerance();
-  int GetMinPointsAlongZ();
+  double GetHelixThickness(){return helixThickness;}
+  double GetCircleThickness(){return circleThickness;}
+  double GetLinesTolerance(){return linesTolerance;}
+  double GetStepPz(){return stepPz;}
+  double GetZregularityTolerance(){return zRegularityTolerance;}
+  int GetMinPointsAlongZ(){return minNpointsAlongZ;}
   
   // Random chargino's track parameters
-  double GetMaxTrackEta();
-  double GetMinL();
-  double GetMaxL();
+  double GetMaxTrackEta(){return maxEta;}
+  double GetMinL(){return minL;}
+  double GetMaxL(){return maxL;}
   
   // Random pion's parameters
-  double GetMinPx();
-  double GetMinPy();
-  double GetMinPz();
-  double GetMaxPx();
-  double GetMaxPy();
-  double GetMaxPz();
+  double GetMinPx(){return minPx;}
+  double GetMinPy(){return minPy;}
+  double GetMinPz(){return minPz;}
+  double GetMaxPx(){return maxPx;}
+  double GetMaxPy(){return maxPy;}
+  double GetMaxPz(){return maxPz;}
   
   // General settings
-  bool GetInjectPionHits();
-  int GetNtests();
-  const char* GetOutputPath();
-  int GetNnoiseHits();
+  bool GetInjectPionHits(){return injectPionHits;}
+  int GetNtests(){return nTests;}
+  const char* GetOutputPath(){return outputPath;}
+  int GetNnoiseHits(){return nNoiseHits;}
   
   // Benchmark parameters
-  double GetToleranceX();
-  double GetToleranceY();
-  double GetToleranceZ();
-  double GetTolerancePx();
-  double GetTolerancePy();
-  double GetTolerancePz();
+  double GetToleranceX(){return toleranceX;}
+  double GetToleranceY(){return toleranceY;}
+  double GetToleranceZ(){return toleranceZ;}
+  double GetTolerancePx(){return tolerancePx;}
+  double GetTolerancePy(){return tolerancePy;}
+  double GetTolerancePz(){return tolerancePz;}
 
 private:
   unique_ptr<TEnv> config;
+  
+  double helixThickness;
+  double circleThickness;
+  double linesTolerance;
+  double stepPz;
+  double zRegularityTolerance;
+  int minNpointsAlongZ;
+  double maxEta;
+  double minL;
+  double maxL;
+  double minPx;
+  double minPy;
+  double minPz;
+  double maxPx;
+  double maxPy;
+  double maxPz;
+  bool injectPionHits;
+  int nTests;
+  const char* outputPath;
+  double toleranceX;
+  double toleranceY;
+  double toleranceZ;
+  double tolerancePx;
+  double tolerancePy;
+  double tolerancePz;
+  int nNoiseHits;
 };
 
 #endif /* FitterConfig_hpp */

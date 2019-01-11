@@ -27,6 +27,10 @@ public:
   /// Returns distance between this and another point in the transverse plane
   double distanceXY(Point p);
   
+  /// Returns squared distance between this and another point in the transverse plane
+  /// (should be much faster than a true distance)
+  double distanceXYsquared(Point p);
+  
   /// Returns slope of vector defined by this point calculated from the Y axis
   double GetVectorSlopeC();
   
