@@ -22,6 +22,12 @@ double trackEta, trackTheta, trackPhi; // parameters of the chargino track
 double decayR;  // secondary vertex R (from 0,0,0) just somewhere between 3rd and 4th layer
 double pionCharge = 1;
 
+double minPx, minPy, minPz, maxPx, maxPy, maxPz, minL, maxL;
+
+// Monitoring histograms
+map<string, TH1D*> monitors1D;
+map<string, TH2D*> monitors2D;
+
 unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints);
 vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber);
 
@@ -30,37 +36,13 @@ void SetRandomTrack()
   trackEta = RandDouble(-config->GetMaxTrackEta(), config->GetMaxTrackEta());
   trackTheta = 2*atan(exp(-trackEta));
   trackPhi = RandDouble(0, 2*TMath::Pi());
+  minL = config->GetMinL();
+  maxL = config->GetMaxL();
+  decayR = RandDouble(minL, maxL);
 }
 
-/// Checks if input and output helices are identical.
-/// \return Returns zero if identical, otherwise returns failure reason code
-vector<int> AreHelicesIdentical(const unique_ptr<Helix> &h1, const unique_ptr<Helix> &h2)
+void SetupMonitors()
 {
-  vector<int> reasons;
-  
-  if(fabs(h1->GetOrigin()->GetX() - h2->GetOrigin()->GetX()) > config->GetToleranceX()) reasons.push_back(1);
-  if(fabs(h1->GetOrigin()->GetY() - h2->GetOrigin()->GetY()) > config->GetToleranceY()) reasons.push_back(2);
-  if(fabs(h1->GetOrigin()->GetZ() - h2->GetOrigin()->GetZ()) > config->GetToleranceZ()) reasons.push_back(3);
-  if(fabs(h1->GetMomentum()->GetX() - h2->GetMomentum()->GetX()) > config->GetTolerancePx()) reasons.push_back(4);
-  if(fabs(h1->GetMomentum()->GetY() - h2->GetMomentum()->GetY()) > config->GetTolerancePy()) reasons.push_back(5);
-  if(fabs(h1->GetMomentum()->GetZ() - h2->GetMomentum()->GetZ()) > config->GetTolerancePz()) reasons.push_back(6);
-  
-  return reasons;
-}
-
-double minPx, minPy, minPz, maxPx, maxPy, maxPz, minL, maxL;
-
-int main(int argc, char* argv[])
-{
-  TApplication theApp("App", &argc, argv);
-  config = make_shared<FitterConfig>(configPath);
-  
-  // load hits from an event (could be replaced by random points)
-//  originalPixelPoints = LoadAllHits(297100, 136, 245000232);
-  
-  map<string, TH1D*> monitors1D;
-  map<string, TH2D*> monitors2D;
-  
   const vector<tuple<const char*,int,double,double>> monitors1Dparams = {
     {"nPointsOnHelix",100 ,0,100},
     {"chi2ofHelix",   50  ,0,50 },
@@ -94,66 +76,94 @@ int main(int argc, char* argv[])
                                           get<1>(params),get<2>(params),get<3>(params),
                                           get<4>(params),get<5>(params),get<6>(params));
   }
+}
+
+bool FillMonitors(const unique_ptr<Helix> &fittedHelix, const unique_ptr<Helix> &trueHelix)
+{
+  bool success = false;
+  if(!fittedHelix){
+    monitors1D["failReason"]->Fill(7);
+    return success;
+  }
+  
+  monitors2D["xResponse"]->Fill(trueHelix->GetOrigin()->GetX(), fittedHelix->GetOrigin()->GetX());
+  monitors2D["yResponse"]->Fill(trueHelix->GetOrigin()->GetY(), fittedHelix->GetOrigin()->GetY());
+  monitors2D["zResponse"]->Fill(trueHelix->GetOrigin()->GetZ(), fittedHelix->GetOrigin()->GetZ());
+  monitors2D["pxResponse"]->Fill(trueHelix->GetMomentum()->GetX(), fittedHelix->GetMomentum()->GetX());
+  monitors2D["pyResponse"]->Fill(trueHelix->GetMomentum()->GetY(), fittedHelix->GetMomentum()->GetY());
+  monitors2D["pzResponse"]->Fill(trueHelix->GetMomentum()->GetZ(), fittedHelix->GetMomentum()->GetZ());
+  monitors1D["nPointsOnHelix"]->Fill(fittedHelix->GetNpoints());
+  monitors1D["chi2ofHelix"]->Fill(fittedHelix->GetChi2() < 50 ? fittedHelix->GetChi2() : 49);
+  monitors1D["nPionPoints"]->Fill(fittedHelix->GetNpionPoints()/(double)trueHelix->GetNpionPoints());
+  monitors1D["nFakeHits"]->Fill((fittedHelix->GetNpoints()-fittedHelix->GetNpionPoints())/(double)fittedHelix->GetNpoints());
+  
+  vector<int> failureCodes = Helix::AreHelicesIdentical(fittedHelix, trueHelix);
+  
+  if(failureCodes.size()==0) success = true;
+  else  for(int f : failureCodes) monitors1D["failReason"]->Fill(f);
+  
+  return success;
+}
+
+unique_ptr<Helix> GetPionHelix(const unique_ptr<Point> &pionVector)
+{
+  // Create true pion helix
+  double decayX = decayR*sin(trackTheta)*cos(trackPhi);
+  double decayY = decayR*sin(trackTheta)*sin(trackPhi);
+  double decayZ = decayR*cos(trackTheta);
+  
+  unique_ptr<Point> pionHelixCenter = make_unique<Point>(decayX,decayY,decayZ);
+  unique_ptr<Helix> pionHelix = make_unique<Helix>(pionHelixCenter, pionVector, pionCharge, config);
+  vector<Point> pionPoints = pionHelix->GetPointsHittingSilicon();
+  for(auto &p : pionPoints){p.SetIsPionHit(true);}
+  pionHelix->SetPoints(pionPoints);
+  
+  return pionHelix;
+}
+
+void InjectPionPointsToCollectionOfPoints(const unique_ptr<Helix> &pionHelix, vector<Point> &pixelPoints)
+{
+  vector<Point> *pionPoints = pionHelix->GetPoints();
+   pixelPoints.insert(pixelPoints.end(),pionPoints->begin(), pionPoints->end());
+}
+
+int main(int argc, char* argv[])
+{
+  TApplication theApp("App", &argc, argv);
+  config = make_shared<FitterConfig>(configPath);
+  SetupMonitors();
+  
+  // load hits from an event (could be replaced by random points)
+//  originalPixelPoints = LoadAllHits(297100, 136, 245000232);
   
   int nSuccess = 0;
   int nTests = config->GetNtests();
+  
   for(int i=0;i<nTests;i++){
-    SetRandomTrack();         // Randomly generate chargino's track
+    cout<<"\n========================================================"<<endl;
+    cout<<"Test iter:"<<i<<endl;
+    
+    SetRandomTrack(); // Randomly generate chargino's track
     vector<Point> pixelPoints = Point::GetRandomPoints(config->GetNnoiseHits());
     
     unique_ptr<Point> pionVector = make_unique<Point>(/*RandSign()*/RandDouble(minPx, maxPx),
                                                       /*RandSign()*/RandDouble(minPy, maxPy),
                                                       /*RandSign()*/RandDouble(minPz, maxPz));
     
-    cout<<"True pion momentum vector:"; pionVector->Print();
-    
-    minL = config->GetMinL();
-    maxL = config->GetMaxL();
-    decayR = RandDouble(minL, maxL);
-    cout<<"R iter:"<<i<<"\tdecayR:"<<decayR<<endl;
-    
-    // Create true pion helix
-    double decayX = decayR*sin(trackTheta)*cos(trackPhi);
-    double decayY = decayR*sin(trackTheta)*sin(trackPhi);
-    double decayZ = decayR*cos(trackTheta);
-    
-    unique_ptr<Point> pionHelixCenter = make_unique<Point>(decayX,decayY,decayZ);
-    unique_ptr<Helix> pionHelix = make_unique<Helix>(pionHelixCenter, pionVector, pionCharge, config);
-    
-    // Calculate points along the helix that hit the silicon and inject them into all points in the tracker
-    vector<Point> pionPoints = pionHelix->GetPointsHittingSilicon();
-    for(auto &p : pionPoints){p.SetIsPionHit(true);}
-    pionHelix->SetPoints(pionPoints);
-    if(config->GetInjectPionHits()) pixelPoints.insert(pixelPoints.end(),pionPoints.begin(), pionPoints.end());
+    unique_ptr<Helix> pionHelix = GetPionHelix(pionVector);
+    if(config->GetInjectPionHits()){
+      InjectPionPointsToCollectionOfPoints(pionHelix, pixelPoints);
+    }
     
     unique_ptr<Helix> bestHelix = GetBestFittingHelix(pixelPoints);
     
-    if(!bestHelix){
-      monitors1D["failReason"]->Fill(7);
-      continue;
+    bool success = FillMonitors(bestHelix, pionHelix);
+    
+    if(success){
+      nSuccess++;
+      cout<<"Pion helix:"; pionHelix->Print();
+      cout<<"Fitted helix:"; bestHelix->Print();
     }
-    
-    monitors2D["xResponse"]->Fill(pionHelix->GetOrigin()->GetX(), bestHelix->GetOrigin()->GetX());
-    monitors2D["yResponse"]->Fill(pionHelix->GetOrigin()->GetY(), bestHelix->GetOrigin()->GetY());
-    monitors2D["zResponse"]->Fill(pionHelix->GetOrigin()->GetZ(), bestHelix->GetOrigin()->GetZ());
-    monitors2D["pxResponse"]->Fill(pionVector->GetX(), bestHelix->GetMomentum()->GetX());
-    monitors2D["pyResponse"]->Fill(pionVector->GetY(), bestHelix->GetMomentum()->GetY());
-    monitors2D["pzResponse"]->Fill(pionVector->GetZ(), bestHelix->GetMomentum()->GetZ());
-    monitors1D["nPointsOnHelix"]->Fill(bestHelix->GetNpoints());
-    monitors1D["chi2ofHelix"]->Fill(bestHelix->GetChi2() < 50 ? bestHelix->GetChi2() : 49);
-    monitors1D["nPionPoints"]->Fill(bestHelix->GetNpionPoints()/(double)pionHelix->GetNpionPoints());
-    monitors1D["nFakeHits"]->Fill((bestHelix->GetNpoints()-bestHelix->GetNpionPoints())/(double)bestHelix->GetNpoints());
-    
-    vector<int> failureCodes = AreHelicesIdentical(pionHelix, bestHelix);
-    if(failureCodes.size()==0) nSuccess++;
-    else{
-      for(int f : failureCodes) monitors1D["failReason"]->Fill(f);
-    }
-    
-    cout<<"Pion helix:"<<endl;
-    pionHelix->Print();
-    cout<<"Fitted helix:"<<endl;
-    bestHelix->Print();
   }
   
   // Plot the results
@@ -183,7 +193,7 @@ int main(int argc, char* argv[])
   return 0;
 }
 
-unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints)
+vector<unique_ptr<Circle>> FitCirclesToPoints(vector<Point> allSimplePoints)
 {
   // Prepare 2D projections in XY
   vector<Point> points2D;
@@ -222,7 +232,7 @@ unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints)
           double x0 = L*sin(trackTheta)*cos(trackPhi);
           double y0 = L*sin(trackTheta)*sin(trackPhi);
           double z0 = L*cos(trackTheta);
-
+          
           unique_ptr<Point> decayPoint  = make_unique<Point>(x0,y0,z0);
           unique_ptr<Point> momentum    = make_unique<Point>(px,py,0);
           Circle circle(decayPoint, momentum, pionCharge, circleThickness);
@@ -262,10 +272,7 @@ unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints)
       }
     }
   }
-  if(circles.size() == 0){
-    cout<<"No circles were found"<<endl;
-    return nullptr;
-  }
+  if(circles.size() == 0) return circles;
   
   cout<<"N circles:"<<circles.size()<<endl;
   
@@ -279,6 +286,17 @@ unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints)
     }
   }
   cout<<"N circles after:"<<circles.size()<<endl;
+  
+  return circles;
+}
+
+unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints)
+{
+  vector<unique_ptr<Circle>> circles = FitCirclesToPoints(allSimplePoints);
+  if(circles.size() == 0){
+    cout<<"No circles were found"<<endl;
+    return nullptr;
+  }
   
   unique_ptr<Helix> bestHelix = nullptr;
   int maxNregularPoints = 0;

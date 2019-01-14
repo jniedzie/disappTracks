@@ -19,7 +19,7 @@ public:
   /// \param _origin Helix origin point (e.g. chargino decay point)
   /// \param _momentum  Momentum of the particle that creates a helix
   /// \param _charge Charge of the particle (determines helix direction)
-  /// \param config Fitter config
+  /// \param _config Fitter config
   Helix(const unique_ptr<Point> &_origin,
         const unique_ptr<Point> &_momentum,
         int _charge,
@@ -28,7 +28,7 @@ public:
   /// Constructor taking as an input a circle and slope
   /// \param _slope Slope of the helix in Z direction
   /// \param _circle Circle that determines helix radius and center (should be already shifted by a pions vector)
-  /// \param config Fitter config
+  /// \param _config Fitter config
   Helix(double _slope, const unique_ptr<Circle> &_circle, shared_ptr<FitterConfig> _config);
   
   /// Prints basic information about the helix
@@ -67,6 +67,10 @@ public:
   /// For each possible distance, calculates number of regular points (for all points in the collection,
   /// within zRegularityTolarance) and finds a maximum number of such points.
   void CalculateNregularPoints(int limit=inf);
+  
+  /// Checks if input and output helices are identical.
+  /// \return Returns zero if identical, otherwise returns failure reason code
+  static vector<int> AreHelicesIdentical(const unique_ptr<Helix> &h1, const unique_ptr<Helix> &h2);
   
 private:
   vector<Point> points;   ///< Vector of points laying on the helix (withing thickness)

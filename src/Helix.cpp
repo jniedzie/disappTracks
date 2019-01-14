@@ -219,3 +219,18 @@ void Helix::CalculateNregularPoints(int limit)
   }
   
 }
+
+vector<int> Helix::AreHelicesIdentical(const unique_ptr<Helix> &h1, const unique_ptr<Helix> &h2)
+{
+  vector<int> reasons;
+  shared_ptr<FitterConfig> config = h1->config;
+  
+  if(fabs(h1->GetOrigin()->GetX() - h2->GetOrigin()->GetX()) > config->GetToleranceX()) reasons.push_back(1);
+  if(fabs(h1->GetOrigin()->GetY() - h2->GetOrigin()->GetY()) > config->GetToleranceY()) reasons.push_back(2);
+  if(fabs(h1->GetOrigin()->GetZ() - h2->GetOrigin()->GetZ()) > config->GetToleranceZ()) reasons.push_back(3);
+  if(fabs(h1->GetMomentum()->GetX() - h2->GetMomentum()->GetX()) > config->GetTolerancePx()) reasons.push_back(4);
+  if(fabs(h1->GetMomentum()->GetY() - h2->GetMomentum()->GetY()) > config->GetTolerancePy()) reasons.push_back(5);
+  if(fabs(h1->GetMomentum()->GetZ() - h2->GetMomentum()->GetZ()) > config->GetTolerancePz()) reasons.push_back(6);
+  
+  return reasons;
+}
