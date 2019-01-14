@@ -17,7 +17,8 @@ FitterConfig::FitterConfig(string _path)
   
   helixThickness = config->GetValue("helix_thickness",1.0);
   circleThickness = config->GetValue("circle_thickness",1.0);
-  linesTolerance = config->GetValue("lines_tolerance",1.0);
+  linesToleranceForCircles = config->GetValue("lines_tolerance_for_circles",1.0);
+  linesToleranceForRegularity = config->GetValue("lines_tolerance_for_regularity",10.0);
   stepPz = config->GetValue("step_pz",1.0);
   zRegularityTolerance = config->GetValue("z_regularity_tolerance",1.0);
   minNpointsAlongZ = config->GetValue("min_n_points_along_z",2);

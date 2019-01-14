@@ -183,7 +183,7 @@ Point Helix::GetClosestPoint(Point p)
 
 void Helix::CalculateNregularPoints(int limit)
 {
-  vector<vector<Point>> pointsByLine = Point::SplitPointsIntoLines(points, config->GetLinesTolerance());
+  vector<vector<Point>> pointsByLine = Point::SplitPointsIntoLines(points, config->GetLinesToleranceForRegularity());
   vector<double> possibleDistances;
   set<double> possibleDistancesSet;
   nRegularPoints = 0;

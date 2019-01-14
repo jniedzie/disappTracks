@@ -16,7 +16,8 @@ public:
   // Fitter parameters
   double GetHelixThickness(){return helixThickness;}
   double GetCircleThickness(){return circleThickness;}
-  double GetLinesTolerance(){return linesTolerance;}
+  double GetLinesToleranceForCircles(){return linesToleranceForCircles;}
+  double GetLinesToleranceForRegularity(){return linesToleranceForRegularity;}
   double GetStepPz(){return stepPz;}
   double GetZregularityTolerance(){return zRegularityTolerance;}
   int GetMinPointsAlongZ(){return minNpointsAlongZ;}
@@ -53,7 +54,8 @@ private:
   
   double helixThickness;
   double circleThickness;
-  double linesTolerance;
+  double linesToleranceForCircles;
+  double linesToleranceForRegularity;
   double stepPz;
   double zRegularityTolerance;
   int minNpointsAlongZ;

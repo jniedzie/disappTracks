@@ -84,7 +84,7 @@ unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints)
 {
   // Prepare 2D projections in XY
   vector<Point> points2D;
-  vector<vector<Point>> pointsByLine = Point::SplitPointsIntoLines(allSimplePoints, config->GetLinesTolerance());
+  vector<vector<Point>> pointsByLine = Point::SplitPointsIntoLines(allSimplePoints, config->GetLinesToleranceForCircles());
   
   for(vector<Point> line : pointsByLine){
     if(line.size() >= config->GetMinPointsAlongZ()){

@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
     
     unique_ptr<Point> pionVector = make_unique<Point>(/*RandSign()*/RandDouble(minPx, maxPx),
                                                       /*RandSign()*/RandDouble(minPy, maxPy),
-                                                      RandSign()*RandDouble(minPz, maxPz));
+                                                      /*RandSign()*/RandDouble(minPz, maxPz));
     
     cout<<"True pion momentum vector:"; pionVector->Print();
     
@@ -187,7 +187,7 @@ unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints)
 {
   // Prepare 2D projections in XY
   vector<Point> points2D;
-  vector<vector<Point>> pointsByLine = Point::SplitPointsIntoLines(allSimplePoints, config->GetLinesTolerance());
+  vector<vector<Point>> pointsByLine = Point::SplitPointsIntoLines(allSimplePoints, config->GetLinesToleranceForCircles());
   
   for(vector<Point> line : pointsByLine){
     if(line.size() >= config->GetMinPointsAlongZ()){
@@ -311,7 +311,7 @@ unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints)
       maxNregularPoints = nRegularPoints;
       maxFractionRegularPoints = fractionRegularPoints;
     }
-    
+    /*
     for(double pz = -maxPz; pz <= -minPz ; pz+=config->GetStepPz()){
       double c = Point(circle->GetMomentum()->GetX(), circle->GetMomentum()->GetY(), pz).GetVectorSlopeC();
       unique_ptr<Helix> helix = make_unique<Helix>(c, circle, config);
@@ -336,6 +336,7 @@ unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints)
       maxNregularPoints = nRegularPoints;
       maxFractionRegularPoints = fractionRegularPoints;
     }
+     */
   }
   
   return bestHelix;
