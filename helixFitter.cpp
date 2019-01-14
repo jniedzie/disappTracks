@@ -20,15 +20,12 @@ shared_ptr<FitterConfig> config;
 // Will be calculated automatically
 double trackEta, trackTheta, trackPhi; // parameters of the chargino track
 double decayR;  // secondary vertex R (from 0,0,0) just somewhere between 3rd and 4th layer
-double pionCharge = 1;
-
 double minPx, minPy, minPz, maxPx, maxPy, maxPz, minL, maxL;
 
 // Monitoring histograms
 map<string, TH1D*> monitors1D;
 map<string, TH2D*> monitors2D;
 
-unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints);
 vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber);
 
 void SetRandomTrack()
@@ -82,7 +79,7 @@ bool FillMonitors(const unique_ptr<Helix> &fittedHelix, const unique_ptr<Helix> 
 {
   bool success = false;
   if(!fittedHelix){
-    monitors1D["failReason"]->Fill(7);
+    monitors1D["failReason"]->Fill(8);
     return success;
   }
   
@@ -105,8 +102,13 @@ bool FillMonitors(const unique_ptr<Helix> &fittedHelix, const unique_ptr<Helix> 
   return success;
 }
 
-unique_ptr<Helix> GetPionHelix(const unique_ptr<Point> &pionVector)
+unique_ptr<Helix> GetRandomPionHelix()
 {
+  unique_ptr<Point> pionVector = make_unique<Point>(RandSign()*RandDouble(minPx, maxPx),
+                                                    RandSign()*RandDouble(minPy, maxPy),
+                                                    /*RandSign()*/RandDouble(minPz, maxPz));
+  int pionCharge = 1; // RandSign();
+  
   // Create true pion helix
   double decayX = decayR*sin(trackTheta)*cos(trackPhi);
   double decayY = decayR*sin(trackTheta)*sin(trackPhi);
@@ -127,45 +129,8 @@ void InjectPionPointsToCollectionOfPoints(const unique_ptr<Helix> &pionHelix, ve
    pixelPoints.insert(pixelPoints.end(),pionPoints->begin(), pionPoints->end());
 }
 
-int main(int argc, char* argv[])
+void PlotAndSaveMonitors()
 {
-  TApplication theApp("App", &argc, argv);
-  config = make_shared<FitterConfig>(configPath);
-  SetupMonitors();
-  
-  // load hits from an event (could be replaced by random points)
-//  originalPixelPoints = LoadAllHits(297100, 136, 245000232);
-  
-  int nSuccess = 0;
-  int nTests = config->GetNtests();
-  
-  for(int i=0;i<nTests;i++){
-    cout<<"\n========================================================"<<endl;
-    cout<<"Test iter:"<<i<<endl;
-    
-    SetRandomTrack(); // Randomly generate chargino's track
-    vector<Point> pixelPoints = Point::GetRandomPoints(config->GetNnoiseHits());
-    
-    unique_ptr<Point> pionVector = make_unique<Point>(/*RandSign()*/RandDouble(minPx, maxPx),
-                                                      /*RandSign()*/RandDouble(minPy, maxPy),
-                                                      /*RandSign()*/RandDouble(minPz, maxPz));
-    
-    unique_ptr<Helix> pionHelix = GetPionHelix(pionVector);
-    if(config->GetInjectPionHits()){
-      InjectPionPointsToCollectionOfPoints(pionHelix, pixelPoints);
-    }
-    
-    unique_ptr<Helix> bestHelix = GetBestFittingHelix(pixelPoints);
-    
-    bool success = FillMonitors(bestHelix, pionHelix);
-    
-    if(success){
-      nSuccess++;
-      cout<<"Pion helix:"; pionHelix->Print();
-      cout<<"Fitted helix:"; bestHelix->Print();
-    }
-  }
-  
   // Plot the results
   TCanvas *c1 = new TCanvas("c1","c1",1280,1000);
   c1->Divide(4,4);
@@ -178,187 +143,63 @@ int main(int argc, char* argv[])
     hist->Draw("colz");
     hist->Write();
   }
-
+  
   for(auto &[title, hist] : monitors1D){
     c1->cd(i++);
     hist->Draw();
     hist->Write();
   }
   outFile->Close();
+  c1->Update();
+}
+
+int main(int argc, char* argv[])
+{
+  TApplication theApp("App", &argc, argv);
+  config = make_shared<FitterConfig>(configPath);
+  SetupMonitors();
+  
+  int nSuccess = 0;
+  int nTests = config->GetNtests();
+  
+  for(int i=0;i<nTests;i++){
+    cout<<"\n========================================================"<<endl;
+    cout<<"Test iter:"<<i<<endl;
+    
+    SetRandomTrack(); // Randomly generate chargino's track
+    vector<Point> pixelPoints = Point::GetRandomPoints(config->GetNnoiseHits());
+//  vector<Point> pixelPoints = LoadAllHits(297100, 136, 245000232);
+    
+    unique_ptr<Helix> pionHelix = GetRandomPionHelix();
+    if(config->GetInjectPionHits()) InjectPionPointsToCollectionOfPoints(pionHelix, pixelPoints);
+    
+    unique_ptr<Helix> bestHelix = Fitter::GetBestFittingHelix(pixelPoints, config, trackTheta, trackPhi);
+    bool success = FillMonitors(bestHelix, pionHelix);
+    
+    if(success) nSuccess++;
+    if(bestHelix){
+      cout<<"Pion helix:"; pionHelix->Print();
+      cout<<"Fitted helix:"; bestHelix->Print();
+      
+      if(bestHelix->GetCharge() != pionHelix->GetCharge()){
+        cout<<"\n\nwrong charge\n\n"<<endl;
+        cout<<"best charge:"<<bestHelix->GetCharge()<<endl;
+        cout<<"true charge:"<<pionHelix->GetCharge()<<endl;
+        cout<<"best t shift:"<<bestHelix->GetToffset()<<endl;
+        cout<<"true t shift:"<<pionHelix->GetToffset()<<endl;
+      }
+    }
+  }
   
   cout<<"Percentage of successful fits:"<<nSuccess/(double)nTests<<endl;
+  PlotAndSaveMonitors();
   
-  c1->Update();
   theApp.Run();
   return 0;
 }
 
-vector<unique_ptr<Circle>> FitCirclesToPoints(vector<Point> allSimplePoints)
-{
-  // Prepare 2D projections in XY
-  vector<Point> points2D;
-  vector<vector<Point>> pointsByLine = Point::SplitPointsIntoLines(allSimplePoints, config->GetLinesToleranceForCircles());
-  
-  for(vector<Point> line : pointsByLine){
-    if(line.size() >= config->GetMinPointsAlongZ()){
-      points2D.push_back(Point(line));
-    }
-  }
-  cout<<"N 2D points:"<<points2D.size()<<endl;
-  
-  // Create fitter to fit circles to 2D distribution
-  unique_ptr<Fitter> fitter = unique_ptr<Fitter>(new Fitter(3));
-  double helixThickness = config->GetHelixThickness();
-  fitter->SetParameter(0, "L", (maxL+minL)/2., minL-helixThickness, maxL+helixThickness);
-  fitter->SetParameter(1, "px", (maxPx-minPx)/2., minPx, maxPx);
-  fitter->SetParameter(2, "py", (maxPy-minPy)/2., minPy, maxPy);
-  
-  // Store fitted circles for each triplet of points
-  vector<unique_ptr<Circle>> circles;
-  
-  int nPoints = (int)points2D.size();
-  double circleThickness = config->GetCircleThickness();
-  for(int i=0;i<nPoints;i++){
-    for(int j=i+1;j<nPoints;j++){
-      for(int k=j+1;k<nPoints;k++){
-        
-        auto chi2Function = [&](const double *par) {
-          double f = 0;
-          
-          double L = par[0];
-          double px = par[1];
-          double py = par[2];
-          
-          double x0 = L*sin(trackTheta)*cos(trackPhi);
-          double y0 = L*sin(trackTheta)*sin(trackPhi);
-          double z0 = L*cos(trackTheta);
-          
-          unique_ptr<Point> decayPoint  = make_unique<Point>(x0,y0,z0);
-          unique_ptr<Point> momentum    = make_unique<Point>(px,py,0);
-          Circle circle(decayPoint, momentum, pionCharge, circleThickness);
-          
-          f  = pow(circle.GetDistanceToPoint(points2D[i]),2);
-          f += pow(circle.GetDistanceToPoint(points2D[j]),2);
-          f += pow(circle.GetDistanceToPoint(points2D[k]),2);
-          
-          return f;
-        };
-        fitter->SetFitFunction(chi2Function);
-        
-        if(fitter->RunFitting()) {
-          auto result = fitter->GetResult();
-          
-          double L = result.GetParams()[0];
-          double px = result.GetParams()[1];
-          double py = result.GetParams()[2];
-          
-          double x0 = L*sin(trackTheta)*cos(trackPhi);
-          double y0 = L*sin(trackTheta)*sin(trackPhi);
-          double z0 = L*cos(trackTheta);
-          
-          unique_ptr<Point> decayPoint = make_unique<Point>(x0,y0,z0);
-          unique_ptr<Point> momentum = make_unique<Point>(px,py,0);
-          unique_ptr<Circle> circle = make_unique<Circle>(decayPoint, momentum, pionCharge, circleThickness);
-          
-          int nPoints=0;
-          for(Point p : points2D){
-            if(circle->GetDistanceToPoint(p) < circleThickness) nPoints++;
-          }
-          if(nPoints > 3){
-            circle->SetPoints(allSimplePoints);
-            circles.push_back(move(circle));
-          }
-        }
-      }
-    }
-  }
-  if(circles.size() == 0) return circles;
-  
-  cout<<"N circles:"<<circles.size()<<endl;
-  
-  sort(circles.begin(), circles.end(),
-       [](const auto &c1, const auto &c2) -> bool {return c1->GetRadius() < c2->GetRadius();});
-  
-  for(int i=0; i<circles.size()-1; i++){
-    if(fabs(circles[i]->GetRadius() - circles[i+1]->GetRadius()) < config->GetCircleThickness()){
-      circles.erase(circles.begin()+i);
-      i--;
-    }
-  }
-  cout<<"N circles after:"<<circles.size()<<endl;
-  
-  return circles;
-}
 
-unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints)
-{
-  vector<unique_ptr<Circle>> circles = FitCirclesToPoints(allSimplePoints);
-  if(circles.size() == 0){
-    cout<<"No circles were found"<<endl;
-    return nullptr;
-  }
-  
-  unique_ptr<Helix> bestHelix = nullptr;
-  int maxNregularPoints = 0;
-  double maxFractionRegularPoints = 0;
-  
-  for(auto &circle : circles){
-    vector<Point> points = circle->GetPoints();
-    
-    for(double pz = maxPz; pz >= minPz ; pz-=config->GetStepPz()){
-      double c = Point(circle->GetMomentum()->GetX(), circle->GetMomentum()->GetY(), pz).GetVectorSlopeC();
-      unique_ptr<Helix> helix = make_unique<Helix>(c, circle, config);
-      helix->SetPoints(points);
-      helix->CalculateNregularPoints();
-      
-      int nRegularPoints = helix->GetNregularPoints();
-      double fractionRegularPoints = nRegularPoints/(double)helix->GetNpoints();
-      
-      // Here is a condition to accept new solution as the best one
-      // Accept as a new best solution if:
-      // - it gives more reqular points than before or,
-      // - it gives the same number of regular points, but they counstitute higher fraction of all points than before
-      if(nRegularPoints < maxNregularPoints) continue;
-      else if(nRegularPoints == maxNregularPoints){
-        if(fractionRegularPoints - maxFractionRegularPoints < 0.001) continue;
-      }
 
-      // If we reach till this point, save this solution as the best one so far
-      helix->SetPz(pz);
-      bestHelix = move(helix);
-      maxNregularPoints = nRegularPoints;
-      maxFractionRegularPoints = fractionRegularPoints;
-    }
-    /*
-    for(double pz = -maxPz; pz <= -minPz ; pz+=config->GetStepPz()){
-      double c = Point(circle->GetMomentum()->GetX(), circle->GetMomentum()->GetY(), pz).GetVectorSlopeC();
-      unique_ptr<Helix> helix = make_unique<Helix>(c, circle, config);
-      helix->SetPoints(points);
-      helix->CalculateNregularPoints();
-      
-      int nRegularPoints = helix->GetNregularPoints();
-      double fractionRegularPoints = nRegularPoints/(double)helix->GetNpoints();
-      
-      // Here is a condition to accept new solution as the best one
-      // Accept as a new best solution if:
-      // - it gives more reqular points than before or,
-      // - it gives the same number of regular points, but they counstitute higher fraction of all points than before
-      if(nRegularPoints < maxNregularPoints) continue;
-      else if(nRegularPoints == maxNregularPoints){
-        if(fractionRegularPoints - maxFractionRegularPoints < 0.001) continue;
-      }
-      
-      // If we reach till this point, save this solution as the best one so far
-      helix->SetPz(pz);
-      bestHelix = move(helix);
-      maxNregularPoints = nRegularPoints;
-      maxFractionRegularPoints = fractionRegularPoints;
-    }
-     */
-  }
-  
-  return bestHelix;
-}
 
 
 

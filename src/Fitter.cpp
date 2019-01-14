@@ -42,3 +42,204 @@ const ROOT::Fit::FitResult& Fitter::GetResult()
 {
   return fitter->Result();
 }
+
+vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(vector<Point> allSimplePoints,
+                                                      int pxSign, int pySign, int charge,
+                                                      shared_ptr<FitterConfig> config,
+                                                      double trackTheta, double trackPhi)
+{
+  // Prepare 2D projections in XY
+  vector<Point> points2D;
+  vector<vector<Point>> pointsByLine = Point::SplitPointsIntoLines(allSimplePoints, config->GetLinesToleranceForCircles());
+  
+  for(vector<Point> line : pointsByLine){
+    if(line.size() >= config->GetMinPointsAlongZ()){
+      points2D.push_back(Point(line));
+    }
+  }
+  
+  double minPx = config->GetMinPx();
+  double minPy = config->GetMinPy();
+  double maxPx = config->GetMaxPx();
+  double maxPy = config->GetMaxPy();
+  double minL = config->GetMinL();
+  double maxL = config->GetMaxL();
+  
+  // Create fitter to fit circles to 2D distribution
+  unique_ptr<Fitter> fitter = unique_ptr<Fitter>(new Fitter(3));
+  double helixThickness = config->GetHelixThickness();
+  fitter->SetParameter(0, "L", (maxL+minL)/2., minL-helixThickness, maxL+helixThickness);
+  
+  fitter->SetParameter(1, "px",
+                       pxSign*(maxPx-minPx)/2.,
+                       pxSign > 0 ? minPx : -maxPx,
+                       pxSign > 0 ? maxPx : -minPx);
+  
+  fitter->SetParameter(2, "py",
+                       pySign*(maxPy-minPy)/2.,
+                       pySign > 0 ? minPy : -maxPy,
+                       pySign > 0 ? maxPy : -minPy);
+  
+  // Store fitted circles for each triplet of points
+  vector<unique_ptr<Circle>> circles;
+  
+  int nPoints = (int)points2D.size();
+  double circleThickness = config->GetCircleThickness();
+  for(int i=0;i<nPoints;i++){
+    for(int j=i+1;j<nPoints;j++){
+      for(int k=j+1;k<nPoints;k++){
+        
+        auto chi2Function = [&](const double *par) {
+          double f = 0;
+          
+          double L = par[0];
+          double px = par[1];
+          double py = par[2];
+          
+          double x0 = L*sin(trackTheta)*cos(trackPhi);
+          double y0 = L*sin(trackTheta)*sin(trackPhi);
+          double z0 = L*cos(trackTheta);
+          
+          unique_ptr<Point> decayPoint  = make_unique<Point>(x0,y0,z0);
+          unique_ptr<Point> momentum    = make_unique<Point>(px,py,0);
+          Circle circle(decayPoint, momentum, charge, config);
+          
+          f  = pow(circle.GetDistanceToPoint(points2D[i]),2);
+          f += pow(circle.GetDistanceToPoint(points2D[j]),2);
+          f += pow(circle.GetDistanceToPoint(points2D[k]),2);
+          
+          return f;
+        };
+        fitter->SetFitFunction(chi2Function);
+        
+        if(fitter->RunFitting()) {
+          auto result = fitter->GetResult();
+          
+          double L = result.GetParams()[0];
+          double px = result.GetParams()[1];
+          double py = result.GetParams()[2];
+          
+          double x0 = L*sin(trackTheta)*cos(trackPhi);
+          double y0 = L*sin(trackTheta)*sin(trackPhi);
+          double z0 = L*cos(trackTheta);
+          
+          unique_ptr<Point> decayPoint = make_unique<Point>(x0,y0,z0);
+          unique_ptr<Point> momentum = make_unique<Point>(px,py,0);
+          unique_ptr<Circle> circle = make_unique<Circle>(decayPoint, momentum, charge, config);
+          
+          int nPoints=0;
+          for(Point p : points2D){
+            if(circle->GetDistanceToPoint(p) < circleThickness) nPoints++;
+          }
+          if(nPoints > 3){
+            circle->SetPoints(allSimplePoints);
+            circles.push_back(move(circle));
+          }
+        }
+      }
+    }
+  }
+  if(circles.size() == 0) return circles;
+  Circle::RemoveSimilarCircles(circles);
+  return circles;
+}
+
+unique_ptr<Helix> Fitter::GetBestFittingHelix(vector<Point> allSimplePoints,
+                                              shared_ptr<FitterConfig> config,
+                                              double trackTheta, double trackPhi)
+{
+  // Collect circles for positive charge
+  int charge = 1;
+  vector<unique_ptr<Circle>> circles, circlesNeg, circlesTmp;
+  
+  circles    = Fitter::FitCirclesToPoints(allSimplePoints,  1,  1, charge, config, trackTheta, trackPhi);
+  circlesTmp = Fitter::FitCirclesToPoints(allSimplePoints, -1,  1, charge, config, trackTheta, trackPhi);
+  circles.insert(circles.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
+  circlesTmp = Fitter::FitCirclesToPoints(allSimplePoints,  1, -1, charge, config, trackTheta, trackPhi);
+  circles.insert(circles.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
+  circlesTmp = Fitter::FitCirclesToPoints(allSimplePoints, -1, -1, charge, config, trackTheta, trackPhi);
+  circles.insert(circles.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
+  Circle::RemoveSimilarCircles(circles);
+  
+  charge = -1;
+  
+  // Collect circles for nevgative charge
+  circlesNeg = Fitter::FitCirclesToPoints(allSimplePoints,  1,  1, charge, config, trackTheta, trackPhi);
+  circlesTmp = Fitter::FitCirclesToPoints(allSimplePoints, -1,  1, charge, config, trackTheta, trackPhi);
+  circlesNeg.insert(circlesNeg.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
+  circlesTmp = Fitter::FitCirclesToPoints(allSimplePoints,  1, -1, charge, config, trackTheta, trackPhi);
+  circlesNeg.insert(circlesNeg.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
+  circlesTmp = Fitter::FitCirclesToPoints(allSimplePoints, -1, -1, charge, config, trackTheta, trackPhi);
+  circlesNeg.insert(circlesNeg.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
+  Circle::RemoveSimilarCircles(circlesNeg);
+  
+  // Merge circles for positive and negative charges
+  circles.insert(circles.end(), make_move_iterator(circlesNeg.begin()), make_move_iterator(circlesNeg.end()));
+  
+  if(circles.size() == 0){
+    cout<<"No circles were found"<<endl;
+    return nullptr;
+  }
+  
+  unique_ptr<Helix> bestHelix = nullptr;
+  int maxNregularPoints = 0;
+  double maxFractionRegularPoints = 0;
+  
+  double minPz = config->GetMinPz();
+  double maxPz = config->GetMaxPz();
+  
+  for(auto &circle : circles){
+    vector<Point> points = circle->GetPoints();
+    
+    for(double pz = maxPz; pz >= minPz ; pz-=config->GetStepPz()){
+      unique_ptr<Helix> helix = make_unique<Helix>(circle, pz);
+      helix->SetPoints(points);
+      helix->CalculateNregularPoints();
+      
+      int nRegularPoints = helix->GetNregularPoints();
+      double fractionRegularPoints = nRegularPoints/(double)helix->GetNpoints();
+      
+      // Here is a condition to accept new solution as the best one
+      // Accept as a new best solution if:
+      // - it gives more reqular points than before or,
+      // - it gives the same number of regular points, but they counstitute higher fraction of all points than before
+      if(nRegularPoints < maxNregularPoints) continue;
+      else if(nRegularPoints == maxNregularPoints){
+        if(fractionRegularPoints - maxFractionRegularPoints < 0.001) continue;
+      }
+      
+      // If we reach till this point, save this solution as the best one so far
+      bestHelix = move(helix);
+      maxNregularPoints = nRegularPoints;
+      maxFractionRegularPoints = fractionRegularPoints;
+    }
+    /*
+     for(double pz = -maxPz; pz <= -minPz ; pz+=config->GetStepPz()){
+     double c = Point(circle->GetMomentum()->GetX(), circle->GetMomentum()->GetY(), pz).GetVectorSlopeC();
+     unique_ptr<Helix> helix = make_unique<Helix>(c, circle, config);
+     helix->SetPoints(points);
+     helix->CalculateNregularPoints();
+     
+     int nRegularPoints = helix->GetNregularPoints();
+     double fractionRegularPoints = nRegularPoints/(double)helix->GetNpoints();
+     
+     // Here is a condition to accept new solution as the best one
+     // Accept as a new best solution if:
+     // - it gives more reqular points than before or,
+     // - it gives the same number of regular points, but they counstitute higher fraction of all points than before
+     if(nRegularPoints < maxNregularPoints) continue;
+     else if(nRegularPoints == maxNregularPoints){
+     if(fractionRegularPoints - maxFractionRegularPoints < 0.001) continue;
+     }
+     
+     // If we reach till this point, save this solution as the best one so far
+     helix->SetPz(pz);
+     bestHelix = move(helix);
+     maxNregularPoints = nRegularPoints;
+     maxFractionRegularPoints = fractionRegularPoints;
+     }
+     */
+  }
+  
+  return bestHelix;
+}

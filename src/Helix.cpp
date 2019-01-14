@@ -15,7 +15,7 @@ charge(_charge),
 config(_config)
 {
   radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
-  slope = momentum->GetVectorSlopeC();
+  slope = charge * momentum->GetVectorSlopeC();
   
   tMax = GetNcycles()*2*TMath::Pi();
   tStep = 0.01;
@@ -32,23 +32,29 @@ config(_config)
   origin->SetZ(origin->GetZ() + tShift*slope);
 }
 
-Helix::Helix(double _slope, const unique_ptr<Circle> &_circle, shared_ptr<FitterConfig> _config) :
-slope(_slope),
-config(_config)
+Helix::Helix(const unique_ptr<Circle> &_circle, double _pz)
 {
+  tStep = 0.01;
   radius    = _circle->GetRadius();
   tShift    = _circle->GetToffset();
-  origin    = make_unique<Point>(_circle->GetCenter()->GetX(),
-                                 _circle->GetCenter()->GetY(),
-                                 _circle->GetCenter()->GetZ() + tShift*slope);
+  charge    = _circle->GetCharge();
   momentum  = _circle->GetMomentum();
+  config    = _circle->GetConfig();
+  momentum->SetZ(_pz);
+  
+  slope = charge * momentum->GetVectorSlopeC();
+  origin = make_unique<Point>(_circle->GetCenter()->GetX(),
+                              _circle->GetCenter()->GetY(),
+                              _circle->GetCenter()->GetZ() + tShift*fabs(slope));
+  
+  tMax = GetNcycles()*2*TMath::Pi();
 }
 
 void Helix::Print()
 {
-  cout<<"R:"<<radius<<"\tc:"<<slope<<"\toffset:("<<origin->GetX()<<","<<origin->GetY()<<","<<origin->GetZ()<<")\t";
-  cout<<"nPoints:"<<points.size()<<"\tnPionPoints:"<<nPionPoints<<"\tnRegularPoints:"<<nRegularPoints<<"\t";
-  cout<<"pz:"<<momentum->GetZ()<<endl;
+  cout<<"\tOrigin:("<<origin->GetX()<<","<<origin->GetY()<<","<<origin->GetZ()<<")\t";
+  cout<<"Momentum:("<<momentum->GetX()<<","<<momentum->GetY()<<","<<momentum->GetZ()<<")\n";
+cout<<"\tR:"<<radius<<"\tc:"<<slope<<"\tnPoints:"<<points.size()<<"\tnPionPoints:"<<nPionPoints<<"\tnRegularPoints:"<<nRegularPoints<<"\n";
 }
 
 vector<Point> Helix::GetPointsHittingSilicon()
@@ -75,13 +81,13 @@ vector<Point> Helix::GetPointsHittingSilicon()
     t1 = atan2(y1-origin->GetY(),x1-origin->GetX());
     t2 = atan2(y2-origin->GetY(),x2-origin->GetX());
     
-    for(int n=0;n<GetNcycles();n++){
-      if(n>0 || t1 > -tShift){
-        z1 = origin->GetZ() + slope*(t1+n*2*TMath::Pi());
+    for(int n=0;n<charge*GetNcycles();n++){
+      if(n>0 || t1 > -charge*tShift){
+        z1 = origin->GetZ() + slope*(t1 + charge*n*2*TMath::Pi());
         points.push_back(Point(x1, y1, z1));
       }
-      if(n>0 || t2 > -tShift){
-        z2 = origin->GetZ() + slope*(t2+n*2*TMath::Pi());
+      if(n>0 || t2 > -charge*tShift){
+        z2 = origin->GetZ() + slope*(t2 + charge*n*2*TMath::Pi());
         points.push_back(Point(x2, y2, z2));
       }
     }
@@ -231,6 +237,7 @@ vector<int> Helix::AreHelicesIdentical(const unique_ptr<Helix> &h1, const unique
   if(fabs(h1->GetMomentum()->GetX() - h2->GetMomentum()->GetX()) > config->GetTolerancePx()) reasons.push_back(4);
   if(fabs(h1->GetMomentum()->GetY() - h2->GetMomentum()->GetY()) > config->GetTolerancePy()) reasons.push_back(5);
   if(fabs(h1->GetMomentum()->GetZ() - h2->GetMomentum()->GetZ()) > config->GetTolerancePz()) reasons.push_back(6);
+  if(h1->GetCharge() != h2->GetCharge()) reasons.push_back(7);
   
   return reasons;
 }

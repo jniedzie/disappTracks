@@ -8,6 +8,10 @@
 #define Fitter_hpp
 
 #include "Helpers.hpp"
+#include "Point.hpp"
+#include "Circle.hpp"
+#include "Helix.hpp"
+#include "FitterConfig.hpp"
 
 class Fitter {
 public:
@@ -28,6 +32,15 @@ public:
   bool RunFitting();
   
   const ROOT::Fit::FitResult& GetResult();
+  
+  static vector<unique_ptr<Circle>> FitCirclesToPoints(vector<Point> allSimplePoints,
+                                                       int pxSign, int pySign, int charge,
+                                                       shared_ptr<FitterConfig> config,
+                                                       double trackTheta, double trackPhi);
+  
+  static unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints,
+                                               shared_ptr<FitterConfig> config,
+                                               double trackTheta, double trackPhi);
   
 private:
   int nPar;

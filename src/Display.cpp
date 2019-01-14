@@ -33,7 +33,17 @@ void Display::DrawHelix(const unique_ptr<Helix> &helix, const map<string,any> op
 {
   TEvePointSetArray *helixPoints = PreparePointsEventDisplay(options);
   
-  for(double t=-helix->GetToffset();t<helix->GetNcycles()*2*TMath::Pi();t+=0.01){
+  double tMin = -helix->GetToffset();
+  double tMax = helix->GetNcycles()*2*TMath::Pi();
+  double tStep = helix->GetTstep();
+  
+  if(helix->GetCharge() < 0){
+    double tmp = tMin;
+    tMin = tMax;
+    tMax = tmp;
+  }
+  
+  for(double t = tMin; t < tMax; t += tStep){
     double x = helix->GetRadius()*cos(t) + helix->GetOrigin()->GetX();
     double y = helix->GetRadius()*sin(t) + helix->GetOrigin()->GetY();
     double z = helix->GetSlope()*t       + helix->GetOrigin()->GetZ();

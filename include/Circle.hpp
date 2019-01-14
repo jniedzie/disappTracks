@@ -9,6 +9,7 @@
 
 #include "Helpers.hpp"
 #include "Point.hpp"
+#include "FitterConfig.hpp"
 
 class Circle
 {
@@ -17,10 +18,11 @@ public:
   /// \param _decayPoint Point to which the circle must be tangent
   /// \param _momentum Pion's momentum determining shift and rotation of the circle
   /// \param _charge Pion's charge determining direction of the shift
+  /// \param _config FitterConfig object
   Circle(const unique_ptr<Point> &_decayPoint,
          const unique_ptr<Point> &_momentum,
          int _charge,
-         double _thickness);
+         shared_ptr<FitterConfig> _config);
   
   /// Prints basic information about the circle
   void Print();
@@ -58,16 +60,23 @@ public:
   /// Returns an angle by which circle is rotated due to the shift of its origin
   inline double GetToffset(){return tShift;}
   
+  /// Returns charge of the candidate particles that created this circle
+  inline int GetCharge(){return charge;}
+  
+  /// Returns FitterConfig object
+  inline shared_ptr<FitterConfig> GetConfig(){return config;}
+  
+  static void RemoveSimilarCircles(vector<unique_ptr<Circle>> &circles);
 private:
   unique_ptr<Point> decayPoint;   ///< Decay point of the chargino
   unique_ptr<Point> center;       ///< Center of the circle (will be automatically shifted in the constructor)
   unique_ptr<Point> momentum;     ///< Pion's momentum vector
   int charge;                     ///< Charge of the particle (determines in which direction to shift)
-  double thickness;
   
   vector<Point> points;           ///< Points belonging to this circle
   double radius;                  ///< Radius of the circle (calculated from the momentum)
   double tShift;                  ///< Angle by which circle is rotated due to the shift of its origin
+  shared_ptr<FitterConfig> config;
 };
 
 #endif /* Circle_hpp */

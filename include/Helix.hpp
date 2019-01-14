@@ -26,10 +26,9 @@ public:
         shared_ptr<FitterConfig> _config);
   
   /// Constructor taking as an input a circle and slope
-  /// \param _slope Slope of the helix in Z direction
   /// \param _circle Circle that determines helix radius and center (should be already shifted by a pions vector)
-  /// \param _config Fitter config
-  Helix(double _slope, const unique_ptr<Circle> &_circle, shared_ptr<FitterConfig> _config);
+  /// \param _pz Z component of the momentum
+  Helix(const unique_ptr<Circle> &_circle, double _pz);
   
   /// Prints basic information about the helix
   void Print();
@@ -51,13 +50,15 @@ public:
   inline unique_ptr<Point>  GetMomentum(){return make_unique<Point>(*momentum);}
   inline double   GetRadius(){return radius;}
   inline double   GetSlope(){return slope;}
+  inline int      GetCharge(){return charge;}
   
   inline double   GetToffset(){return tShift;}
+  inline double   GetTstep(){return tStep;}
   inline int      GetNpoints(){return (int)points.size();}
   inline int      GetNpionPoints(){return nPionPoints;}
   inline int      GetNregularPoints(){return nRegularPoints;}
   
-  inline int      GetNcycles(){return (sgn(slope) * pixelBarrelZsize - origin->GetZ())/(slope*2*TMath::Pi());}
+  inline int      GetNcycles(){return (/*sgn(slope) */ pixelBarrelZsize - origin->GetZ())/(slope*2*TMath::Pi());}
   
   /// Calculates average of the squared distances between points (hits) and the helix
   double GetChi2();

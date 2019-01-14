@@ -8,11 +8,12 @@
 
 Circle::Circle(const unique_ptr<Point> &_decayPoint,
                const unique_ptr<Point> &_momentum,
-               int _charge, double _thickness) :
+               int _charge,
+               shared_ptr<FitterConfig> _config) :
 decayPoint(make_unique<Point>(*_decayPoint)),
 momentum(make_unique<Point>(*_momentum)),
 charge(_charge),
-thickness(_thickness)
+config(_config)
 {
   radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
   
@@ -70,7 +71,7 @@ void Circle::SetPoints(vector<Point> _points)
 {
   points.clear();
   for(auto p : _points){
-    if(GetDistanceToPoint(p) < thickness) points.push_back(p);
+    if(GetDistanceToPoint(p) < config->GetCircleThickness()) points.push_back(p);
   }
 }
 
@@ -79,3 +80,19 @@ TArc* Circle::GetArc()
   return new TArc(center->GetX(),center->GetY(),radius);
 }
 
+void Circle::RemoveSimilarCircles(vector<unique_ptr<Circle>> &circles)
+{
+  if(circles.size() == 0) return;
+  
+  shared_ptr<FitterConfig> config = circles[0]->GetConfig();
+  
+  sort(circles.begin(), circles.end(),
+       [](const auto &c1, const auto &c2) -> bool {return c1->GetRadius() < c2->GetRadius();});
+  
+  for(int i=0; i<circles.size()-1; i++){
+    if(fabs(circles[i]->GetRadius() - circles[i+1]->GetRadius()) < config->GetCircleThickness()){
+      circles.erase(circles.begin()+i);
+      i--;
+    }
+  }
+}
