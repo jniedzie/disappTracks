@@ -53,7 +53,7 @@ public:
   unique_ptr<Point> GetMomentum(){return make_unique<Point>(*momentum);}
   
   /// Returns circle's radius calculated from the pion's momentum
-  inline double GetRadius(){return radius;}
+  inline double GetRadius() const {return radius;}
   
   /// Returns an angle by which circle is rotated due to the shift of its origin
   inline double GetToffset(){return tShift;}

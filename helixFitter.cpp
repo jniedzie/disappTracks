@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
     
     unique_ptr<Point> pionVector = make_unique<Point>(/*RandSign()*/RandDouble(minPx, maxPx),
                                                       /*RandSign()*/RandDouble(minPy, maxPy),
-                                                      /*RandSign()*/RandDouble(minPz, maxPz));
+                                                      RandSign()*RandDouble(minPz, maxPz));
     
     cout<<"True pion momentum vector:"; pionVector->Print();
     
@@ -262,7 +262,23 @@ unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints)
       }
     }
   }
+  if(circles.size() == 0){
+    cout<<"No circles were found"<<endl;
+    return nullptr;
+  }
+  
   cout<<"N circles:"<<circles.size()<<endl;
+  
+  sort(circles.begin(), circles.end(),
+       [](const auto &c1, const auto &c2) -> bool {return c1->GetRadius() < c2->GetRadius();});
+  
+  for(int i=0; i<circles.size()-1; i++){
+    if(fabs(circles[i]->GetRadius() - circles[i+1]->GetRadius()) < config->GetCircleThickness()){
+      circles.erase(circles.begin()+i);
+      i--;
+    }
+  }
+  cout<<"N circles after:"<<circles.size()<<endl;
   
   unique_ptr<Helix> bestHelix = nullptr;
   int maxNregularPoints = 0;
@@ -271,8 +287,7 @@ unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints)
   for(auto &circle : circles){
     vector<Point> points = circle->GetPoints();
     
-    for(double pz = maxPz; pz >= minPz ; pz-=config->GetStepPz() ){
-      
+    for(double pz = maxPz; pz >= minPz ; pz-=config->GetStepPz()){
       double c = Point(circle->GetMomentum()->GetX(), circle->GetMomentum()->GetY(), pz).GetVectorSlopeC();
       unique_ptr<Helix> helix = make_unique<Helix>(c, circle, config);
       helix->SetPoints(points);
@@ -290,6 +305,31 @@ unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints)
         if(fractionRegularPoints - maxFractionRegularPoints < 0.001) continue;
       }
 
+      // If we reach till this point, save this solution as the best one so far
+      helix->SetPz(pz);
+      bestHelix = move(helix);
+      maxNregularPoints = nRegularPoints;
+      maxFractionRegularPoints = fractionRegularPoints;
+    }
+    
+    for(double pz = -maxPz; pz <= -minPz ; pz+=config->GetStepPz()){
+      double c = Point(circle->GetMomentum()->GetX(), circle->GetMomentum()->GetY(), pz).GetVectorSlopeC();
+      unique_ptr<Helix> helix = make_unique<Helix>(c, circle, config);
+      helix->SetPoints(points);
+      helix->CalculateNregularPoints();
+      
+      int nRegularPoints = helix->GetNregularPoints();
+      double fractionRegularPoints = nRegularPoints/(double)helix->GetNpoints();
+      
+      // Here is a condition to accept new solution as the best one
+      // Accept as a new best solution if:
+      // - it gives more reqular points than before or,
+      // - it gives the same number of regular points, but they counstitute higher fraction of all points than before
+      if(nRegularPoints < maxNregularPoints) continue;
+      else if(nRegularPoints == maxNregularPoints){
+        if(fractionRegularPoints - maxFractionRegularPoints < 0.001) continue;
+      }
+      
       // If we reach till this point, save this solution as the best one so far
       helix->SetPz(pz);
       bestHelix = move(helix);
