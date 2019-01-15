@@ -146,7 +146,8 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(vector<Point> allSimplePoi
 
 unique_ptr<Helix> Fitter::GetBestFittingHelix(vector<Point> allSimplePoints,
                                               shared_ptr<FitterConfig> config,
-                                              double trackTheta, double trackPhi)
+                                              double trackTheta, double trackPhi,
+                                              bool drawCircles)
 {
   // Collect circles for positive charge
   int charge = 1;
@@ -180,7 +181,27 @@ unique_ptr<Helix> Fitter::GetBestFittingHelix(vector<Point> allSimplePoints,
     cout<<"No circles were found"<<endl;
     return nullptr;
   }
-  
+  if(drawCircles){
+    TCanvas *c1 = new TCanvas("c1","c1",800,600);
+    c1->cd();
+    TH2D *points = new TH2D("points","points",
+                            250, -250, 250,
+                            250, -250, 250);
+    
+    for(auto p : allSimplePoints){
+      points->Fill(p.GetX(),p.GetY());
+    }
+    points->Draw("colz");
+    
+    for(auto &c : circles){
+      auto a = c->GetArc();
+      a->SetFillColorAlpha(kWhite, 0.0);
+      a->SetLineWidth(1.0);
+      a->SetLineColor(kRed);
+      a->Draw("sameL");
+    }
+    c1->Update();
+  }
   unique_ptr<Helix> bestHelix = nullptr;
   int maxNregularPoints = 0;
   double maxFractionRegularPoints = 0;

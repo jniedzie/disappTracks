@@ -40,7 +40,8 @@ public:
   
   static unique_ptr<Helix> GetBestFittingHelix(vector<Point> allSimplePoints,
                                                shared_ptr<FitterConfig> config,
-                                               double trackTheta, double trackPhi);
+                                               double trackTheta, double trackPhi,
+                                               bool drawCircles=false);
   
 private:
   int nPar;
