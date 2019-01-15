@@ -65,7 +65,7 @@ vector<Point> Helix::GetPointsHittingSilicon()
   double Rl, C, delta;
   double x1,y1,x2,y2,z1,z2,t1,t2;
   
-  for(int iLayer=0;iLayer<4/*nLayers*/;iLayer++){
+  for(int iLayer=0;iLayer<nPixelLayers;iLayer++){
     Rl = layerR[iLayer];
     C = (Rl*Rl+dh*dh-radius*radius)/2.;
     
@@ -81,7 +81,9 @@ vector<Point> Helix::GetPointsHittingSilicon()
     t1 = atan2(y1-origin->GetY(),x1-origin->GetX());
     t2 = atan2(y2-origin->GetY(),x2-origin->GetX());
     
-    for(int n=0;n<charge*GetNcycles();n++){
+    double nCycles = fabs(GetNcycles());
+    
+    for(double n=0;n<nCycles;n+=1){
       if(n>0 || t1 > -charge*tShift){
         z1 = origin->GetZ() + slope*(t1 + charge*n*2*TMath::Pi());
         points.push_back(Point(x1, y1, z1));

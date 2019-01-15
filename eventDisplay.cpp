@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
   unique_ptr<Point> pionHelixCenter = unique_ptr<Point>(new Point(decayX,decayY,decayZ));
 
   double pionCharge = 1;
-  unique_ptr<Point> pionVector = make_unique<Point>(80,80,500); // Total momentum ~200 MeV
+  unique_ptr<Point> pionVector = make_unique<Point>(80,80,1000); // Total momentum ~200 MeV
   unique_ptr<Helix> pionHelix = make_unique<Helix>(pionHelixCenter, pionVector, pionCharge, config);
   display->DrawHelix(pionHelix,helixOptions);
   
@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
   }
   */
   
-  cout<<"\n\ndone\n\n"<<endl;
+  gEve->Redraw3D(true);
   theApp.Run();
   return 0;
 }
