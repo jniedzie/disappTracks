@@ -88,6 +88,7 @@ private:
   unique_ptr<Point> momentum;   ///< Pion's momentum vector
   double radius;                ///< Radius of the helix
   double slope;                 ///< Slope of the helix in Z direction
+  double slopeAbs;              ///< Absolute value of the slope (to speed up the calculation)
   int    charge;                ///< Charge of the particle (determines helix direction)
   
   Point GetClosestPoint(Point p);

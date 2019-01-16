@@ -17,6 +17,7 @@ pointsProcessor(make_unique<PointsProcessor>())
 {
   radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
   slope = charge * momentum->GetVectorSlopeC();
+  slopeAbs = fabs(slope);
   tStep = 0.01;
   
   // take a vector perpendicular to the pion's momentum vector
@@ -25,8 +26,6 @@ pointsProcessor(make_unique<PointsProcessor>())
   
   origin->SetX(origin->GetX() + scale*v.GetX());
   origin->SetY(origin->GetY() + scale*v.GetY());
-  
-//  int zSign = sgn(momentum->GetZ());
   
   tShift = -atan2(v.GetY(), -v.GetX());
   origin->SetZ(origin->GetZ() - charge*tShift*slope);
@@ -45,9 +44,11 @@ pointsProcessor(make_unique<PointsProcessor>())
   momentum->SetZ(_pz);
   
   slope = charge * momentum->GetVectorSlopeC();
+  slopeAbs = fabs(slope);
+  
   origin = make_unique<Point>(_circle->GetCenter()->GetX(),
                               _circle->GetCenter()->GetY(),
-                              _circle->GetCenter()->GetZ() - tShift*slope);
+                              _circle->GetCenter()->GetZ() - charge*tShift*slope);
   
   tMax = GetNcycles()*2*TMath::Pi();
 }
@@ -91,14 +92,14 @@ vector<Point> Helix::GetPointsHittingSilicon()
          || (signZ > 0 && t1 > tShift)
          || (signZ < 0 && t1 < tShift)
          ){
-        z1 = origin->GetZ() + fabs(slope)*(t1 + signZ*n*2*TMath::Pi());
+        z1 = origin->GetZ() + slopeAbs*(t1 + signZ*n*2*TMath::Pi());
         points.push_back(Point(x1, y1, z1));
       }
       if(n>0
          || (signZ > 0 && t2 > tShift)
          || (signZ < 0 && t2 < tShift)
          ){
-        z2 = origin->GetZ() + fabs(slope)*(t2 + signZ*n*2*TMath::Pi());
+        z2 = origin->GetZ() + slopeAbs*(t2 + signZ*n*2*TMath::Pi());
         points.push_back(Point(x2, y2, z2));
       }
     }
@@ -133,13 +134,14 @@ double Helix::GetChi2()
 Point Helix::GetClosestPoint(Point p)
 {
   double t = atan2((p.GetY()-origin->GetY()),(p.GetX()-origin->GetX()));
+  int zSign = sgn(momentum->GetZ());
   
-  double x = radius*cos(t) + origin->GetX();
-  double y = radius*sin(t) + origin->GetY();
-  double z = slope*t       + origin->GetZ();
+  double x = origin->GetX() + radius*cos(t);
+  double y = origin->GetY() + radius*sin(t);
+  double z = origin->GetZ() + slopeAbs*t;
   
-  int nCycles = round( fabs(p.GetZ() - z) / (fabs(slope) * 2 * TMath::Pi()));
-  z += nCycles * slope * 2 * TMath::Pi();
+  int nCycles = round(fabs(p.GetZ() - z) / (slopeAbs * 2 * TMath::Pi()));
+  z += zSign*nCycles * slopeAbs * 2 * TMath::Pi();
 
   return Point(x,y,z);
 }
