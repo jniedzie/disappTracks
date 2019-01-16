@@ -6,41 +6,14 @@
 
 #include "Fitter.hpp"
 
-Fitter::Fitter(int _nPar) : nPar(_nPar)
+Fitter::Fitter()
 {
-  fitter = new ROOT::Fit::Fitter();
-  auto f = [&](const double *par) {return 0;};
-  SetFitFunction(f);
+  pointsProcessor = make_unique<PointsProcessor>();
 }
 
 Fitter::~Fitter()
 {
   
-}
-
-void Fitter::SetParameter(int i, string name, double start, double min, double max, bool fix)
-{
-  fitter->Config().ParSettings(i).SetName(name);
-  fitter->Config().ParSettings(i).SetValue(start);
-  fitter->Config().ParSettings(i).SetLimits((min < max) ? min : max,(min < max) ? max : min);
-  if(fix) fitter->Config().ParSettings(i).Fix();
-}
-
-void Fitter::FixParameter(int i, string name, double val)
-{
-  fitter->Config().ParSettings(i).SetName(name);
-  fitter->Config().ParSettings(i).SetValue(val);
-  fitter->Config().ParSettings(i).Fix();
-}
-
-bool Fitter::RunFitting()
-{
-  return fitter->FitFCN();
-}
-
-const ROOT::Fit::FitResult& Fitter::GetResult()
-{
-  return fitter->Result();
 }
 
 vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(vector<Point> allSimplePoints,
@@ -50,7 +23,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(vector<Point> allSimplePoi
 {
   // Prepare 2D projections in XY
   vector<Point> points2D;
-  vector<vector<Point>> pointsByLine = Point::SplitPointsIntoLines(allSimplePoints, config->GetLinesToleranceForCircles());
+  vector<vector<Point>> pointsByLine = pointsProcessor->SplitPointsIntoLines(allSimplePoints, config->GetLinesToleranceForCircles());
   
   for(vector<Point> line : pointsByLine){
     if(line.size() >= config->GetMinPointsAlongZ()){
@@ -66,16 +39,23 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(vector<Point> allSimplePoi
   double maxL = config->GetMaxL();
   
   // Create fitter to fit circles to 2D distribution
-  unique_ptr<Fitter> fitter = unique_ptr<Fitter>(new Fitter(3));
-  double helixThickness = config->GetHelixThickness();
-  fitter->SetParameter(0, "L", (maxL+minL)/2., minL-helixThickness, maxL+helixThickness);
+  ROOT::Fit::Fitter *fitter = new ROOT::Fit::Fitter();
+  auto f = [&](const double *par) {return 0;};
+  int nPar = 3;
+  ROOT::Math::Functor fitFunction = ROOT::Math::Functor(f, nPar);
+  double pStart[nPar];
+  fitter->SetFCN(fitFunction, pStart);
   
-  fitter->SetParameter(1, "px",
+  
+  double helixThickness = config->GetHelixThickness();
+  
+  SetParameter(fitter, 0, "L", (maxL+minL)/2., minL-helixThickness, maxL+helixThickness);
+  SetParameter(fitter, 1, "px",
                        pxSign*(maxPx-minPx)/2.,
                        pxSign > 0 ? minPx : -maxPx,
                        pxSign > 0 ? maxPx : -minPx);
   
-  fitter->SetParameter(2, "py",
+  SetParameter(fitter, 2, "py",
                        pySign*(maxPy-minPy)/2.,
                        pySign > 0 ? minPy : -maxPy,
                        pySign > 0 ? maxPy : -minPy);
@@ -110,10 +90,12 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(vector<Point> allSimplePoi
           
           return f;
         };
-        fitter->SetFitFunction(chi2Function);
+        fitFunction = ROOT::Math::Functor(chi2Function, nPar);
+        double pStart[nPar];
+        fitter->SetFCN(fitFunction, pStart);
         
-        if(fitter->RunFitting()) {
-          auto result = fitter->GetResult();
+        if(fitter->FitFCN()) {
+          auto result = fitter->Result();
           
           double L = result.GetParams()[0];
           double px = result.GetParams()[1];
@@ -263,4 +245,19 @@ unique_ptr<Helix> Fitter::GetBestFittingHelix(vector<Point> allSimplePoints,
   }
   
   return bestHelix;
+}
+
+void Fitter::SetParameter(ROOT::Fit::Fitter *fitter, int i, string name, double start, double min, double max, bool fix)
+{
+  fitter->Config().ParSettings(i).SetName(name);
+  fitter->Config().ParSettings(i).SetValue(start);
+  fitter->Config().ParSettings(i).SetLimits((min < max) ? min : max,(min < max) ? max : min);
+  if(fix) fitter->Config().ParSettings(i).Fix();
+}
+
+void Fitter::FixParameter(ROOT::Fit::Fitter *fitter, int i, string name, double val)
+{
+  fitter->Config().ParSettings(i).SetName(name);
+  fitter->Config().ParSettings(i).SetValue(val);
+  fitter->Config().ParSettings(i).Fix();
 }

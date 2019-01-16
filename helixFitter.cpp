@@ -8,6 +8,7 @@
 #include "Helix.hpp"
 #include "Circle.hpp"
 #include "Point.hpp"
+#include "PointsProcessor.hpp"
 #include "Event.hpp"
 #include "EventSet.hpp"
 #include "Fitter.hpp"
@@ -16,6 +17,7 @@
 
 string configPath = "configs/helixFitter.md";
 shared_ptr<FitterConfig> config;
+unique_ptr<PointsProcessor> pointsProcessor;
 
 // Will be calculated automatically
 double trackEta, trackTheta, trackPhi; // parameters of the chargino track
@@ -157,7 +159,10 @@ int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
   config = make_shared<FitterConfig>(configPath);
+  pointsProcessor = make_unique<PointsProcessor>();
   SetupMonitors();
+  
+  unique_ptr<Fitter> fitter = make_unique<Fitter>();
   
   int nSuccess = 0;
   int nTests = config->GetNtests();
@@ -167,13 +172,13 @@ int main(int argc, char* argv[])
     cout<<"Test iter:"<<i<<endl;
     
     SetRandomTrack(); // Randomly generate chargino's track
-    vector<Point> pixelPoints = Point::GetRandomPoints(config->GetNnoiseHits());
+    vector<Point> pixelPoints = pointsProcessor->GetRandomPoints(config->GetNnoiseHits());
 //  vector<Point> pixelPoints = LoadAllHits(297100, 136, 245000232);
     
     unique_ptr<Helix> pionHelix = GetRandomPionHelix();
     if(config->GetInjectPionHits()) InjectPionPointsToCollectionOfPoints(pionHelix, pixelPoints);
     
-    unique_ptr<Helix> bestHelix = Fitter::GetBestFittingHelix(pixelPoints, config, trackTheta, trackPhi);
+    unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(pixelPoints, config, trackTheta, trackPhi);
     bool success = FillMonitors(bestHelix, pionHelix);
     
     if(success) nSuccess++;
@@ -197,11 +202,6 @@ int main(int argc, char* argv[])
   theApp.Run();
   return 0;
 }
-
-
-
-
-
 
 vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber)
 {

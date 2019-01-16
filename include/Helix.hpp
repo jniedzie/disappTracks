@@ -9,6 +9,7 @@
 
 #include "Helpers.hpp"
 #include "Point.hpp"
+#include "PointsProcessor.hpp"
 #include "Circle.hpp"
 #include "FitterConfig.hpp"
 
@@ -91,6 +92,8 @@ private:
   
   Point GetClosestPoint(Point p);
   shared_ptr<FitterConfig> config;
+  
+  unique_ptr<PointsProcessor> pointsProcessor;
 };
 
 #endif /* Helix_hpp */

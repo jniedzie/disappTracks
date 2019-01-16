@@ -21,28 +21,11 @@ public:
   /// Prints basic info about the point
   void Print() const;
   
-  /// Returns distance between this and another point
-  double distance(Point p);
-  
-  /// Returns distance between this and another point in the transverse plane
-  double distanceXY(Point p);
-  
-  /// Returns squared distance between this and another point in the transverse plane
-  /// (should be much faster than a true distance)
-  double distanceXYsquared(Point p);
-  
   /// Returns slope of vector defined by this point calculated from the Y axis
-  double GetVectorSlopeC();
+  double GetVectorSlopeC() const;
   
   /// Tells whether or not this point belongs to a true pion's helix
-  inline bool IsPionHit(){return isPionHit;}
-  
-  /// Separates vector of points into groups with the same XY position (within tolerance)
-  static vector<vector<Point>> SplitPointsIntoLines(vector<Point> points, double tolerance);
-  
-  /// Returns a vector filled with random points in the pixel barrel
-  /// \param nPoints Number of points that will be generated
-  static vector<Point> GetRandomPoints(int nPoints);
+  inline bool IsPionHit() const {return isPionHit;}
   
   // Trivial getters
   inline double GetX() const {return x;}
@@ -61,6 +44,7 @@ private:
   
   bool isPionHit; ///< Flag saying whether or not this point belongs to a true pion's helix
   
+  friend class PointsProcessor;
 };
 
 #endif /* Point_hpp */

@@ -12,7 +12,8 @@ Helix::Helix(const unique_ptr<Point> &_origin,
 origin(make_unique<Point>(*_origin)),
 momentum(make_unique<Point>(*_momentum)),
 charge(_charge),
-config(_config)
+config(_config),
+pointsProcessor(make_unique<PointsProcessor>())
 {
   radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
   slope = charge * momentum->GetVectorSlopeC();
@@ -30,7 +31,8 @@ config(_config)
   tMax = GetNcycles()*2*TMath::Pi();
 }
 
-Helix::Helix(const unique_ptr<Circle> &_circle, double _pz)
+Helix::Helix(const unique_ptr<Circle> &_circle, double _pz) :
+pointsProcessor(make_unique<PointsProcessor>())
 {
   tStep = 0.01;
   radius    = _circle->GetRadius();
@@ -103,7 +105,7 @@ void Helix::SetPoints(const vector<Point> &_points)
   
   for(Point p : _points){
     Point q = GetClosestPoint(p);
-    if(p.distance(q) < config->GetHelixThickness()){
+    if(pointsProcessor->distance(p,q) < config->GetHelixThickness()){
       if(p.IsPionHit()) nPionPoints++;
       points.push_back(p);
     }
@@ -114,7 +116,7 @@ double Helix::GetChi2()
 {
   double chi2 = 0;
   for(Point p : points){
-    chi2 += pow(p.distance(GetClosestPoint(p)), 2);
+    chi2 += pow(pointsProcessor->distance(p, GetClosestPoint(p)), 2);
   }
   return chi2 / points.size();
 }
@@ -181,7 +183,7 @@ Point Helix::GetClosestPoint(Point p)
 
 void Helix::CalculateNregularPoints(int limit)
 {
-  vector<vector<Point>> pointsByLine = Point::SplitPointsIntoLines(points, config->GetLinesToleranceForRegularity());
+  vector<vector<Point>> pointsByLine = pointsProcessor->SplitPointsIntoLines(points, config->GetLinesToleranceForRegularity());
   vector<double> possibleDistances;
   set<double> possibleDistancesSet;
   nRegularPoints = 0;
@@ -194,7 +196,7 @@ void Helix::CalculateNregularPoints(int limit)
     first=true;
     int iPoint;
     for(iPoint=0; iPoint < line.size()-1; iPoint++){
-      testingDistance = line[iPoint].distance(line[iPoint+1]);
+      testingDistance = pointsProcessor->distance(line[iPoint], line[iPoint+1]);
       found = false;
       for(double dd : possibleDistances){
         if(fabs(testingDistance-dd) < zRegularityTolerance){found = true;break;}
@@ -206,7 +208,7 @@ void Helix::CalculateNregularPoints(int limit)
       
       for(auto line2 : pointsByLine){
         for(int i=0;i<line2.size();i++){
-          if(std::abs(line2[0].distance(line2[i])-i*testingDistance) < zRegularityTolerance)  nPointsForDistance++;
+          if(std::abs(pointsProcessor->distance(line2[0], line2[i])-i*testingDistance) < zRegularityTolerance)  nPointsForDistance++;
         }
       }
       if(nPointsForDistance > nRegularPoints){
