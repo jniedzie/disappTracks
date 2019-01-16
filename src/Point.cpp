@@ -29,7 +29,7 @@ Point::Point(vector<Point> points)
   z /= points.size();
 }
 
-void Point::Print()
+void Point::Print() const
 {
   cout<<"("<<x<<","<<y<<","<<z<<")"<<endl;
 }

@@ -18,15 +18,14 @@ config(_config)
   radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
   
   // take a vector perpendicular to the pion's momentum vector
-  Point v = Point(charge * -momentum->GetY(),charge * momentum->GetX(), momentum->GetZ());
-  
-  double vTransverseLength = sqrt(pow(v.GetX(),2)+pow(v.GetY(),2));
-  tShift = acos(-v.GetX()/vTransverseLength);
-  double scale = radius/vTransverseLength;
+  Point v = Point(charge * -momentum->GetY(),charge * momentum->GetX(), 0.0);
+  double scale = radius/sqrt(pow(v.GetX(),2)+pow(v.GetY(),2));
   
   center = make_unique<Point>(*decayPoint);
   center->SetX(center->GetX() + scale*v.GetX());
   center->SetY(center->GetY() + scale*v.GetY());
+  
+  tShift = -atan2(v.GetY(), -v.GetX());
 }
 
 void Circle::Print()

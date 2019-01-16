@@ -19,7 +19,7 @@ public:
   Point(vector<Point> points);
   
   /// Prints basic info about the point
-  void Print();
+  void Print() const;
   
   /// Returns distance between this and another point
   double distance(Point p);
@@ -45,10 +45,10 @@ public:
   static vector<Point> GetRandomPoints(int nPoints);
   
   // Trivial getters
-  inline double GetX(){return x;}
-  inline double GetY(){return y;}
-  inline double GetZ(){return z;}
-  inline double GetValue(){return value;}
+  inline double GetX() const {return x;}
+  inline double GetY() const {return y;}
+  inline double GetZ() const {return z;}
+  inline double GetValue() const {return value;}
   
   // Trivial setters
   inline void SetX(double val){x = val;}

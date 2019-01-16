@@ -52,7 +52,8 @@ public:
   inline double   GetSlope(){return slope;}
   inline int      GetCharge(){return charge;}
   
-  inline double   GetToffset(){return tShift;}
+  inline double   GetTmin(){return tShift;}
+  inline double   GetTmax(){return tMax;}
   inline double   GetTstep(){return tStep;}
   inline int      GetNpoints(){return (int)points.size();}
   inline int      GetNpionPoints(){return nPionPoints;}

@@ -16,20 +16,18 @@ config(_config)
 {
   radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
   slope = charge * momentum->GetVectorSlopeC();
-  
-  tMax = GetNcycles()*2*TMath::Pi();
   tStep = 0.01;
   
   // take a vector perpendicular to the pion's momentum vector
-  Point v = Point(charge * -momentum->GetY(),charge * momentum->GetX(), momentum->GetZ());
-  
-  double vTransverseLength = sqrt(pow(v.GetX(),2)+pow(v.GetY(),2));
-  tShift = acos(-v.GetX()/vTransverseLength);
-  double scale = radius/vTransverseLength;
+  const Point v = Point(charge * -momentum->GetY(),charge * momentum->GetX(), 0.0);
+  const double scale = radius/sqrt(pow(v.GetX(),2)+pow(v.GetY(),2));
   
   origin->SetX(origin->GetX() + scale*v.GetX());
   origin->SetY(origin->GetY() + scale*v.GetY());
-  origin->SetZ(origin->GetZ() + tShift*slope);
+  
+  tShift = -atan2(v.GetY(), -v.GetX());
+  origin->SetZ(origin->GetZ() - tShift*slope);
+  tMax = GetNcycles()*2*TMath::Pi();
 }
 
 Helix::Helix(const unique_ptr<Circle> &_circle, double _pz)
@@ -45,7 +43,7 @@ Helix::Helix(const unique_ptr<Circle> &_circle, double _pz)
   slope = charge * momentum->GetVectorSlopeC();
   origin = make_unique<Point>(_circle->GetCenter()->GetX(),
                               _circle->GetCenter()->GetY(),
-                              _circle->GetCenter()->GetZ() + tShift*fabs(slope));
+                              _circle->GetCenter()->GetZ() - tShift*slope);
   
   tMax = GetNcycles()*2*TMath::Pi();
 }
@@ -84,11 +82,11 @@ vector<Point> Helix::GetPointsHittingSilicon()
     double nCycles = fabs(GetNcycles());
     
     for(double n=0;n<nCycles;n+=1){
-      if(n>0 || t1 > -charge*tShift){
+      if(n>0 || t1 > charge*tShift){
         z1 = origin->GetZ() + slope*(t1 + charge*n*2*TMath::Pi());
         points.push_back(Point(x1, y1, z1));
       }
-      if(n>0 || t2 > -charge*tShift){
+      if(n>0 || t2 > charge*tShift){
         z2 = origin->GetZ() + slope*(t2 + charge*n*2*TMath::Pi());
         points.push_back(Point(x2, y2, z2));
       }
@@ -123,23 +121,15 @@ double Helix::GetChi2()
 
 Point Helix::GetClosestPoint(Point p)
 {
-  double t = atan2(p.GetY()-origin->GetY(), p.GetX()-origin->GetX());
+  double t = atan2((p.GetY()-origin->GetY()),(p.GetX()-origin->GetX()));
   
   double x = radius*cos(t) + origin->GetX();
   double y = radius*sin(t) + origin->GetY();
   double z = slope*t       + origin->GetZ();
   
 
-  int nCycles = floor( (p.GetZ() - z) / (slope * 2 * TMath::Pi()));
+  int nCycles = round( (p.GetZ() - z) / (slope * 2 * TMath::Pi()));
   z += nCycles * slope * 2 * TMath::Pi();
-  
-  
-  double absC = fabs(slope);
-  double currentDistanceZ = fabs(p.GetZ()-z);
-  
-  if(fabs(p.GetZ()-(z+slope*2*TMath::Pi())) < currentDistanceZ){
-    z += absC*2*TMath::Pi();
-  }
 
   return Point(x,y,z);
   

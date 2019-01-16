@@ -33,8 +33,8 @@ void Display::DrawHelix(const unique_ptr<Helix> &helix, const map<string,any> op
 {
   TEvePointSetArray *helixPoints = PreparePointsEventDisplay(options);
   
-  double tMin = -helix->GetToffset();
-  double tMax = helix->GetNcycles()*2*TMath::Pi();
+  double tMin  = helix->GetTmin();
+  double tMax  = helix->GetTmax();
   double tStep = helix->GetTstep();
   
   if(helix->GetCharge() < 0){

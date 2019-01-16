@@ -185,8 +185,8 @@ int main(int argc, char* argv[])
         cout<<"\n\nwrong charge\n\n"<<endl;
         cout<<"best charge:"<<bestHelix->GetCharge()<<endl;
         cout<<"true charge:"<<pionHelix->GetCharge()<<endl;
-        cout<<"best t shift:"<<bestHelix->GetToffset()<<endl;
-        cout<<"true t shift:"<<pionHelix->GetToffset()<<endl;
+        cout<<"best t shift:"<<bestHelix->GetTmin()<<endl;
+        cout<<"true t shift:"<<pionHelix->GetTmin()<<endl;
       }
     }
   }
