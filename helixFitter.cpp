@@ -109,7 +109,7 @@ unique_ptr<Helix> GetRandomPionHelix()
   unique_ptr<Point> pionVector = make_unique<Point>(RandSign()*RandDouble(minPx, maxPx),
                                                     RandSign()*RandDouble(minPy, maxPy),
                                                     /*RandSign()*/RandDouble(minPz, maxPz));
-  int pionCharge = 1; // RandSign();
+  int pionCharge = RandSign();
   
   // Create true pion helix
   double decayX = decayR*sin(trackTheta)*cos(trackPhi);

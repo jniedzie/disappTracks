@@ -27,9 +27,6 @@ public:
   /// Prints basic information about the circle
   void Print();
   
-  /// Calculates number of histogram bins that lay on the circle
-  int GetNbinsOverlappingWithHist(TH2D *hist);
- 
   /// Returns closest distance between point p and this circle
   double GetDistanceToPoint(Point p);
   

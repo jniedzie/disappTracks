@@ -33,31 +33,6 @@ void Circle::Print()
   cout<<"Circle center ("<<center->GetX()<<","<<center->GetY()<<")\tR:"<<radius<<endl;
 }
 
-int Circle::GetNbinsOverlappingWithHist(TH2D *hist)
-{
-  int nPoints = 0;
-  unique_ptr<TH2D> circle = unique_ptr<TH2D>(new TH2D(*hist));
-  
-  for(int binX=0;binX<circle->GetNbinsX();binX++){
-    for(int binY=0;binY<circle->GetNbinsY();binY++){
-      circle->SetBinContent(binX,binY, 0);
-    }
-  }
-  for(double t=0;t<2*TMath::Pi();t+=0.01){
-    circle->Fill(center->GetX() + radius*cos(t),center->GetY() + radius*sin(t));
-  }
-  
-  for(int binX=0;binX<circle->GetNbinsX();binX++){
-    for(int binY=0;binY<circle->GetNbinsY();binY++){
-      if(circle->GetBinContent(binX,binY) > 0 &&
-         hist->GetBinContent(binX,binY) > 0){
-        nPoints++;
-      }
-    }
-  }
-  return nPoints;
-}
-
 double Circle::GetDistanceToPoint(Point p)
 {
   double t = atan2(p.GetY()-center->GetY(), p.GetX()-center->GetX());

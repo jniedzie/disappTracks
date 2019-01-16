@@ -84,16 +84,21 @@ vector<Point> Helix::GetPointsHittingSilicon()
     double nCycles = fabs(GetNcycles());
     
     for(double n=0;n<nCycles;n+=1){
-      if(n>0 || t1 > charge*tShift){
+      if(n>0
+         || (charge > 0 && t1 > tShift)
+         || (charge < 0 && t1 < tShift)
+         ){
         z1 = origin->GetZ() + slope*(t1 + charge*n*2*TMath::Pi());
         points.push_back(Point(x1, y1, z1));
       }
-      if(n>0 || t2 > charge*tShift){
+      if(n>0
+         || (charge > 0 && t2 > tShift)
+         || (charge < 0 && t2 < tShift)
+         ){
         z2 = origin->GetZ() + slope*(t2 + charge*n*2*TMath::Pi());
         points.push_back(Point(x2, y2, z2));
       }
     }
-    
   }
   return points;
 }
@@ -129,56 +134,10 @@ Point Helix::GetClosestPoint(Point p)
   double y = radius*sin(t) + origin->GetY();
   double z = slope*t       + origin->GetZ();
   
-
   int nCycles = round( (p.GetZ() - z) / (slope * 2 * TMath::Pi()));
   z += nCycles * slope * 2 * TMath::Pi();
 
   return Point(x,y,z);
-  
-  // This is an attempt to calculate real distance between point and helix:
-  //
-//  TF1 *fun = new TF1("fun","[0]*sin(x)*([1]-[2]) + [0]*cos(x)*([3]-[4]) + [5]*([6]-[7])-pow([5],2)*x",-TMath::Pi(),TMath::Pi());
-//  fun->SetParameter(0, radius);
-//  fun->SetParameter(1, origin->GetX());
-//  fun->SetParameter(4, origin->GetY());
-//  fun->SetParameter(5, slope);
-//  fun->SetParameter(7, origin->GetZ());
-  //  fun->SetParameter(2, p.GetX());
-  //  fun->SetParameter(3, p.GetY());
-  //
-  //  double pz = p.GetZ();
-  ////  cout<<"pz before:"<<pz-origin->GetZ()<<"\t";
-  //
-  //  int nCycles = floor((p.GetZ() - origin->GetZ())/(slope * 2*TMath::Pi()));
-  //  pz -= nCycles * slope * 2*TMath::Pi();
-  ////  cout<<"after:"<< (pz-origin->GetZ())/(slope * 2*TMath::Pi())<<endl;
-  //
-  //  fun->SetParameter(6, pz);
-  //
-  //  double t1 = fun->GetX(0.0, -TMath::Pi(), 0.0);
-  //  double t2 = fun->GetX(0.0, 0.0, TMath::Pi());
-  //
-  //  double x = radius*cos(t1) + origin->GetX();
-  //  double y = radius*sin(t1) + origin->GetY();
-  //  double z = slope*t1       + origin->GetZ();
-  //
-  ////  int nCycles = floor((p.GetZ() - origin->GetZ())/(slope * 2*TMath::Pi()));
-  //  z += nCycles * slope * 2*TMath::Pi();
-  //
-  //  Point q(x,y,z);
-  //
-  //  if(p.distance(q) > 1.0){
-  //    x = radius*cos(t2) + origin->GetX();
-  //    y = radius*sin(t2) + origin->GetY();
-  //    z = slope*t2       + origin->GetZ();
-  //    q = Point(x,y,z);
-  //
-  //    if(p.distance(q) > 1.0){
-  //      cout<<"Point P:"; p.Print();
-  //      cout<<"\tPoint Q:"; q.Print();
-  //      cout<<"\tdistance:"<<p.distance(q)<<endl;
-  //    }
-  //  }
 }
 
 void Helix::CalculateNregularPoints(int limit)
@@ -189,13 +148,12 @@ void Helix::CalculateNregularPoints(int limit)
   nRegularPoints = 0;
   int nPointsForDistance;
   double zRegularityTolerance = config->GetZregularityTolerance();
-  bool first, found;
+  bool found;
   double testingDistance;
   
   for(auto line : pointsByLine){
-    first=true;
     int iPoint;
-    for(iPoint=0; iPoint < line.size()-1; iPoint++){
+    for(iPoint=0; iPoint < (int)line.size()-1; iPoint++){
       testingDistance = pointsProcessor->distance(line[iPoint], line[iPoint+1]);
       found = false;
       for(double dd : possibleDistances){
@@ -207,7 +165,7 @@ void Helix::CalculateNregularPoints(int limit)
       nPointsForDistance = 0;
       
       for(auto line2 : pointsByLine){
-        for(int i=0;i<line2.size();i++){
+        for(int i=0;i<(int)line2.size();i++){
           if(std::abs(pointsProcessor->distance(line2[0], line2[i])-i*testingDistance) < zRegularityTolerance)  nPointsForDistance++;
         }
       }

@@ -128,8 +128,8 @@ int main(int argc, char* argv[])
   // Draw true pion helix
   unique_ptr<Point> pionHelixCenter = unique_ptr<Point>(new Point(decayX,decayY,decayZ));
 
-  double pionCharge = 1;
-  unique_ptr<Point> pionVector = make_unique<Point>(80,80,1000); // Total momentum ~200 MeV
+  double pionCharge = -1;
+  unique_ptr<Point> pionVector = make_unique<Point>(120,120,800); // Total momentum ~200 MeV
   unique_ptr<Helix> pionHelix = make_unique<Helix>(pionHelixCenter, pionVector, pionCharge, config);
   display->DrawHelix(pionHelix,helixOptions);
   
@@ -144,7 +144,8 @@ int main(int argc, char* argv[])
   
   // remove hits that for sure don't belong to the pion's helix
   cout<<"Fitting best helix"<<endl;
-  unique_ptr<Helix> bestHelix = Fitter::GetBestFittingHelix(allSimplePoints, config, trackTheta, trackPhi);
+  unique_ptr<Fitter> fitter = make_unique<Fitter>(config);
+  unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(allSimplePoints, trackTheta, trackPhi);
 //  display->DrawSimplePoints(allSimplePoints, filteredPointsOptions);
   
   if(bestHelix){
@@ -263,7 +264,7 @@ vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long e
     return pixelPoints;
   }
   
-  for(int i=0;i<hitX->size();i++){
+  for(uint i=0;i<hitX->size();i++){
     if(hitCharge->at(i) < chargeThreshold) continue;
     double clusterSize = sqrt(pow(hitSizeX->at(i),2)+pow(hitSizeY->at(i),2));
     if(clusterSize < minClusterSize || clusterSize > maxClusterSize) continue;
@@ -275,7 +276,7 @@ vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long e
   
   if(showStipClusters){
     vector<Point> stripPoints;
-    for(int i=0;i<stripX->size();i++){
+    for(uint i=0;i<stripX->size();i++){
       if(stripCharge->at(i) < chargeThreshold) continue;
       stripPoints.push_back(Point(10*stripX->at(i),10*stripY->at(i),10*stripZ->at(i),stripCharge->at(i)));
     }
