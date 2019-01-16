@@ -26,8 +26,10 @@ pointsProcessor(make_unique<PointsProcessor>())
   origin->SetX(origin->GetX() + scale*v.GetX());
   origin->SetY(origin->GetY() + scale*v.GetY());
   
+//  int zSign = sgn(momentum->GetZ());
+  
   tShift = -atan2(v.GetY(), -v.GetX());
-  origin->SetZ(origin->GetZ() - tShift*slope);
+  origin->SetZ(origin->GetZ() - charge*tShift*slope);
   tMax = GetNcycles()*2*TMath::Pi();
 }
 
@@ -82,23 +84,25 @@ vector<Point> Helix::GetPointsHittingSilicon()
     t2 = atan2(y2-origin->GetY(),x2-origin->GetX());
     
     double nCycles = fabs(GetNcycles());
+    int signZ = sgn(momentum->GetZ());
     
     for(double n=0;n<nCycles;n+=1){
       if(n>0
-         || (charge > 0 && t1 > tShift)
-         || (charge < 0 && t1 < tShift)
+         || (signZ > 0 && t1 > tShift)
+         || (signZ < 0 && t1 < tShift)
          ){
-        z1 = origin->GetZ() + slope*(t1 + charge*n*2*TMath::Pi());
+        z1 = origin->GetZ() + fabs(slope)*(t1 + signZ*n*2*TMath::Pi());
         points.push_back(Point(x1, y1, z1));
       }
       if(n>0
-         || (charge > 0 && t2 > tShift)
-         || (charge < 0 && t2 < tShift)
+         || (signZ > 0 && t2 > tShift)
+         || (signZ < 0 && t2 < tShift)
          ){
-        z2 = origin->GetZ() + slope*(t2 + charge*n*2*TMath::Pi());
+        z2 = origin->GetZ() + fabs(slope)*(t2 + signZ*n*2*TMath::Pi());
         points.push_back(Point(x2, y2, z2));
       }
     }
+    
   }
   return points;
 }
@@ -134,7 +138,7 @@ Point Helix::GetClosestPoint(Point p)
   double y = radius*sin(t) + origin->GetY();
   double z = slope*t       + origin->GetZ();
   
-  int nCycles = round( (p.GetZ() - z) / (slope * 2 * TMath::Pi()));
+  int nCycles = round( fabs(p.GetZ() - z) / (fabs(slope) * 2 * TMath::Pi()));
   z += nCycles * slope * 2 * TMath::Pi();
 
   return Point(x,y,z);

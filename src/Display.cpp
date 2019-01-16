@@ -37,18 +37,26 @@ void Display::DrawHelix(const unique_ptr<Helix> &helix, const map<string,any> op
   double tMax  = helix->GetTmax();
   double tStep = helix->GetTstep();
   
-  if(helix->GetCharge() < 0){
-    double tmp = tMin;
-    tMin = tMax;
-    tMax = tmp;
+  int zSign = sgn(helix->GetMomentum()->GetZ());
+
+  if(zSign < 0){
+
+    for(double t = tMin; t > -tMax; t -= tStep){
+      double x = helix->GetOrigin()->GetX() + helix->GetRadius()*cos(t);
+      double y = helix->GetOrigin()->GetY() + helix->GetRadius()*sin(t);
+      double z = helix->GetOrigin()->GetZ() + fabs(helix->GetSlope())*t;
+      
+      helixPoints->Fill(scale*x,scale*y,scale*z, 0);
+    }
   }
-  
-  for(double t = tMin; t < tMax; t += tStep){
-    double x = helix->GetRadius()*cos(t) + helix->GetOrigin()->GetX();
-    double y = helix->GetRadius()*sin(t) + helix->GetOrigin()->GetY();
-    double z = helix->GetSlope()*t       + helix->GetOrigin()->GetZ();
-    
-    helixPoints->Fill(scale*x,scale*y,scale*z, 0);
+  else{
+    for(double t = tMin; t < tMax; t += tStep){
+      double x = helix->GetOrigin()->GetX() + helix->GetRadius()*cos(t);
+      double y = helix->GetOrigin()->GetY() + helix->GetRadius()*sin(t);
+      double z = helix->GetOrigin()->GetZ() + fabs(helix->GetSlope())*t;
+      
+      helixPoints->Fill(scale*x,scale*y,scale*z, 0);
+    }
   }
   
   helixPoints->SetRnrSelf(kTRUE);

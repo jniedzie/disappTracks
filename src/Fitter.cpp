@@ -191,32 +191,29 @@ unique_ptr<Helix> Fitter::GetBestFittingHelix(vector<Point> _points, double _tra
       maxNregularPoints = nRegularPoints;
       maxFractionRegularPoints = fractionRegularPoints;
     }
-    /*
-     for(double pz = -maxPz; pz <= -minPz ; pz+=config->GetStepPz()){
-     double c = Point(circle->GetMomentum()->GetX(), circle->GetMomentum()->GetY(), pz).GetVectorSlopeC();
-     unique_ptr<Helix> helix = make_unique<Helix>(c, circle, config);
-     helix->SetPoints(points);
-     helix->CalculateNregularPoints();
-     
-     int nRegularPoints = helix->GetNregularPoints();
-     double fractionRegularPoints = nRegularPoints/(double)helix->GetNpoints();
-     
-     // Here is a condition to accept new solution as the best one
-     // Accept as a new best solution if:
-     // - it gives more reqular points than before or,
-     // - it gives the same number of regular points, but they counstitute higher fraction of all points than before
-     if(nRegularPoints < maxNregularPoints) continue;
-     else if(nRegularPoints == maxNregularPoints){
-     if(fractionRegularPoints - maxFractionRegularPoints < 0.001) continue;
-     }
-     
-     // If we reach till this point, save this solution as the best one so far
-     helix->SetPz(pz);
-     bestHelix = move(helix);
-     maxNregularPoints = nRegularPoints;
-     maxFractionRegularPoints = fractionRegularPoints;
-     }
-     */
+    
+    for(double pz = -maxPz; pz <= -minPz ; pz+=config->GetStepPz()){
+      unique_ptr<Helix> helix = make_unique<Helix>(circle, pz);
+      helix->SetPoints(points);
+      helix->CalculateNregularPoints();
+      
+      int nRegularPoints = helix->GetNregularPoints();
+      double fractionRegularPoints = nRegularPoints/(double)helix->GetNpoints();
+      
+      // Here is a condition to accept new solution as the best one
+      // Accept as a new best solution if:
+      // - it gives more reqular points than before or,
+      // - it gives the same number of regular points, but they counstitute higher fraction of all points than before
+      if(nRegularPoints < maxNregularPoints) continue;
+      else if(nRegularPoints == maxNregularPoints){
+        if(fractionRegularPoints - maxFractionRegularPoints < 0.001) continue;
+      }
+      
+      // If we reach till this point, save this solution as the best one so far
+      bestHelix = move(helix);
+      maxNregularPoints = nRegularPoints;
+      maxFractionRegularPoints = fractionRegularPoints;
+    }
   }
   
   return bestHelix;

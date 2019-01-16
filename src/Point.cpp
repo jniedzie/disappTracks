@@ -36,7 +36,7 @@ void Point::Print() const
 
 double Point::GetVectorSlopeC() const
 {
-  return tan(TMath::Pi()/2.-acos(z/sqrt(x*x+y*y+z*z)));
+  return sgn(z)*tan(TMath::Pi()/2.-acos(z/sqrt(x*x+y*y+z*z)));
 }
 
 
