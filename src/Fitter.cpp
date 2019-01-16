@@ -6,9 +6,11 @@
 
 #include "Fitter.hpp"
 
-Fitter::Fitter()
+Fitter::Fitter(shared_ptr<FitterConfig> _config) :
+config(_config),
+pointsProcessor(make_unique<PointsProcessor>())
 {
-  pointsProcessor = make_unique<PointsProcessor>();
+  
 }
 
 Fitter::~Fitter()
@@ -16,14 +18,11 @@ Fitter::~Fitter()
   
 }
 
-vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(vector<Point> allSimplePoints,
-                                                      int pxSign, int pySign, int charge,
-                                                      shared_ptr<FitterConfig> config,
-                                                      double trackTheta, double trackPhi)
+vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign, int charge)
 {
   // Prepare 2D projections in XY
   vector<Point> points2D;
-  vector<vector<Point>> pointsByLine = pointsProcessor->SplitPointsIntoLines(allSimplePoints, config->GetLinesToleranceForCircles());
+  vector<vector<Point>> pointsByLine = pointsProcessor->SplitPointsIntoLines(points, config->GetLinesToleranceForCircles());
   
   for(vector<Point> line : pointsByLine){
     if(line.size() >= config->GetMinPointsAlongZ()){
@@ -114,7 +113,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(vector<Point> allSimplePoi
             if(circle->GetDistanceToPoint(p) < circleThickness) nPoints++;
           }
           if(nPoints > 3){
-            circle->SetPoints(allSimplePoints);
+            circle->SetPoints(points);
             circles.push_back(move(circle));
           }
         }
@@ -126,38 +125,14 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(vector<Point> allSimplePoi
   return circles;
 }
 
-unique_ptr<Helix> Fitter::GetBestFittingHelix(vector<Point> allSimplePoints,
-                                              shared_ptr<FitterConfig> config,
-                                              double trackTheta, double trackPhi,
+unique_ptr<Helix> Fitter::GetBestFittingHelix(vector<Point> _points, double _trackTheta, double _trackPhi,
                                               bool drawCircles)
 {
-  // Collect circles for positive charge
-  int charge = 1;
-  vector<unique_ptr<Circle>> circles, circlesNeg, circlesTmp;
+  points = _points;
+  trackTheta = _trackTheta;
+  trackPhi = _trackPhi;
   
-  circles    = Fitter::FitCirclesToPoints(allSimplePoints,  1,  1, charge, config, trackTheta, trackPhi);
-  circlesTmp = Fitter::FitCirclesToPoints(allSimplePoints, -1,  1, charge, config, trackTheta, trackPhi);
-  circles.insert(circles.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
-  circlesTmp = Fitter::FitCirclesToPoints(allSimplePoints,  1, -1, charge, config, trackTheta, trackPhi);
-  circles.insert(circles.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
-  circlesTmp = Fitter::FitCirclesToPoints(allSimplePoints, -1, -1, charge, config, trackTheta, trackPhi);
-  circles.insert(circles.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
-  Circle::RemoveSimilarCircles(circles);
-  
-  charge = -1;
-  
-  // Collect circles for nevgative charge
-  circlesNeg = Fitter::FitCirclesToPoints(allSimplePoints,  1,  1, charge, config, trackTheta, trackPhi);
-  circlesTmp = Fitter::FitCirclesToPoints(allSimplePoints, -1,  1, charge, config, trackTheta, trackPhi);
-  circlesNeg.insert(circlesNeg.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
-  circlesTmp = Fitter::FitCirclesToPoints(allSimplePoints,  1, -1, charge, config, trackTheta, trackPhi);
-  circlesNeg.insert(circlesNeg.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
-  circlesTmp = Fitter::FitCirclesToPoints(allSimplePoints, -1, -1, charge, config, trackTheta, trackPhi);
-  circlesNeg.insert(circlesNeg.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
-  Circle::RemoveSimilarCircles(circlesNeg);
-  
-  // Merge circles for positive and negative charges
-  circles.insert(circles.end(), make_move_iterator(circlesNeg.begin()), make_move_iterator(circlesNeg.end()));
+  vector<unique_ptr<Circle>> circles = GetAllCirclesForPoints();
   
   if(circles.size() == 0){
     cout<<"No circles were found"<<endl;
@@ -166,14 +141,14 @@ unique_ptr<Helix> Fitter::GetBestFittingHelix(vector<Point> allSimplePoints,
   if(drawCircles){
     TCanvas *c1 = new TCanvas("c1","c1",800,600);
     c1->cd();
-    TH2D *points = new TH2D("points","points",
+    TH2D *pointsHist = new TH2D("points","points",
                             250, -250, 250,
                             250, -250, 250);
     
-    for(auto p : allSimplePoints){
-      points->Fill(p.GetX(),p.GetY());
+    for(auto p : points){
+      pointsHist->Fill(p.GetX(),p.GetY());
     }
-    points->Draw("colz");
+    pointsHist->Draw("colz");
     
     for(auto &c : circles){
       auto a = c->GetArc();
@@ -245,6 +220,39 @@ unique_ptr<Helix> Fitter::GetBestFittingHelix(vector<Point> allSimplePoints,
   }
   
   return bestHelix;
+}
+
+vector<unique_ptr<Circle>> Fitter::GetAllCirclesForPoints()
+{
+  // Collect circles for positive charge
+  int charge = 1;
+  vector<unique_ptr<Circle>> circles, circlesNeg, circlesTmp;
+  
+  circles    = FitCirclesToPoints( 1,  1, charge);
+  circlesTmp = FitCirclesToPoints(-1,  1, charge);
+  circles.insert(circles.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
+  circlesTmp = FitCirclesToPoints( 1, -1, charge);
+  circles.insert(circles.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
+  circlesTmp = FitCirclesToPoints(-1, -1, charge);
+  circles.insert(circles.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
+  Circle::RemoveSimilarCircles(circles);
+  
+  charge = -1;
+  
+  // Collect circles for nevgative charge
+  circlesNeg = FitCirclesToPoints( 1,  1, charge);
+  circlesTmp = FitCirclesToPoints(-1,  1, charge);
+  circlesNeg.insert(circlesNeg.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
+  circlesTmp = FitCirclesToPoints( 1, -1, charge);
+  circlesNeg.insert(circlesNeg.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
+  circlesTmp = FitCirclesToPoints(-1, -1, charge);
+  circlesNeg.insert(circlesNeg.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
+  Circle::RemoveSimilarCircles(circlesNeg);
+  
+  // Merge circles for positive and negative charges
+  circles.insert(circles.end(), make_move_iterator(circlesNeg.begin()), make_move_iterator(circlesNeg.end()));
+  
+  return circles;
 }
 
 void Fitter::SetParameter(ROOT::Fit::Fitter *fitter, int i, string name, double start, double min, double max, bool fix)

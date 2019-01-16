@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
   pointsProcessor = make_unique<PointsProcessor>();
   SetupMonitors();
   
-  unique_ptr<Fitter> fitter = make_unique<Fitter>();
+  unique_ptr<Fitter> fitter = make_unique<Fitter>(config);
   
   int nSuccess = 0;
   int nTests = config->GetNtests();
@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
     unique_ptr<Helix> pionHelix = GetRandomPionHelix();
     if(config->GetInjectPionHits()) InjectPionPointsToCollectionOfPoints(pionHelix, pixelPoints);
     
-    unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(pixelPoints, config, trackTheta, trackPhi);
+    unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(pixelPoints, trackTheta, trackPhi);
     bool success = FillMonitors(bestHelix, pionHelix);
     
     if(success) nSuccess++;
