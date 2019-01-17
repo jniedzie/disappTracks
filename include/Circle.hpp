@@ -21,7 +21,6 @@ public:
   /// \param _config FitterConfig object
   Circle(const unique_ptr<Point> &_decayPoint,
          const unique_ptr<Point> &_momentum,
-         int _charge,
          shared_ptr<FitterConfig> _config);
   
   /// Prints basic information about the circle
@@ -57,9 +56,6 @@ public:
   /// Returns an angle by which circle is rotated due to the shift of its origin
   inline double GetToffset(){return tShift;}
   
-  /// Returns charge of the candidate particles that created this circle
-  inline int GetCharge(){return charge;}
-  
   /// Returns FitterConfig object
   inline shared_ptr<FitterConfig> GetConfig(){return config;}
   
@@ -68,7 +64,6 @@ private:
   unique_ptr<Point> decayPoint;   ///< Decay point of the chargino
   unique_ptr<Point> center;       ///< Center of the circle (will be automatically shifted in the constructor)
   unique_ptr<Point> momentum;     ///< Pion's momentum vector
-  int charge;                     ///< Charge of the particle (determines in which direction to shift)
   
   vector<Point> points;           ///< Points belonging to this circle
   double radius;                  ///< Radius of the circle (calculated from the momentum)

@@ -8,17 +8,15 @@
 
 Circle::Circle(const unique_ptr<Point> &_decayPoint,
                const unique_ptr<Point> &_momentum,
-               int _charge,
                shared_ptr<FitterConfig> _config) :
 decayPoint(make_unique<Point>(*_decayPoint)),
 momentum(make_unique<Point>(*_momentum)),
-charge(_charge),
 config(_config)
 {
   radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
   
   // take a vector perpendicular to the pion's momentum vector
-  Point v = Point(charge * -momentum->GetY(),charge * momentum->GetX(), 0.0);
+  Point v = Point(-momentum->GetY(), momentum->GetX(), 0.0);
   double scale = radius/sqrt(pow(v.GetX(),2)+pow(v.GetY(),2));
   
   center = make_unique<Point>(*decayPoint);

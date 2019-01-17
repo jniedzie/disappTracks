@@ -46,10 +46,18 @@ private:
   /// \pxSign Momentum X coordinate sign to be tested
   /// \pySign Momentum Y coortinate sign to be tested
   /// \charge Charge of the pion
-  vector<unique_ptr<Circle>> FitCirclesToPoints(int pxSign, int pySign, int charge);
+  vector<unique_ptr<Circle>> FitCirclesToPoints(int pxSign, int pySign);
   
   /// Finds all possible circle candidates for previously set collection of points and track parameters.
   vector<unique_ptr<Circle>> GetAllCirclesForPoints();
+  
+  unique_ptr<Helix> GetHelixFromCircle(const unique_ptr<Circle> &circle, double pz, int charge);
+  
+  /// Checks whether provided helix has better properties than the one specified as arguments. If so,
+  /// it will not only return true, but also update maxNregularPoints and maxFractionRegularPoints
+  bool IsHelixBetterThanBefore(const unique_ptr<Helix> &helix,
+                               int &maxNregularPoints,
+                               double &maxFractionRegularPoints);
   
   /// Sets name, limits and starting value of a ROOT fitter's parameter
   void SetParameter(ROOT::Fit::Fitter *fitter, int i, string name, double start, double min, double max, bool fix=false);

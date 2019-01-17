@@ -29,7 +29,7 @@ public:
   /// Constructor taking as an input a circle and slope
   /// \param _circle Circle that determines helix radius and center (should be already shifted by a pions vector)
   /// \param _pz Z component of the momentum
-  Helix(const unique_ptr<Circle> &_circle, double _pz);
+  Helix(const unique_ptr<Circle> &_circle, double _pz, int _charge);
   
   /// Prints basic information about the helix
   void Print();
