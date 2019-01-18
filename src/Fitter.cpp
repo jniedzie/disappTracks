@@ -135,7 +135,6 @@ unique_ptr<Helix> Fitter::GetBestFittingHelix(vector<Point> _points, double _tra
   vector<unique_ptr<Circle>> circles = GetAllCirclesForPoints();
   
   if(circles.size() == 0){
-    cout<<"No circles were found"<<endl;
     return nullptr;
   }
   if(drawCircles){

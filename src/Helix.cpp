@@ -33,28 +33,6 @@ pointsProcessor(make_unique<PointsProcessor>())
   tMax = GetNcycles()*2*TMath::Pi();
 }
 
-Helix::Helix(const unique_ptr<Circle> &_circle, double _pz, int _charge) :
-charge(_charge),
-pointsProcessor(make_unique<PointsProcessor>())
-{
-  tStep = 0.01;
-  config    = _circle->GetConfig();
-  radius    = _circle->GetRadius();
-  tShift    = _circle->GetToffset();
-  
-  momentum  = _circle->GetMomentum();
-  momentum->SetZ(_pz);
-  
-  slope = charge * momentum->GetVectorSlopeC();
-  slopeAbs = fabs(slope);
-  
-  origin = make_unique<Point>(_circle->GetCenter()->GetX(),
-                              _circle->GetCenter()->GetY(),
-                              _circle->GetCenter()->GetZ() - tShift*slopeAbs);
-  
-  tMax = GetNcycles()*2*TMath::Pi();
-}
-
 void Helix::Print()
 {
   cout<<"\tOrigin:("<<origin->GetX()<<","<<origin->GetY()<<","<<origin->GetZ()<<")\t";

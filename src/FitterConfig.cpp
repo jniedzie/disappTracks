@@ -44,3 +44,37 @@ FitterConfig::FitterConfig(string _path)
 }
 
 
+void FitterConfig::Print()
+{
+  cout<<"\n\n========================================================"<<endl;
+  cout<<"Basic configuration:"<<endl;
+  cout<<"\tN tests:"<<nTests<<endl;
+  cout<<"\tN noise hits:"<<nNoiseHits<<endl;
+  cout<<"\tOutput file:"<<outputPath<<endl;
+  cout<<"\tTrack eta:"<<maxEta<<"\t n hits:"<<config->GetValue("max_l",-1)<<endl;
+  
+  cout<<"Pion properties:"<<endl;
+  cout<<"\tInjecting pion hits: "<<(injectPionHits ? "yes" : "no")<<endl;
+  cout<<"\tpx:"<<minPx<<" - "<<maxPx<<endl;
+  cout<<"\tpy:"<<minPy<<" - "<<maxPy<<endl;
+  cout<<"\tpz:"<<minPz<<" - "<<maxPz<<endl;
+  
+  cout<<"Algorithm parameters:"<<endl;
+  cout<<"\tHelix thickness:"<<helixThickness<<endl;
+  cout<<"\tCircle thickness:"<<circleThickness<<endl;
+  cout<<"\tLines tolerance for circles:"<<linesToleranceForCircles<<endl;
+  cout<<"\tLines tolerance for circles:"<<linesToleranceForRegularity<<endl;
+  cout<<"\tStep z:"<<stepPz<<endl;
+  cout<<"\tZ regularity tolerance:"<<zRegularityTolerance<<endl;
+  cout<<"\tMin points along Z:"<<minNpointsAlongZ<<endl;
+  
+  cout<<"Benchmark options:"<<endl;
+  cout<<"\tTolerance X:"<<toleranceX<<endl;
+  cout<<"\tTolerance Y:"<<toleranceY<<endl;
+  cout<<"\tTolerance Z:"<<toleranceZ<<endl;
+  cout<<"\tTolerance Px:"<<tolerancePx<<endl;
+  cout<<"\tTolerance Py:"<<tolerancePy<<endl;
+  cout<<"\tTolerance Pz:"<<tolerancePz<<endl;
+  
+  cout<<"========================================================\n\n"<<endl;
+}

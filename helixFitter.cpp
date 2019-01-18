@@ -15,6 +15,8 @@
 #include "Display.hpp"
 #include "FitterConfig.hpp"
 
+int verbosityLevel = 2;
+
 string configPath = "configs/helixFitter.md";
 shared_ptr<FitterConfig> config;
 unique_ptr<PointsProcessor> pointsProcessor;
@@ -77,9 +79,11 @@ void SetupMonitors()
   }
 }
 
-bool FillMonitors(const unique_ptr<Helix> &fittedHelix, const unique_ptr<Helix> &trueHelix)
+/// Returns 0 in case no helix was fitter, 1 it there was a helix fitted but it was far from the true one
+/// and 2 if a perfectly correct helix was found
+int FillMonitors(const unique_ptr<Helix> &fittedHelix, const unique_ptr<Helix> &trueHelix)
 {
-  bool success = false;
+  int success = 0;
   if(!fittedHelix){
     monitors1D["failReason"]->Fill(8);
     return success;
@@ -98,9 +102,11 @@ bool FillMonitors(const unique_ptr<Helix> &fittedHelix, const unique_ptr<Helix> 
   
   vector<int> failureCodes = Helix::AreHelicesIdentical(fittedHelix, trueHelix);
   
-  if(failureCodes.size()==0) success = true;
-  else  for(int f : failureCodes) monitors1D["failReason"]->Fill(f);
-  
+  if(failureCodes.size()==0) success = 2;
+  else{
+    success = 1;
+    for(int f : failureCodes) monitors1D["failReason"]->Fill(f);
+  }
   return success;
 }
 
@@ -108,7 +114,7 @@ unique_ptr<Helix> GetRandomPionHelix()
 {
   unique_ptr<Point> pionVector = make_unique<Point>(RandSign()*RandDouble(minPx, maxPx),
                                                     RandSign()*RandDouble(minPy, maxPy),
-                                                    /*RandSign()*/RandDouble(minPz, maxPz));
+                                                    RandSign()*RandDouble(minPz, maxPz));
   int pionCharge = RandSign();
   
   // Create true pion helix
@@ -155,6 +161,117 @@ void PlotAndSaveMonitors()
   c1->Update();
 }
 
+void PerformTests(int &nSuccess, int &nFullSuccess)
+{
+  int nTests = config->GetNtests();
+  unique_ptr<Fitter> fitter = make_unique<Fitter>(config);
+  
+  TH1D *success_vs_pz = new TH1D("success_vs_pz","success_vs_pz",config->GetMaxPz()-config->GetMinPz()+1,config->GetMinPz(),config->GetMaxPz());
+  TH1D *full_success_vs_pz = new TH1D("full_success_vs_pz","full_success_vs_pz",config->GetMaxPz()-config->GetMinPz()+1,config->GetMinPz(),config->GetMaxPz());
+  
+  success_vs_pz->Sumw2();
+  TH1D *den_vs_pz = new TH1D("den_vs_pz","den_vs_pz",config->GetMaxPz()-config->GetMinPz()+1,config->GetMinPz(),config->GetMaxPz());
+  den_vs_pz->Sumw2();
+  
+  for(int i=0;i<nTests;i++){
+    if(verbosityLevel >= 2){
+      cout<<"\n========================================================"<<endl;
+      cout<<"Test iter:"<<i<<endl;
+    }
+      
+    SetRandomTrack(); // Randomly generate chargino's track
+    vector<Point> pixelPoints = pointsProcessor->GetRandomPoints(config->GetNnoiseHits());
+    //  vector<Point> pixelPoints = LoadAllHits(297100, 136, 245000232);
+    
+    unique_ptr<Helix> pionHelix = GetRandomPionHelix();
+    if(config->GetInjectPionHits()) InjectPionPointsToCollectionOfPoints(pionHelix, pixelPoints);
+    
+    unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(pixelPoints, trackTheta, trackPhi);
+    int successCode = FillMonitors(bestHelix, pionHelix);
+    
+    den_vs_pz->Fill(fabs(pionHelix->GetMomentum()->GetZ()));
+    
+    if(successCode == 1){
+      nSuccess++;
+      success_vs_pz->Fill(fabs(pionHelix->GetMomentum()->GetZ()));
+    }
+    else if( successCode == 2){
+      nSuccess++;
+      nFullSuccess++;
+      success_vs_pz->Fill(fabs(pionHelix->GetMomentum()->GetZ()));
+      full_success_vs_pz->Fill(fabs(pionHelix->GetMomentum()->GetZ()));
+    }
+    
+    if(bestHelix){
+      if(verbosityLevel >= 2){
+        cout<<"Pion helix:"; pionHelix->Print();
+        cout<<"Fitted helix:"; bestHelix->Print();
+        
+        if(bestHelix->GetCharge() != pionHelix->GetCharge()){
+          cout<<"\n\nwrong charge\n\n"<<endl;
+          cout<<"best charge:"<<bestHelix->GetCharge()<<endl;
+          cout<<"true charge:"<<pionHelix->GetCharge()<<endl;
+          cout<<"best t shift:"<<bestHelix->GetTmin()<<endl;
+          cout<<"true t shift:"<<pionHelix->GetTmin()<<endl;
+        }
+      }
+    }
+  }
+  
+  success_vs_pz->Divide(den_vs_pz);
+  full_success_vs_pz->Divide(den_vs_pz);
+  
+  TCanvas *c2 = new TCanvas("c2","c2",1280,800);
+  c2->Divide(2,2);
+  c2->cd(1);
+  success_vs_pz->Draw();
+  c2->cd(2);
+  full_success_vs_pz->Draw();
+  c2->Update();
+  success_vs_pz->SaveAs("success_vs_pz.root");
+  full_success_vs_pz->SaveAs("full_success_vs_pz.root");
+}
+
+void ScanParameter()
+{
+  string paramName = "n_noise_hits";
+  double paramMin = 0;
+  double paramMax = 1500;
+  double paramStep = 100;
+  
+  TH1D *eff_vs_param = new TH1D(("eff_vs_"+paramName).c_str(),
+                                ("eff_vs_"+paramName).c_str(),
+                                (paramMax-paramMin)/paramStep+1,paramMin,paramMax);
+  
+  TH1D *full_eff_vs_param = new TH1D(("full_eff_vs_"+paramName).c_str(),
+                                     ("full_eff_vs_"+paramName).c_str(),
+                                     (paramMax-paramMin)/paramStep+1,paramMin,paramMax);
+  
+  for(double param=paramMin;param<paramMax;param+=paramStep){
+    cout<<"param:"<<param<<endl;
+    config->nNoiseHits = param;
+    
+    int nTests = config->GetNtests();
+    int nFullSuccess = 0;
+    int nSuccess = 0;
+    PerformTests(nSuccess, nFullSuccess);
+    
+    eff_vs_param->SetBinContent(eff_vs_param->GetXaxis()->FindFixBin(param), nSuccess/(double)nTests);
+    full_eff_vs_param->SetBinContent(full_eff_vs_param->GetXaxis()->FindFixBin(param), nFullSuccess/(double)nTests);
+  }
+  
+  TCanvas *c2 = new TCanvas("c2","c2",1280,800);
+  c2->Divide(2,2);
+  c2->cd(1);
+  eff_vs_param->Draw();
+  c2->cd(2);
+  full_eff_vs_param->Draw();
+  c2->Update();
+  eff_vs_param->SaveAs(("eff_vs_"+paramName+".root").c_str());
+  full_eff_vs_param->SaveAs(("full_eff_vs_"+paramName+".root").c_str());
+  
+}
+
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
@@ -162,42 +279,21 @@ int main(int argc, char* argv[])
   pointsProcessor = make_unique<PointsProcessor>();
   SetupMonitors();
   
-  unique_ptr<Fitter> fitter = make_unique<Fitter>(config);
+  auto startTime = now();
   
-  int nSuccess = 0;
   int nTests = config->GetNtests();
-  
-  for(int i=0;i<nTests;i++){
-    cout<<"\n========================================================"<<endl;
-    cout<<"Test iter:"<<i<<endl;
-    
-    SetRandomTrack(); // Randomly generate chargino's track
-    vector<Point> pixelPoints = pointsProcessor->GetRandomPoints(config->GetNnoiseHits());
-//  vector<Point> pixelPoints = LoadAllHits(297100, 136, 245000232);
-    
-    unique_ptr<Helix> pionHelix = GetRandomPionHelix();
-    if(config->GetInjectPionHits()) InjectPionPointsToCollectionOfPoints(pionHelix, pixelPoints);
-    
-    unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(pixelPoints, trackTheta, trackPhi);
-    bool success = FillMonitors(bestHelix, pionHelix);
-    
-    if(success) nSuccess++;
-    if(bestHelix){
-      cout<<"Pion helix:"; pionHelix->Print();
-      cout<<"Fitted helix:"; bestHelix->Print();
-      
-      if(bestHelix->GetCharge() != pionHelix->GetCharge()){
-        cout<<"\n\nwrong charge\n\n"<<endl;
-        cout<<"best charge:"<<bestHelix->GetCharge()<<endl;
-        cout<<"true charge:"<<pionHelix->GetCharge()<<endl;
-        cout<<"best t shift:"<<bestHelix->GetTmin()<<endl;
-        cout<<"true t shift:"<<pionHelix->GetTmin()<<endl;
-      }
-    }
-  }
-  
+  int nSuccess, nFullSuccess;
+  nFullSuccess = nSuccess = 0;
+  PerformTests(nSuccess, nFullSuccess);
   cout<<"Percentage of successful fits:"<<nSuccess/(double)nTests<<endl;
+  cout<<"Percentage of fully successful fits:"<<nFullSuccess/(double)nTests<<endl;
   PlotAndSaveMonitors();
+  
+//  ScanParameter();
+  config->Print();
+  
+  double timeElapsed = duration(startTime, now());
+  cout<<"Average time per event:"<<timeElapsed/nTests<<" seconds"<<endl;
   
   theApp.Run();
   return 0;
@@ -272,7 +368,7 @@ vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long e
   const double minClusterSize = 0;
   const double maxClusterSize = 100;
   
-  for(int i=0;i<hitX->size();i++){
+  for(uint i=0;i<hitX->size();i++){
     if(hitCharge->at(i) < chargeThreshold) continue;
     double clusterSize = sqrt(pow(hitSizeX->at(i),2)+pow(hitSizeY->at(i),2));
     if(clusterSize < minClusterSize || clusterSize > maxClusterSize) continue;

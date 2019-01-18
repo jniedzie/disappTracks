@@ -54,7 +54,7 @@ vector<Point> PointsProcessor::GetRandomPoints(int nPoints) const
   
   for(int i=0;i<nPoints;i++){
     phi = RandDouble(0, 2*TMath::Pi());
-    layerIndex = RandDouble(0, 4);
+    layerIndex = RandDouble(0, nPixelLayers);
     R = layerR[layerIndex];
     Point p(R*cos(phi), R*sin(phi), RandDouble(-pixelBarrelZsize, pixelBarrelZsize));
     points.push_back(p);

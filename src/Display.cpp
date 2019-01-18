@@ -63,7 +63,7 @@ void Display::DrawHelix(const unique_ptr<Helix> &helix, const map<string,any> op
   gEve->Redraw3D();
 }
 
-void Display::DrawEvent(shared_ptr<Event> event, const map<string,any> options)
+void Display::DrawEvent(const shared_ptr<Event> &event, const map<string,any> options)
 {
   gEve->GetEventScene()->DestroyElements();
   gSystem->ProcessEvents();

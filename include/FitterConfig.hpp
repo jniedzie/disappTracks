@@ -13,6 +13,8 @@ class FitterConfig {
 public:
   FitterConfig(string _path);
   
+  void Print();
+  
   // Fitter parameters
   double GetHelixThickness(){return helixThickness;}
   double GetCircleThickness(){return circleThickness;}
@@ -49,7 +51,7 @@ public:
   double GetTolerancePy(){return tolerancePy;}
   double GetTolerancePz(){return tolerancePz;}
 
-private:
+//private:
   unique_ptr<TEnv> config;
   
   double helixThickness;
