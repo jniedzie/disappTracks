@@ -25,7 +25,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
   vector<vector<Point>> pointsByLine = pointsProcessor->SplitPointsIntoLines(points, config->GetLinesToleranceForCircles());
   
   for(vector<Point> line : pointsByLine){
-    if(line.size() >= config->GetMinPointsAlongZ()){
+    if((int)line.size() >= config->GetMinPointsAlongZ()){
       points2D.push_back(Point(line));
     }
   }
@@ -39,12 +39,15 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
   
   // Create fitter to fit circles to 2D distribution
   ROOT::Fit::Fitter *fitter = new ROOT::Fit::Fitter();
+  
+  // This is a stupid hack to be able to set fit parameters before actually setting a fitting function
+  // Params we want to set only once, but function will change in each iteration of the loop, because
+  // it captures loop iterators.
   auto f = [&](const double *par) {return 0;};
   int nPar = 3;
   ROOT::Math::Functor fitFunction = ROOT::Math::Functor(f, nPar);
   double pStart[nPar];
   fitter->SetFCN(fitFunction, pStart);
-  
   
   double helixThickness = config->GetHelixThickness();
   

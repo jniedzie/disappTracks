@@ -78,6 +78,10 @@ void PerformTests(int &nSuccess, int &nFullSuccess)
     }
       
     SetRandomTrack(); // Randomly generate chargino's track
+    unique_ptr<Track> track = make_unique<Track>();
+    track->SetEta(trackEta);
+    track->SetPhi(trackPhi);
+    
     vector<Point> pixelPoints = pointsProcessor->GetRandomPoints(config->GetNnoiseHits());
     //  vector<Point> pixelPoints = LoadAllHits(297100, 136, 245000232);
     
@@ -85,7 +89,7 @@ void PerformTests(int &nSuccess, int &nFullSuccess)
     if(config->GetInjectPionHits()) InjectPionPointsToCollectionOfPoints(pionHelix, pixelPoints);
     
     unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(pixelPoints, trackTheta, trackPhi);
-    monitorsManager->FillMonitors(bestHelix, pionHelix);
+    monitorsManager->FillMonitors(bestHelix, pionHelix, track);
     
     auto successCode = monitorsManager->GetFittingStatus(bestHelix, pionHelix);
     

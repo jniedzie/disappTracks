@@ -16,23 +16,44 @@ config(_config)
     {"nFakeHits",     1000,0,10 },
     {"failReason",    10,  0,10 },
   };
+
+  double maxX = 250;
+  double maxY = 250;
+  double maxZ = 250;
+  double maxEta = config->GetMaxTrackEta();
   
+  double minPx = config->GetMinPx();
+  double minPy = config->GetMinPy();
+  double minPz = config->GetMinPz();
   double maxPx = config->GetMaxPx();
   double maxPy = config->GetMaxPy();
   double maxPz = config->GetMaxPz();
   
+  
   const vector<tuple<const char*,int,double,double,int,double,double>> monitors2Dparams = {
-    {"xResponse",     500,-250,250, 500,-250,250 },
-    {"yResponse",     500,-250,250, 500,-250,250 },
-    {"zResponse",     500,-250,250, 500,-250,250 },
-    {"pxResponse",    200,-maxPx,maxPx, 200,-maxPx,maxPx },
-    {"pyResponse",    200,-maxPy,maxPy, 200,-maxPy,maxPy },
-    {"pzResponse",    200,-maxPz,maxPz, 200,-maxPz,maxPz },
+    {"xResponse",     500, -maxX,  maxX,  500, -maxX,  maxX},
+    {"yResponse",     500, -maxY,  maxY,  500, -maxY,  maxY},
+    {"zResponse",     500, -maxZ,  maxZ,  500, -maxZ,  maxZ},
+    {"pxResponse",    200, -maxPx, maxPx, 200, -maxPx, maxPx},
+    {"pyResponse",    200, -maxPy, maxPy, 200, -maxPy, maxPy},
+    {"pzResponse",    200, -maxPz, maxPz, 200, -maxPz, maxPz},
   };
   
-  const vector<tuple<const char*,int,double,double>> fractionMonitorsParams = {
-    {"successVsPz",     config->GetMaxPz()-config->GetMinPz()+1, config->GetMinPz(), config->GetMaxPz()},
-    {"fullSuccessVsPz", config->GetMaxPz()-config->GetMinPz()+1, config->GetMinPz(), config->GetMaxPz()},
+  const vector<tuple<string,int,double,double>> fractionMonitorsParams = {
+    {"successVsX",      maxX+1, 0, maxX},
+    {"fullSuccessVsX",  maxX+1, 0, maxX},
+    {"successVsY",      maxY+1, 0, maxY},
+    {"fullSuccessVsY",  maxY+1, 0, maxY},
+    {"successVsZ",      maxZ+1, 0, maxZ},
+    {"fullSuccessVsZ",  maxZ+1, 0, maxZ},
+    {"successVsPx",     maxPx-minPx+1, minPx, maxPx},
+    {"fullSuccessVsPx", maxPx-minPx+1, minPx, maxPx},
+    {"successVsPy",     maxPy-minPy+1, minPy, maxPy},
+    {"fullSuccessVsPy", maxPy-minPy+1, minPy, maxPy},
+    {"successVsPz",     maxPz-minPz+1, minPz, maxPz},
+    {"fullSuccessVsPz", maxPz-minPz+1, minPz, maxPz},
+    {"successVsEta",    100, 0, maxEta},
+    {"fullSuccessVsEta",100, 0, maxEta},
   };
   
   for(auto params : monitors1Dparams){
@@ -46,10 +67,10 @@ config(_config)
   }
   
   for(auto params : fractionMonitorsParams){
-    fractionMonitors[get<0>(params)].first  = new TH1D(get<0>(params),get<0>(params),
+    fractionMonitors[get<0>(params)].first  = new TH1D(get<0>(params).c_str(),get<0>(params).c_str(),
                                                        get<1>(params),get<2>(params),get<3>(params));
     
-    fractionMonitors[get<0>(params)].second = new TH1D(get<0>(params),get<0>(params),
+    fractionMonitors[get<0>(params)].second = new TH1D((get<0>(params)+"_den").c_str(),(get<0>(params)+"_den").c_str(),
                                                        get<1>(params),get<2>(params),get<3>(params));
     
     fractionMonitors[get<0>(params)].first->Sumw2();
@@ -63,10 +84,24 @@ MonitorsManager::~MonitorsManager()
   
 }
 
-void MonitorsManager::FillMonitors(const unique_ptr<Helix> &fittedHelix, const unique_ptr<Helix> &trueHelix)
+void MonitorsManager::FillMonitors(const unique_ptr<Helix> &fittedHelix,
+                                   const unique_ptr<Helix> &trueHelix,
+                                   const unique_ptr<Track> &track)
 {
+  fractionMonitors["successVsX"].second->Fill(fabs(trueHelix->GetOrigin()->GetX()));
+  fractionMonitors["fullSuccessVsX"].second->Fill(fabs(trueHelix->GetOrigin()->GetX()));
+  fractionMonitors["successVsY"].second->Fill(fabs(trueHelix->GetOrigin()->GetY()));
+  fractionMonitors["fullSuccessVsY"].second->Fill(fabs(trueHelix->GetOrigin()->GetY()));
+  fractionMonitors["successVsZ"].second->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+  fractionMonitors["fullSuccessVsZ"].second->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+  fractionMonitors["successVsPx"].second->Fill(fabs(trueHelix->GetMomentum()->GetX()));
+  fractionMonitors["fullSuccessVsPx"].second->Fill(fabs(trueHelix->GetMomentum()->GetX()));
+  fractionMonitors["successVsPy"].second->Fill(fabs(trueHelix->GetMomentum()->GetY()));
+  fractionMonitors["fullSuccessVsPy"].second->Fill(fabs(trueHelix->GetMomentum()->GetY()));
   fractionMonitors["successVsPz"].second->Fill(fabs(trueHelix->GetMomentum()->GetZ()));
   fractionMonitors["fullSuccessVsPz"].second->Fill(fabs(trueHelix->GetMomentum()->GetZ()));
+  fractionMonitors["successVsEta"].second->Fill(fabs(track->GetEta()));
+  fractionMonitors["fullSuccessVsEta"].second->Fill(fabs(track->GetEta()));
   
   if(!fittedHelix){
     monitors1D["failReason"]->Fill(8);
@@ -74,7 +109,14 @@ void MonitorsManager::FillMonitors(const unique_ptr<Helix> &fittedHelix, const u
   }
   
   // Here (full) success part starts:
+  fractionMonitors["successVsX"].first->Fill(fabs(trueHelix->GetOrigin()->GetX()));
+  fractionMonitors["successVsY"].first->Fill(fabs(trueHelix->GetOrigin()->GetY()));
+  fractionMonitors["successVsZ"].first->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+  fractionMonitors["successVsPx"].first->Fill(fabs(trueHelix->GetMomentum()->GetX()));
+  fractionMonitors["successVsPy"].first->Fill(fabs(trueHelix->GetMomentum()->GetY()));
   fractionMonitors["successVsPz"].first->Fill(fabs(trueHelix->GetMomentum()->GetZ()));
+  fractionMonitors["successVsEta"].first->Fill(fabs(track->GetEta()));
+  
   
   monitors2D["xResponse"]->Fill(trueHelix->GetOrigin()->GetX(), fittedHelix->GetOrigin()->GetX());
   monitors2D["yResponse"]->Fill(trueHelix->GetOrigin()->GetY(), fittedHelix->GetOrigin()->GetY());
@@ -93,7 +135,13 @@ void MonitorsManager::FillMonitors(const unique_ptr<Helix> &fittedHelix, const u
     for(int f : failureCodes) monitors1D["failReason"]->Fill(f);
   }
   else{ // full success case
+    fractionMonitors["fullSuccessVsX"].first->Fill(fabs(trueHelix->GetOrigin()->GetX()));
+    fractionMonitors["fullSuccessVsY"].first->Fill(fabs(trueHelix->GetOrigin()->GetY()));
+    fractionMonitors["fullSuccessVsZ"].first->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+    fractionMonitors["fullSuccessVsPx"].first->Fill(fabs(trueHelix->GetMomentum()->GetX()));
+    fractionMonitors["fullSuccessVsPy"].first->Fill(fabs(trueHelix->GetMomentum()->GetY()));
     fractionMonitors["fullSuccessVsPz"].first->Fill(fabs(trueHelix->GetMomentum()->GetZ()));
+    fractionMonitors["fullSuccessVsEta"].first->Fill(fabs(track->GetEta()));
   }
 }
 
@@ -133,7 +181,7 @@ void MonitorsManager::PlotAndSaveMonitors()
   }
   
   TCanvas *c2 = new TCanvas("Fraction monitors","Fraction monitors",2880,1800);
-  c2->Divide(2,2);
+  c2->Divide(4,4);
   i=1;
   for(auto &[title, hist] : fractionMonitors){
     c2->cd(i++);

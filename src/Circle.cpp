@@ -61,7 +61,7 @@ void Circle::RemoveSimilarCircles(vector<unique_ptr<Circle>> &circles)
   sort(circles.begin(), circles.end(),
        [](const auto &c1, const auto &c2) -> bool {return c1->GetRadius() < c2->GetRadius();});
   
-  for(int i=0; i<circles.size()-1; i++){
+  for(uint i=0; i<circles.size()-1; i++){
     if(fabs(circles[i]->GetRadius() - circles[i+1]->GetRadius()) < config->GetCircleThickness()){
       circles.erase(circles.begin()+i);
       i--;

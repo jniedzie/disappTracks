@@ -9,8 +9,10 @@
 
 #include "Helpers.hpp"
 #include "Helix.hpp"
+#include "Track.hpp"
 #include "FitterConfig.hpp"
 
+/// Creates, populates, plots and saves hisograms monitoring fitting performance.
 class MonitorsManager {
 public:
   /// Default constructor
@@ -31,7 +33,9 @@ public:
   };
   
   /// Fills defined monitors for a given set of true and fitted helix.
-  void FillMonitors(const unique_ptr<Helix> &fittedHelix, const unique_ptr<Helix> &trueHelix);
+  void FillMonitors(const unique_ptr<Helix> &fittedHelix,
+                    const unique_ptr<Helix> &trueHelix,
+                    const unique_ptr<Track> &track);
   
   /// Checks and returns status of the fit given the true and the fitted helix
   EFitStatus GetFittingStatus(const unique_ptr<Helix> &fittedHelix, const unique_ptr<Helix> &trueHelix);
