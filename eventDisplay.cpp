@@ -11,9 +11,6 @@ shared_ptr<FitterConfig> config;
 
 bool showStipClusters = false;
 
-// assumptions about the pion
-double decayR = 140; // secondary vertex R (from 0,0,0) just somewhere between 3rd and 4th layer
-
 const map<string,any> dedxOptions = {
   {"title", "dE/dx clusters"},
   {"binsMin" , 1},
@@ -76,8 +73,6 @@ const double maxClusterSize = 100;
 
 shared_ptr<vector<Point>> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber);
 
-double trackTheta, trackPhi;
-
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
@@ -113,27 +108,21 @@ int main(int argc, char* argv[])
   shared_ptr<vector<Point>> allSimplePoints; // all hits in the event
   allSimplePoints = LoadAllHits(searchRun, searchLumi, searchEvent);
   
-  // what we can calculate from the assumptions
-  double theta  = 2*atan(exp(-1.08));//2*atan(exp(-event->GetTrack(0)->GetEta()));
-  double phi    = -2.16;//event->GetTrack(0)->GetPhi();
-  double decayX = decayR*sin(theta)*cos(phi);
-  double decayY = decayR*sin(theta)*sin(phi);
-  double decayZ = decayR*cos(theta);
-  
-  trackPhi = phi;
-  trackTheta = theta;
+  shared_ptr<Track> track = make_shared<Track>();
+  track->FillRandomly(config->GetNTrackHits(), config->GetMaxTrackEta());
   
   // Draw decay point to make sure that it's correctly located
   shared_ptr<vector<Point>> decayPoint = make_shared<vector<Point>>();
-  decayPoint->push_back(Point(decayX,decayY,decayZ));
+  decayPoint->push_back(Point(track->GetDecayPoint()->GetX(),
+                              track->GetDecayPoint()->GetY(),
+                              track->GetDecayPoint()->GetZ()));
   display->DrawSimplePoints(decayPoint, decayPointOptions);
   
   // Draw true pion helix
-  unique_ptr<Point> pionHelixCenter = unique_ptr<Point>(new Point(decayX,decayY,decayZ));
-
-  double pionCharge = -1;
-  unique_ptr<Point> pionVector = make_unique<Point>(120,120,-800); // Total momentum ~200 MeV
-  unique_ptr<Helix> pionHelix = make_unique<Helix>(pionHelixCenter, pionVector, pionCharge, config);
+//  double pionCharge = -1;
+//  unique_ptr<Point> pionVector = make_unique<Point>(120,120,-800); // Total momentum ~200 MeV
+  unique_ptr<Helix> pionHelix = helixProcessor->GetRandomPionHelix(track);
+//   make_unique<Helix>(track->GetDecayPoint(), pionVector, pionCharge, config);
   display->DrawHelix(pionHelix,helixOptions);
   
   // Calculate and draw points along the helix that hit the silicon
@@ -148,9 +137,6 @@ int main(int argc, char* argv[])
   // remove hits that for sure don't belong to the pion's helix
   cout<<"Fitting best helix"<<endl;
   unique_ptr<Fitter> fitter = make_unique<Fitter>(config);
-  shared_ptr<Track> track = make_shared<Track>();
-  track->SetEta(1.08);
-  track->SetPhi(phi);
   
   unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(allSimplePoints, track);
 //  display->DrawSimplePoints(allSimplePoints, filteredPointsOptions);
