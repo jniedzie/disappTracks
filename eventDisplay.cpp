@@ -74,7 +74,7 @@ const double chargeThreshold = 0; // 2000, 5000, 25000
 const double minClusterSize = 0;
 const double maxClusterSize = 100;
 
-vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber);
+shared_ptr<vector<Point>> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber);
 
 double trackTheta, trackPhi;
 
@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
   // ------------------------------------------------------------------------------------------------------------
   
   cout<<"Preparing hits, track and pion's helix"<<endl;
-  vector<Point> allSimplePoints; // all hits in the event
+  shared_ptr<vector<Point>> allSimplePoints; // all hits in the event
   allSimplePoints = LoadAllHits(searchRun, searchLumi, searchEvent);
   
   // what we can calculate from the assumptions
@@ -124,7 +124,8 @@ int main(int argc, char* argv[])
   trackTheta = theta;
   
   // Draw decay point to make sure that it's correctly located
-  vector<Point> decayPoint = {Point(decayX,decayY,decayZ)};
+  shared_ptr<vector<Point>> decayPoint = make_shared<vector<Point>>();
+  decayPoint->push_back(Point(decayX,decayY,decayZ));
   display->DrawSimplePoints(decayPoint, decayPointOptions);
   
   // Draw true pion helix
@@ -136,18 +137,22 @@ int main(int argc, char* argv[])
   display->DrawHelix(pionHelix,helixOptions);
   
   // Calculate and draw points along the helix that hit the silicon
-  vector<Point> pionPoints = helixProcessor->GetPointsHittingSilicon(pionHelix);
-  for(auto &p : pionPoints){p.SetIsPionHit(true);}
+  shared_ptr<vector<Point>> pionPoints = helixProcessor->GetPointsHittingSilicon(pionHelix);
+  for(auto &p : *pionPoints){p.SetIsPionHit(true);}
   pionHelix->SetPoints(pionPoints);
   display->DrawSimplePoints(pionPoints, pionPointsOptions);
   
   // inject hits from pion into all points in the tracker
-  allSimplePoints.insert(allSimplePoints.end(),pionPoints.begin(), pionPoints.end());
+  allSimplePoints->insert(allSimplePoints->end(),pionPoints->begin(), pionPoints->end());
   
   // remove hits that for sure don't belong to the pion's helix
   cout<<"Fitting best helix"<<endl;
   unique_ptr<Fitter> fitter = make_unique<Fitter>(config);
-  unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(allSimplePoints, trackTheta, trackPhi);
+  shared_ptr<Track> track = make_shared<Track>();
+  track->SetEta(1.08);
+  track->SetPhi(phi);
+  
+  unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(allSimplePoints, track);
 //  display->DrawSimplePoints(allSimplePoints, filteredPointsOptions);
   
   if(bestHelix){
@@ -166,7 +171,7 @@ int main(int argc, char* argv[])
       {"markerSize", 1.0},
       {"color", kRed}
     };
-    display->DrawSimplePoints(*bestHelix->GetPoints(), fitPointsOptions);
+    display->DrawSimplePoints(bestHelix->GetPoints(), fitPointsOptions);
     
     cout<<"\n\nBest helix is:"<<endl;
     bestHelix->Print();
@@ -202,20 +207,20 @@ int main(int argc, char* argv[])
 
 
 
-vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber)
+shared_ptr<vector<Point>> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber)
 {
   TFile *inFile = TFile::Open("pickhists.root");
 //  TFile *inFile = TFile::Open("/afs/cern.ch/work/j/jniedzie/private/pickhists.root");
   //  TFile *inFile = TFile::Open("/afs/cern.ch/work/j/jniedzie/private/pickhists_unfiltered.root");
   if(!inFile){
     cout<<"ERROR -- no file with all hits was found"<<endl;
-    return vector<Point>();
+    return make_shared<vector<Point>>();
   }
   TTree *tree = (TTree*)inFile->Get("hitsExtractor/hits");
   
   if(!tree){
     cout<<"ERROR -- no tree with all hits was found"<<endl;
-    return vector<Point>();
+    return make_shared<vector<Point>>();
   }
   
   vector<double> *hitX = nullptr;
@@ -259,7 +264,7 @@ vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long e
     }
   }
   
-  vector<Point> pixelPoints;
+  shared_ptr<vector<Point>> pixelPoints = make_shared<vector<Point>>();
   
   if(!eventFound){
     cout<<"\n\nERROR - could not find all hits for requested event!\n\n"<<endl;
@@ -271,16 +276,16 @@ vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long e
     double clusterSize = sqrt(pow(hitSizeX->at(i),2)+pow(hitSizeY->at(i),2));
     if(clusterSize < minClusterSize || clusterSize > maxClusterSize) continue;
     // convert cm to mm
-    pixelPoints.push_back(Point(10*hitX->at(i),10*hitY->at(i),10*hitZ->at(i),hitCharge->at(i)));
+    pixelPoints->push_back(Point(10*hitX->at(i),10*hitY->at(i),10*hitZ->at(i),hitCharge->at(i)));
   }
   
   display->DrawSimplePoints(pixelPoints, pixelHitsOptions);
   
   if(showStipClusters){
-    vector<Point> stripPoints;
+    shared_ptr<vector<Point>> stripPoints = make_shared<vector<Point>>();
     for(uint i=0;i<stripX->size();i++){
       if(stripCharge->at(i) < chargeThreshold) continue;
-      stripPoints.push_back(Point(10*stripX->at(i),10*stripY->at(i),10*stripZ->at(i),stripCharge->at(i)));
+      stripPoints->push_back(Point(10*stripX->at(i),10*stripY->at(i),10*stripZ->at(i),stripCharge->at(i)));
     }
     display->DrawSimplePoints(stripPoints, stripHitsOptions);
   }

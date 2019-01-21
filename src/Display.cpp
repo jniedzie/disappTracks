@@ -16,11 +16,11 @@ Display::~Display()
   
 }
 
-void Display::DrawSimplePoints(vector<Point> points, const map<string,any> options)
+void Display::DrawSimplePoints(const shared_ptr<vector<Point>> points, const map<string,any> options)
 {
   TEvePointSetArray *simplePoints = PreparePointsEventDisplay(options);
   
-  for(auto p : points){
+  for(auto p : *points){
     simplePoints->Fill(scale*p.GetX(),scale*p.GetY(),scale*p.GetZ(), p.GetValue());
   }
   
