@@ -17,13 +17,13 @@ PointsProcessor::~PointsProcessor()
   
 }
 
-vector<vector<Point>> PointsProcessor::SplitPointsIntoLines(vector<Point> points, double tolerance) const
+vector<vector<Point>> PointsProcessor::SplitPointsIntoLines(const shared_ptr<vector<Point>> points, double tolerance) const
 {
   vector<vector<Point>> pointsByLines;
   bool addedToExisting;
   double toleranceSquared = tolerance*tolerance;
   
-  for(Point p : points){
+  for(Point p : *points){
     addedToExisting = false;
     
     // loop over existing lines and check if this point belongs to one of them
@@ -47,9 +47,9 @@ vector<vector<Point>> PointsProcessor::SplitPointsIntoLines(vector<Point> points
   return pointsByLines;
 }
 
-vector<Point> PointsProcessor::GetRandomPoints(int nPoints) const
+shared_ptr<vector<Point>> PointsProcessor::GetRandomPoints(int nPoints) const
 {
-  vector<Point> points;
+  shared_ptr<vector<Point>> points = make_shared<vector<Point>>();
   double phi, R;
   int layerIndex;
   
@@ -58,7 +58,7 @@ vector<Point> PointsProcessor::GetRandomPoints(int nPoints) const
     layerIndex = RandDouble(0, config->GetNtrackerLayers());
     R = layerR[layerIndex];
     Point p(R*cos(phi), R*sin(phi), RandDouble(-pixelBarrelZsize, pixelBarrelZsize));
-    points.push_back(p);
+    points->push_back(p);
   }
   return points;
 }

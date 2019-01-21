@@ -26,7 +26,7 @@ public:
   vector<int> AreIdentical(const unique_ptr<Helix> &h1, const unique_ptr<Helix> &h2);
   
   /// Returns vector of points along helix trajectory that hit the tracker
-  vector<Point> GetPointsHittingSilicon(const unique_ptr<Helix> &helix);
+  shared_ptr<vector<Point>> GetPointsHittingSilicon(const unique_ptr<Helix> &helix);
   
   /// Calculates number of regular points.
   /// Splits all points into lines along Z axis. For each line, checks all possible distances between points.

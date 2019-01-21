@@ -131,8 +131,8 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
   return circles;
 }
 
-unique_ptr<Helix> Fitter::GetBestFittingHelix(vector<Point> _points,
-                                              const shared_ptr<Track> &_track,
+unique_ptr<Helix> Fitter::GetBestFittingHelix(shared_ptr<vector<Point>> _points,
+                                              const shared_ptr<Track> _track,
                                               bool drawCircles)
 {
   points = _points;
@@ -150,7 +150,7 @@ unique_ptr<Helix> Fitter::GetBestFittingHelix(vector<Point> _points,
                             250, -250, 250,
                             250, -250, 250);
     
-    for(auto p : points){
+    for(auto p : *points){
       pointsHist->Fill(p.GetX(),p.GetY());
     }
     pointsHist->Draw("colz");

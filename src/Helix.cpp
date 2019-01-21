@@ -9,6 +9,7 @@
 Helix::Helix(const unique_ptr<Point> &_origin,
              const unique_ptr<Point> &_momentum,
              int _charge, shared_ptr<FitterConfig> _config) :
+points(make_shared<vector<Point>>()),
 origin(make_unique<Point>(*_origin)),
 momentum(make_unique<Point>(*_momentum)),
 charge(_charge),
@@ -37,21 +38,21 @@ void Helix::Print()
 {
   cout<<"\tOrigin:("<<origin->GetX()<<","<<origin->GetY()<<","<<origin->GetZ()<<")\t";
   cout<<"Momentum:("<<momentum->GetX()<<","<<momentum->GetY()<<","<<momentum->GetZ()<<")\n";
-cout<<"\tR:"<<radius<<"\tc:"<<slope<<"\tnPoints:"<<points.size()<<"\tnPionPoints:"<<nPionPoints<<"\tnRegularPoints:"<<nRegularPoints<<"\n";
+cout<<"\tR:"<<radius<<"\tc:"<<slope<<"\tnPoints:"<<points->size()<<"\tnPionPoints:"<<nPionPoints<<"\tnRegularPoints:"<<nRegularPoints<<"\n";
 }
 
 
 
-void Helix::SetPoints(const vector<Point> &_points)
+void Helix::SetPoints(const shared_ptr<vector<Point>> _points)
 {
   nPionPoints = 0;
-  points.clear();
+  points->clear();
   
-  for(Point p : _points){
+  for(Point p : *_points){
     Point q = GetClosestPoint(p);
     if(pointsProcessor->distance(p,q) < config->GetHelixThickness()){
       if(p.IsPionHit()) nPionPoints++;
-      points.push_back(p);
+      points->push_back(p);
     }
   }
 }
@@ -59,10 +60,10 @@ void Helix::SetPoints(const vector<Point> &_points)
 double Helix::GetChi2()
 {
   double chi2 = 0;
-  for(Point p : points){
+  for(Point p : *points){
     chi2 += pow(pointsProcessor->distance(p, GetClosestPoint(p)), 2);
   }
-  return chi2 / points.size();
+  return chi2 / points->size();
 }
 
 Point Helix::GetClosestPoint(Point p)

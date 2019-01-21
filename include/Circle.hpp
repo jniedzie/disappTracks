@@ -17,11 +17,10 @@ public:
   /// Constructor of the circle that will shift it according to the momentum vector and pion's charge
   /// \param _decayPoint Point to which the circle must be tangent
   /// \param _momentum Pion's momentum determining shift and rotation of the circle
-  /// \param _charge Pion's charge determining direction of the shift
   /// \param _config FitterConfig object
   Circle(const unique_ptr<Point> &_decayPoint,
          const unique_ptr<Point> &_momentum,
-         shared_ptr<FitterConfig> _config);
+         const shared_ptr<FitterConfig> _config);
   
   /// Prints basic information about the circle
   void Print();
@@ -30,7 +29,7 @@ public:
   double GetDistanceToPoint(Point p);
   
   /// Sets points that belong to this circle (will automatically filter out those that are further than thickness)
-  void SetPoints(vector<Point> _points);
+  void SetPoints(const shared_ptr<vector<Point>> _points);
   
   /// Returns number of points laying on the circle
   int GetNpoints(){return (int)points.size();}

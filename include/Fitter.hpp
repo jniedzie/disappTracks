@@ -28,8 +28,8 @@ public:
   /// \trackTheta Theta angle of the track
   /// \trackPhi Phi angle of the track
   /// \drawCircles Optionally, graph with all candidate circles can be plotted
-  unique_ptr<Helix> GetBestFittingHelix(vector<Point> _points,
-                                        const shared_ptr<Track> &_track,
+  unique_ptr<Helix> GetBestFittingHelix(const shared_ptr<vector<Point>> _points,
+                                        const shared_ptr<Track> _track,
                                         bool drawCircles=false);
   
 private:
@@ -37,7 +37,7 @@ private:
   unique_ptr<PointsProcessor> pointsProcessor;
   unique_ptr<HelixProcessor> helixProcessor;
   
-  vector<Point> points;
+  shared_ptr<vector<Point>> points;
   shared_ptr<Track> track;
   
   

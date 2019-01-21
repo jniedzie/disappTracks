@@ -25,10 +25,11 @@ unique_ptr<MonitorsManager> monitorsManager;
 
 vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber);
 
-void InjectPionPointsToCollectionOfPoints(const unique_ptr<Helix> &pionHelix, vector<Point> &pixelPoints)
+void InjectPionPointsToCollectionOfPoints(const unique_ptr<Helix> &pionHelix,
+                                          shared_ptr<vector<Point>> pixelPoints)
 {
-  vector<Point> *pionPoints = pionHelix->GetPoints();
-   pixelPoints.insert(pixelPoints.end(),pionPoints->begin(), pionPoints->end());
+  shared_ptr<vector<Point>> pionPoints = pionHelix->GetPoints();
+  pixelPoints->insert(pixelPoints->end(),pionPoints->begin(), pionPoints->end());
 }
 
 void PerformTests(int &nSuccess, int &nFullSuccess)
@@ -45,7 +46,7 @@ void PerformTests(int &nSuccess, int &nFullSuccess)
     shared_ptr<Track> track = make_shared<Track>();
     track->FillRandomly(config->GetNTrackHits(), config->GetMaxTrackEta());
     
-    vector<Point> pixelPoints = pointsProcessor->GetRandomPoints(config->GetNnoiseHits());
+    shared_ptr<vector<Point>> pixelPoints = pointsProcessor->GetRandomPoints(config->GetNnoiseHits());
     //  vector<Point> pixelPoints = LoadAllHits(297100, 136, 245000232);
     
     unique_ptr<Helix> pionHelix = helixProcessor->GetRandomPionHelix(track);

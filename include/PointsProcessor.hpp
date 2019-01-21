@@ -31,11 +31,11 @@ public:
   double distanceXYsquared(Point p1, Point p2) const;
   
   /// Separates vector of points into groups with the same XY position (within tolerance)
-  vector<vector<Point>> SplitPointsIntoLines(vector<Point> points, double tolerance) const;
+  vector<vector<Point>> SplitPointsIntoLines(const shared_ptr<vector<Point>> points, double tolerance) const;
   
   /// Returns a vector filled with random points in the pixel barrel
   /// \param nPoints Number of points that will be generated
-  vector<Point> GetRandomPoints(int nPoints) const;
+  shared_ptr<vector<Point>> GetRandomPoints(int nPoints) const;
   
 private:
   shared_ptr<FitterConfig> config;

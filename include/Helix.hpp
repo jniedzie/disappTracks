@@ -31,10 +31,10 @@ public:
   
   /// It will pick only points that are on the helix (within its thickness)
   /// and count how many of them are pion points
-  void SetPoints(const vector<Point> &_points);
+  void SetPoints(const shared_ptr<vector<Point>> _points);
   
   // Getters
-  vector<Point>*  GetPoints(){return &points;}
+  shared_ptr<vector<Point>>  GetPoints(){return points;}
   
   inline unique_ptr<Point>  GetOrigin(){return make_unique<Point>(*origin);}
   inline unique_ptr<Point>  GetMomentum(){return make_unique<Point>(*momentum);}
@@ -45,7 +45,7 @@ public:
   inline double   GetTmin(){return tShift;}
   inline double   GetTmax(){return tMax;}
   inline double   GetTstep(){return tStep;}
-  inline int      GetNpoints(){return (int)points.size();}
+  inline int      GetNpoints(){return (int)points->size();}
   inline int      GetNpionPoints(){return nPionPoints;}
   inline int      GetNregularPoints(){return nRegularPoints;}
   
@@ -55,7 +55,7 @@ public:
   double GetChi2();
   
 private:
-  vector<Point> points;   ///< Vector of points laying on the helix (withing thickness)
+  shared_ptr<vector<Point>> points;   ///< Vector of points laying on the helix (withing thickness)
   double tShift;          ///< Angle by which beginning of the helix is shifted due to the shift of its origin
   double tMax;            ///< Max angle (taking into account number of cycles
   double tStep;           ///< Step determining drawing precision
