@@ -23,8 +23,7 @@ FitterConfig::FitterConfig(string _path)
   zRegularityTolerance = config->GetValue("z_regularity_tolerance",1.0);
   minNpointsAlongZ = config->GetValue("min_n_points_along_z",2);
   maxEta = config->GetValue("max_eta",10.0);
-  minL =  layerR[config->GetValue("min_l",2)];
-  maxL = layerR[config->GetValue("max_l",3)];
+  nTrackHits = config->GetValue("n_track_hits",3);
   minPx = config->GetValue("min_px",50.0);
   minPy = config->GetValue("min_py",50.0);
   minPz = config->GetValue("min_pz",50.0);

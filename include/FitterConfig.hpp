@@ -26,8 +26,7 @@ public:
   
   // Random chargino's track parameters
   double GetMaxTrackEta(){return maxEta;}
-  double GetMinL(){return minL;}
-  double GetMaxL(){return maxL;}
+  int    GetNTrackHits(){return nTrackHits;}
   
   // Random pion's parameters
   double GetMinPx(){return minPx;}
@@ -62,8 +61,7 @@ public:
   double zRegularityTolerance;
   int minNpointsAlongZ;
   double maxEta;
-  double minL;
-  double maxL;
+  int nTrackHits;
   double minPx;
   double minPy;
   double minPz;

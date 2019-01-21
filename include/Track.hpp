@@ -9,6 +9,7 @@
 
 #include "Helpers.hpp"
 #include "TrackCut.hpp"
+#include "Point.hpp"
 
 /// This class represents a single track. It contains information about its kinematical
 /// properties, number of hits in different parts of the detector, energy loss in the tracker etc.
@@ -21,13 +22,15 @@ public:
   /// Default destructor
   ~Track(){};
   
+  /// Sets randomly basic track's parameters (eta, phi, decay point given number of layers it went through)
+  void FillRandomly(int nHits, double maxEta);
+  
   /// Print basic information about the track
   void Print();
   
   /// Check if track passes selection criteria
   /// \param cut Tracks selection criteria to be checked
   bool IsPassingCut(const unique_ptr<TrackCut> &cut);
-  
   
   // Setters
   void SetDeDxInLayer(int layer, float value);
@@ -78,6 +81,7 @@ public:
   
   inline double  GetPt(){return pt;}
   inline double  GetEta(){return eta;}
+  inline double  GetTheta(){return 2*atan(exp(-eta));}
   inline double  GetPhi(){return phi;}
   inline double  GetMass(){return mass;}
   
@@ -114,6 +118,8 @@ public:
   inline double GetEventMetEta(){return eventMetEta;}
   inline double GetEventMetPhi(){return eventMetPhi;}
   inline double GetEventMetMass(){return eventMetMass;}
+  
+  inline unique_ptr<Point> GetDecayPoint(){return make_unique<Point>(*decayPoint);}
   
 private:
   vector<float> dedx;         ///< dE/dx in consecutive layers
@@ -157,9 +163,13 @@ private:
   double eventMetPhi;  ///< MET polar angle of the event that contains this track
   double eventMetMass; ///< MET mass of the event that contains this track
   
+  
+  
   /// Calculates additional properties that are not read directly from ntuples.
   /// Should be called after adding setting some of the track's properties
   void CalculateInternals();
+  
+  unique_ptr<Point> decayPoint;
 };
 
 #endif /* Track_hpp */

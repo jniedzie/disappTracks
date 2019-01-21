@@ -130,3 +130,18 @@ void HelixProcessor::CalculateNregularPoints(unique_ptr<Helix> &helix, int limit
     }
   }
 }
+
+unique_ptr<Helix> HelixProcessor::GetRandomPionHelix(const shared_ptr<Track> &track)
+{
+  unique_ptr<Point> pionVector = make_unique<Point>(RandSign()*RandDouble(config->GetMinPx(), config->GetMaxPx()),
+                                                    RandSign()*RandDouble(config->GetMinPy(), config->GetMaxPy()),
+                                                    RandSign()*RandDouble(config->GetMinPz(), config->GetMaxPz()));
+  int pionCharge = RandSign();
+  
+  unique_ptr<Helix> pionHelix = make_unique<Helix>(track->GetDecayPoint(), pionVector, pionCharge, config);
+  vector<Point> pionPoints = GetPointsHittingSilicon(pionHelix);
+  for(auto &p : pionPoints){p.SetIsPionHit(true);}
+  pionHelix->SetPoints(pionPoints);
+  
+  return pionHelix;
+}

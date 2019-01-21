@@ -11,6 +11,7 @@
 #include "Helix.hpp"
 #include "FitterConfig.hpp"
 #include "PointsProcessor.hpp"
+#include "Track.hpp"
 
 class HelixProcessor {
 public:
@@ -35,9 +36,10 @@ public:
   /// \limit Stop calculation after reaching this number of regular points
   void CalculateNregularPoints(unique_ptr<Helix> &helix, int limit=inf);
   
+  unique_ptr<Helix> GetRandomPionHelix(const shared_ptr<Track> &track);
+  
 private:
   shared_ptr<FitterConfig> config;
-  
   unique_ptr<PointsProcessor> pointsProcessor;
 };
 

@@ -95,7 +95,7 @@ MonitorsManager::~MonitorsManager()
 
 void MonitorsManager::FillMonitors(const unique_ptr<Helix> &fittedHelix,
                                    const unique_ptr<Helix> &trueHelix,
-                                   const unique_ptr<Track> &track)
+                                   const shared_ptr<Track> &track)
 {
   fractionMonitors["successVsX"].second->Fill(fabs(trueHelix->GetOrigin()->GetX()));
   fractionMonitors["fullSuccessVsX"].second->Fill(fabs(trueHelix->GetOrigin()->GetX()));

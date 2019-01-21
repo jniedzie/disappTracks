@@ -23,48 +23,13 @@ unique_ptr<PointsProcessor> pointsProcessor;
 unique_ptr<HelixProcessor> helixProcessor;
 unique_ptr<MonitorsManager> monitorsManager;
 
-// Will be calculated automatically
-double trackEta, trackTheta, trackPhi; // parameters of the chargino track
-double decayR;  // secondary vertex R (from 0,0,0) just somewhere between 3rd and 4th layer
-
 vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber);
-
-void SetRandomTrack()
-{
-  trackEta = RandDouble(-config->GetMaxTrackEta(), config->GetMaxTrackEta());
-  trackTheta = 2*atan(exp(-trackEta));
-  trackPhi = RandDouble(0, 2*TMath::Pi());
-  decayR = RandDouble(config->GetMinL(), config->GetMaxL());
-}
-
-unique_ptr<Helix> GetRandomPionHelix()
-{
-  unique_ptr<Point> pionVector = make_unique<Point>(RandSign()*RandDouble(config->GetMinPx(), config->GetMaxPx()),
-                                                    RandSign()*RandDouble(config->GetMinPy(), config->GetMaxPy()),
-                                                    RandSign()*RandDouble(config->GetMinPz(), config->GetMaxPz()));
-  int pionCharge = RandSign();
-  
-  // Create true pion helix
-  double decayX = decayR*sin(trackTheta)*cos(trackPhi);
-  double decayY = decayR*sin(trackTheta)*sin(trackPhi);
-  double decayZ = decayR*cos(trackTheta);
-  
-  unique_ptr<Point> pionHelixCenter = make_unique<Point>(decayX,decayY,decayZ);
-  unique_ptr<Helix> pionHelix = make_unique<Helix>(pionHelixCenter, pionVector, pionCharge, config);
-  vector<Point> pionPoints = helixProcessor->GetPointsHittingSilicon(pionHelix);
-  for(auto &p : pionPoints){p.SetIsPionHit(true);}
-  pionHelix->SetPoints(pionPoints);
-  
-  return pionHelix;
-}
 
 void InjectPionPointsToCollectionOfPoints(const unique_ptr<Helix> &pionHelix, vector<Point> &pixelPoints)
 {
   vector<Point> *pionPoints = pionHelix->GetPoints();
    pixelPoints.insert(pixelPoints.end(),pionPoints->begin(), pionPoints->end());
 }
-
-
 
 void PerformTests(int &nSuccess, int &nFullSuccess)
 {
@@ -76,19 +41,17 @@ void PerformTests(int &nSuccess, int &nFullSuccess)
       cout<<"\n========================================================"<<endl;
       cout<<"Test iter:"<<i<<endl;
     }
-      
-    SetRandomTrack(); // Randomly generate chargino's track
-    unique_ptr<Track> track = make_unique<Track>();
-    track->SetEta(trackEta);
-    track->SetPhi(trackPhi);
+    
+    shared_ptr<Track> track = make_shared<Track>();
+    track->FillRandomly(config->GetNTrackHits(), config->GetMaxTrackEta());
     
     vector<Point> pixelPoints = pointsProcessor->GetRandomPoints(config->GetNnoiseHits());
     //  vector<Point> pixelPoints = LoadAllHits(297100, 136, 245000232);
     
-    unique_ptr<Helix> pionHelix = GetRandomPionHelix();
+    unique_ptr<Helix> pionHelix = helixProcessor->GetRandomPionHelix(track);
     if(config->GetInjectPionHits()) InjectPionPointsToCollectionOfPoints(pionHelix, pixelPoints);
     
-    unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(pixelPoints, trackTheta, trackPhi);
+    unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(pixelPoints, track);
     monitorsManager->FillMonitors(bestHelix, pionHelix, track);
     
     auto successCode = monitorsManager->GetFittingStatus(bestHelix, pionHelix);

@@ -35,8 +35,10 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
   double minPy = config->GetMinPy();
   double maxPx = config->GetMaxPx();
   double maxPy = config->GetMaxPy();
-  double minL = config->GetMinL();
-  double maxL = config->GetMaxL();
+  double minL = layerR[track->GetNtrackerLayers()-1];
+  double maxL = layerR[track->GetNtrackerLayers()];
+  double trackTheta = track->GetTheta();
+  double trackPhi = track->GetPhi();
   
   // Create fitter to fit circles to 2D distribution
   ROOT::Fit::Fitter *fitter = new ROOT::Fit::Fitter();
@@ -129,12 +131,12 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
   return circles;
 }
 
-unique_ptr<Helix> Fitter::GetBestFittingHelix(vector<Point> _points, double _trackTheta, double _trackPhi,
+unique_ptr<Helix> Fitter::GetBestFittingHelix(vector<Point> _points,
+                                              const shared_ptr<Track> &_track,
                                               bool drawCircles)
 {
   points = _points;
-  trackTheta = _trackTheta;
-  trackPhi = _trackPhi;
+  track = _track;
   
   vector<unique_ptr<Circle>> circles = GetAllCirclesForPoints();
   

@@ -47,6 +47,24 @@ eventMetMass(inf)
   }
 };
 
+void Track::FillRandomly(int nHits, double maxEta)
+{
+  eta = RandDouble(-maxEta, maxEta);
+  phi = RandDouble(0, 2*TMath::Pi());
+  
+  nTrackerLayers = nPixelLayers = nHits;
+  double minL = layerR[nHits-1];
+  double maxL = layerR[nHits];
+  double theta = GetTheta();
+  
+  double decayR = RandDouble(minL, maxL);
+  double decayX = decayR*sin(theta)*cos(phi);
+  double decayY = decayR*sin(theta)*sin(phi);
+  double decayZ = decayR*cos(theta);
+  
+  decayPoint = make_unique<Point>(decayX, decayY, decayZ);
+}
+
 double Track::GetDedxInSubDet(int det)
 {
   double dedxSum=0;

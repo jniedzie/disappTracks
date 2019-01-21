@@ -12,6 +12,7 @@
 #include "Circle.hpp"
 #include "HelixProcessor.hpp"
 #include "FitterConfig.hpp"
+#include "Track.hpp"
 
 /// Provides a method to fit a helix to a collection of points.
 class Fitter {
@@ -28,7 +29,7 @@ public:
   /// \trackPhi Phi angle of the track
   /// \drawCircles Optionally, graph with all candidate circles can be plotted
   unique_ptr<Helix> GetBestFittingHelix(vector<Point> _points,
-                                        double _trackTheta, double _trackPhi,
+                                        const shared_ptr<Track> &_track,
                                         bool drawCircles=false);
   
 private:
@@ -37,8 +38,8 @@ private:
   unique_ptr<HelixProcessor> helixProcessor;
   
   vector<Point> points;
-  double trackTheta;
-  double trackPhi;
+  shared_ptr<Track> track;
+  
   
   /// Finds circles fitting points, matching all the other criteria specified in the config and for
   /// a specific signs of X and Y coordinates of the momentum and charge.

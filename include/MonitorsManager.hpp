@@ -35,7 +35,7 @@ public:
   /// Fills defined monitors for a given set of true and fitted helix.
   void FillMonitors(const unique_ptr<Helix> &fittedHelix,
                     const unique_ptr<Helix> &trueHelix,
-                    const unique_ptr<Track> &track);
+                    const shared_ptr<Track> &track);
   
   /// Checks and returns status of the fit given the true and the fitted helix
   EFitStatus GetFittingStatus(const unique_ptr<Helix> &fittedHelix, const unique_ptr<Helix> &trueHelix);
