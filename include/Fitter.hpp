@@ -8,10 +8,9 @@
 #define Fitter_hpp
 
 #include "Helpers.hpp"
-#include "Point.hpp"
 #include "PointsProcessor.hpp"
 #include "Circle.hpp"
-#include "Helix.hpp"
+#include "HelixProcessor.hpp"
 #include "FitterConfig.hpp"
 
 /// Provides a method to fit a helix to a collection of points.
@@ -35,6 +34,7 @@ public:
 private:
   shared_ptr<FitterConfig> config;
   unique_ptr<PointsProcessor> pointsProcessor;
+  unique_ptr<HelixProcessor> helixProcessor;
   
   vector<Point> points;
   double trackTheta;

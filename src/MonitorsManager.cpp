@@ -7,7 +7,8 @@
 #include "MonitorsManager.hpp"
 
 MonitorsManager::MonitorsManager(const shared_ptr<FitterConfig> &_config) :
-config(_config)
+config(_config),
+helixProcessor(make_unique<HelixProcessor>(_config))
 {
   const vector<tuple<const char*,int,double,double>> monitors1Dparams = {
     {"nPointsOnHelix",100 ,0,100},
@@ -129,7 +130,7 @@ void MonitorsManager::FillMonitors(const unique_ptr<Helix> &fittedHelix,
   monitors1D["nPionPoints"]->Fill(fittedHelix->GetNpionPoints()/(double)trueHelix->GetNpionPoints());
   monitors1D["nFakeHits"]->Fill((fittedHelix->GetNpoints()-fittedHelix->GetNpionPoints())/(double)fittedHelix->GetNpoints());
   
-  vector<int> failureCodes = Helix::AreHelicesIdentical(fittedHelix, trueHelix);
+  vector<int> failureCodes = helixProcessor->AreIdentical(fittedHelix, trueHelix);
   
   if(failureCodes.size()!=0){ // if helix was fitted, but there was some discrepancy wrt the true helix
     for(int f : failureCodes) monitors1D["failReason"]->Fill(f);
@@ -149,7 +150,7 @@ MonitorsManager::EFitStatus MonitorsManager::GetFittingStatus(const unique_ptr<H
                                                               const unique_ptr<Helix> &trueHelix)
 {
   if(!fittedHelix) return kFail;
-  vector<int> failureCodes = Helix::AreHelicesIdentical(fittedHelix, trueHelix);
+  vector<int> failureCodes = helixProcessor->AreIdentical(fittedHelix, trueHelix);
   if(failureCodes.size()==0) return kFullSuccess;
   return kSuccess;
 }

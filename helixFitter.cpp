@@ -5,9 +5,8 @@
 //
 
 #include "Helpers.hpp"
-#include "Helix.hpp"
+#include "HelixProcessor.hpp"
 #include "Circle.hpp"
-#include "Point.hpp"
 #include "PointsProcessor.hpp"
 #include "Event.hpp"
 #include "EventSet.hpp"
@@ -21,6 +20,7 @@ int verbosityLevel = 2;
 string configPath = "configs/helixFitter.md";
 shared_ptr<FitterConfig> config;
 unique_ptr<PointsProcessor> pointsProcessor;
+unique_ptr<HelixProcessor> helixProcessor;
 unique_ptr<MonitorsManager> monitorsManager;
 
 // Will be calculated automatically
@@ -51,7 +51,7 @@ unique_ptr<Helix> GetRandomPionHelix()
   
   unique_ptr<Point> pionHelixCenter = make_unique<Point>(decayX,decayY,decayZ);
   unique_ptr<Helix> pionHelix = make_unique<Helix>(pionHelixCenter, pionVector, pionCharge, config);
-  vector<Point> pionPoints = pionHelix->GetPointsHittingSilicon();
+  vector<Point> pionPoints = helixProcessor->GetPointsHittingSilicon(pionHelix);
   for(auto &p : pionPoints){p.SetIsPionHit(true);}
   pionHelix->SetPoints(pionPoints);
   
@@ -95,8 +95,11 @@ void PerformTests(int &nSuccess, int &nFullSuccess)
     
     if(successCode == MonitorsManager::kFail)         continue;
     if(successCode == MonitorsManager::kSuccess)      nSuccess++;
-    if(successCode == MonitorsManager::kFullSuccess)  nFullSuccess++;
-    
+    if(successCode == MonitorsManager::kFullSuccess){
+      nSuccess++;
+      nFullSuccess++;
+    }
+      
     if(verbosityLevel >= 2){
       cout<<"Pion helix:"; pionHelix->Print();
       cout<<"Fitted helix:"; bestHelix->Print();
@@ -157,6 +160,7 @@ int main(int argc, char* argv[])
   TApplication theApp("App", &argc, argv);
   config = make_shared<FitterConfig>(configPath);
   pointsProcessor = make_unique<PointsProcessor>();
+  helixProcessor = make_unique<HelixProcessor>(config);
   monitorsManager = make_unique<MonitorsManager>(config);
   
   auto startTime = now();

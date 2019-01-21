@@ -8,7 +8,7 @@
 #define MonitorsManager_hpp
 
 #include "Helpers.hpp"
-#include "Helix.hpp"
+#include "HelixProcessor.hpp"
 #include "Track.hpp"
 #include "FitterConfig.hpp"
 
@@ -42,6 +42,8 @@ public:
   
 private:
   shared_ptr<FitterConfig> config;
+  unique_ptr<HelixProcessor> helixProcessor;
+  
   
   map<string, TH1D*> monitors1D;                     ///< 1D Monitors
   map<string, TH2D*> monitors2D;                     ///< 2D Monitors

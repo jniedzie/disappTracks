@@ -29,9 +29,6 @@ public:
   /// Prints basic information about the helix
   void Print();
   
-  /// Returns vector of points along helix trajectory that hit the tracker
-  vector<Point> GetPointsHittingSilicon();
-  
   /// It will pick only points that are on the helix (within its thickness)
   /// and count how many of them are pion points
   void SetPoints(const vector<Point> &_points);
@@ -57,16 +54,6 @@ public:
   /// Calculates average of the squared distances between points (hits) and the helix
   double GetChi2();
   
-  /// Calculates number of regular points.
-  /// Splits all points into lines along Z axis. For each line, checks all possible distances between points.
-  /// For each possible distance, calculates number of regular points (for all points in the collection,
-  /// within zRegularityTolarance) and finds a maximum number of such points.
-  void CalculateNregularPoints(int limit=inf);
-  
-  /// Checks if input and output helices are identical.
-  /// \return Returns zero if identical, otherwise returns failure reason code
-  static vector<int> AreHelicesIdentical(const unique_ptr<Helix> &h1, const unique_ptr<Helix> &h2);
-  
 private:
   vector<Point> points;   ///< Vector of points laying on the helix (withing thickness)
   double tShift;          ///< Angle by which beginning of the helix is shifted due to the shift of its origin
@@ -87,6 +74,8 @@ private:
   shared_ptr<FitterConfig> config;
   
   unique_ptr<PointsProcessor> pointsProcessor;
+  
+  friend class HelixProcessor;
 };
 
 #endif /* Helix_hpp */

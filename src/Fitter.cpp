@@ -8,7 +8,8 @@
 
 Fitter::Fitter(shared_ptr<FitterConfig> _config) :
 config(_config),
-pointsProcessor(make_unique<PointsProcessor>())
+pointsProcessor(make_unique<PointsProcessor>()),
+helixProcessor(make_unique<HelixProcessor>(_config))
 {
   
 }
@@ -43,7 +44,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
   // This is a stupid hack to be able to set fit parameters before actually setting a fitting function
   // Params we want to set only once, but function will change in each iteration of the loop, because
   // it captures loop iterators.
-  auto f = [&](const double *par) {return 0;};
+  auto f = [&](const double*) {return 0;};
   int nPar = 3;
   ROOT::Math::Functor fitFunction = ROOT::Math::Functor(f, nPar);
   double pStart[nPar];
@@ -202,7 +203,7 @@ unique_ptr<Helix> Fitter::GetHelixFromCircle(const unique_ptr<Circle> &circle, d
   
   unique_ptr<Helix> helix = make_unique<Helix>(circle->GetDecayPoint(), momentum, charge, config);
   helix->SetPoints(points);
-  helix->CalculateNregularPoints();
+  helixProcessor->CalculateNregularPoints(helix);
   
   return helix;
 }
