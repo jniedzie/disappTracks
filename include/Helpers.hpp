@@ -281,7 +281,6 @@ enum EData{
 
 // Constants for tracker layers
 const int nLayers = 14;
-const int nPixelLayers = 4;
 const double pixelBarrelZsize = 265; // mm
 const double layerR[nLayers] = { 29, 68, 109, 160, 250, 340, 430, 520, 610, 696, 782, 868, 965, 1080 };
 

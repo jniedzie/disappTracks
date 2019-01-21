@@ -9,7 +9,7 @@
 
 HelixProcessor::HelixProcessor(const shared_ptr<FitterConfig> &_config) :
 config(_config),
-pointsProcessor(make_unique<PointsProcessor>())
+pointsProcessor(make_unique<PointsProcessor>(_config))
 {
 
 }
@@ -44,7 +44,7 @@ vector<Point> HelixProcessor::GetPointsHittingSilicon(const unique_ptr<Helix> &h
   double Rl, C, delta;
   double x1,y1,x2,y2,z1,z2,t1,t2;
   
-  for(int iLayer=0;iLayer<nPixelLayers;iLayer++){
+  for(int iLayer=0;iLayer<config->GetNtrackerLayers();iLayer++){
     Rl = layerR[iLayer];
     C = (Rl*Rl+dh*dh-helix->radius*helix->radius)/2.;
     

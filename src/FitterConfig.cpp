@@ -40,6 +40,7 @@ FitterConfig::FitterConfig(string _path)
   tolerancePy = config->GetValue("tolerance_py",30.0);
   tolerancePz = config->GetValue("tolerance_pz",30.0);
   nNoiseHits = config->GetValue("n_noise_hits",500);
+  nTrackerLayers = config->GetValue("n_tracker_layers",4);
 }
 
 

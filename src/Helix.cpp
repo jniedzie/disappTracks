@@ -13,7 +13,7 @@ origin(make_unique<Point>(*_origin)),
 momentum(make_unique<Point>(*_momentum)),
 charge(_charge),
 config(_config),
-pointsProcessor(make_unique<PointsProcessor>())
+pointsProcessor(make_unique<PointsProcessor>(_config))
 {
   radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
   slope = charge*momentum->GetVectorSlopeC();

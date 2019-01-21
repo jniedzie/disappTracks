@@ -121,9 +121,9 @@ void ScanParameter()
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
-  config = make_shared<FitterConfig>(configPath);
-  pointsProcessor = make_unique<PointsProcessor>();
-  helixProcessor = make_unique<HelixProcessor>(config);
+  config          = make_shared<FitterConfig>(configPath);
+  pointsProcessor = make_unique<PointsProcessor>(config);
+  helixProcessor  = make_unique<HelixProcessor>(config);
   monitorsManager = make_unique<MonitorsManager>(config);
   
   auto startTime = now();

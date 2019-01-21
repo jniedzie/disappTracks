@@ -8,7 +8,7 @@
 
 Fitter::Fitter(shared_ptr<FitterConfig> _config) :
 config(_config),
-pointsProcessor(make_unique<PointsProcessor>()),
+pointsProcessor(make_unique<PointsProcessor>(_config)),
 helixProcessor(make_unique<HelixProcessor>(_config))
 {
   

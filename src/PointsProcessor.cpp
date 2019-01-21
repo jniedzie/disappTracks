@@ -6,7 +6,8 @@
 
 #include "PointsProcessor.hpp"
 
-PointsProcessor::PointsProcessor()
+PointsProcessor::PointsProcessor(const shared_ptr<FitterConfig> &_config) :
+config(_config)
 {
   
 }
@@ -54,7 +55,7 @@ vector<Point> PointsProcessor::GetRandomPoints(int nPoints) const
   
   for(int i=0;i<nPoints;i++){
     phi = RandDouble(0, 2*TMath::Pi());
-    layerIndex = RandDouble(0, nPixelLayers);
+    layerIndex = RandDouble(0, config->GetNtrackerLayers());
     R = layerR[layerIndex];
     Point p(R*cos(phi), R*sin(phi), RandDouble(-pixelBarrelZsize, pixelBarrelZsize));
     points.push_back(p);

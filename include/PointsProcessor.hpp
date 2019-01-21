@@ -9,12 +9,13 @@
 
 #include "Helpers.hpp"
 #include "Point.hpp"
+#include "FitterConfig.hpp"
 
 /// PointsProcessor provides methods performing operations on Point objects
 class PointsProcessor {
 public:
   /// Default constructor
-  PointsProcessor();
+  PointsProcessor(const shared_ptr<FitterConfig> &_config);
   
   /// Default destructor
   ~PointsProcessor();
@@ -35,6 +36,10 @@ public:
   /// Returns a vector filled with random points in the pixel barrel
   /// \param nPoints Number of points that will be generated
   vector<Point> GetRandomPoints(int nPoints) const;
+  
+private:
+  shared_ptr<FitterConfig> config;
+  
 };
 
 #endif /* PointsProcessor_hpp */

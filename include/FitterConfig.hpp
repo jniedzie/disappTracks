@@ -41,6 +41,7 @@ public:
   int GetNtests(){return nTests;}
   const char* GetOutputPath(){return outputPath;}
   int GetNnoiseHits(){return nNoiseHits;}
+  int GetNtrackerLayers(){return nTrackerLayers;}
   
   // Benchmark parameters
   double GetToleranceX(){return toleranceX;}
@@ -78,6 +79,7 @@ public:
   double tolerancePy;
   double tolerancePz;
   int nNoiseHits;
+  int nTrackerLayers;
 };
 
 #endif /* FitterConfig_hpp */
