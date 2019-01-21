@@ -47,14 +47,22 @@ helixProcessor(make_unique<HelixProcessor>(_config))
     {"fullSuccessVsY",  maxY+1, 0, maxY},
     {"successVsZ",      maxZ+1, 0, maxZ},
     {"fullSuccessVsZ",  maxZ+1, 0, maxZ},
+    {"successVsEta",    100, 0, maxEta},
+    {"fullSuccessVsEta",100, 0, maxEta},
+    {"successVsZsameSign",      maxZ+1, 0, maxZ},
+    {"fullSuccessVsZsameSign",  maxZ+1, 0, maxZ},
+    {"successVsEtaSameSign",    100, 0, maxEta},
+    {"fullSuccessVsEtaSameSign",100, 0, maxEta},
+    {"successVsZoppositeSign",      maxZ+1, 0, maxZ},
+    {"fullSuccessVsZoppositeSign",  maxZ+1, 0, maxZ},
+    {"successVsEtaOppositeSign",    100, 0, maxEta},
+    {"fullSuccessVsEtaOppositeSign",100, 0, maxEta},
     {"successVsPx",     maxPx-minPx+1, minPx, maxPx},
     {"fullSuccessVsPx", maxPx-minPx+1, minPx, maxPx},
     {"successVsPy",     maxPy-minPy+1, minPy, maxPy},
     {"fullSuccessVsPy", maxPy-minPy+1, minPy, maxPy},
     {"successVsPz",     maxPz-minPz+1, minPz, maxPz},
     {"fullSuccessVsPz", maxPz-minPz+1, minPz, maxPz},
-    {"successVsEta",    100, 0, maxEta},
-    {"fullSuccessVsEta",100, 0, maxEta},
   };
   
   for(auto params : monitors1Dparams){
@@ -104,6 +112,20 @@ void MonitorsManager::FillMonitors(const unique_ptr<Helix> &fittedHelix,
   fractionMonitors["successVsEta"].second->Fill(fabs(track->GetEta()));
   fractionMonitors["fullSuccessVsEta"].second->Fill(fabs(track->GetEta()));
   
+  
+  if(sgn(trueHelix->GetOrigin()->GetZ()) == sgn(trueHelix->GetMomentum()->GetZ())){
+    fractionMonitors["successVsZsameSign"].second->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+    fractionMonitors["fullSuccessVsZsameSign"].second->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+    fractionMonitors["successVsEtaSameSign"].second->Fill(fabs(track->GetEta()));
+    fractionMonitors["fullSuccessVsEtaSameSign"].second->Fill(fabs(track->GetEta()));
+  }
+  else{
+    fractionMonitors["successVsZoppositeSign"].second->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+    fractionMonitors["fullSuccessVsZoppositeSign"].second->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+    fractionMonitors["successVsEtaOppositeSign"].second->Fill(fabs(track->GetEta()));
+    fractionMonitors["fullSuccessVsEtaOppositeSign"].second->Fill(fabs(track->GetEta()));
+  }
+  
   if(!fittedHelix){
     monitors1D["failReason"]->Fill(8);
     return;
@@ -118,6 +140,14 @@ void MonitorsManager::FillMonitors(const unique_ptr<Helix> &fittedHelix,
   fractionMonitors["successVsPz"].first->Fill(fabs(trueHelix->GetMomentum()->GetZ()));
   fractionMonitors["successVsEta"].first->Fill(fabs(track->GetEta()));
   
+  if(sgn(trueHelix->GetOrigin()->GetZ()) == sgn(trueHelix->GetMomentum()->GetZ())){
+    fractionMonitors["successVsZsameSign"].first->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+    fractionMonitors["successVsEtaSameSign"].first->Fill(fabs(track->GetEta()));
+  }
+  else{
+    fractionMonitors["successVsZoppositeSign"].first->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+    fractionMonitors["successVsEtaOppositeSign"].first->Fill(fabs(track->GetEta()));
+  }
   
   monitors2D["xResponse"]->Fill(trueHelix->GetOrigin()->GetX(), fittedHelix->GetOrigin()->GetX());
   monitors2D["yResponse"]->Fill(trueHelix->GetOrigin()->GetY(), fittedHelix->GetOrigin()->GetY());
@@ -143,6 +173,15 @@ void MonitorsManager::FillMonitors(const unique_ptr<Helix> &fittedHelix,
     fractionMonitors["fullSuccessVsPy"].first->Fill(fabs(trueHelix->GetMomentum()->GetY()));
     fractionMonitors["fullSuccessVsPz"].first->Fill(fabs(trueHelix->GetMomentum()->GetZ()));
     fractionMonitors["fullSuccessVsEta"].first->Fill(fabs(track->GetEta()));
+    
+    if(sgn(trueHelix->GetOrigin()->GetZ()) == sgn(trueHelix->GetMomentum()->GetZ())){
+      fractionMonitors["fullSuccessVsZsameSign"].first->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+      fractionMonitors["fullSuccessVsEtaSameSign"].first->Fill(fabs(track->GetEta()));
+    }
+    else{
+      fractionMonitors["fullSuccessVsZoppositeSign"].first->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+      fractionMonitors["fullSuccessVsEtaOppositeSign"].first->Fill(fabs(track->GetEta()));
+    }
   }
 }
 

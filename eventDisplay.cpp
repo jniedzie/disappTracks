@@ -4,6 +4,7 @@
 #include "Fitter.hpp"
 #include "Display.hpp"
 #include "FitterConfig.hpp"
+#include "HelixProcessor.hpp"
 
 Display *display;
 shared_ptr<FitterConfig> config;
@@ -83,6 +84,7 @@ int main(int argc, char* argv[])
   // create event display
   config = make_shared<FitterConfig>("configs/helixFitter.md");
   display = new Display();
+  unique_ptr<HelixProcessor> helixProcessor = make_unique<HelixProcessor>(config);
   
   auto events = shared_ptr<EventSet>(new EventSet());
   events->LoadEventsFromFiles("after_L2/3layers/");
@@ -134,7 +136,7 @@ int main(int argc, char* argv[])
   display->DrawHelix(pionHelix,helixOptions);
   
   // Calculate and draw points along the helix that hit the silicon
-  vector<Point> pionPoints = pionHelix->GetPointsHittingSilicon();
+  vector<Point> pionPoints = helixProcessor->GetPointsHittingSilicon(pionHelix);
   for(auto &p : pionPoints){p.SetIsPionHit(true);}
   pionHelix->SetPoints(pionPoints);
   display->DrawSimplePoints(pionPoints, pionPointsOptions);
