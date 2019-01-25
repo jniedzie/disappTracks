@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
     auto jetCut_L2   = unique_ptr<JetCut>(new JetCut());
     auto leptonCut_L2= unique_ptr<LeptonCut>(new LeptonCut());
     
-    trackCut_L2->SetRequireMcMatch(true);
+//    trackCut_L2->SetRequireMcMatch(true);
     
     // pick category
     if(category == k2tracks){

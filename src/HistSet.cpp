@@ -172,6 +172,7 @@ void HistSet::Fill(const shared_ptr<TH1D> &hist,
         else if(var == kTrackMissingOuterTrackerHits) value = track->GetNmissingOuterTrackerHits();
         else if(var == kTrackPixelHits)               value = track->GetNpixelHits();
         else if(var == kTrackTrackerHits)             value = track->GetNtrackerHits();
+        else if(var == kTrackTrackerLayers)           value = track->GetNtrackerLayers();
         else if(var == kTrackRelativeIsolation)       value = track->GetRelativeIsolation();
         else if(var == kTrackAbsoluteIsolation)       value = track->GetAbsoluteIsolation();
         else if(var == kTrackMetDphi){

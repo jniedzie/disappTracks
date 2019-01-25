@@ -53,11 +53,13 @@ void Track::FillRandomly(int nHits, double maxEta)
   phi = RandDouble(0, 2*TMath::Pi());
   
   nTrackerLayers = nPixelLayers = nHits;
-  double minL = layerR[nHits-1];
-  double maxL = layerR[nHits];
   double theta = GetTheta();
+  double maxTheta = 2*atan(exp(-maxEta));
   
+  double minL = layerR[nHits-1]/sin(maxTheta);
+  double maxL = layerR[nHits]/sin(maxTheta);
   double decayR = RandDouble(minL, maxL);
+  
   double decayX = decayR*sin(theta)*cos(phi);
   double decayY = decayR*sin(theta)*sin(phi);
   double decayZ = decayR*cos(theta);

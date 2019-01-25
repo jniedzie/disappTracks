@@ -105,6 +105,18 @@ void HelixProcessor::CalculateNregularPoints(unique_ptr<Helix> &helix, int limit
   bool found;
   double testingDistance;
   
+  // Maybe just calculate what would be the distance for given pz?
+  // For whatever reason it's not actually faster...
+  testingDistance = fabs(helix->GetSlope())*2*TMath::Pi();
+  nPointsForDistance = 0;
+  
+  for(auto line2 : pointsByLine){
+    for(int i=0;i<(int)line2.size();i++){
+      if(std::abs(pointsProcessor->distance(line2[0], line2[i])-i*testingDistance) < zRegularityTolerance)  nPointsForDistance++;
+    }
+  }
+  helix->nRegularPoints = nPointsForDistance;
+  /*
   for(auto line : pointsByLine){
     int iPoint;
     for(iPoint=0; iPoint < (int)line.size()-1; iPoint++){
@@ -129,6 +141,7 @@ void HelixProcessor::CalculateNregularPoints(unique_ptr<Helix> &helix, int limit
       }
     }
   }
+   */
 }
 
 unique_ptr<Helix> HelixProcessor::GetRandomPionHelix(const shared_ptr<Track> &track)

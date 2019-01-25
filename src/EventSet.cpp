@@ -564,6 +564,7 @@ void EventSet::DrawStandardPlots(string prefix)
   hists["caloHad"]      = new HistSet(kTrackCaloHad);
   hists["pixelHits"]    = new HistSet(kTrackPixelHits);
   hists["trackerHits"]  = new HistSet(kTrackTrackerHits);
+  hists["trackerLayers"]= new HistSet(kTrackTrackerLayers);
   hists["isolation"]    = new HistSet(kTrackRelativeIsolation);
   hists["absIsolation"] = new HistSet(kTrackAbsoluteIsolation);
   hists["trackMetDphi"] = new HistSet(kTrackMetDphi);
@@ -612,6 +613,13 @@ void EventSet::DrawStandardPlots(string prefix)
   hists["dedx"]->Draw(canvasTrack,10);
   hists["absIsolation"]->Draw(canvasTrack,11);
   hists["dz"]->Draw(canvasTrack,12);
+  
+  TCanvas *canvas = new TCanvas((prefix+"_canvas").c_str(),(prefix+"_canvas").c_str(),2880,1800);
+  canvas->Divide(2,2);
+  hists["trackerLayers"]->Draw(canvas,1);
+  hists["dedx"]->Draw(canvas,2);
+  hists["nMetPt"]->Draw(canvas,3);
+  hists["nJet"]->Draw(canvas,4);
   
   TCanvas *canvasJets = new TCanvas("Jets","Jets",2880,1800);
   canvasJets->Divide(3,2);

@@ -35,8 +35,11 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
   double minPy = config->GetMinPy();
   double maxPx = config->GetMaxPx();
   double maxPy = config->GetMaxPy();
-  double minL = layerR[track->GetNtrackerLayers()-1];
-  double maxL = layerR[track->GetNtrackerLayers()];
+  
+  double maxTheta = 2*atan(exp(-config->GetMaxTrackEta()));
+  double minL = layerR[track->GetNtrackerLayers()-1]/sin(maxTheta);
+  double maxL = layerR[track->GetNtrackerLayers()]/sin(maxTheta);
+  
   double trackTheta = track->GetTheta();
   double trackPhi = track->GetPhi();
   

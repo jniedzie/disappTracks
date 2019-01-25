@@ -323,6 +323,7 @@ enum EVar{
   kTrackAbsoluteIsolation,
   kTrackMetDphi,
   kTrackDedxPerHit,
+  kTrackTrackerLayers,
   
   // per jet variables
   kJetPt,
@@ -387,6 +388,7 @@ const map<EVar, tuple<string, int, double, double>> settings =
   {kTrackMissingOuterTrackerHits , {"Missing outer tracker hits",20,0,20}},
   {kTrackPixelHits , {"N pixel hits",10,0,10}},
   {kTrackTrackerHits , {"N tracker hits",40,0,40}},
+  {kTrackTrackerLayers , {"N tracker layers",40,0,40}},
   {kTrackRelativeIsolation , {"Relative isolation in dR=0.3",20,0,1}},
   {kTrackAbsoluteIsolation , {"Absolute isolation in dR=0.3",20,0,1}},
   {kTrackMetDphi , {"#Delta #phi (p_{T}^{track}},p_{T}^{MET})",25,-3.5,3.5}},
@@ -416,8 +418,7 @@ inline bool IsPerTrackVariable(EVar var)
   if(var == kTrackNclusters || var == kTrackTotalDedx || var == kTrackDedxPerCluster || var == kTrackPt ||
      var == kTrackEta || var == kTrackPhi || var == kTrackCaloEm || var == kTrackCaloHad ||
      var == kTrackDxy || var == kTrackDz || var == kTrackCharge || var == kTrackMass || var == kTrackPid ||
-     var == kTrackMissingOuterTrackerHits || var == kTrackPixelHits || var == kTrackTrackerHits ||
-     var == kTrackRelativeIsolation || var == kTrackAbsoluteIsolation || var == kTrackMetDphi ||
+     var == kTrackMissingOuterTrackerHits || var == kTrackPixelHits || var == kTrackTrackerHits || var == kTrackTrackerLayers || var == kTrackRelativeIsolation || var == kTrackAbsoluteIsolation || var == kTrackMetDphi ||
      var == kTrackDedxPerHit)
     return true;
   return false;
@@ -484,6 +485,11 @@ private:
 inline double GetRadiusInMagField(double px, double py, double B)
 {
   return sqrt(pow(px,2)+pow(py,2))/(B*3)*10;
+}
+
+inline int RandInt(int min, int max)
+{
+  return min + static_cast<int>(rand()) /( static_cast<int>(RAND_MAX/(max-min)));
 }
 
 inline double RandDouble(double min, double max)

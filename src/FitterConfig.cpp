@@ -51,7 +51,8 @@ void FitterConfig::Print()
   cout<<"\tN tests:"<<nTests<<endl;
   cout<<"\tN noise hits:"<<nNoiseHits<<endl;
   cout<<"\tOutput file:"<<outputPath<<endl;
-  cout<<"\tTrack eta:"<<maxEta<<"\t n hits:"<<config->GetValue("max_l",-1)<<endl;
+  cout<<"\tTrack eta:"<<maxEta<<"\t n hits:"<<nTrackHits<<endl;
+  cout<<"\tN tracker layers:"<<nTrackerLayers<<endl;
   
   cout<<"Pion properties:"<<endl;
   cout<<"\tInjecting pion hits: "<<(injectPionHits ? "yes" : "no")<<endl;

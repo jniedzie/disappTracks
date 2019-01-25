@@ -38,6 +38,7 @@ helixProcessor(make_unique<HelixProcessor>(_config))
     {"pxResponse",    200, -maxPx, maxPx, 200, -maxPx, maxPx},
     {"pyResponse",    200, -maxPy, maxPy, 200, -maxPy, maxPy},
     {"pzResponse",    200, -maxPz, maxPz, 200, -maxPz, maxPz},
+    {"nCyclesVsPz",   1000, 0, maxPz, 1000, 0, 100},
   };
   
   const vector<tuple<string,int,double,double>> fractionMonitorsParams = {
@@ -113,6 +114,7 @@ void MonitorsManager::FillMonitors(const unique_ptr<Helix> &fittedHelix,
   fractionMonitors["fullSuccessVsEta"].second->Fill(fabs(track->GetEta()));
   
   
+  
   if(sgn(trueHelix->GetOrigin()->GetZ()) == sgn(trueHelix->GetMomentum()->GetZ())){
     fractionMonitors["successVsZsameSign"].second->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
     fractionMonitors["fullSuccessVsZsameSign"].second->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
@@ -125,6 +127,8 @@ void MonitorsManager::FillMonitors(const unique_ptr<Helix> &fittedHelix,
     fractionMonitors["successVsEtaOppositeSign"].second->Fill(fabs(track->GetEta()));
     fractionMonitors["fullSuccessVsEtaOppositeSign"].second->Fill(fabs(track->GetEta()));
   }
+  
+  monitors2D["nCyclesVsPz"]->Fill(trueHelix->GetMomentum()->GetZ(), trueHelix->GetNcycles());
   
   if(!fittedHelix){
     monitors1D["failReason"]->Fill(8);
