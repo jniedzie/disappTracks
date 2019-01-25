@@ -144,6 +144,8 @@ public:
   inline shared_ptr<Jet>    GetJet(int i){return jets[i];}
   inline shared_ptr<Lepton> GetLepton(int i){return leptons[i];}
   
+  shared_ptr<vector<Point>> GetTrackerHits();
+  
 private:
   vector<shared_ptr<Track>>  tracks;   ///< Vector of isolated tracks
   vector<shared_ptr<Jet>>    jets;     ///< Vector of jets

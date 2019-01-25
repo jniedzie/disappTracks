@@ -117,11 +117,11 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
           unique_ptr<Point> momentum = make_unique<Point>(px,py,0);
           unique_ptr<Circle> circle = make_unique<Circle>(decayPoint, momentum, config);
           
-          int nPoints=0;
+          int nPointsOnCircle=0;
           for(Point p : points2D){
-            if(circle->GetDistanceToPoint(p) < circleThickness) nPoints++;
+            if(circle->GetDistanceToPoint(p) < circleThickness) nPointsOnCircle++;
           }
-          if(nPoints > 3){
+          if(nPointsOnCircle > 3){
             circle->SetPoints(points);
             circles.push_back(move(circle));
           }

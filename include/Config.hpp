@@ -69,7 +69,7 @@ const vector<bool> runSignal = {
 };
 
 const vector<bool> runData = {
-  false,  // 2017 (B+C+D)
+  true,  // 2017 (B+C+D)
 };
 
 #endif /* Config_h */

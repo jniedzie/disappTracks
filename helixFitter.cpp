@@ -23,8 +23,6 @@ unique_ptr<PointsProcessor> pointsProcessor;
 unique_ptr<HelixProcessor> helixProcessor;
 unique_ptr<MonitorsManager> monitorsManager;
 
-vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber);
-
 void InjectPionPointsToCollectionOfPoints(const unique_ptr<Helix> &pionHelix,
                                           shared_ptr<vector<Point>> pixelPoints)
 {
@@ -46,8 +44,12 @@ void PerformTests(int &nSuccess, int &nFullSuccess)
     shared_ptr<Track> track = make_shared<Track>();
     track->FillRandomly(config->GetNTrackHits(), config->GetMaxTrackEta());
     
-    shared_ptr<vector<Point>> pixelPoints = pointsProcessor->GetRandomPoints(config->GetNnoiseHits());
-    //  vector<Point> pixelPoints = LoadAllHits(297100, 136, 245000232);
+//    shared_ptr<vector<Point>> pixelPoints = pointsProcessor->GetRandomPoints(config->GetNnoiseHits());
+    unique_ptr<Event> event = make_unique<Event>();
+    event->SetRunNumber(297100);
+    event->SetLumiSection(136);
+    event->SetEventNumber(245000232);
+    shared_ptr<vector<Point>> pixelPoints = event->GetTrackerHits();
     
     unique_ptr<Helix> pionHelix = helixProcessor->GetRandomPionHelix(track);
     if(config->GetInjectPionHits()) InjectPionPointsToCollectionOfPoints(pionHelix, pixelPoints);
@@ -146,84 +148,4 @@ int main(int argc, char* argv[])
   
   theApp.Run();
   return 0;
-}
-
-vector<Point> LoadAllHits(uint runNumber, uint lumiSection, unsigned long long eventNumber)
-{
-  TFile *inFile = TFile::Open("pickhists.root");
-  //  TFile *inFile = TFile::Open("/afs/cern.ch/work/j/jniedzie/private/pickhists.root");
-  //  TFile *inFile = TFile::Open("/afs/cern.ch/work/j/jniedzie/private/pickhists_unfiltered.root");
-  if(!inFile){
-    cout<<"ERROR -- no file with all hits was found"<<endl;
-    return vector<Point>();
-  }
-  TTree *tree = (TTree*)inFile->Get("hitsExtractor/hits");
-  
-  if(!tree){
-    cout<<"ERROR -- no tree with all hits was found"<<endl;
-    return vector<Point>();
-  }
-  
-  vector<double> *hitX = nullptr;
-  vector<double> *hitY = nullptr;
-  vector<double> *hitZ = nullptr;
-  vector<double> *hitCharge = nullptr;
-  vector<double> *hitSizeX = nullptr;
-  vector<double> *hitSizeY = nullptr;
-  vector<double> *stripX = nullptr;
-  vector<double> *stripY = nullptr;
-  vector<double> *stripZ = nullptr;
-  vector<double> *stripCharge = nullptr;
-  
-  uint run;
-  uint lumi;
-  unsigned long long event;
-  
-  tree->SetBranchAddress("hitX",&hitX);
-  tree->SetBranchAddress("hitY",&hitY);
-  tree->SetBranchAddress("hitZ",&hitZ);
-  tree->SetBranchAddress("hitCharge",&hitCharge);
-  tree->SetBranchAddress("hitSizeX",&hitSizeX);
-  tree->SetBranchAddress("hitSizeY",&hitSizeY);
-  tree->SetBranchAddress("stripX",&stripX);
-  tree->SetBranchAddress("stripY",&stripY);
-  tree->SetBranchAddress("stripZ",&stripZ);
-  tree->SetBranchAddress("stripCharge",&stripCharge);
-  
-  tree->SetBranchAddress("runNumber",&run);
-  tree->SetBranchAddress("lumiBlock",&lumi);
-  tree->SetBranchAddress("eventNumber",&event);
-  
-  bool eventFound = false;
-  
-  for(int i=0;i<tree->GetEntries();i++){
-    tree->GetEntry(i);
-    
-    if(run == runNumber && lumi == lumiSection && event == eventNumber){
-      eventFound = true;
-      break;
-    }
-  }
-  
-  vector<Point> pixelPoints;
-  
-  if(!eventFound){
-    cout<<"\n\nERROR - could not find all hits for requested event!\n\n"<<endl;
-    return pixelPoints;
-  }
-  
-  // Parameters for all hits in the pixel barrel
-  const double chargeThreshold = 0; // 2000, 5000, 25000
-  const double minClusterSize = 0;
-  const double maxClusterSize = 100;
-  
-  for(uint i=0;i<hitX->size();i++){
-    if(hitCharge->at(i) < chargeThreshold) continue;
-    double clusterSize = sqrt(pow(hitSizeX->at(i),2)+pow(hitSizeY->at(i),2));
-    if(clusterSize < minClusterSize || clusterSize > maxClusterSize) continue;
-    // convert cm to mm
-    pixelPoints.push_back(Point(10*hitX->at(i),10*hitY->at(i),10*hitZ->at(i),hitCharge->at(i)));
-  }
-  
-  return pixelPoints;
 }
