@@ -15,17 +15,10 @@ Event::Event()
 
 Event::Event(const Event &e)
 {
-  for(auto t : e.tracks){
-    tracks.push_back(t);
-  }
-  
-  for(auto j : e.jets){
-    jets.push_back(j);
-  }
-  
-  for(auto l : e.leptons){
-    leptons.push_back(l);
-  }
+  for(auto t : e.tracks){ tracks.push_back(t);}
+  for(auto j : e.jets){   jets.push_back(j);}
+  for(auto l : e.leptons){leptons.push_back(l);}
+  for(auto h : e.helices){helices.push_back(h);}
   
   SetWeight(e.weight);
   SetNvertices(e.nVertices);

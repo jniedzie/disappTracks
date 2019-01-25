@@ -52,6 +52,7 @@
 #include <algorithm>
 #include <memory>
 #include <any>
+#include <utility>
 
 using namespace std;
 
@@ -215,9 +216,14 @@ const vector<string> inFileNameSignal = {
 
 const vector<vector<string>> inFileNameData = {
   {
-    "../SR_DATA/MET_Run2017B_31Mar2018/",
-    "../SR_DATA/MET_Run2017C_31Mar2018/",
-    "../SR_DATA/MET_Run2017D_31Mar2018/"
+//    "../SR_DATA/MET_Run2017B_31Mar2018/",
+//    "../SR_DATA/MET_Run2017C_31Mar2018/",
+//    "../SR_DATA/MET_Run2017D_31Mar2018/"
+    "../data_andrea/Data-SR/tree_MET_Run2017B_31Mar2018/",
+//    "../data_andrea/Data-SR/tree_MET_Run2017D_31Mar2018/",
+//    "../data_andrea/Data-SR/tree_MET_Run2017F_31Mar2018/",
+//    "../data_andrea/Data-SR/tree_MET_Run2017C_31Mar2018/",
+//    "../data_andrea/Data-SR/tree_MET_Run2017E_31Mar2018/",
   }
 };
 
@@ -301,6 +307,7 @@ enum EVar{
   kMetEta,
   kMetPhi,
   kMetJetDphi,
+  kNhelices,
   
   // per track variables
   kTrackNclusters,
@@ -333,6 +340,16 @@ enum EVar{
   kJetCHF,
   kJetNHF,
   
+  // per helix variables
+  kHelixX,
+  kHelixY,
+  kHelixZ,
+  kHelixPx,
+  kHelixPy,
+  kHelixPz,
+  kHelixCharge,
+  
+  
   // per track per layer variables
   kDedx,  ///< dE/dx per layer
   kSizeX, ///< X cluster size in each layer
@@ -362,6 +379,7 @@ const map<EVar, tuple<string, int, double, double>> settings =
 {
   {kNvertices , {"N good vertices",25,0,100}},
   {kNisoTracks , {"N iso tracks",20,0,10}},
+  {kNhelices , {"N fitted helices",10,0,10}},
   {kNjets , {"N jets",15,0,15}},
   {kNjets30 , {"N jets with pt > 30, |eta|<2.4",15,0.0,15}},
   {kNjets30a , {"N jets with pt > 30, |eta|<4.7",15,0.0,15}},
@@ -394,6 +412,16 @@ const map<EVar, tuple<string, int, double, double>> settings =
   {kTrackMetDphi , {"#Delta #phi (p_{T}^{track}},p_{T}^{MET})",25,-3.5,3.5}},
   {kTrackDedxPerHit , {"dE/dx per hit",50,0,10}},
   
+  {kHelixX , {"Helix origin X",600,-300,300}},
+  {kHelixY , {"Helix origin Y",600,-300,300}},
+  {kHelixZ , {"Helix origin Z",600,-300,300}},
+  
+  {kHelixPx , {"Helix momentum X",2000,-1000,1000}},
+  {kHelixPy , {"Helix momentum Y",2000,-1000,1000}},
+  {kHelixPz , {"Helix momentum Z",2000,-1000,1000}},
+  
+  {kHelixCharge , {"Helix charge",3,-1,1}},
+  
   {kJetPt , {"Jet pt",50,0.0,1000}},
   {kJetEta , {"Jet eta",50,-3.0,3.0}},
   {kJetPhi , { "Jet phi",50,-3.5,3.5}},
@@ -408,7 +436,7 @@ const map<EVar, tuple<string, int, double, double>> settings =
 inline bool IsPerEventVariable(EVar var)
 {
   if(var == kNvertices || var == kNisoTracks || var == kNjets || var == kNjets30 ||
-     var == kNjets30a || var == kMetSumEt || var == kMetPt || var == kMetMass || var == kMetEta || var == kMetPhi)
+     var == kNjets30a || var == kMetSumEt || var == kMetPt || var == kMetMass || var == kMetEta || var == kMetPhi || var == kNhelices)
     return true;
   return false;
 }
@@ -435,6 +463,15 @@ inline bool IsPerJetVariable(EVar var)
 inline bool IsPerLayerVariable(EVar var)
 {
   if(var == kDedx || var == kSizeX || var == kSizeY)
+    return true;
+  return false;
+};
+
+inline bool IsPerHelixVariable(EVar var)
+{
+  if(var == kHelixX || var == kHelixY || var == kHelixZ ||
+     var == kHelixPx || var == kHelixPy || var == kHelixPz ||
+     var == kHelixCharge)
     return true;
   return false;
 };

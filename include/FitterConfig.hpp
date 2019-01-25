@@ -11,7 +11,7 @@
 
 class FitterConfig {
 public:
-  FitterConfig(string _path);
+  FitterConfig(string _path="");
   
   void Print();
   

@@ -65,6 +65,7 @@ void EventSet::SaveToTree(string fileName, EDataType dataType, int setIter)
   const int nJets = 100;
   const int nLeptons = 100;
   const int nJetsFwd = 0;
+  const int nHelices = 100;
   
   unsigned long long evt;
   uint lumi, run;
@@ -78,6 +79,12 @@ void EventSet::SaveToTree(string fileName, EDataType dataType, int setIter)
   int IsoTrack_charge[nTracks], IsoTrack_pdgId[nTracks], IsoTrack_mcMatch[nTracks];
   int IsoTrack_trackerLayers[nTracks], IsoTrack_pixelLayers[nTracks], IsoTrack_trackerHits[nTracks], IsoTrack_pixelHits[nTracks], IsoTrack_missingInnerPixelHits[nTracks], IsoTrack_missingOuterPixelHits[nTracks], IsoTrack_missingInnerStripHits[nTracks], IsoTrack_missingOuterStripHits[nTracks], IsoTrack_missingInnerTrackerHits[nTracks], IsoTrack_missingOuterTrackerHits[nTracks], IsoTrack_missingMiddleTrackerHits[nTracks];
   
+  int nFittedHelices;
+  float helix_x[nHelices],  helix_y[nHelices],  helix_z[nHelices],
+        helix_px[nHelices], helix_py[nHelices], helix_pz[nHelices];
+  
+  int helix_charge[nHelices];
+  
   float LepGood_pt[nLeptons], LepGood_phi[nLeptons], LepGood_eta[nLeptons], LepGood_tightId[nLeptons], LepGood_relIso04[nLeptons], LepGood_pdgId[nLeptons];
   float Jet_pt[nJets], Jet_eta[nJets], Jet_phi[nJets], Jet_mass[nJets], Jet_chHEF[nJets], Jet_neHEF[nJets];
   
@@ -89,6 +96,7 @@ void EventSet::SaveToTree(string fileName, EDataType dataType, int setIter)
   tree->Branch("evt", &evt, "evt/l");
   
   tree->Branch("nIsoTrack", &nIsoTracks, "nIsoTrack/I");
+  tree->Branch("nFittedHelices", &nFittedHelices, "nFittedHelices/I");
   tree->Branch("nVert", &nVert, "nVert/I");
   tree->Branch("nJet", &nJet, "nJet/I");
   tree->Branch("nJetFwd", &nJetFwd, "nJetFwd/I");
@@ -152,7 +160,14 @@ void EventSet::SaveToTree(string fileName, EDataType dataType, int setIter)
   tree->Branch("IsoTrack_missingOuterTrackerHits", &IsoTrack_missingOuterTrackerHits, "IsoTrack_missingOuterTrackerHits[nIsoTrack]/I");
   tree->Branch("IsoTrack_missingMiddleTrackerHits", &IsoTrack_missingMiddleTrackerHits, "IsoTrack_missingMiddleTrackerHits[nIsoTrack]/I");
   
+  tree->Branch("helix_x", &helix_x, "helix_x[nFittedHelices]/F");
+  tree->Branch("helix_y", &helix_y, "helix_y[nFittedHelices]/F");
+  tree->Branch("helix_z", &helix_z, "helix_z[nFittedHelices]/F");
+  tree->Branch("helix_px", &helix_px, "helix_px[nFittedHelices]/F");
+  tree->Branch("helix_py", &helix_py, "helix_py[nFittedHelices]/F");
+  tree->Branch("helix_pz", &helix_pz, "helix_pz[nFittedHelices]/F");
   
+  tree->Branch("helix_charge", &helix_charge, "helix_charge[nFittedHelices]/I");
   
   tree->Branch("LepGood_pt", &LepGood_pt, "LepGood_pt[nLepGood]/F");
   tree->Branch("LepGood_phi", &LepGood_phi, "LepGood_phi[nLepGood]/F");
@@ -201,6 +216,7 @@ void EventSet::SaveToTree(string fileName, EDataType dataType, int setIter)
     
     nVert = event->GetNvertices();
     nIsoTracks = (int)event->GetNtracks();
+    nFittedHelices = (int)event->GetNhelices();
     nJet = (int)event->GetNjets();
     nJetFwd = 0;
     nJet30 = event->GetNjet30();
@@ -267,6 +283,19 @@ void EventSet::SaveToTree(string fileName, EDataType dataType, int setIter)
         subDetId[iLayer] = event->GetTrack(iTrack)->GetSubDetIdInLayer(iLayer);
         sizeX[iLayer] = event->GetTrack(iTrack)->GetSizeXinLayer(iLayer);
         sizeY[iLayer] = event->GetTrack(iTrack)->GetSizeYinLayer(iLayer);
+      }
+    }
+    
+    for(int iHelix=0;iHelix<nFittedHelices;iHelix++){
+      auto helix = event->GetHelix(iHelix);
+      if(helix){
+        helix_x[iHelix]      = helix->GetOrigin()->GetX();
+        helix_y[iHelix]      = helix->GetOrigin()->GetY();
+        helix_z[iHelix]      = helix->GetOrigin()->GetZ();
+        helix_px[iHelix]     = helix->GetMomentum()->GetX();
+        helix_py[iHelix]     = helix->GetMomentum()->GetY();
+        helix_pz[iHelix]     = helix->GetMomentum()->GetZ();
+        helix_charge[iHelix] = helix->GetCharge();
       }
     }
     
@@ -542,6 +571,7 @@ void EventSet::DrawStandardPlots(string prefix)
   
   hists["nVertices"]  = new HistSet(kNvertices);
   hists["nIsoTrack"]  = new HistSet(kNisoTracks);
+  hists["nHelices"]   = new HistSet(kNhelices);
   hists["nJet"]       = new HistSet(kNjets);
   hists["nJet30"]     = new HistSet(kNjets30);
   hists["nJet30a"]    = new HistSet(kNjets30a);
@@ -569,6 +599,14 @@ void EventSet::DrawStandardPlots(string prefix)
   hists["absIsolation"] = new HistSet(kTrackAbsoluteIsolation);
   hists["trackMetDphi"] = new HistSet(kTrackMetDphi);
   hists["dedx"]         = new HistSet(kTrackDedxPerHit);
+  
+  hists["helixX"]       = new HistSet(kHelixX);
+  hists["helixY"]       = new HistSet(kHelixY);
+  hists["helixZ"]       = new HistSet(kHelixZ);
+  hists["helixPx"]      = new HistSet(kHelixPx);
+  hists["helixPy"]      = new HistSet(kHelixPy);
+  hists["helixPz"]      = new HistSet(kHelixPz);
+  hists["helixCharge"]  = new HistSet(kHelixCharge);
   
   hists["dxy"]    = new HistSet(kTrackDxy);
   hists["dz"]     = new HistSet(kTrackDz);
@@ -614,12 +652,16 @@ void EventSet::DrawStandardPlots(string prefix)
   hists["absIsolation"]->Draw(canvasTrack,11);
   hists["dz"]->Draw(canvasTrack,12);
   
-  TCanvas *canvas = new TCanvas((prefix+"_canvas").c_str(),(prefix+"_canvas").c_str(),2880,1800);
-  canvas->Divide(2,2);
-  hists["trackerLayers"]->Draw(canvas,1);
-  hists["dedx"]->Draw(canvas,2);
-  hists["nMetPt"]->Draw(canvas,3);
-  hists["nJet"]->Draw(canvas,4);
+  TCanvas *helixCanvas = new TCanvas((prefix+"Helix").c_str(),(prefix+"Helix").c_str(),2880,1800);
+  helixCanvas->Divide(3,3);
+  hists["nHelices"]->Draw(helixCanvas,1);
+  hists["helixX"]->Draw(helixCanvas,2);
+  hists["helixY"]->Draw(helixCanvas,3);
+  hists["helixZ"]->Draw(helixCanvas,4);
+  hists["helixPx"]->Draw(helixCanvas,5);
+  hists["helixPy"]->Draw(helixCanvas,6);
+  hists["helixPz"]->Draw(helixCanvas,7);
+  hists["helixCharge"]->Draw(helixCanvas,8);
   
   TCanvas *canvasJets = new TCanvas("Jets","Jets",2880,1800);
   canvasJets->Divide(3,2);
@@ -858,6 +900,15 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
   TTreeReaderArray<int> *_sizeX[nLayers];
   TTreeReaderArray<int> *_sizeY[nLayers];
   
+  TTreeReaderValue<int>   _nHelices(reader, tree->GetBranchStatus("nFittedHelices") ? "nFittedHelices" : "nTracks");
+  TTreeReaderArray<int>   _helixCharge(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_charge" : "nTracks");
+  TTreeReaderArray<float> _helixX(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_x" : "rho");
+  TTreeReaderArray<float> _helixY(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_y" : "rho");
+  TTreeReaderArray<float> _helixZ(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_z" : "rho");
+  TTreeReaderArray<float> _helixPx(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_px" : "rho");
+  TTreeReaderArray<float> _helixPy(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_py" : "rho");
+  TTreeReaderArray<float> _helixPz(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_pz" : "rho");
+  
   for(int iLayer=0;iLayer<nLayers;iLayer++){
     _dedx[iLayer] =      new TTreeReaderArray<float>(reader,Form("IsoTrack_dedxByLayer%i",iLayer));
     _subDetId[iLayer] =  new TTreeReaderArray<int>(reader,Form("IsoTrack_subDetIdByLayer%i",iLayer));
@@ -910,6 +961,15 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
         track->SetSizeYinLayer(iLayer, (*_sizeY[iLayer])[iTrack]);
       }
       newEvent->AddTrack(track);
+    }
+    
+    if(tree->GetBranchStatus("nFittedHelices")){
+      for(int iHelix=0;iHelix<*_nHelices;iHelix++){
+        auto origin   = make_unique<Point>(_helixX[iHelix],  _helixY[iHelix],  _helixZ[iHelix]);
+        auto momentum = make_unique<Point>(_helixPx[iHelix], _helixPy[iHelix], _helixPz[iHelix]);
+        auto helix    = make_shared<Helix>(origin, momentum, _helixCharge[iHelix], make_shared<FitterConfig>());
+        newEvent->AddHelix(helix);
+      }
     }
     
     for(int iJet=0;iJet<*_nJets;iJet++){

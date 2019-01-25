@@ -59,6 +59,22 @@ void ProcessCuts(shared_ptr<EventSet> events,
       }
     }
   }
+  
+  ofstream dataSurvivingFile;
+  dataSurvivingFile.open ("dataAfterL1.txt");
+  
+  for(int iData=0;iData<kNdata;iData++){
+    if(!runData[iData]) continue;
+    cout<<"Data events surviving cuts in "<<dataTitle[iData]<<":"<<events->size(EventSet::kData,iData)<<endl;
+    for(int iEvent=0;iEvent<events->size(EventSet::kData,iData);iEvent++){
+      int runNumber = events->At(EventSet::kData,iData,iEvent)->GetRunNumber();
+      int lumiSection = events->At(EventSet::kData,iData,iEvent)->GetLumiSection();
+      long long int eventNumber = events->At(EventSet::kData,iData,iEvent)->GetEventNumber();
+      dataSurvivingFile<<runNumber<<":"<<lumiSection<<":"<<eventNumber<<"\n";
+    }
+  }
+  dataSurvivingFile.close();
+  
 }
 
 int main(int argc, char* argv[])
@@ -70,6 +86,7 @@ int main(int argc, char* argv[])
   
   string initPrefix = "after_L"+to_string(performCutsLevel-1)+"/";
   if(performCutsLevel==0 || performCutsLevel==10) initPrefix = "";
+  if(performCutsLevel==20) initPrefix = "afterHelixTagging/";
   
   events->LoadEventsFromFiles(initPrefix);
   cout<<"\n\nInitial yields"<<endl;
@@ -385,6 +402,14 @@ int main(int argc, char* argv[])
     
     ProcessCuts(events,eventCut_adish, trackCut_adish, jetCut_adish, leptonCut_adish);
   }
+  
+  //---------------------------------------------------------------------------
+  // Draw plots after helix tagging
+  //---------------------------------------------------------------------------
+  if(performCutsLevel == 20){
+    events->DrawStandardPlots();
+  }
+  
   
   if(drawStandardPlots || drawPerLayerPlots || scanMETbinning)  theApp->Run();
   return 0;

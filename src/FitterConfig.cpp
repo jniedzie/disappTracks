@@ -12,7 +12,8 @@ FitterConfig::FitterConfig(string _path)
   
   if(config->ReadFile(_path.c_str(), kEnvUser) < 0){
     cout<<"ERROR - could not load config file:"<<_path<<endl;
-    exit(0);
+    cout<<"Will use default values"<<endl;
+    return;
   }
   
   helixThickness = config->GetValue("helix_thickness",1.0);

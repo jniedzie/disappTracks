@@ -121,10 +121,22 @@ void HistSet::Fill(const shared_ptr<TH1D> &hist,
       else if(var == kMetMass)    value = event->GetMetMass();
       else if(var == kMetEta)     value = event->GetMetEta();
       else if(var == kMetPhi)     value = event->GetMetPhi();
+      else if(var == kNhelices)   value = event->GetNhelices();
       
       hist->Fill(value, event->GetWeight());
     }
-    
+    if(IsPerHelixVariable(var)){
+      for(int iHelix=0;iHelix<event->GetNhelices();iHelix++){
+        if(var == kHelixX)            value = event->GetHelix(iHelix)->GetOrigin()->GetX();
+        else if(var == kHelixY)       value = event->GetHelix(iHelix)->GetOrigin()->GetY();
+        else if(var == kHelixZ)       value = event->GetHelix(iHelix)->GetOrigin()->GetZ();
+        else if(var == kHelixPx)      value = event->GetHelix(iHelix)->GetMomentum()->GetX();
+        else if(var == kHelixPy)      value = event->GetHelix(iHelix)->GetMomentum()->GetY();
+        else if(var == kHelixPz)      value = event->GetHelix(iHelix)->GetMomentum()->GetZ();
+        else if(var == kHelixCharge)  value = event->GetHelix(iHelix)->GetCharge();
+        hist->Fill(value, event->GetWeight());
+      }
+    }
     if(IsPerJetVariable(var)){
       for(int iJet=0;iJet<event->GetNjets();iJet++){
         shared_ptr<Jet> jet = event->GetJet(iJet);
@@ -263,22 +275,35 @@ void HistSet::Draw(TCanvas *c1, int pad)
   THStack *signalStack = new THStack(title.c_str(),title.c_str());
   THStack *dataStack = new THStack(title.c_str(),title.c_str());
   
+  int nActiveBackgrounds = 0;
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     if(!runBackground[iBck]) continue;
     backgroundStack->Add(&*background[iBck]);
+    nActiveBackgrounds++;
   }
+  
+  int nActiveSignals = 0;
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!runSignal[iSig]) continue;
     signalStack->Add(&*signal[iSig]);
+    nActiveSignals++;
   }
   for(int iData=0;iData<kNdata;iData++){
     if(!runData[iData]) continue;
     dataStack->Add(&*data[iData]);
   }
-  
-  backgroundStack->Draw("HIST");
-  signalStack->Draw("nostack,same,p");
-  dataStack->Draw("nostack,same,p");
+  if(nActiveBackgrounds > 0){
+    backgroundStack->Draw("HIST");
+    signalStack->Draw("nostack,same,p");
+    dataStack->Draw("nostack,same,p");
+  }
+  else if(nActiveSignals > 0){
+    signalStack->Draw("nostack,p");
+    dataStack->Draw("nostack,same,p");
+  }
+  else{
+    dataStack->Draw("nostack,p");
+  }
   
   if(showLegends) leg->Draw();
   c1->Update();

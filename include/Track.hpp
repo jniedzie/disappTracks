@@ -70,6 +70,8 @@ public:
   inline void SetEventMetPhi(double val){eventMetPhi = val;}
   inline void SetEventMetMass(double val){eventMetMass = val;}
   
+  inline void SetDecayPoint(unique_ptr<Point> val){decayPoint = move(val);}
+  
   // Getters
   inline double  GetDeDxInLayer(int layer){return dedx[layer];}
   inline double  GetTotalDedx(){return accumulate(dedx.begin(),dedx.end(),0.0);}

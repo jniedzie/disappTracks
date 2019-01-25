@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
   // create event display
   config = make_shared<FitterConfig>("configs/helixFitter.md");
   display = new Display();
-  unique_ptr<HelixProcessor> helixProcessor = make_unique<HelixProcessor>(config);
+  auto helixProcessor = make_unique<HelixProcessor>(config);
   
   auto events = make_shared<EventSet>();
   events->LoadEventsFromFiles("after_L2/3layers/");

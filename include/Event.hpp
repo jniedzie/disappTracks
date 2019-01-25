@@ -15,8 +15,7 @@
 #include "JetCut.hpp"
 #include "Lepton.hpp"
 #include "LeptonCut.hpp"
-
-#include <utility>
+#include "HelixProcessor.hpp"
 
 /// This class represents a single event. It contains global information about the event, as well as
 /// collection of tracks, jets and leptons belonging to this event.
@@ -47,10 +46,14 @@ public:
   /// Check if event passes a cut
   bool IsPassingCut(const unique_ptr<EventCut> &cut);
   
+  /// Tries to load all tracker hits for this event from a separate file
+  shared_ptr<vector<Point>> GetTrackerHits();
+  
   // setters
   inline void AddTrack(shared_ptr<Track> track){tracks.push_back(track);}
   inline void AddJet(shared_ptr<Jet> jet){jets.push_back(jet);}
   inline void AddLepton(shared_ptr<Lepton> lepton){leptons.push_back(lepton);}
+  inline void AddHelix(shared_ptr<Helix> helix){helices.push_back(helix);}
   
   inline void SetLumiSection(uint val){lumiSection = val;}
   inline void SetRunNumber(uint val){runNumber = val;}
@@ -112,6 +115,7 @@ public:
   inline int GetNjet30a(){return nJet30a;}
   inline int GetNlepton(){return nLepton;}
   inline int GetNtau(){return nTau;}
+  inline int GetNhelices(){return (int)helices.size();}
   
   inline double GetMetSumEt(){return metSumEt;}
   inline double GetMetPt(){return metPt;}
@@ -143,8 +147,7 @@ public:
   inline shared_ptr<Track>  GetTrack(int i){return tracks[i];}
   inline shared_ptr<Jet>    GetJet(int i){return jets[i];}
   inline shared_ptr<Lepton> GetLepton(int i){return leptons[i];}
-  
-  shared_ptr<vector<Point>> GetTrackerHits();
+  inline shared_ptr<Helix>  GetHelix(int i){return helices[i];}
   
 private:
   vector<shared_ptr<Track>>  tracks;   ///< Vector of isolated tracks
@@ -190,6 +193,9 @@ private:
   double xsec;
   double wgtsum;
   double genWeight;
+  
+  // parameters of the fitted helices (one per track)
+  vector<shared_ptr<Helix>> helices;
 };
 
 #endif /* Event_hpp */
