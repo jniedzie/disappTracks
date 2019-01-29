@@ -50,7 +50,7 @@ void Helix::SetPoints(const shared_ptr<vector<Point>> _points)
   
   for(Point p : *_points){
     Point q = GetClosestPoint(p);
-    if(pointsProcessor->distance(p,q) < config->GetHelixThickness()){
+    if(pointsProcessor->distance(p,q) < config->helixThickness){
       if(p.IsPionHit()) nPionPoints++;
       points->push_back(p);
     }

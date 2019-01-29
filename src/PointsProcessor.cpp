@@ -54,7 +54,7 @@ shared_ptr<vector<Point>> PointsProcessor::GetRandomPoints(int nPoints) const
   
   for(int i=0;i<nPoints;i++){
     phi = RandDouble(0, 2*TMath::Pi());
-    R = layerR[RandInt(0, config->GetNtrackerLayers())];
+    R = layerR[RandInt(0, config->nTrackerLayers)];
     Point p(R*cos(phi), R*sin(phi), RandDouble(-pixelBarrelZsize, pixelBarrelZsize));
     points->push_back(p);
   }

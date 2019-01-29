@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
   allSimplePoints = event->GetTrackerHits();
   
   shared_ptr<Track> track = make_shared<Track>();
-  track->FillRandomly(config->GetNTrackHits(), config->GetMaxTrackEta());
+  track->FillRandomly(config->nTrackHits, config->maxEta);
   
   // Draw decay point to make sure that it's correctly located
   shared_ptr<vector<Point>> decayPoint = make_shared<vector<Point>>();

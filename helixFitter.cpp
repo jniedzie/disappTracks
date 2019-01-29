@@ -32,7 +32,7 @@ void InjectPionPointsToCollectionOfPoints(const unique_ptr<Helix> &pionHelix,
 
 void PerformTests(int &nSuccess, int &nFullSuccess)
 {
-  int nTests = config->GetNtests();
+  int nTests = config->nTests;
   unique_ptr<Fitter> fitter = make_unique<Fitter>(config);
     
   for(int i=0;i<nTests;i++){
@@ -42,17 +42,17 @@ void PerformTests(int &nSuccess, int &nFullSuccess)
     }
     
     shared_ptr<Track> track = make_shared<Track>();
-    track->FillRandomly(config->GetNTrackHits(), config->GetMaxTrackEta());
+    track->FillRandomly(config->nTrackHits, config->maxEta);
     
-//    shared_ptr<vector<Point>> pixelPoints = pointsProcessor->GetRandomPoints(config->GetNnoiseHits());
-    unique_ptr<Event> event = make_unique<Event>();
-    event->SetRunNumber(297100);
-    event->SetLumiSection(136);
-    event->SetEventNumber(245000232);
-    shared_ptr<vector<Point>> pixelPoints = event->GetTrackerHits();
+    shared_ptr<vector<Point>> pixelPoints = pointsProcessor->GetRandomPoints(config->nNoiseHits);
+//    unique_ptr<Event> event = make_unique<Event>();
+//    event->SetRunNumber(297100);
+//    event->SetLumiSection(136);
+//    event->SetEventNumber(245000232);
+//    shared_ptr<vector<Point>> pixelPoints = event->GetTrackerHits();
     
     unique_ptr<Helix> pionHelix = helixProcessor->GetRandomPionHelix(track);
-    if(config->GetInjectPionHits()) InjectPionPointsToCollectionOfPoints(pionHelix, pixelPoints);
+    if(config->injectPionHits) InjectPionPointsToCollectionOfPoints(pionHelix, pixelPoints);
     
     unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(pixelPoints, track);
     monitorsManager->FillMonitors(bestHelix, pionHelix, track);
@@ -100,7 +100,7 @@ void ScanParameter()
     cout<<"param:"<<param<<endl;
     config->nNoiseHits = param;
     
-    int nTests = config->GetNtests();
+    int nTests = config->nTests;
     int nFullSuccess = 0;
     int nSuccess = 0;
     PerformTests(nSuccess, nFullSuccess);
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
   
   auto startTime = now();
   
-  int nTests = config->GetNtests();
+  int nTests = config->nTests;
   int nSuccess, nFullSuccess;
   nFullSuccess = nSuccess = 0;
   PerformTests(nSuccess, nFullSuccess);

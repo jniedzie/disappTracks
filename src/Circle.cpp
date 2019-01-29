@@ -43,7 +43,7 @@ void Circle::SetPoints(const shared_ptr<vector<Point>> _points)
 {
   points.clear();
   for(auto p : *_points){
-    if(GetDistanceToPoint(p) < config->GetCircleThickness()) points.push_back(p);
+    if(GetDistanceToPoint(p) < config->circleThickness) points.push_back(p);
   }
 }
 
@@ -62,7 +62,7 @@ void Circle::RemoveSimilarCircles(vector<unique_ptr<Circle>> &circles)
        [](const auto &c1, const auto &c2) -> bool {return c1->GetRadius() < c2->GetRadius();});
   
   for(uint i=0; i<circles.size()-1; i++){
-    if(fabs(circles[i]->GetRadius() - circles[i+1]->GetRadius()) < config->GetCircleThickness()){
+    if(fabs(circles[i]->GetRadius() - circles[i+1]->GetRadius()) < config->circleThickness){
       circles.erase(circles.begin()+i);
       i--;
     }

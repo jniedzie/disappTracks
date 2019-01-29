@@ -24,12 +24,12 @@ vector<int> HelixProcessor::AreIdentical(const unique_ptr<Helix> &h1, const uniq
   vector<int> reasons;
   shared_ptr<FitterConfig> config = h1->config;
   
-  if(fabs(h1->GetOrigin()->GetX() - h2->GetOrigin()->GetX()) > config->GetToleranceX()) reasons.push_back(1);
-  if(fabs(h1->GetOrigin()->GetY() - h2->GetOrigin()->GetY()) > config->GetToleranceY()) reasons.push_back(2);
-  if(fabs(h1->GetOrigin()->GetZ() - h2->GetOrigin()->GetZ()) > config->GetToleranceZ()) reasons.push_back(3);
-  if(fabs(h1->GetMomentum()->GetX() - h2->GetMomentum()->GetX()) > config->GetTolerancePx()) reasons.push_back(4);
-  if(fabs(h1->GetMomentum()->GetY() - h2->GetMomentum()->GetY()) > config->GetTolerancePy()) reasons.push_back(5);
-  if(fabs(h1->GetMomentum()->GetZ() - h2->GetMomentum()->GetZ()) > config->GetTolerancePz()) reasons.push_back(6);
+  if(fabs(h1->GetOrigin()->GetX() - h2->GetOrigin()->GetX()) > config->toleranceX) reasons.push_back(1);
+  if(fabs(h1->GetOrigin()->GetY() - h2->GetOrigin()->GetY()) > config->toleranceY) reasons.push_back(2);
+  if(fabs(h1->GetOrigin()->GetZ() - h2->GetOrigin()->GetZ()) > config->toleranceZ) reasons.push_back(3);
+  if(fabs(h1->GetMomentum()->GetX() - h2->GetMomentum()->GetX()) > config->tolerancePx) reasons.push_back(4);
+  if(fabs(h1->GetMomentum()->GetY() - h2->GetMomentum()->GetY()) > config->tolerancePy) reasons.push_back(5);
+  if(fabs(h1->GetMomentum()->GetZ() - h2->GetMomentum()->GetZ()) > config->tolerancePz) reasons.push_back(6);
   if(h1->GetCharge() != h2->GetCharge()) reasons.push_back(7);
   
   return reasons;
@@ -44,7 +44,7 @@ shared_ptr<vector<Point>> HelixProcessor::GetPointsHittingSilicon(const unique_p
   double Rl, C, delta;
   double x1,y1,x2,y2,z1,z2,t1,t2;
   
-  for(int iLayer=0;iLayer<config->GetNtrackerLayers();iLayer++){
+  for(int iLayer=0;iLayer<config->nTrackerLayers;iLayer++){
     Rl = layerR[iLayer];
     C = (Rl*Rl+dh*dh-helix->radius*helix->radius)/2.;
     
@@ -95,14 +95,13 @@ shared_ptr<vector<Point>> HelixProcessor::GetPointsHittingSilicon(const unique_p
 void HelixProcessor::CalculateNregularPoints(unique_ptr<Helix> &helix, int limit)
 {
   vector<vector<Point>> pointsByLine = pointsProcessor->SplitPointsIntoLines(helix->points,
-                                                                             config->GetLinesToleranceForRegularity());
+                                                                             config->linesToleranceForRegularity);
   vector<double> possibleDistances;
   set<double> possibleDistancesSet;
   helix->nRegularPoints = 0;
   
   int nPointsForDistance;
-  double zRegularityTolerance = config->GetZregularityTolerance();
-  bool found;
+  double zRegularityTolerance = config->zRegularityTolerance;
   double testingDistance;
   
   // Maybe just calculate what would be the distance for given pz?
@@ -117,6 +116,7 @@ void HelixProcessor::CalculateNregularPoints(unique_ptr<Helix> &helix, int limit
   }
   helix->nRegularPoints = nPointsForDistance;
   /*
+  bool found;
   for(auto line : pointsByLine){
     int iPoint;
     for(iPoint=0; iPoint < (int)line.size()-1; iPoint++){
@@ -146,9 +146,9 @@ void HelixProcessor::CalculateNregularPoints(unique_ptr<Helix> &helix, int limit
 
 unique_ptr<Helix> HelixProcessor::GetRandomPionHelix(const shared_ptr<Track> &track)
 {
-  unique_ptr<Point> pionVector = make_unique<Point>(RandSign()*RandDouble(config->GetMinPx(), config->GetMaxPx()),
-                                                    RandSign()*RandDouble(config->GetMinPy(), config->GetMaxPy()),
-                                                    RandSign()*RandDouble(config->GetMinPz(), config->GetMaxPz()));
+  unique_ptr<Point> pionVector = make_unique<Point>(RandSign()*RandDouble(config->minPx, config->maxPx),
+                                                    RandSign()*RandDouble(config->minPy, config->maxPy),
+                                                    RandSign()*RandDouble(config->minPz, config->maxPz));
   int pionCharge = RandSign();
   
   unique_ptr<Helix> pionHelix = make_unique<Helix>(track->GetDecayPoint(), pionVector, pionCharge, config);

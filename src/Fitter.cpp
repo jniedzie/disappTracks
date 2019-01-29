@@ -23,20 +23,20 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
 {
   // Prepare 2D projections in XY
   vector<Point> points2D;
-  vector<vector<Point>> pointsByLine = pointsProcessor->SplitPointsIntoLines(points, config->GetLinesToleranceForCircles());
+  vector<vector<Point>> pointsByLine = pointsProcessor->SplitPointsIntoLines(points, config->linesToleranceForCircles);
   
   for(vector<Point> line : pointsByLine){
-    if((int)line.size() >= config->GetMinPointsAlongZ()){
+    if((int)line.size() >= config->minNpointsAlongZ){
       points2D.push_back(Point(line));
     }
   }
   
-  double minPx = config->GetMinPx();
-  double minPy = config->GetMinPy();
-  double maxPx = config->GetMaxPx();
-  double maxPy = config->GetMaxPy();
+  double minPx = config->minPx;
+  double minPy = config->minPy;
+  double maxPx = config->maxPx;
+  double maxPy = config->maxPy;
   
-  double maxTheta = 2*atan(exp(-config->GetMaxTrackEta()));
+  double maxTheta = 2*atan(exp(-config->maxEta));
   double minL = layerR[track->GetNtrackerLayers()-1]/sin(maxTheta);
   double maxL = layerR[track->GetNtrackerLayers()]/sin(maxTheta);
   
@@ -55,7 +55,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
   double pStart[nPar];
   fitter->SetFCN(fitFunction, pStart);
   
-  double helixThickness = config->GetHelixThickness();
+  double helixThickness = config->helixThickness;
   
   SetParameter(fitter, 0, "L", (maxL+minL)/2., minL-helixThickness, maxL+helixThickness);
   SetParameter(fitter, 1, "px",
@@ -72,7 +72,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
   vector<unique_ptr<Circle>> circles;
   
   int nPoints = (int)points2D.size();
-  double circleThickness = config->GetCircleThickness();
+  double circleThickness = config->circleThickness;
   for(int i=0;i<nPoints;i++){
     for(int j=i+1;j<nPoints;j++){
       for(int k=j+1;k<nPoints;k++){
@@ -171,8 +171,8 @@ unique_ptr<Helix> Fitter::GetBestFittingHelix(shared_ptr<vector<Point>> _points,
   int maxNregularPoints = 0;
   double maxFractionRegularPoints = 0;
   
-  double minPz = config->GetMinPz();
-  double maxPz = config->GetMaxPz();
+  double minPz = config->minPz;
+  double maxPz = config->maxPz;
   
   for(auto &circle : circles){
     vector<Point> points = circle->GetPoints();
@@ -193,8 +193,8 @@ unique_ptr<Helix> Fitter::GetBestFittingHelix(shared_ptr<vector<Point>> _points,
       }
     };
     
-    for(double pz =  maxPz; pz >=  minPz ; pz-=config->GetStepPz()){ testHelix(pz); }
-    for(double pz = -maxPz; pz <= -minPz ; pz+=config->GetStepPz()){ testHelix(pz); }
+    for(double pz =  maxPz; pz >=  minPz ; pz-=config->stepPz){ testHelix(pz); }
+    for(double pz = -maxPz; pz <= -minPz ; pz+=config->stepPz){ testHelix(pz); }
   }
   
   return bestHelix;

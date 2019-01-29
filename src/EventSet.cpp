@@ -900,14 +900,14 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
   TTreeReaderArray<int> *_sizeX[nLayers];
   TTreeReaderArray<int> *_sizeY[nLayers];
   
-  TTreeReaderValue<int>   _nHelices(reader, tree->GetBranchStatus("nFittedHelices") ? "nFittedHelices" : "nTracks");
-  TTreeReaderArray<int>   _helixCharge(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_charge" : "nTracks");
-  TTreeReaderArray<float> _helixX(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_x" : "rho");
-  TTreeReaderArray<float> _helixY(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_y" : "rho");
-  TTreeReaderArray<float> _helixZ(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_z" : "rho");
-  TTreeReaderArray<float> _helixPx(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_px" : "rho");
-  TTreeReaderArray<float> _helixPy(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_py" : "rho");
-  TTreeReaderArray<float> _helixPz(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_pz" : "rho");
+  TTreeReaderValue<int>   _nHelices(reader, tree->GetBranchStatus("nFittedHelices") ? "nFittedHelices" : "nIsoTrack");
+  TTreeReaderArray<int>   _helixCharge(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_charge" : "nIsoTrack");
+  TTreeReaderArray<float> _helixX(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_x" : "Jet_pt");
+  TTreeReaderArray<float> _helixY(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_y" : "Jet_pt");
+  TTreeReaderArray<float> _helixZ(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_z" : "Jet_pt");
+  TTreeReaderArray<float> _helixPx(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_px" : "Jet_pt");
+  TTreeReaderArray<float> _helixPy(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_py" : "Jet_pt");
+  TTreeReaderArray<float> _helixPz(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_pz" : "Jet_pt");
   
   for(int iLayer=0;iLayer<nLayers;iLayer++){
     _dedx[iLayer] =      new TTreeReaderArray<float>(reader,Form("IsoTrack_dedxByLayer%i",iLayer));

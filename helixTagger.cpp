@@ -11,7 +11,7 @@
 
 #include "EventSet.hpp"
 
-bool injectPion = true;
+bool injectPion = false;
 string configPath = "configs/helixFitter.md";
 
 uint searchRun = 297100;
