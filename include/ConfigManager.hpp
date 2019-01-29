@@ -9,8 +9,8 @@
 
 #include "Helpers.hpp"
 
-struct FitterConfig {
-  FitterConfig(string _path="");
+struct ConfigManager {
+  ConfigManager(string _path="");
   void Print();
   
   // General settings

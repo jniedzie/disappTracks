@@ -8,7 +8,7 @@
 
 Helix::Helix(const unique_ptr<Point> &_origin,
              const unique_ptr<Point> &_momentum,
-             int _charge, shared_ptr<FitterConfig> _config) :
+             int _charge, shared_ptr<ConfigManager> _config) :
 points(make_shared<vector<Point>>()),
 origin(make_unique<Point>(*_origin)),
 momentum(make_unique<Point>(*_momentum)),

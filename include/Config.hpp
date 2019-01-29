@@ -55,17 +55,17 @@ const vector<bool> runBackground = {
 };
 
 const vector<bool> runSignal = {
-  true,   // wino m=300 cτ=3
-  true,   // wino m=300 cτ=10
-  true,   // wino m=300 cτ=30
-  true,   // wino m=500 cτ=10
-  true,   // wino m=500 cτ=20
-  true,   // wino m=650 cτ=10
-  true,   // wino m=650 cτ=20
-  true,   // wino m=800 cτ=10
-  true,   // wino m=800 cτ=20
-  true,   // wino m=1000 cτ=10
-  true,   // wino m=1000 cτ=20
+  false,   // wino m=300 cτ=3
+  false,   // wino m=300 cτ=10
+  false,   // wino m=300 cτ=30
+  false,   // wino m=500 cτ=10
+  false,   // wino m=500 cτ=20
+  false,   // wino m=650 cτ=10
+  false,   // wino m=650 cτ=20
+  false,   // wino m=800 cτ=10
+  false,   // wino m=800 cτ=20
+  false,   // wino m=1000 cτ=10
+  false,   // wino m=1000 cτ=20
 };
 
 const vector<bool> runData = {

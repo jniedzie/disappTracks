@@ -10,14 +10,14 @@
 #include "Helpers.hpp"
 #include "HelixProcessor.hpp"
 #include "Track.hpp"
-#include "FitterConfig.hpp"
+#include "ConfigManager.hpp"
 
 /// Creates, populates, plots and saves hisograms monitoring fitting performance.
 class MonitorsManager {
 public:
   /// Default constructor
   /// It will automatically create all the monitors
-  MonitorsManager(const shared_ptr<FitterConfig> &_config);
+  MonitorsManager(const shared_ptr<ConfigManager> &_config);
   
   /// Default destructor
   ~MonitorsManager();
@@ -41,7 +41,7 @@ public:
   EFitStatus GetFittingStatus(const unique_ptr<Helix> &fittedHelix, const unique_ptr<Helix> &trueHelix);
   
 private:
-  shared_ptr<FitterConfig> config;
+  shared_ptr<ConfigManager> config;
   unique_ptr<HelixProcessor> helixProcessor;
   
   

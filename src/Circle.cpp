@@ -8,7 +8,7 @@
 
 Circle::Circle(const unique_ptr<Point> &_decayPoint,
                const unique_ptr<Point> &_momentum,
-               shared_ptr<FitterConfig> _config) :
+               shared_ptr<ConfigManager> _config) :
 decayPoint(make_unique<Point>(*_decayPoint)),
 momentum(make_unique<Point>(*_momentum)),
 config(_config)
@@ -56,7 +56,7 @@ void Circle::RemoveSimilarCircles(vector<unique_ptr<Circle>> &circles)
 {
   if(circles.size() == 0) return;
   
-  shared_ptr<FitterConfig> config = circles[0]->GetConfig();
+  shared_ptr<ConfigManager> config = circles[0]->GetConfig();
   
   sort(circles.begin(), circles.end(),
        [](const auto &c1, const auto &c2) -> bool {return c1->GetRadius() < c2->GetRadius();});

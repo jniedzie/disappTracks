@@ -6,7 +6,7 @@
 
 #include "MonitorsManager.hpp"
 
-MonitorsManager::MonitorsManager(const shared_ptr<FitterConfig> &_config) :
+MonitorsManager::MonitorsManager(const shared_ptr<ConfigManager> &_config) :
 config(_config),
 helixProcessor(make_unique<HelixProcessor>(_config))
 {

@@ -9,7 +9,7 @@
 
 #include "Helpers.hpp"
 #include "Point.hpp"
-#include "FitterConfig.hpp"
+#include "ConfigManager.hpp"
 
 class Circle
 {
@@ -20,7 +20,7 @@ public:
   /// \param _config FitterConfig object
   Circle(const unique_ptr<Point> &_decayPoint,
          const unique_ptr<Point> &_momentum,
-         const shared_ptr<FitterConfig> _config);
+         const shared_ptr<ConfigManager> _config);
   
   /// Prints basic information about the circle
   void Print();
@@ -56,7 +56,7 @@ public:
   inline double GetToffset(){return tShift;}
   
   /// Returns FitterConfig object
-  inline shared_ptr<FitterConfig> GetConfig(){return config;}
+  inline shared_ptr<ConfigManager> GetConfig(){return config;}
   
   static void RemoveSimilarCircles(vector<unique_ptr<Circle>> &circles);
 private:
@@ -67,7 +67,7 @@ private:
   vector<Point> points;           ///< Points belonging to this circle
   double radius;                  ///< Radius of the circle (calculated from the momentum)
   double tShift;                  ///< Angle by which circle is rotated due to the shift of its origin
-  shared_ptr<FitterConfig> config;
+  shared_ptr<ConfigManager> config;
 };
 
 #endif /* Circle_hpp */

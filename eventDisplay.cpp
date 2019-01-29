@@ -3,7 +3,7 @@
 #include "EventSet.hpp"
 #include "Fitter.hpp"
 #include "Display.hpp"
-#include "FitterConfig.hpp"
+#include "ConfigManager.hpp"
 #include "HelixProcessor.hpp"
 
 uint searchRun = 297100;
@@ -11,7 +11,7 @@ uint searchLumi = 136;
 unsigned long long searchEvent = 245000232;
 
 Display *display;
-shared_ptr<FitterConfig> config;
+shared_ptr<ConfigManager> config;
 
 bool showStipClusters = false;
 
@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
   // create event display
-  config = make_shared<FitterConfig>("configs/helixFitter.md");
+  config = make_shared<ConfigManager>("configs/helixFitter.md");
   display = new Display();
   auto helixProcessor = make_unique<HelixProcessor>(config);
   

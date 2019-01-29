@@ -6,7 +6,7 @@
 
 #include "Fitter.hpp"
 
-Fitter::Fitter(shared_ptr<FitterConfig> _config) :
+Fitter::Fitter(shared_ptr<ConfigManager> _config) :
 config(_config),
 pointsProcessor(make_unique<PointsProcessor>(_config)),
 helixProcessor(make_unique<HelixProcessor>(_config))

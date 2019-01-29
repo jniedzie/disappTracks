@@ -4,9 +4,9 @@
 //  Created by Jeremi Niedziela on 09/01/2019.
 //
 
-#include "FitterConfig.hpp"
+#include "ConfigManager.hpp"
 
-FitterConfig::FitterConfig(string _path)
+ConfigManager::ConfigManager(string _path)
 {
   config = make_unique<TEnv>();
   
@@ -45,7 +45,7 @@ FitterConfig::FitterConfig(string _path)
 }
 
 
-void FitterConfig::Print()
+void ConfigManager::Print()
 {
   cout<<"\n\n========================================================"<<endl;
   cout<<"Basic configuration:"<<endl;

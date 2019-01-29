@@ -12,13 +12,13 @@
 #include "EventSet.hpp"
 #include "Fitter.hpp"
 #include "Display.hpp"
-#include "FitterConfig.hpp"
+#include "ConfigManager.hpp"
 #include "MonitorsManager.hpp"
 
 int verbosityLevel = 2;
 
 string configPath = "configs/helixFitter.md";
-shared_ptr<FitterConfig> config;
+shared_ptr<ConfigManager> config;
 unique_ptr<PointsProcessor> pointsProcessor;
 unique_ptr<HelixProcessor> helixProcessor;
 unique_ptr<MonitorsManager> monitorsManager;
@@ -124,7 +124,7 @@ void ScanParameter()
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
-  config          = make_shared<FitterConfig>(configPath);
+  config          = make_shared<ConfigManager>(configPath);
   pointsProcessor = make_unique<PointsProcessor>(config);
   helixProcessor  = make_unique<HelixProcessor>(config);
   monitorsManager = make_unique<MonitorsManager>(config);

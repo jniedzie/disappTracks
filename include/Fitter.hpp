@@ -11,14 +11,14 @@
 #include "PointsProcessor.hpp"
 #include "Circle.hpp"
 #include "HelixProcessor.hpp"
-#include "FitterConfig.hpp"
+#include "ConfigManager.hpp"
 #include "Track.hpp"
 
 /// Provides a method to fit a helix to a collection of points.
 class Fitter {
 public:
   /// Default constructor
-  Fitter(shared_ptr<FitterConfig> _config);
+  Fitter(shared_ptr<ConfigManager> _config);
   
   /// Default destructor
   ~Fitter();
@@ -33,7 +33,7 @@ public:
                                         bool drawCircles=false);
   
 private:
-  shared_ptr<FitterConfig> config;
+  shared_ptr<ConfigManager> config;
   unique_ptr<PointsProcessor> pointsProcessor;
   unique_ptr<HelixProcessor> helixProcessor;
   

@@ -9,14 +9,14 @@
 
 #include "Helpers.hpp"
 #include "Helix.hpp"
-#include "FitterConfig.hpp"
+#include "ConfigManager.hpp"
 #include "PointsProcessor.hpp"
 #include "Track.hpp"
 
 class HelixProcessor {
 public:
   /// Default contrustor
-  HelixProcessor(const shared_ptr<FitterConfig> &_config);
+  HelixProcessor(const shared_ptr<ConfigManager> &_config);
   
   /// Default destructor
   ~HelixProcessor();
@@ -39,7 +39,7 @@ public:
   unique_ptr<Helix> GetRandomPionHelix(const shared_ptr<Track> &track);
   
 private:
-  shared_ptr<FitterConfig> config;
+  shared_ptr<ConfigManager> config;
   unique_ptr<PointsProcessor> pointsProcessor;
 };
 

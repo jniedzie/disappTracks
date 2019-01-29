@@ -6,7 +6,7 @@
 
 #include "PointsProcessor.hpp"
 
-PointsProcessor::PointsProcessor(const shared_ptr<FitterConfig> &_config) :
+PointsProcessor::PointsProcessor(const shared_ptr<ConfigManager> &_config) :
 config(_config)
 {
   

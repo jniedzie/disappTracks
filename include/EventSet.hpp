@@ -11,7 +11,7 @@
 #include "Event.hpp"
 #include "PointsProcessor.hpp"
 #include "Helix.hpp"
-#include "FitterConfig.hpp"
+#include "ConfigManager.hpp"
 
 /// This class contains three vectors, for signal, background and data events. In each of those vectors,
 /// there's a vector of events of given type (for instance, in the background vector there will be a

@@ -6,7 +6,7 @@
 
 #include "Helpers.hpp"
 #include "Fitter.hpp"
-#include "FitterConfig.hpp"
+#include "ConfigManager.hpp"
 #include "HelixProcessor.hpp"
 
 #include "EventSet.hpp"
@@ -42,7 +42,7 @@ void InjectPion(shared_ptr<vector<Point>> trackerPoints,
 
 int main(int argc, char* argv[])
 {
-  auto config          = make_shared<FitterConfig>(configPath);
+  auto config          = make_shared<ConfigManager>(configPath);
   auto pointsProcessor = make_unique<PointsProcessor>(config);
   auto fitter          = make_unique<Fitter>(config);
   helixProcessor       = make_unique<HelixProcessor>(config);

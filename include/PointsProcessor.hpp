@@ -9,13 +9,13 @@
 
 #include "Helpers.hpp"
 #include "Point.hpp"
-#include "FitterConfig.hpp"
+#include "ConfigManager.hpp"
 
 /// PointsProcessor provides methods performing operations on Point objects
 class PointsProcessor {
 public:
   /// Default constructor
-  PointsProcessor(const shared_ptr<FitterConfig> &_config);
+  PointsProcessor(const shared_ptr<ConfigManager> &_config);
   
   /// Default destructor
   ~PointsProcessor();
@@ -38,7 +38,7 @@ public:
   shared_ptr<vector<Point>> GetRandomPoints(int nPoints) const;
   
 private:
-  shared_ptr<FitterConfig> config;
+  shared_ptr<ConfigManager> config;
   
 };
 

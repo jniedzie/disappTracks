@@ -11,7 +11,7 @@
 #include "Point.hpp"
 #include "PointsProcessor.hpp"
 #include "Circle.hpp"
-#include "FitterConfig.hpp"
+#include "ConfigManager.hpp"
 
 class Helix
 {
@@ -24,7 +24,7 @@ public:
   Helix(const unique_ptr<Point> &_origin,
         const unique_ptr<Point> &_momentum,
         int _charge,
-        shared_ptr<FitterConfig> _config);
+        shared_ptr<ConfigManager> _config);
   
   /// Prints basic information about the helix
   void Print();
@@ -71,7 +71,7 @@ private:
   int    charge;                ///< Charge of the particle (determines helix direction)
   
   Point GetClosestPoint(Point p);
-  shared_ptr<FitterConfig> config;
+  shared_ptr<ConfigManager> config;
   
   unique_ptr<PointsProcessor> pointsProcessor;
   

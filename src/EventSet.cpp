@@ -967,7 +967,7 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
       for(int iHelix=0;iHelix<*_nHelices;iHelix++){
         auto origin   = make_unique<Point>(_helixX[iHelix],  _helixY[iHelix],  _helixZ[iHelix]);
         auto momentum = make_unique<Point>(_helixPx[iHelix], _helixPy[iHelix], _helixPz[iHelix]);
-        auto helix    = make_shared<Helix>(origin, momentum, _helixCharge[iHelix], make_shared<FitterConfig>());
+        auto helix    = make_shared<Helix>(origin, momentum, _helixCharge[iHelix], make_shared<ConfigManager>());
         newEvent->AddHelix(helix);
       }
     }

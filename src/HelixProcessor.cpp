@@ -7,7 +7,7 @@
 #include "HelixProcessor.hpp"
 
 
-HelixProcessor::HelixProcessor(const shared_ptr<FitterConfig> &_config) :
+HelixProcessor::HelixProcessor(const shared_ptr<ConfigManager> &_config) :
 config(_config),
 pointsProcessor(make_unique<PointsProcessor>(_config))
 {
@@ -22,7 +22,7 @@ HelixProcessor::~HelixProcessor()
 vector<int> HelixProcessor::AreIdentical(const unique_ptr<Helix> &h1, const unique_ptr<Helix> &h2)
 {
   vector<int> reasons;
-  shared_ptr<FitterConfig> config = h1->config;
+  shared_ptr<ConfigManager> config = h1->config;
   
   if(fabs(h1->GetOrigin()->GetX() - h2->GetOrigin()->GetX()) > config->toleranceX) reasons.push_back(1);
   if(fabs(h1->GetOrigin()->GetY() - h2->GetOrigin()->GetY()) > config->toleranceY) reasons.push_back(2);
