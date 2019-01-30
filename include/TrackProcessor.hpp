@@ -30,8 +30,19 @@ public:
   bool IsPassingCut(const shared_ptr<Track> track,
                     const unique_ptr<TrackCut> &cut);
   
-private:
+  /// Link class variables to branches of a specified tree
+  /// \param tree Tree from which track parameters will be read
+  void SetupBranches(TTree *tree);
   
+  /// Returns a vector of tracks with parameters read from tree previously set with SetupBranches(..)
+  vector<shared_ptr<Track>> GetTracksFromTree();
+  
+private:
+  static const int maxNtracks = 1000;   ///< Maximum supported number of tracks per event
+  int nTracks;                          ///< Number of tracks in the current tree entry
+  
+  map<string, float[maxNtracks] >  arrayValuesFloat;  ///< Float per-track variables in the current entry
+  map<string, int[maxNtracks] >    arrayValuesInt;    ///< Int per-track variables in the current entry
 };
 
 #endif /* TrackProcessor_hpp */

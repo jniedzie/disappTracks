@@ -12,6 +12,7 @@
 #include "PointsProcessor.hpp"
 #include "Helix.hpp"
 #include "ConfigManager.hpp"
+#include "TrackProcessor.hpp"
 
 /// This class contains three vectors, for signal, background and data events. In each of those vectors,
 /// there's a vector of events of given type (for instance, in the background vector there will be a
@@ -107,6 +108,8 @@ private:
   void AddEventsFromFile(string fileName, EDataType dataType=kBackground, int maxNevents=-1, int setIter=-1);
  
   void SaveToTree(string fileName, EDataType type, int setIter);
+  
+  unique_ptr<TrackProcessor> trackProcessor;
 };
 
 

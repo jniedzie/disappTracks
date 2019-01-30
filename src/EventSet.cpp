@@ -7,10 +7,8 @@
 #include "EventSet.hpp"
 #include "HistSet.hpp"
 
-#include <TTreeReaderArray.h>
-#include <TLorentzVector.h>
-
-EventSet::EventSet()
+EventSet::EventSet() :
+trackProcessor(make_unique<TrackProcessor>())
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
     eventsSignal.push_back(vector<shared_ptr<Event>>());
@@ -807,6 +805,8 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
   TTree *tree = (TTree*)inFile->Get("tree");
   TTreeReader reader("tree", inFile);
   
+  trackProcessor->SetupBranches(tree);
+  
   TTreeReaderValue<uint>   _run(reader, "run");
   TTreeReaderValue<uint>   _lumi(reader, "lumi");
   TTreeReaderValue<unsigned long long>   _evt(reader, "evt");
@@ -847,33 +847,6 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
   TTreeReaderValue<float> _metNoMuPhi(reader, "metNoMu_phi");
   TTreeReaderValue<float> _metNoMuEta(reader, "metNoMu_eta");
   
-  TTreeReaderArray<float> _trackEta(reader, "IsoTrack_eta");
-  TTreeReaderArray<float> _trackPhi(reader, "IsoTrack_phi");
-  TTreeReaderArray<float> _trackCaloEmEnergy(reader, "IsoTrack_caloEmEnergy");
-  TTreeReaderArray<float> _trackCaloHadEnergy(reader, "IsoTrack_caloHadEnergy");
-  TTreeReaderArray<float> _trackDxyErr(reader, "IsoTrack_edxy");
-  TTreeReaderArray<float> _trackDxy(reader, "IsoTrack_dxy");
-  TTreeReaderArray<float> _trackDzErr(reader, "IsoTrack_edz");
-  TTreeReaderArray<float> _trackDz(reader, "IsoTrack_dz");
-  TTreeReaderArray<int>   _trackCharge(reader, "IsoTrack_charge");
-  TTreeReaderArray<float> _trackMass(reader, "IsoTrack_mass");
-  TTreeReaderArray<float> _trackPt(reader, "IsoTrack_pt");
-  TTreeReaderArray<int>   _trackPid(reader, "IsoTrack_pdgId");
-  TTreeReaderArray<float> _trackRelIso03(reader, "IsoTrack_relIso03");
-  TTreeReaderArray<int>   _trackMcMatch(reader,(tree->GetBranchStatus("IsoTrack_mcMatch")) ? "IsoTrack_mcMatch" : "IsoTrack_pdgId");
-  
-  TTreeReaderArray<int>   _trackTrackerLayers(reader, "IsoTrack_trackerLayers");
-  TTreeReaderArray<int>   _trackPixelLayers(reader, "IsoTrack_pixelLayers");
-  TTreeReaderArray<int>   _trackTrackerHits(reader, "IsoTrack_trackerHits");
-  TTreeReaderArray<int>   _trackPixelHits(reader, "IsoTrack_pixelHits");
-  TTreeReaderArray<int>   _trackMissingInnerPixelHits(reader, "IsoTrack_missingInnerPixelHits");
-  TTreeReaderArray<int>   _trackMissingOuterPixelHits(reader, "IsoTrack_missingOuterPixelHits");
-  TTreeReaderArray<int>   _trackMissingInnerStripHits(reader, "IsoTrack_missingInnerStripHits");
-  TTreeReaderArray<int>   _trackMissingOuterStripHits(reader, "IsoTrack_missingOuterStripHits");
-  TTreeReaderArray<int>   _trackMissingInnerTrackerHits(reader, "IsoTrack_missingInnerTrackerHits");
-  TTreeReaderArray<int>   _trackMissingOuterTrackerHits(reader, "IsoTrack_missingOuterTrackerHits");
-  TTreeReaderArray<int>   _trackMissingMiddleTrackerHits(reader, "IsoTrack_missingMiddleTrackerHits");
-  
   TTreeReaderArray<float> _leptonPt(reader, "LepGood_pt");
   TTreeReaderArray<float> _leptonPhi(reader, "LepGood_phi");
   TTreeReaderArray<float> _leptonEta(reader, "LepGood_eta");
@@ -894,12 +867,7 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
   TTreeReaderArray<float> _jetFwdMass(reader, "JetFwd_mass");
   TTreeReaderArray<float> _jetFwdChHEF(reader, "JetFwd_chHEF");
   TTreeReaderArray<float> _jetFwdNeHEF(reader, "JetFwd_neHEF");
-  
-  TTreeReaderArray<float> *_dedx[nLayers];
-  TTreeReaderArray<int> *_subDetId[nLayers];
-  TTreeReaderArray<int> *_sizeX[nLayers];
-  TTreeReaderArray<int> *_sizeY[nLayers];
-  
+
   TTreeReaderValue<int>   _nHelices(reader, tree->GetBranchStatus("nFittedHelices") ? "nFittedHelices" : "nIsoTrack");
   TTreeReaderArray<int>   _helixCharge(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_charge" : "nIsoTrack");
   TTreeReaderArray<float> _helixX(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_x" : "Jet_pt");
@@ -908,58 +876,25 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
   TTreeReaderArray<float> _helixPx(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_px" : "Jet_pt");
   TTreeReaderArray<float> _helixPy(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_py" : "Jet_pt");
   TTreeReaderArray<float> _helixPz(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_pz" : "Jet_pt");
+
+  int iter=0;
   
-  for(int iLayer=0;iLayer<nLayers;iLayer++){
-    _dedx[iLayer] =      new TTreeReaderArray<float>(reader,Form("IsoTrack_dedxByLayer%i",iLayer));
-    _subDetId[iLayer] =  new TTreeReaderArray<int>(reader,Form("IsoTrack_subDetIdByLayer%i",iLayer));
-    _sizeX[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeXbyLayer%i",iLayer));
-    _sizeY[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeYbyLayer%i",iLayer));
-  }
-  int iter=-1;
   while(reader.Next()){
-    iter++;
     if(maxNevents>0 && iter>maxNevents) break;
     
     shared_ptr<Event> newEvent = shared_ptr<Event>(new Event());
     
+    tree->GetEntry(iter++);
+    vector<shared_ptr<Track>> tracks = trackProcessor->GetTracksFromTree();
+    
     for(int iTrack=0;iTrack<*_nTracks;iTrack++){
-      auto track = shared_ptr<Track>(new Track());
-      track->SetEta(_trackEta[iTrack]);
-      track->SetPhi(_trackPhi[iTrack]);
-      track->SetCaloEmEnergy(_trackCaloEmEnergy[iTrack]);
-      track->SetCaloHadEnergy(_trackCaloHadEnergy[iTrack]);
-      track->SetDxy(_trackDxy[iTrack],_trackDxyErr[iTrack]);
-      track->SetDz(_trackDz[iTrack],_trackDzErr[iTrack]);
-      track->SetCharge(_trackCharge[iTrack]);
-      track->SetMass(_trackMass[iTrack]);
-      track->SetPt(_trackPt[iTrack]);
-      track->SetPid(_trackPid[iTrack]);
-      track->SetRelativeIsolation(_trackRelIso03[iTrack]);
-      track->SetMcMatch(_trackMcMatch[iTrack]);
-      
-      track->SetNtrackerLayers(_trackTrackerLayers[iTrack]);
-      track->SetNpixelLayers(_trackPixelLayers[iTrack]);
-      track->SetNtrackerHits(_trackTrackerHits[iTrack]);
-      track->SetNpixelHits(_trackPixelHits[iTrack]);
-      track->SetNmissingInnerPixelHits(_trackMissingInnerPixelHits[iTrack]);
-      track->SetNmissingOuterPixelHits(_trackMissingOuterPixelHits[iTrack]);
-      track->SetNmissingInnerStripHits(_trackMissingInnerStripHits[iTrack]);
-      track->SetNmissingOuterStripHits(_trackMissingOuterStripHits[iTrack]);
-      track->SetNmissingInnerTrackerHits(_trackMissingInnerTrackerHits[iTrack]);
-      track->SetNmissingOuterTrackerHits(_trackMissingOuterTrackerHits[iTrack]);
-      track->SetNmissingMiddleTrackerHits(_trackMissingMiddleTrackerHits[iTrack]);
+      auto track = tracks[iTrack];
       
       track->SetEventMetPt(*_metPt);
       track->SetEventMetEta(*_metEta);
       track->SetEventMetPhi(*_metPhi);
       track->SetEventMetMass(*_metMass);
       
-      for(int iLayer=0;iLayer<nLayers;iLayer++){
-        track->SetDeDxInLayer(iLayer, (*_dedx[iLayer])[iTrack]);
-        track->SetSubDetIdInLayer(iLayer, (*_subDetId[iLayer])[iTrack]);
-        track->SetSizeXinLayer(iLayer, (*_sizeX[iLayer])[iTrack]);
-        track->SetSizeYinLayer(iLayer, (*_sizeY[iLayer])[iTrack]);
-      }
       newEvent->AddTrack(track);
     }
     

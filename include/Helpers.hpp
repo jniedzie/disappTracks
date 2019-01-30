@@ -42,6 +42,8 @@
 #include <TH3F.h>
 #include <TLine.h>
 #include <TEnv.h>
+#include <TTreeReaderArray.h>
+#include <TLorentzVector.h>
 
 #include <vector>
 #include <iostream>
