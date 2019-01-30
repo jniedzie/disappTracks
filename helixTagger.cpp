@@ -42,10 +42,10 @@ void InjectPion(shared_ptr<vector<Point>> trackerPoints,
 
 int main(int argc, char* argv[])
 {
-  auto config          = make_shared<ConfigManager>(configPath);
-  auto pointsProcessor = make_unique<PointsProcessor>(config);
-  auto fitter          = make_unique<Fitter>(config);
-  helixProcessor       = make_unique<HelixProcessor>(config);
+  config = make_unique<ConfigManager>(configPath);
+  auto pointsProcessor = make_unique<PointsProcessor>();
+  auto fitter          = make_unique<Fitter>();
+  helixProcessor       = make_unique<HelixProcessor>();
   
   auto events = make_shared<EventSet>();
   events->LoadEventsFromFiles("after_L2/3layers/");

@@ -7,8 +7,6 @@
 #ifndef Helpers_h
 #define Helpers_h
 
-#include "Config.hpp"
-
 #include <TFile.h>
 #include <TTree.h>
 #include <TTreeReader.h>
@@ -57,7 +55,6 @@
 using namespace std;
 
 #define inf 99999999
-
 
 // Plotting style
 const double fillOpacity = 1.0;

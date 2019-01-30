@@ -4,10 +4,13 @@
 #include "JetCut.hpp"
 #include "HistSet.hpp"
 #include "Helpers.hpp"
+#include "ConfigManager.hpp"
 
 #include "TGraph.h"
 
 #include <TApplication.h>
+
+string configPath = "configs/analysis.md";
 
 void ProcessCuts(shared_ptr<EventSet> events,
                  const unique_ptr<EventCut> &eventCut,const  unique_ptr<TrackCut> &trackCut,
@@ -16,43 +19,43 @@ void ProcessCuts(shared_ptr<EventSet> events,
 {
   events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
-  if(printYields){
-    cout<<"\n\nYields after level "<<performCutsLevel<<" cuts"<<endl;
+  if(config->printYields){
+    cout<<"\n\nYields after level "<<config->performCutsLevel<<" cuts"<<endl;
     events->PrintYields();
   }
-  if(saveEvents){
-    string prefix = "after_L"+to_string(performCutsLevel);
+  if(config->saveEvents){
+    string prefix = "after_L"+to_string(config->performCutsLevel);
     prefix = prefix + "/" + suffix + "/";
-    if(performCutsLevel==10) prefix = "adish_cuts";
+    if(config->performCutsLevel==10) prefix = "adish_cuts";
     events->SaveEventsToFiles(prefix);
   }
-  if(drawStandardPlots){
+  if(config->drawStandardPlots){
     events->DrawStandardPlots();
   }
-  if(drawPerLayerPlots){
+  if(config->drawPerLayerPlots){
     events->DrawPerLayerPlots();
   }
-  if(printBackgroundDetails){
+  if(config->printBackgroundDetails){
     for(int iBck=0;iBck<kNbackgrounds;iBck++){
-      if(!runBackground[iBck]) continue;
+      if(!config->runBackground[iBck]) continue;
       cout<<"Background events in "<<backgroundTitle[iBck]<<":"<<endl;
       for(int iEvent=0;iEvent<events->size(EventSet::kBackground,iBck);iEvent++){
         events->At(EventSet::kBackground,iBck,iEvent)->Print();
       }
     }
   }
-  if(printDataDetails){
+  if(config->printDataDetails){
     for(int iData=0;iData<kNdata;iData++){
-      if(!runData[iData]) continue;
+      if(!config->runData[iData]) continue;
       cout<<"Data events in "<<dataTitle[iData]<<":"<<endl;
       for(int iEvent=0;iEvent<events->size(EventSet::kData,iData);iEvent++){
         events->At(EventSet::kData,iData,iEvent)->Print();
       }
     }
   }
-  if(printSignalDetails){
+  if(config->printSignalDetails){
     for(int iSig=0;iSig<kNsignals;iSig++){
-      if(!runSignal[iSig]) continue;
+      if(!config->runSignal[iSig]) continue;
       cout<<"Signal events in "<<signalTitle[iSig]<<":"<<endl;
       for(int iEvent=0;iEvent<events->size(EventSet::kSignal,iSig);iEvent++){
         events->At(EventSet::kSignal,iSig,iEvent)->Print();
@@ -64,7 +67,7 @@ void ProcessCuts(shared_ptr<EventSet> events,
   dataSurvivingFile.open ("dataAfterL1.txt");
   
   for(int iData=0;iData<kNdata;iData++){
-    if(!runData[iData]) continue;
+    if(!config->runData[iData]) continue;
     cout<<"Data events surviving cuts in "<<dataTitle[iData]<<":"<<events->size(EventSet::kData,iData)<<endl;
     for(int iEvent=0;iEvent<events->size(EventSet::kData,iData);iEvent++){
       int runNumber = events->At(EventSet::kData,iData,iEvent)->GetRunNumber();
@@ -82,11 +85,12 @@ int main(int argc, char* argv[])
   TApplication *theApp = new TApplication("App", &argc, argv);
   
   // All events with initial cuts only
+  config = make_unique<ConfigManager>(configPath);
   shared_ptr<EventSet> events = shared_ptr<EventSet>(new EventSet);
   
-  string initPrefix = "after_L"+to_string(performCutsLevel-1)+"/";
-  if(performCutsLevel==0 || performCutsLevel==10) initPrefix = "";
-  if(performCutsLevel==20) initPrefix = "afterHelixTagging/";
+  string initPrefix = "after_L"+to_string(config->performCutsLevel-1)+"/";
+  if(config->performCutsLevel==0 || config->performCutsLevel==10) initPrefix = "";
+  if(config->performCutsLevel==20) initPrefix = "afterHelixTagging/";
   
   events->LoadEventsFromFiles(initPrefix);
   cout<<"\n\nInitial yields"<<endl;
@@ -96,7 +100,7 @@ int main(int argc, char* argv[])
   // Level 0
   //---------------------------------------------------------------------------
 
-  if(performCutsLevel == 0){
+  if(config->performCutsLevel == 0){
     auto eventCut_L0 = unique_ptr<EventCut>(new EventCut());
     auto trackCut_L0 = unique_ptr<TrackCut>(new TrackCut());
     auto jetCut_L0   = unique_ptr<JetCut>(new JetCut());
@@ -133,7 +137,7 @@ int main(int argc, char* argv[])
   // Level 1
   //---------------------------------------------------------------------------
   
-  if(performCutsLevel == 1){
+  if(config->performCutsLevel == 1){
     auto eventCut_L1 = unique_ptr<EventCut>(new EventCut());
     auto trackCut_L1 = unique_ptr<TrackCut>(new TrackCut());
     auto jetCut_L1   = unique_ptr<JetCut>(new JetCut());
@@ -161,7 +165,7 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   // Level 2
   //---------------------------------------------------------------------------
-  if(performCutsLevel == 2){
+  if(config->performCutsLevel == 2){
     auto eventCut_L2 = unique_ptr<EventCut>(new EventCut());
     auto trackCut_L2 = unique_ptr<TrackCut>(new TrackCut());
     auto jetCut_L2   = unique_ptr<JetCut>(new JetCut());
@@ -201,12 +205,12 @@ int main(int argc, char* argv[])
     */
     
     // pick category
-    if(category == k2tracks){
+    if(config->category == "2-tracks"){
       eventCut_L2->SetNtracks(range<int>(2,2));
       trackCut_L2->SetNmissingOuterTracker(range<int>(1, inf));
       trackCut_L2->SetCaloEmEnergy(range<double>(0.0,8.0));
     }
-    else if(category == k3layers){
+    else if(config->category == "3-layers"){
       trackCut_L2->SetNpixelLayers(range<int>(3, 3));
       eventCut_L2->SetNtracks(range<int>(1,1));
       
@@ -217,7 +221,7 @@ int main(int argc, char* argv[])
       eventCut_L2->SetJetMetDeltaPhi(range<double>(0.7,inf));
       trackCut_L2->SetTrackMetDeltaPhi(range<double>(-2.3,2.3));
     }
-    else if(category == k4layers){
+    else if(config->category == "4-layers"){
       trackCut_L2->SetNpixelLayers(range<int>(4, 4));
       eventCut_L2->SetNtracks(range<int>(1,1));
       
@@ -236,7 +240,7 @@ int main(int argc, char* argv[])
     eventCut_L2->SetLeadingJetChHEF(range<double>(0.1,inf));
     
     
-    if(scanMETbinning){
+    if(config->scanMETbinning){
       gStyle->SetOptStat(0);
       TCanvas *c1 = new TCanvas("significance","significance",800,500);
       c1->cd();
@@ -267,7 +271,7 @@ int main(int argc, char* argv[])
         vector<double> significances2 = events2->GetSignificance();
         
         for(int iSig=0;iSig<kNsignals;iSig++){
-          if(!runSignal[iSig]) continue;
+          if(!config->runSignal[iSig]) continue;
           
           double combinedSignificance = sqrt(pow(significances1[iSig],2) + pow(significances2[iSig],2));
           cout<<signalTitle[iSig]<<"\t"<<((isnormal(combinedSignificance) && combinedSignificance < 1000) ? combinedSignificance : 0.0)<<endl;
@@ -277,7 +281,7 @@ int main(int argc, char* argv[])
       
       bool first = true;
       for(int iSig=0;iSig<kNsignals;iSig++){
-        if(!runSignal[iSig]) continue;
+        if(!config->runSignal[iSig]) continue;
         hists[iSig]->SetMarkerSize(2.0);
         
         hists[iSig]->SetLineColor(SignalColor((ESignal)iSig));
@@ -310,15 +314,15 @@ int main(int argc, char* argv[])
       }
       c1->Update();
     }
-    else if(doMETbinning){
-      if(category != k2tracks){
+    else if(config->doMETbinning){
+      if(config->category != "2-tracks"){
         for(int iSig=0;iSig<kNsignals;iSig++){
-          if(!runSignal[iSig]) continue;
+          if(!config->runSignal[iSig]) continue;
           auto events1 = shared_ptr<EventSet>(new EventSet(*events));
           auto events2 = shared_ptr<EventSet>(new EventSet(*events));
           double split = -1;
           
-          if(category == k3layers){
+          if(config->category == "3-layers"){
             if(iSig == kWino_M_300_cTau_3  || iSig == kWino_M_300_cTau_10 || iSig == kWino_M_300_cTau_30 ||
                iSig == kWino_M_500_cTau_10 || iSig == kWino_M_500_cTau_20){
               split = 380;
@@ -332,7 +336,7 @@ int main(int argc, char* argv[])
               split = 580;
             }
           }
-          else if(category == k4layers){
+          else if(config->category == "4-layers"){
             if(iSig == kWino_M_300_cTau_3  || iSig == kWino_M_300_cTau_10 || iSig == kWino_M_300_cTau_30 ||
                iSig == kWino_M_500_cTau_10 || iSig == kWino_M_500_cTau_20 ||
                iSig == kWino_M_650_cTau_10 || iSig == kWino_M_650_cTau_20 ||
@@ -359,14 +363,14 @@ int main(int argc, char* argv[])
         }
         
         for(int iData=0;iData<kNdata;iData++){
-          if(!runData[iData]) continue;
+          if(!config->runData[iData]) continue;
           
           vector<double> splits;
           
-          if(category == k3layers){
+          if(config->category == "3-layers"){
             splits = { 380, 440, 580};
           }
-          else if(category == k4layers){
+          else if(config->category == "4-layers"){
             splits = { 290, 440 };
           }
           
@@ -397,9 +401,9 @@ int main(int argc, char* argv[])
     }
     else{
       string suffix = "";
-      if(category == k2tracks) suffix = "2tracks";
-      if(category == k3layers) suffix = "3layers";
-      if(category == k4layers) suffix = "4layers";
+      if(config->category == "2-tracks") suffix = "2tracks";
+      if(config->category == "3-layers") suffix = "3layers";
+      if(config->category == "4-layers") suffix = "4layers";
       ProcessCuts(events, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2, suffix);
     }
   }
@@ -407,7 +411,7 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   // Adish cuts
   //---------------------------------------------------------------------------
-  if(performCutsLevel == 10){
+  if(config->performCutsLevel == 10){
     auto eventCut_adish = unique_ptr<EventCut>(new EventCut());
     auto trackCut_adish = unique_ptr<TrackCut>(new TrackCut());
     auto jetCut_adish   = unique_ptr<JetCut>(new JetCut());
@@ -437,11 +441,11 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   // Draw plots after helix tagging
   //---------------------------------------------------------------------------
-  if(performCutsLevel == 20){
+  if(config->performCutsLevel == 20){
     events->DrawStandardPlots();
   }
   
-  if(drawStandardPlots || drawPerLayerPlots || scanMETbinning)  theApp->Run();
+  if(config->drawStandardPlots || config->drawPerLayerPlots || config->scanMETbinning)  theApp->Run();
   return 0;
 }
 

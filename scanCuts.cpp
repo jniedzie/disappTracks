@@ -3,6 +3,9 @@
 #include "JetCut.hpp"
 #include "HistSet.hpp"
 #include "Helpers.hpp"
+#include "ConfigManager.hpp"
+
+string configPath = "configs/analysis.md";
 
 struct ForRange {
   ForRange(){}
@@ -13,6 +16,7 @@ struct ForRange {
 int main()
 {
   // All events with initial cuts only
+  config = make_unique<ConfigManager>(configPath);
   shared_ptr<EventSet> events = shared_ptr<EventSet>(new EventSet());
   events->LoadEventsFromFiles("after_L1/");
   
@@ -75,12 +79,12 @@ int main()
             
             double nBackgroundTotal=0;
             for(int iBck=0;iBck<kNbackgrounds;iBck++){
-              if(!runBackground[iBck]) continue;
+              if(!config->runBackground[iBck]) continue;
               nBackgroundTotal += eventsAfterCuts->weightedSize(EventSet::kBackground, iBck);
             }
 
             for(int iSig=0;iSig<kNsignals;iSig++){
-              if(!runSignal[iSig]) continue;
+              if(!config->runSignal[iSig]) continue;
               double sb = eventsAfterCuts->weightedSize(EventSet::kSignal,iSig)/sqrt(nBackgroundTotal+eventsAfterCuts->weightedSize(EventSet::kSignal,iSig));
               
               if(sb > bestSb[iSig]){
@@ -99,7 +103,7 @@ int main()
   }
   
   for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig]) continue;
+    if(!config->runSignal[iSig]) continue;
     cout<<"Best result for "<<signalTitle[iSig]<<":"<<bestSb[iSig]<<endl;
     for(auto const& [title, val] : bestResults[iSig]){
       cout<<title<<":"<<val<<endl;

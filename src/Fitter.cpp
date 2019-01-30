@@ -6,10 +6,9 @@
 
 #include "Fitter.hpp"
 
-Fitter::Fitter(shared_ptr<ConfigManager> _config) :
-config(_config),
-pointsProcessor(make_unique<PointsProcessor>(_config)),
-helixProcessor(make_unique<HelixProcessor>(_config))
+Fitter::Fitter() :
+pointsProcessor(make_unique<PointsProcessor>()),
+helixProcessor(make_unique<HelixProcessor>())
 {
   
 }
@@ -90,7 +89,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
           
           unique_ptr<Point> decayPoint  = make_unique<Point>(x0,y0,z0);
           unique_ptr<Point> momentum    = make_unique<Point>(px,py,0);
-          Circle circle(decayPoint, momentum, config);
+          Circle circle(decayPoint, momentum);
           
           f  = pow(circle.GetDistanceToPoint(points2D[i]),2);
           f += pow(circle.GetDistanceToPoint(points2D[j]),2);
@@ -115,7 +114,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
           
           unique_ptr<Point> decayPoint = make_unique<Point>(x0,y0,z0);
           unique_ptr<Point> momentum = make_unique<Point>(px,py,0);
-          unique_ptr<Circle> circle = make_unique<Circle>(decayPoint, momentum, config);
+          unique_ptr<Circle> circle = make_unique<Circle>(decayPoint, momentum);
           
           int nPointsOnCircle=0;
           for(Point p : points2D){
@@ -206,7 +205,7 @@ unique_ptr<Helix> Fitter::GetHelixFromCircle(const unique_ptr<Circle> &circle, d
                                                   charge * circle->GetMomentum()->GetY(),
                                                   pz);
   
-  unique_ptr<Helix> helix = make_unique<Helix>(circle->GetDecayPoint(), momentum, charge, config);
+  unique_ptr<Helix> helix = make_unique<Helix>(circle->GetDecayPoint(), momentum, charge);
   helix->SetPoints(points);
   helixProcessor->CalculateNregularPoints(helix);
   

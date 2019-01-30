@@ -17,7 +17,7 @@ class MonitorsManager {
 public:
   /// Default constructor
   /// It will automatically create all the monitors
-  MonitorsManager(const shared_ptr<ConfigManager> &_config);
+  MonitorsManager();
   
   /// Default destructor
   ~MonitorsManager();
@@ -41,9 +41,7 @@ public:
   EFitStatus GetFittingStatus(const unique_ptr<Helix> &fittedHelix, const unique_ptr<Helix> &trueHelix);
   
 private:
-  shared_ptr<ConfigManager> config;
   unique_ptr<HelixProcessor> helixProcessor;
-  
   
   map<string, TH1D*> monitors1D;                     ///< 1D Monitors
   map<string, TH2D*> monitors2D;                     ///< 2D Monitors

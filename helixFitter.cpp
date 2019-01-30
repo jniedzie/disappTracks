@@ -18,7 +18,6 @@
 int verbosityLevel = 2;
 
 string configPath = "configs/helixFitter.md";
-shared_ptr<ConfigManager> config;
 unique_ptr<PointsProcessor> pointsProcessor;
 unique_ptr<HelixProcessor> helixProcessor;
 unique_ptr<MonitorsManager> monitorsManager;
@@ -33,8 +32,8 @@ void InjectPionPointsToCollectionOfPoints(const unique_ptr<Helix> &pionHelix,
 void PerformTests(int &nSuccess, int &nFullSuccess)
 {
   int nTests = config->nTests;
-  unique_ptr<Fitter> fitter = make_unique<Fitter>(config);
-    
+  unique_ptr<Fitter> fitter = make_unique<Fitter>();
+  
   for(int i=0;i<nTests;i++){
     if(verbosityLevel >= 2){
       cout<<"\n========================================================"<<endl;
@@ -124,10 +123,10 @@ void ScanParameter()
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
-  config          = make_shared<ConfigManager>(configPath);
-  pointsProcessor = make_unique<PointsProcessor>(config);
-  helixProcessor  = make_unique<HelixProcessor>(config);
-  monitorsManager = make_unique<MonitorsManager>(config);
+  config          = make_unique<ConfigManager>(configPath);
+  pointsProcessor = make_unique<PointsProcessor>();
+  helixProcessor  = make_unique<HelixProcessor>();
+  monitorsManager = make_unique<MonitorsManager>();
   
   auto startTime = now();
   

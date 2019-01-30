@@ -6,9 +6,8 @@
 
 #include "MonitorsManager.hpp"
 
-MonitorsManager::MonitorsManager(const shared_ptr<ConfigManager> &_config) :
-config(_config),
-helixProcessor(make_unique<HelixProcessor>(_config))
+MonitorsManager::MonitorsManager() :
+helixProcessor(make_unique<HelixProcessor>())
 {
   const vector<tuple<const char*,int,double,double>> monitors1Dparams = {
     {"nPointsOnHelix",100 ,0,100},

@@ -20,11 +20,9 @@ public:
   /// \param _origin Helix origin point (e.g. chargino decay point)
   /// \param _momentum  Momentum of the particle that creates a helix
   /// \param _charge Charge of the particle (determines helix direction)
-  /// \param _config Fitter config
   Helix(const unique_ptr<Point> &_origin,
         const unique_ptr<Point> &_momentum,
-        int _charge,
-        shared_ptr<ConfigManager> _config);
+        int _charge);
   
   /// Prints basic information about the helix
   void Print();
@@ -71,7 +69,6 @@ private:
   int    charge;                ///< Charge of the particle (determines helix direction)
   
   Point GetClosestPoint(Point p);
-  shared_ptr<ConfigManager> config;
   
   unique_ptr<PointsProcessor> pointsProcessor;
   

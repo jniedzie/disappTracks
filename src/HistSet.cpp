@@ -49,15 +49,15 @@ void HistSet::FillFromEvents(shared_ptr<EventSet> events)
   }
   else{
     for(int iSig=0;iSig<kNsignals;iSig++){
-      if(!runSignal[iSig]) continue;
+      if(!config->runSignal[iSig]) continue;
       Fill(signal[iSig], events,EventSet::kSignal, iSig);
     }
     for(int iBck=0;iBck<kNbackgrounds;iBck++){
-      if(!runBackground[iBck]) continue;
+      if(!config->runBackground[iBck]) continue;
       Fill(background[iBck],events,EventSet::kBackground, iBck);
     }
     for(int iData=0;iData<kNdata;iData++){
-      if(!runData[iData]) continue;
+      if(!config->runData[iData]) continue;
       Fill(data[iData],events,EventSet::kData, iData);
     }
   }
@@ -225,21 +225,21 @@ void HistSet::Draw(TCanvas *c1, int pad)
   TLegend *leg = GetLegend();
   
   for(int iSig=0;iSig<(int)signal.size();iSig++){
-    if(!runSignal[iSig]) continue;
+    if(!config->runSignal[iSig]) continue;
     leg->AddEntry(&*signal[iSig],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
   }
   for(int iBck=0;iBck<(int)background.size();iBck++){
-    if(!runBackground[iBck]) continue;
+    if(!config->runBackground[iBck]) continue;
     leg->AddEntry(&*background[iBck],Form("Background %s",backgroundTitle[iBck].c_str()),"lp");
   }
   for(int iData=0;iData<(int)data.size();iData++){
-    if(!runData[iData]) continue;
+    if(!config->runData[iData]) continue;
     leg->AddEntry(&*data[iData],Form("Data  %s",dataTitle[iData].c_str()),"lp");
   }
   
   c1->cd(pad);
   for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig]) continue;
+    if(!config->runSignal[iSig]) continue;
     signal[iSig]->SetLineColor(SignalColor((ESignal)iSig));
     signal[iSig]->SetMarkerStyle(signalMarkers[iSig]);
     signal[iSig]->SetMarkerColor(SignalColor((ESignal)iSig));
@@ -249,19 +249,19 @@ void HistSet::Draw(TCanvas *c1, int pad)
   }
   double bckIntegral = 0;
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    if(!runBackground[iBck]) continue;
+    if(!config->runBackground[iBck]) continue;
     bckIntegral += background[iBck]->Integral();
   }
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    if(!runBackground[iBck]) continue;
+    if(!config->runBackground[iBck]) continue;
     background[iBck]->SetLineColor(BackColor((EBackground)iBck));
     background[iBck]->SetFillStyle(fillStyleBack);
     background[iBck]->SetFillColorAlpha(BackColor((EBackground)iBck), fillOpacity);
     if(ShouldNormalize()) background[iBck]->Scale(1/bckIntegral);
   }
   for(int iData=0;iData<kNdata;iData++){
-    if(!runData[iData]) continue;
+    if(!config->runData[iData]) continue;
     data[iData]->SetLineColor(DataColor((EData)iData));
     data[iData]->SetMarkerColor(DataColor((EData)iData));
     data[iData]->SetMarkerStyle(20);
@@ -277,19 +277,19 @@ void HistSet::Draw(TCanvas *c1, int pad)
   
   int nActiveBackgrounds = 0;
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    if(!runBackground[iBck]) continue;
+    if(!config->runBackground[iBck]) continue;
     backgroundStack->Add(&*background[iBck]);
     nActiveBackgrounds++;
   }
   
   int nActiveSignals = 0;
   for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig]) continue;
+    if(!config->runSignal[iSig]) continue;
     signalStack->Add(&*signal[iSig]);
     nActiveSignals++;
   }
   for(int iData=0;iData<kNdata;iData++){
-    if(!runData[iData]) continue;
+    if(!config->runData[iData]) continue;
     dataStack->Add(&*data[iData]);
   }
   if(nActiveBackgrounds > 0){
@@ -305,7 +305,7 @@ void HistSet::Draw(TCanvas *c1, int pad)
     dataStack->Draw("nostack,p");
   }
   
-  if(showLegends) leg->Draw();
+  if(config->showLegends) leg->Draw();
   c1->Update();
 }
 
@@ -313,15 +313,15 @@ void HistSet::DrawPerLayer()
 {
   TLegend *leg = GetLegend();
   for(int iSig=0;iSig<(int)signalPerLayer.size();iSig++){
-    if(!runSignal[iSig]) continue;
+    if(!config->runSignal[iSig]) continue;
     leg->AddEntry(&*signalPerLayer[iSig][1],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
   }
   for(int iBck=0;iBck<(int)backgroundPerLayer.size();iBck++){
-    if(!runBackground[iBck]) continue;
+    if(!config->runBackground[iBck]) continue;
     leg->AddEntry(&*backgroundPerLayer[iBck][1],Form("Background %s",backgroundTitle[iBck].c_str()),"lp");
   }
   for(int iData=0;iData<(int)dataPerLayer.size();iData++){
-    if(!runData[iData]) continue;
+    if(!config->runData[iData]) continue;
     leg->AddEntry(&*dataPerLayer[iData][1],Form("Data %s",dataTitle[iData].c_str()),"lp");
   }
   TCanvas *c1 = new TCanvas(title.c_str(),title.c_str(),2880,1800);
@@ -379,7 +379,7 @@ void HistSet::DrawPerLayer()
     signalStack->Draw("nostack,same,p");
     dataStack->Draw("nostack,same,p");
     
-    if(showLegends) leg->Draw();
+    if(config->showLegends) leg->Draw();
   }
   
   c1->Update();

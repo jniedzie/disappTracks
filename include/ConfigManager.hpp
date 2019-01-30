@@ -9,9 +9,53 @@
 
 #include "Helpers.hpp"
 
+struct ConfigManager;
+extern unique_ptr<ConfigManager> config;
+
+/// Wrapper on a config file that provides access to options from the code.
+/// Reads a config file in markdown format. For all options that are not specified in the config
+/// default values will be used.
 struct ConfigManager {
+  /// Default constructor
+  /// \_path Path to the config file
   ConfigManager(string _path="");
+  
+  /// Prints complete information about current configuration
   void Print();
+  
+  //------------------------------//
+  //    Analysis configuration    //
+  //------------------------------//
+  
+  int performCutsLevel = 2;
+  
+  bool saveEvents;
+  bool printYields;
+  bool printBackgroundDetails;
+  bool printDataDetails;
+  bool printSignalDetails;
+  
+  bool drawStandardPlots;
+  bool drawPerLayerPlots;
+  bool showLegends;
+  bool scanMETbinning;
+  bool doMETbinning;
+  
+  int maxNeventsBackground;
+  int maxNeventsSignal;
+  int maxNeventsData;
+  
+  double totalLuminosity;
+  
+  string category;
+  
+  vector<bool> runBackground;
+  vector<bool> runSignal;
+  vector<bool> runData;
+  
+  //------------------------------//
+  //  Helix fitter configuration  //
+  //------------------------------//
   
   // General settings
   bool injectPionHits;

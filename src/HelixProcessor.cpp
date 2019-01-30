@@ -7,9 +7,8 @@
 #include "HelixProcessor.hpp"
 
 
-HelixProcessor::HelixProcessor(const shared_ptr<ConfigManager> &_config) :
-config(_config),
-pointsProcessor(make_unique<PointsProcessor>(_config))
+HelixProcessor::HelixProcessor() :
+pointsProcessor(make_unique<PointsProcessor>())
 {
 
 }
@@ -22,7 +21,6 @@ HelixProcessor::~HelixProcessor()
 vector<int> HelixProcessor::AreIdentical(const unique_ptr<Helix> &h1, const unique_ptr<Helix> &h2)
 {
   vector<int> reasons;
-  shared_ptr<ConfigManager> config = h1->config;
   
   if(fabs(h1->GetOrigin()->GetX() - h2->GetOrigin()->GetX()) > config->toleranceX) reasons.push_back(1);
   if(fabs(h1->GetOrigin()->GetY() - h2->GetOrigin()->GetY()) > config->toleranceY) reasons.push_back(2);
@@ -151,7 +149,7 @@ unique_ptr<Helix> HelixProcessor::GetRandomPionHelix(const shared_ptr<Track> &tr
                                                     RandSign()*RandDouble(config->minPz, config->maxPz));
   int pionCharge = RandSign();
   
-  unique_ptr<Helix> pionHelix = make_unique<Helix>(track->GetDecayPoint(), pionVector, pionCharge, config);
+  unique_ptr<Helix> pionHelix = make_unique<Helix>(track->GetDecayPoint(), pionVector, pionCharge);
   shared_ptr<vector<Point>> pionPoints = GetPointsHittingSilicon(pionHelix);
   for(auto &p : *pionPoints){p.SetIsPionHit(true);}
   pionHelix->SetPoints(pionPoints);

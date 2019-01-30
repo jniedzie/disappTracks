@@ -16,7 +16,7 @@
 class HelixProcessor {
 public:
   /// Default contrustor
-  HelixProcessor(const shared_ptr<ConfigManager> &_config);
+  HelixProcessor();
   
   /// Default destructor
   ~HelixProcessor();
@@ -39,7 +39,6 @@ public:
   unique_ptr<Helix> GetRandomPionHelix(const shared_ptr<Track> &track);
   
 private:
-  shared_ptr<ConfigManager> config;
   unique_ptr<PointsProcessor> pointsProcessor;
 };
 

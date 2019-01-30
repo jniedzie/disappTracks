@@ -10,8 +10,9 @@ uint searchRun = 297100;
 uint searchLumi = 136;
 unsigned long long searchEvent = 245000232;
 
+string configPath = "configs/helixFitter.md";
+
 Display *display;
-shared_ptr<ConfigManager> config;
 
 bool showStipClusters = false;
 
@@ -74,9 +75,9 @@ int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
   // create event display
-  config = make_shared<ConfigManager>("configs/helixFitter.md");
+  config = make_unique<ConfigManager>(configPath);
   display = new Display();
-  auto helixProcessor = make_unique<HelixProcessor>(config);
+  auto helixProcessor = make_unique<HelixProcessor>();
   
   auto events = make_shared<EventSet>();
   events->LoadEventsFromFiles("after_L2/3layers/");
@@ -124,7 +125,7 @@ int main(int argc, char* argv[])
   
   // remove hits that for sure don't belong to the pion's helix
   cout<<"Fitting best helix"<<endl;
-  unique_ptr<Fitter> fitter = make_unique<Fitter>(config);
+  unique_ptr<Fitter> fitter = make_unique<Fitter>();
   
   unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(allSimplePoints, track);
   display->DrawSimplePoints(allSimplePoints, filteredPointsOptions);

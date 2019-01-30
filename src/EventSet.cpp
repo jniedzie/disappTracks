@@ -341,35 +341,35 @@ void EventSet::SaveToTree(string fileName, EDataType dataType, int setIter)
 void EventSet::LoadEventsFromFiles(string prefix)
 {
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    if(!runBackground[iBck]) continue;
+    if(!config->runBackground[iBck]) continue;
     
     if(prefix==""){
       for(string path : inFileNameBackground[iBck]){
-        AddEventsFromFile((path+prefix+"tree.root"),kBackground, maxNeventsBackground, iBck);
+        AddEventsFromFile((path+prefix+"tree.root"),kBackground, config->maxNeventsBackground, iBck);
       }
     }
     else{
       string path = inFileNameBackground[iBck][0];
-      AddEventsFromFile((path+prefix+"tree.root"),kBackground, maxNeventsBackground, iBck);
+      AddEventsFromFile((path+prefix+"tree.root"),kBackground, config->maxNeventsBackground, iBck);
     }
   }
   
   for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig]) continue;
-    AddEventsFromFile((inFileNameSignal[iSig]+prefix+"tree.root"),kSignal,maxNeventsSignal,iSig);
+    if(!config->runSignal[iSig]) continue;
+    AddEventsFromFile((inFileNameSignal[iSig]+prefix+"tree.root"),kSignal,config->maxNeventsSignal,iSig);
   }
   
   for(int iData=0;iData<kNdata;iData++){
-    if(!runData[iData]) continue;
+    if(!config->runData[iData]) continue;
     
     if(prefix==""){
       for(string path : inFileNameData[iData]){
-        AddEventsFromFile((path+prefix+"tree.root"),kData, maxNeventsData, iData);
+        AddEventsFromFile((path+prefix+"tree.root"),kData, config->maxNeventsData, iData);
       }
     }
     else{
       string path = inFileNameData[iData][0];
-      AddEventsFromFile((path+prefix+"tree.root"),kData, maxNeventsData, iData);
+      AddEventsFromFile((path+prefix+"tree.root"),kData, config->maxNeventsData, iData);
     }
   }
 }
@@ -379,26 +379,26 @@ void EventSet::LoadEventsFromFiles(EDataType dataType, int setIter, string prefi
   if(dataType == kBackground){
     if(prefix==""){
       for(string path : inFileNameBackground[setIter]){
-        AddEventsFromFile((path+prefix+"tree.root"),kBackground, maxNeventsBackground, setIter);
+        AddEventsFromFile((path+prefix+"tree.root"),kBackground, config->maxNeventsBackground, setIter);
       }
     }
     else{
       string path = inFileNameBackground[setIter][0];
-      AddEventsFromFile((path+prefix+"tree.root"),kBackground, maxNeventsBackground, setIter);
+      AddEventsFromFile((path+prefix+"tree.root"),kBackground, config->maxNeventsBackground, setIter);
     }
   }
   else if(dataType == kSignal){
-    AddEventsFromFile((inFileNameSignal[setIter]+prefix+"tree.root"),kSignal,maxNeventsSignal,setIter);
+    AddEventsFromFile((inFileNameSignal[setIter]+prefix+"tree.root"),kSignal,config->maxNeventsSignal,setIter);
   }
   else if(dataType == kData){
     if(prefix==""){
       for(string path : inFileNameData[setIter]){
-        AddEventsFromFile((path+prefix+"tree.root"),kData, maxNeventsData, setIter);
+        AddEventsFromFile((path+prefix+"tree.root"),kData, config->maxNeventsData, setIter);
       }
     }
     else{
       string path = inFileNameData[setIter][0];
-      AddEventsFromFile((path+prefix+"tree.root"),kData, maxNeventsData, setIter);
+      AddEventsFromFile((path+prefix+"tree.root"),kData, config->maxNeventsData, setIter);
     }
   }
 }
@@ -406,14 +406,14 @@ void EventSet::LoadEventsFromFiles(EDataType dataType, int setIter, string prefi
 void EventSet::SaveEventsToFiles(string prefix)
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig]) continue;
+    if(!config->runSignal[iSig]) continue;
     system(("mkdir -p "+inFileNameSignal[iSig]+prefix).c_str());
     
     SaveToTree((inFileNameSignal[iSig]+prefix+"tree.root").c_str(), kSignal, iSig);
   }
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    if(!runBackground[iBck]) continue;
+    if(!config->runBackground[iBck]) continue;
     
     // merged events will be stored in the first directory for given background
     string path = inFileNameBackground[iBck][0];
@@ -422,7 +422,7 @@ void EventSet::SaveEventsToFiles(string prefix)
   }
   
   for(int iData=0;iData<kNdata;iData++){
-    if(!runData[iData]) continue;
+    if(!config->runData[iData]) continue;
     string path = inFileNameData[iData][0];
     system(("mkdir -p "+path+prefix).c_str());
     SaveToTree((path+prefix+"tree.root").c_str(), kData, iData);
@@ -435,42 +435,42 @@ void EventSet::PrintYields()
   int nBackgroundTotalRaw=0;
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    if(!runBackground[iBck]) continue;
+    if(!config->runBackground[iBck]) continue;
     nBackgroundTotal += weightedSize(kBackground,iBck);
     nBackgroundTotalRaw += size(kBackground,iBck);
     
-    if(printYields){
+    if(config->printYields){
       cout<<backgroundTitle[iBck]<<"\t";
       cout<<weightedSize(kBackground, (int)iBck);
       cout<<"\t("<<size(kBackground,(int)iBck)<<")"<<endl;
     }
   }
   
-  if(printYields){
+  if(config->printYields){
     cout<<"Background total:\t"<<nBackgroundTotal<<"\t("<<nBackgroundTotalRaw<<")"<<endl;
     
     for(int iSig=0;iSig<kNsignals;iSig++){
-      if(!runSignal[iSig]) continue;
+      if(!config->runSignal[iSig]) continue;
       cout<<signalTitle[iSig]<<"\tN events:\t";
       cout<<weightedSize(kSignal,iSig);
       cout<<"\t("<<size(kSignal,iSig)<<")"<<endl;
     }
     
     for(int iData=0;iData<kNdata;iData++){
-      if(!runData[iData]) continue;
+      if(!config->runData[iData]) continue;
       cout<<dataTitle[iData]<<"\tsize:\t";
       cout<<weightedSize(kData,iData)<<"\n";
     }
   }
   
   for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig]) continue;
+    if(!config->runSignal[iSig]) continue;
     cout<<signalTitle[iSig]<<"\tS/sqrt(S+B):\t";
     cout<<weightedSize(kSignal,iSig)/sqrt(nBackgroundTotal+weightedSize(kSignal,iSig))<<endl;
   }
   
   for(int iData=0;iData<kNdata;iData++){
-    if(!runData[iData]) continue;
+    if(!config->runData[iData]) continue;
     cout<<dataTitle[iData]<<"\t(M-B)/sqrt(M):\t";
     cout<<(weightedSize(kData,iData)-nBackgroundTotal)/sqrt(weightedSize(kData,iData))<<endl;
   }
@@ -481,7 +481,7 @@ vector<double> EventSet::GetSignificance(bool inData)
   double nBackgroundTotal=0;
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    if(!runBackground[iBck]) continue;
+    if(!config->runBackground[iBck]) continue;
     nBackgroundTotal += weightedSize(kBackground,iBck);
   }
   
@@ -489,7 +489,7 @@ vector<double> EventSet::GetSignificance(bool inData)
   
   if(inData){
     for(int iData=0;iData<kNdata;iData++){
-      if(!runData[iData]){
+      if(!config->runData[iData]){
         results.push_back(inf);
         continue;
       }
@@ -498,7 +498,7 @@ vector<double> EventSet::GetSignificance(bool inData)
   }
   else{
     for(int iSig=0;iSig<kNsignals;iSig++){
-      if(!runSignal[iSig]){
+      if(!config->runSignal[iSig]){
         results.push_back(inf);
         continue;
       }
@@ -512,7 +512,7 @@ void EventSet::ApplyCuts(const unique_ptr<EventCut> &eventCut,const unique_ptr<T
                          const unique_ptr<JetCut> &jetCut,const unique_ptr<LeptonCut> &leptonCut)
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig]) continue;
+    if(!config->runSignal[iSig]) continue;
     for(int iEvent=0;iEvent<(int)eventsSignal[iSig].size();){
       
       eventsSignal[iSig][iEvent]->ApplyTrackCut(trackCut);
@@ -529,7 +529,7 @@ void EventSet::ApplyCuts(const unique_ptr<EventCut> &eventCut,const unique_ptr<T
     }
   }
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    if(!runBackground[iBck]) continue;
+    if(!config->runBackground[iBck]) continue;
     for(int iEvent=0;iEvent<(int)eventsBackground[iBck].size();){
       
       eventsBackground[iBck][iEvent]->ApplyTrackCut(trackCut);
@@ -546,7 +546,7 @@ void EventSet::ApplyCuts(const unique_ptr<EventCut> &eventCut,const unique_ptr<T
     }
   }
   for(int iData=0;iData<kNdata;iData++){
-    if(!runData[iData]) continue;
+    if(!config->runData[iData]) continue;
     for(int iEvent=0;iEvent<(int)eventsData[iData].size();){
       
       eventsData[iData][iEvent]->ApplyTrackCut(trackCut);
@@ -967,7 +967,7 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
       for(int iHelix=0;iHelix<*_nHelices;iHelix++){
         auto origin   = make_unique<Point>(_helixX[iHelix],  _helixY[iHelix],  _helixZ[iHelix]);
         auto momentum = make_unique<Point>(_helixPx[iHelix], _helixPy[iHelix], _helixPz[iHelix]);
-        auto helix    = make_shared<Helix>(origin, momentum, _helixCharge[iHelix], make_shared<ConfigManager>());
+        auto helix    = make_shared<Helix>(origin, momentum, _helixCharge[iHelix]);
         newEvent->AddHelix(helix);
       }
     }
@@ -1007,7 +1007,7 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
       newEvent->AddLepton(lepton);
     }
     
-    double lumi = totalLuminosity * 1000.; // transform from fb^-1 to pb^-1
+    double lumi = config->totalLuminosity * 1000.; // transform from fb^-1 to pb^-1
     double weight = lumi * (*_genWgt) / (*_sumWgt);
     
     //    static map<string,set<double>> wgts;

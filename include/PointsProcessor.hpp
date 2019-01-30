@@ -15,7 +15,7 @@
 class PointsProcessor {
 public:
   /// Default constructor
-  PointsProcessor(const shared_ptr<ConfigManager> &_config);
+  PointsProcessor();
   
   /// Default destructor
   ~PointsProcessor();
@@ -35,11 +35,7 @@ public:
   
   /// Returns a vector filled with random points in the pixel barrel
   /// \param nPoints Number of points that will be generated
-  shared_ptr<vector<Point>> GetRandomPoints(int nPoints) const;
-  
-private:
-  shared_ptr<ConfigManager> config;
-  
+  shared_ptr<vector<Point>> GetRandomPoints(int nPoints) const;  
 };
 
 #endif /* PointsProcessor_hpp */

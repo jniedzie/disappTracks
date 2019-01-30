@@ -17,10 +17,8 @@ public:
   /// Constructor of the circle that will shift it according to the momentum vector and pion's charge
   /// \param _decayPoint Point to which the circle must be tangent
   /// \param _momentum Pion's momentum determining shift and rotation of the circle
-  /// \param _config FitterConfig object
   Circle(const unique_ptr<Point> &_decayPoint,
-         const unique_ptr<Point> &_momentum,
-         const shared_ptr<ConfigManager> _config);
+         const unique_ptr<Point> &_momentum);
   
   /// Prints basic information about the circle
   void Print();
@@ -55,9 +53,6 @@ public:
   /// Returns an angle by which circle is rotated due to the shift of its origin
   inline double GetToffset(){return tShift;}
   
-  /// Returns FitterConfig object
-  inline shared_ptr<ConfigManager> GetConfig(){return config;}
-  
   static void RemoveSimilarCircles(vector<unique_ptr<Circle>> &circles);
 private:
   unique_ptr<Point> decayPoint;   ///< Decay point of the chargino
@@ -67,7 +62,6 @@ private:
   vector<Point> points;           ///< Points belonging to this circle
   double radius;                  ///< Radius of the circle (calculated from the momentum)
   double tShift;                  ///< Angle by which circle is rotated due to the shift of its origin
-  shared_ptr<ConfigManager> config;
 };
 
 #endif /* Circle_hpp */

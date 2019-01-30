@@ -3,16 +3,20 @@
 #include "JetCut.hpp"
 #include "HistSet.hpp"
 #include "Helpers.hpp"
+#include "ConfigManager.hpp"
 
 #include "TGraph.h"
 
 #include <TApplication.h>
 
+string configPath = "configs/analysis.md";
 ESignal testSignal = kWino_M_300_cTau_30;
 
 int main(int argc, char* argv[])
 {
   TApplication *theApp = new TApplication("App", &argc, argv);
+  
+  config = make_unique<ConfigManager>(configPath);
   
   // All events with initial cuts only
   shared_ptr<EventSet> events;
@@ -34,7 +38,7 @@ int main(int argc, char* argv[])
   TGraph *sb[kNsignals];
   
   for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig]) continue;
+    if(!config->runSignal[iSig]) continue;
     sb[iSig] = new TGraph();
   }
   
@@ -58,13 +62,13 @@ int main(int argc, char* argv[])
     
     double nBackgroundTotal=0;
     for(int iBck=0;iBck<kNbackgrounds;iBck++){
-      if(!runBackground[iBck]) continue;
+      if(!config->runBackground[iBck]) continue;
       nBackgroundTotal += eventsAfterCuts->weightedSize(EventSet::kBackground,iBck);
     }
     nBackgroundTotal = sqrt(nBackgroundTotal);
     
     for(int iSig=0;iSig<kNsignals;iSig++){
-      if(!runSignal[iSig]) continue;
+      if(!config->runSignal[iSig]) continue;
       double val = eventsAfterCuts->weightedSize(EventSet::kSignal,iSig)/nBackgroundTotal;
       sb[iSig]->SetPoint(iPoint,cut,val);
     }
@@ -78,7 +82,7 @@ int main(int argc, char* argv[])
   
   bool first=true;
   for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!runSignal[iSig]) continue;
+    if(!config->runSignal[iSig]) continue;
     
     sb[iSig]->SetMarkerStyle(signalMarkers[iSig]);
     sb[iSig]->SetMarkerSize(1.0);

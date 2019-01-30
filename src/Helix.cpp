@@ -8,13 +8,12 @@
 
 Helix::Helix(const unique_ptr<Point> &_origin,
              const unique_ptr<Point> &_momentum,
-             int _charge, shared_ptr<ConfigManager> _config) :
+             int _charge) :
 points(make_shared<vector<Point>>()),
 origin(make_unique<Point>(*_origin)),
 momentum(make_unique<Point>(*_momentum)),
 charge(_charge),
-config(_config),
-pointsProcessor(make_unique<PointsProcessor>(_config))
+pointsProcessor(make_unique<PointsProcessor>())
 {
   radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
   slope = charge*momentum->GetVectorSlopeC();

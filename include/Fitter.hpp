@@ -18,7 +18,7 @@
 class Fitter {
 public:
   /// Default constructor
-  Fitter(shared_ptr<ConfigManager> _config);
+  Fitter();
   
   /// Default destructor
   ~Fitter();
@@ -33,7 +33,6 @@ public:
                                         bool drawCircles=false);
   
 private:
-  shared_ptr<ConfigManager> config;
   unique_ptr<PointsProcessor> pointsProcessor;
   unique_ptr<HelixProcessor> helixProcessor;
   
