@@ -22,15 +22,8 @@ public:
   /// Default destructor
   ~Track(){};
   
-  /// Sets randomly basic track's parameters (eta, phi, decay point given number of layers it went through)
-  void FillRandomly(int nHits, double maxEta);
-  
   /// Print basic information about the track
   void Print();
-  
-  /// Check if track passes selection criteria
-  /// \param cut Tracks selection criteria to be checked
-  bool IsPassingCut(const unique_ptr<TrackCut> &cut);
   
   // Setters
   void SetDeDxInLayer(int layer, float value);
@@ -172,6 +165,8 @@ private:
   void CalculateInternals();
   
   unique_ptr<Point> decayPoint;
+  
+  friend class TrackProcessor;
 };
 
 #endif /* Track_hpp */

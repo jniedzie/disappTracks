@@ -47,25 +47,7 @@ eventMetMass(inf)
   }
 };
 
-void Track::FillRandomly(int nHits, double maxEta)
-{
-  eta = RandDouble(-maxEta, maxEta);
-  phi = RandDouble(0, 2*TMath::Pi());
-  
-  nTrackerLayers = nPixelLayers = nHits;
-  double theta = GetTheta();
-  double maxTheta = 2*atan(exp(-maxEta));
-  
-  double minL = layerR[nHits-1]/sin(maxTheta);
-  double maxL = layerR[nHits]/sin(maxTheta);
-  double decayR = RandDouble(minL, maxL);
-  
-  double decayX = decayR*sin(theta)*cos(phi);
-  double decayY = decayR*sin(theta)*sin(phi);
-  double decayZ = decayR*cos(theta);
-  
-  decayPoint = make_unique<Point>(decayX, decayY, decayZ);
-}
+
 
 double Track::GetDedxInSubDet(int det)
 {
@@ -85,68 +67,6 @@ void Track::Print()
   cout<<"eta:"<<eta<<"\tphi:"<<phi<<"\tpT:"<<pt<<endl;
   cout<<"Tracker layers:"<<nTrackerLayers<<"\tpixel layers:"<<nPixelLayers<<endl;
   cout<<"Missing outer tracker hits:"<<nMissingOuterTrackerHits<<endl;
-  
-//  for(int iLayer=0;iLayer<nLayers;iLayer++){
-//    cout<<"Layer:"<<iLayer<<"\tsub-det ID:"<<subDetId[iLayer]<<"\tdEdx:"<<dedx[iLayer]<<endl;
-//  }
-}
-
-bool Track::IsPassingCut(const unique_ptr<TrackCut> &cut)
-{
-  // check number of hits in pixel, stip and tracker in general
-  if(cut->GetRequireSameNpixelHitsLayers()){
-    if(nPixelHits != nPixelLayers) return false;
-  }
-  
-  if(cut->GetRequireSameNtrackerHitsLayers()){
-    if(nTrackerHits != nTrackerLayers) return false;
-  }
-  
-  if(cut->GetRequireMcMatch()){
-    if(mcMatch == 0) return false;
-  }
-  
-  if(cut->GetNpixelHits().IsOutside(nPixelHits))  return false;
-  if(cut->GetNpixelLayers().IsOutside(nPixelLayers)) return false;
-  if(cut->GetNmissingInnerPixel().IsOutside(nMissingInnerPixelHits)) return false;
-  if(cut->GetNmissingMiddleTracker().IsOutside(nMissingMiddleTrackerHits)) return false;
-  if(cut->GetNmissingOuterTracker().IsOutside(nMissingOuterTrackerHits))  return false;
-  
-  // check number of dedx, number of detectors, number of clusters
-  if(cut->GetNdedxClusters().IsOutside(nDedxClusters)) return false;
-  if(cut->GetNdetIDs().IsOutside(nDetIDs))  return false;
-  
-  
-  if(cut->GetTotalDedx().IsOutside(GetTotalDedx())) return false;
-  
-  for(int iCluster=0;iCluster<nDedxClusters;iCluster++){
-    if(cut->GetDedxPerCluster().IsOutside(dedx[iCluster])) return false;
-  }
-  
-  // check basic kinematical variables
-  if(cut->GetPt().IsOutside(pt)) return false;
-  if(cut->GetEta().IsOutside(eta)) return false;
-  
-  // check calo energy
-  if(cut->GetCaloEmEnergy().IsOutside(caloEmEnergy))  return false;
-  if(cut->GetCaloHadEnergy().IsOutside(caloHadEnergy))  return false;
-  
-  // check isolation
-  if(cut->GetRelativeIsolation().IsOutside(relativeIsolation))  return false;
-  
-  // Check track-met ΔΦ
-  
-  if(cut->GetTrackMetDeltaPhi().GetMin() > -1000){
-    
-    // We use TLorentzVector to automatically deal with shifting the angle to [-π,π]
-    TLorentzVector metVector, trackVector;
-    metVector.SetPtEtaPhiM(eventMetPt, eventMetEta, eventMetPhi, eventMetMass);
-    trackVector.SetPtEtaPhiM(pt, eta, phi, mass);
-    
-    if(cut->GetTrackMetDeltaPhi().IsOutside(metVector.DeltaPhi(trackVector))) return false;
-  }
-  
-  return true;
 }
 
 void Track::SetDeDxInLayer(int layer, float value)

@@ -916,7 +916,7 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
     _sizeY[iLayer] =     new TTreeReaderArray<int>(reader,Form("IsoTrack_sizeYbyLayer%i",iLayer));
   }
   int iter=-1;
-  while (reader.Next()){
+  while(reader.Next()){
     iter++;
     if(maxNevents>0 && iter>maxNevents) break;
     

@@ -9,8 +9,7 @@
 
 #include "Helpers.hpp"
 #include "EventCut.hpp"
-#include "Track.hpp"
-#include "TrackCut.hpp"
+#include "TrackProcessor.hpp"
 #include "Jet.hpp"
 #include "JetCut.hpp"
 #include "Lepton.hpp"
@@ -194,8 +193,9 @@ private:
   double wgtsum;
   double genWeight;
   
-  // parameters of the fitted helices (one per track)
-  vector<shared_ptr<Helix>> helices;
+  vector<shared_ptr<Helix>> helices; ///< Parameters of the fitted helices (one per track)
+  
+  unique_ptr<TrackProcessor> trackProcessor;
 };
 
 #endif /* Event_hpp */

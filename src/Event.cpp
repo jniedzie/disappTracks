@@ -8,7 +8,8 @@
 
 #include <TLorentzVector.h>
 
-Event::Event()
+Event::Event() :
+trackProcessor(make_unique<TrackProcessor>())
 {
   
 }
@@ -84,10 +85,8 @@ void Event::ApplyTrackCut(const unique_ptr<TrackCut> &cut)
   auto track = tracks.begin();
 
   while(track != tracks.end()){
-    if(!(*track)->IsPassingCut(cut))
-      track = tracks.erase(track);
-    else
-      track++;
+    if(!trackProcessor->IsPassingCut(*track,cut)) track = tracks.erase(track);
+    else                                          track++;
   }
 }
 
