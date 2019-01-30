@@ -107,38 +107,42 @@ vector<shared_ptr<Track>> TrackProcessor::GetTracksFromTree()
     auto track = make_shared<Track>();
     
     // float variables
-    track->SetEta(arrayValuesFloat["IsoTrack_eta"][iTrack]);
-    track->SetPhi(arrayValuesFloat["IsoTrack_phi"][iTrack]);
-    track->SetCaloEmEnergy(arrayValuesFloat["IsoTrack_caloEmEnergy"][iTrack]);
-    track->SetCaloHadEnergy(arrayValuesFloat["IsoTrack_caloHadEnergy"][iTrack]);
-    track->SetDxy(arrayValuesFloat["IsoTrack_dxy"][iTrack],arrayValuesFloat["IsoTrack_edxy"][iTrack]);
-    track->SetDz(arrayValuesFloat["IsoTrack_dz"][iTrack],arrayValuesFloat["IsoTrack_edz"][iTrack]);
-    track->SetMass(arrayValuesFloat["IsoTrack_mass"][iTrack]);
-    track->SetPt(arrayValuesFloat["IsoTrack_pt"][iTrack]);
-    track->SetRelativeIsolation(arrayValuesFloat["IsoTrack_relIso03"][iTrack]);
+    track->eta = arrayValuesFloat["IsoTrack_eta"][iTrack];
+    track->phi = arrayValuesFloat["IsoTrack_phi"][iTrack];
+    track->caloEmEnergy = arrayValuesFloat["IsoTrack_caloEmEnergy"][iTrack];
+    track->caloHadEnergy = arrayValuesFloat["IsoTrack_caloHadEnergy"][iTrack];
+    track->dxy = arrayValuesFloat["IsoTrack_dxy"][iTrack];
+    track->dxyErr = arrayValuesFloat["IsoTrack_edxy"][iTrack];
+    track->dz = arrayValuesFloat["IsoTrack_dz"][iTrack];
+    track->dzErr = arrayValuesFloat["IsoTrack_edz"][iTrack];
+    track->mass = arrayValuesFloat["IsoTrack_mass"][iTrack];
+    track->pt = arrayValuesFloat["IsoTrack_pt"][iTrack];
+    track->relativeIsolation = arrayValuesFloat["IsoTrack_relIso03"][iTrack];
 
-//    // int variables
-    track->SetPid(arrayValuesInt["IsoTrack_pdgId"][iTrack]);
-    track->SetCharge(arrayValuesInt["IsoTrack_charge"][iTrack]);
-    track->SetMcMatch(arrayValuesInt["IsoTrack_mcMatch"][iTrack]);
-    track->SetNtrackerLayers(arrayValuesInt["IsoTrack_trackerLayers"][iTrack]);
-    track->SetNpixelLayers(arrayValuesInt["IsoTrack_pixelLayers"][iTrack]);
-    track->SetNtrackerHits(arrayValuesInt["IsoTrack_trackerHits"][iTrack]);
-    track->SetNpixelHits(arrayValuesInt["IsoTrack_pixelHits"][iTrack]);
-    track->SetNmissingInnerPixelHits(arrayValuesInt["IsoTrack_missingInnerPixelHits"][iTrack]);
-    track->SetNmissingOuterPixelHits(arrayValuesInt["IsoTrack_missingOuterPixelHits"][iTrack]);
-    track->SetNmissingInnerStripHits(arrayValuesInt["IsoTrack_missingInnerStripHits"][iTrack]);
-    track->SetNmissingOuterStripHits(arrayValuesInt["IsoTrack_missingOuterStripHits"][iTrack]);
-    track->SetNmissingInnerTrackerHits(arrayValuesInt["IsoTrack_missingInnerTrackerHits"][iTrack]);
-    track->SetNmissingOuterTrackerHits(arrayValuesInt["IsoTrack_missingOuterTrackerHits"][iTrack]);
-    track->SetNmissingMiddleTrackerHits(arrayValuesInt["IsoTrack_missingMiddleTrackerHits"][iTrack]);
+    // int variables
+    track->pid = arrayValuesInt["IsoTrack_pdgId"][iTrack];
+    track->charge = arrayValuesInt["IsoTrack_charge"][iTrack];
+    track->mcMatch = arrayValuesInt["IsoTrack_mcMatch"][iTrack];
+    track->nTrackerLayers = arrayValuesInt["IsoTrack_trackerLayers"][iTrack];
+    track->nPixelLayers = arrayValuesInt["IsoTrack_pixelLayers"][iTrack];
+    track->nTrackerHits = arrayValuesInt["IsoTrack_trackerHits"][iTrack];
+    track->nPixelHits = arrayValuesInt["IsoTrack_pixelHits"][iTrack];
+    track->nMissingInnerPixelHits = arrayValuesInt["IsoTrack_missingInnerPixelHits"][iTrack];
+    track->nMissingOuterPixelHits = arrayValuesInt["IsoTrack_missingOuterPixelHits"][iTrack];
+    track->nMissingInnerStripHits = arrayValuesInt["IsoTrack_missingInnerStripHits"][iTrack];
+    track->nMissingOuterStripHits = arrayValuesInt["IsoTrack_missingOuterStripHits"][iTrack];
+    track->nMissingInnerTrackerHits = arrayValuesInt["IsoTrack_missingInnerTrackerHits"][iTrack];
+    track->nMissingOuterTrackerHits = arrayValuesInt["IsoTrack_missingOuterTrackerHits"][iTrack];
+    track->nMissingMiddleTrackerHits = arrayValuesInt["IsoTrack_missingMiddleTrackerHits"][iTrack];
 
     for(int iLayer=0;iLayer<nLayers;iLayer++){
-      track->SetDeDxInLayer(iLayer, arrayValuesFloat[Form("IsoTrack_dedxByLayer%i",iLayer)][iTrack]);
-      track->SetSubDetIdInLayer(iLayer, arrayValuesFloat[Form("IsoTrack_subDetIdByLayer%i",iLayer)][iTrack]);
-      track->SetSizeXinLayer(iLayer, arrayValuesFloat[Form("IsoTrack_sizeXbyLayer%i",iLayer)][iTrack]);
-      track->SetSizeYinLayer(iLayer, arrayValuesFloat[Form("IsoTrack_sizeYbyLayer%i",iLayer)][iTrack]);
+      track->dedx[iLayer] = arrayValuesFloat[Form("IsoTrack_dedxByLayer%i",iLayer)][iTrack];
+      track->subDetId[iLayer] = arrayValuesFloat[Form("IsoTrack_subDetIdByLayer%i",iLayer)][iTrack];
+      track->sizeX[iLayer] = arrayValuesFloat[Form("IsoTrack_sizeXbyLayer%i",iLayer)][iTrack];
+      track->sizeY[iLayer] = arrayValuesFloat[Form("IsoTrack_sizeYbyLayer%i",iLayer)][iTrack];
     }
+    track->CalculateInternals();
+    
     tracks.push_back(track);
   }
   

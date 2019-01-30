@@ -47,8 +47,6 @@ eventMetMass(inf)
   }
 };
 
-
-
 double Track::GetDedxInSubDet(int det)
 {
   double dedxSum=0;
@@ -67,18 +65,6 @@ void Track::Print()
   cout<<"eta:"<<eta<<"\tphi:"<<phi<<"\tpT:"<<pt<<endl;
   cout<<"Tracker layers:"<<nTrackerLayers<<"\tpixel layers:"<<nPixelLayers<<endl;
   cout<<"Missing outer tracker hits:"<<nMissingOuterTrackerHits<<endl;
-}
-
-void Track::SetDeDxInLayer(int layer, float value)
-{
-  dedx[layer] = value;
-  CalculateInternals();
-}
-
-void Track::SetSubDetIdInLayer(int layer, int id)
-{
-  subDetId[layer] = id;
-  CalculateInternals();
 }
 
 void Track::CalculateInternals()

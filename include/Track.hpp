@@ -26,38 +26,6 @@ public:
   void Print();
   
   // Setters
-  void SetDeDxInLayer(int layer, float value);
-  void SetSubDetIdInLayer(int layer, int id);
-  inline void SetSizeXinLayer(int layer, int size){sizeX[layer] = size;}
-  inline void SetSizeYinLayer(int layer, int size){sizeY[layer] = size;}
-  
-  inline void SetPt(double val){pt = val;}
-  inline void SetEta(double val){eta=val;}
-  inline void SetPhi(double val){phi=val;}
-  inline void SetMass(double val){mass = val;}
-  
-  inline void SetCaloEmEnergy(double val) {caloEmEnergy = val;}
-  inline void SetCaloHadEnergy(double val){caloHadEnergy = val;}
-  inline void SetRelativeIsolation(double val){relativeIsolation = val;}
-  inline void SetDxy(double val,double err) {dxy=val;dxyErr=err;}
-  inline void SetDz(double val,double err)  {dz =val;dzErr =err;}
-  
-  inline void SetCharge(int val){charge = val;}
-  inline void SetPid(int val){pid = val;}
-  inline void SetMcMatch(int val){mcMatch = val;}
-  
-  inline void SetNtrackerLayers(int n){nTrackerLayers = n;}
-  inline void SetNpixelLayers(int n){nPixelLayers = n;}
-  inline void SetNtrackerHits(int n){nTrackerHits = n;}
-  inline void SetNpixelHits(int n){nPixelHits = n;}
-  inline void SetNmissingInnerPixelHits(int n){nMissingInnerPixelHits = n;}
-  inline void SetNmissingOuterPixelHits(int n){nMissingOuterPixelHits = n;}
-  inline void SetNmissingInnerStripHits(int n){nMissingInnerStripHits = n;}
-  inline void SetNmissingOuterStripHits(int n){nMissingOuterStripHits = n;}
-  inline void SetNmissingInnerTrackerHits(int n){nMissingInnerTrackerHits = n;}
-  inline void SetNmissingOuterTrackerHits(int n){nMissingOuterTrackerHits = n;}
-  inline void SetNmissingMiddleTrackerHits(int n){nMissingMiddleTrackerHits = n;}
-  
   inline void SetEventMetPt(double val){eventMetPt = val;}
   inline void SetEventMetEta(double val){eventMetEta = val;}
   inline void SetEventMetPhi(double val){eventMetPhi = val;}
@@ -157,8 +125,6 @@ private:
   double eventMetEta;  ///< MET pseudorapidity of the event that contains this track
   double eventMetPhi;  ///< MET polar angle of the event that contains this track
   double eventMetMass; ///< MET mass of the event that contains this track
-  
-  
   
   /// Calculates additional properties that are not read directly from ntuples.
   /// Should be called after adding setting some of the track's properties
