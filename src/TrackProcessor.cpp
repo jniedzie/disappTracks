@@ -16,9 +16,9 @@ TrackProcessor::~TrackProcessor()
   
 }
 
-unique_ptr<Track> TrackProcessor::GetRandomTrack(int nLayers, double maxEta)
+shared_ptr<Track> TrackProcessor::GetRandomTrack(int nLayers, double maxEta)
 {
-  auto track = make_unique<Track>();
+  auto track = make_shared<Track>();
   
   track->eta = RandDouble(-maxEta, maxEta);
   track->phi = RandDouble(0, 2*TMath::Pi());

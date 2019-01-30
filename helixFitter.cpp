@@ -14,6 +14,7 @@
 #include "Display.hpp"
 #include "ConfigManager.hpp"
 #include "MonitorsManager.hpp"
+#include "TrackProcessor.hpp"
 
 int verbosityLevel = 2;
 
@@ -32,7 +33,8 @@ void InjectPionPointsToCollectionOfPoints(const unique_ptr<Helix> &pionHelix,
 void PerformTests(int &nSuccess, int &nFullSuccess)
 {
   int nTests = config->nTests;
-  unique_ptr<Fitter> fitter = make_unique<Fitter>();
+  auto fitter = make_unique<Fitter>();
+  auto trackProcessor = make_unique<TrackProcessor>();
   
   for(int i=0;i<nTests;i++){
     if(verbosityLevel >= 2){
@@ -40,8 +42,7 @@ void PerformTests(int &nSuccess, int &nFullSuccess)
       cout<<"Test iter:"<<i<<endl;
     }
     
-    shared_ptr<Track> track = make_shared<Track>();
-    track->FillRandomly(config->nTrackHits, config->maxEta);
+    shared_ptr<Track> track = trackProcessor->GetRandomTrack(config->nTrackHits, config->maxEta);
     
     shared_ptr<vector<Point>> pixelPoints = pointsProcessor->GetRandomPoints(config->nNoiseHits);
 //    unique_ptr<Event> event = make_unique<Event>();

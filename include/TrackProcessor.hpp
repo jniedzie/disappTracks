@@ -22,7 +22,7 @@ public:
   /// Returns a random track with basic properties filled in (eta, phi, decay point given number of layers it went through)
   /// \param nLayers Number of layers which track passed before decaying
   /// \param maxEta Pseudorapidity limit for the track
-  unique_ptr<Track> GetRandomTrack(int nLayers, double maxEta);
+  shared_ptr<Track> GetRandomTrack(int nLayers, double maxEta);
   
   /// Check if track passes selection criteria
   /// \param track Tracks to which cuts should be applied

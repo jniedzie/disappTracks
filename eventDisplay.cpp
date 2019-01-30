@@ -5,6 +5,7 @@
 #include "Display.hpp"
 #include "ConfigManager.hpp"
 #include "HelixProcessor.hpp"
+#include "TrackProcessor.hpp"
 
 uint searchRun = 297100;
 uint searchLumi = 136;
@@ -78,6 +79,7 @@ int main(int argc, char* argv[])
   config = make_unique<ConfigManager>(configPath);
   display = new Display();
   auto helixProcessor = make_unique<HelixProcessor>();
+  auto trackProcessor = make_unique<TrackProcessor>();
   
   auto events = make_shared<EventSet>();
   events->LoadEventsFromFiles("after_L2/3layers/");
@@ -100,8 +102,7 @@ int main(int argc, char* argv[])
   shared_ptr<vector<Point>> allSimplePoints; // all hits in the event
   allSimplePoints = event->GetTrackerHits();
   
-  shared_ptr<Track> track = make_shared<Track>();
-  track->FillRandomly(config->nTrackHits, config->maxEta);
+  shared_ptr<Track> track = trackProcessor->GetRandomTrack(config->nTrackHits, config->maxEta);
   
   // Draw decay point to make sure that it's correctly located
   shared_ptr<vector<Point>> decayPoint = make_shared<vector<Point>>();
