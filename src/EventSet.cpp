@@ -8,7 +8,8 @@
 #include "HistSet.hpp"
 
 EventSet::EventSet() :
-trackProcessor(make_unique<TrackProcessor>())
+trackProcessor(make_unique<TrackProcessor>()),
+eventProcessor(make_unique<EventProcessor>())
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
     eventsSignal.push_back(vector<shared_ptr<Event>>());
@@ -21,13 +22,18 @@ trackProcessor(make_unique<TrackProcessor>())
   }
 }
 
-EventSet::EventSet(string fileName, EDataType dataType, int maxNevents, ESignal iSig)
+EventSet::EventSet(string fileName, EDataType dataType, int maxNevents, ESignal iSig) :
+trackProcessor(make_unique<TrackProcessor>()),
+eventProcessor(make_unique<EventProcessor>())
 {
   AddEventsFromFile(fileName,dataType,maxNevents,iSig);
 }
 
 EventSet::EventSet(const EventSet &e)
 {
+  eventProcessor = make_unique<EventProcessor>();
+  trackProcessor = make_unique<TrackProcessor>();
+  
   for(int iSig=0;iSig<kNsignals;iSig++){
     eventsSignal.push_back(vector<shared_ptr<Event>>());
     for(auto &event : e.eventsSignal[iSig]){
@@ -513,11 +519,11 @@ void EventSet::ApplyCuts(const unique_ptr<EventCut> &eventCut,const unique_ptr<T
     if(!config->runSignal[iSig]) continue;
     for(int iEvent=0;iEvent<(int)eventsSignal[iSig].size();){
       
-      eventsSignal[iSig][iEvent]->ApplyTrackCut(trackCut);
-      eventsSignal[iSig][iEvent]->ApplyJetCut(jetCut);
-      eventsSignal[iSig][iEvent]->ApplyLeptonCut(leptonCut);
+      eventProcessor->ApplyTrackCut(eventsSignal[iSig][iEvent], trackCut);
+      eventProcessor->ApplyJetCut(eventsSignal[iSig][iEvent], jetCut);
+      eventProcessor->ApplyLeptonCut(eventsSignal[iSig][iEvent], leptonCut);
       
-      if(!eventsSignal[iSig][iEvent]->IsPassingCut(eventCut)){
+      if(!eventProcessor->IsPassingCut(eventsSignal[iSig][iEvent], eventCut)){
         EraseFast(eventsSignal[iSig], iEvent);
       }
       else{
@@ -530,11 +536,11 @@ void EventSet::ApplyCuts(const unique_ptr<EventCut> &eventCut,const unique_ptr<T
     if(!config->runBackground[iBck]) continue;
     for(int iEvent=0;iEvent<(int)eventsBackground[iBck].size();){
       
-      eventsBackground[iBck][iEvent]->ApplyTrackCut(trackCut);
-      eventsBackground[iBck][iEvent]->ApplyJetCut(jetCut);
-      eventsBackground[iBck][iEvent]->ApplyLeptonCut(leptonCut);
+      eventProcessor->ApplyTrackCut(eventsBackground[iBck][iEvent], trackCut);
+      eventProcessor->ApplyJetCut(eventsBackground[iBck][iEvent], jetCut);
+      eventProcessor->ApplyLeptonCut(eventsBackground[iBck][iEvent], leptonCut);
       
-      if(!eventsBackground[iBck][iEvent]->IsPassingCut(eventCut)){
+      if(!eventProcessor->IsPassingCut(eventsBackground[iBck][iEvent], eventCut)){
         EraseFast(eventsBackground[iBck], iEvent);
       }
       else{
@@ -547,11 +553,11 @@ void EventSet::ApplyCuts(const unique_ptr<EventCut> &eventCut,const unique_ptr<T
     if(!config->runData[iData]) continue;
     for(int iEvent=0;iEvent<(int)eventsData[iData].size();){
       
-      eventsData[iData][iEvent]->ApplyTrackCut(trackCut);
-      eventsData[iData][iEvent]->ApplyJetCut(jetCut);
-      eventsData[iData][iEvent]->ApplyLeptonCut(leptonCut);
+      eventProcessor->ApplyTrackCut(eventsData[iData][iEvent], trackCut);
+      eventProcessor->ApplyJetCut(eventsData[iData][iEvent], jetCut);
+      eventProcessor->ApplyLeptonCut(eventsData[iData][iEvent], leptonCut);
       
-      if(!eventsData[iData][iEvent]->IsPassingCut(eventCut)){
+      if(!eventProcessor->IsPassingCut(eventsData[iData][iEvent], eventCut)){
         EraseFast(eventsData[iData], iEvent);
       }
       else{

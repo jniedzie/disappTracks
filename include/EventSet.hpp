@@ -8,7 +8,7 @@
 #define EventSet_hpp
 
 #include "Helpers.hpp"
-#include "Event.hpp"
+#include "EventProcessor.hpp"
 #include "PointsProcessor.hpp"
 #include "Helix.hpp"
 #include "ConfigManager.hpp"
@@ -110,6 +110,7 @@ private:
   void SaveToTree(string fileName, EDataType type, int setIter);
   
   unique_ptr<TrackProcessor> trackProcessor;
+  unique_ptr<EventProcessor> eventProcessor;
 };
 
 

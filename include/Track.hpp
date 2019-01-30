@@ -36,7 +36,7 @@ public:
   // Getters
   inline double  GetDeDxInLayer(int layer){return dedx[layer];}
   inline double  GetTotalDedx(){return accumulate(dedx.begin(),dedx.end(),0.0);}
-  double  GetDedxInSubDet(int det);
+  double         GetDedxInSubDet(int det);
   
   inline int     GetSubDetIdInLayer(int layer){return subDetId[layer];}
   inline int     GetSizeXinLayer(int layer){return sizeX[layer];}
@@ -104,7 +104,6 @@ private:
   int pid;                    ///< Particle's PDG PID code
   int mcMatch;                ///< Does the reconstructed particle match an mc generated one
   
-  
   int nTrackerLayers;             ///< Number of tracker layers
   int nPixelLayers;               ///< Number of pixel layers
   int nTrackerHits;               ///< Number of tracker hits
@@ -116,7 +115,6 @@ private:
   int nMissingInnerTrackerHits;   ///< Number of missing inner tracker hits
   int nMissingOuterTrackerHits;   ///< Number of missing outer tracker hits
   int nMissingMiddleTrackerHits;  ///< Number of missing middle tracker hits
-  
   
   int nDetIDs;    ///< Total number of sub-detectors hit by this track
   int nDedxClusters;  ///< Total number of clusters belonging to this track

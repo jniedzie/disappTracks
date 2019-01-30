@@ -33,18 +33,6 @@ public:
   /// Prints basic information about the event
   void Print();
   
-  /// Removes tracks that don't pass the cut from the tracks collection
-  void ApplyTrackCut(const unique_ptr<TrackCut> &cut);
-  
-  /// Removes jets that don't pass the cut from the jets collection
-  void ApplyJetCut(const unique_ptr<JetCut> &cut);
-  
-  /// Removes leptons that don't pass the cut from the leptons collection
-  void ApplyLeptonCut(const unique_ptr<LeptonCut> &cut);
-  
-  /// Check if event passes a cut
-  bool IsPassingCut(const unique_ptr<EventCut> &cut);
-  
   /// Tries to load all tracker hits for this event from a separate file
   shared_ptr<vector<Point>> GetTrackerHits();
   
@@ -196,6 +184,8 @@ private:
   vector<shared_ptr<Helix>> helices; ///< Parameters of the fitted helices (one per track)
   
   unique_ptr<TrackProcessor> trackProcessor;
+  
+  friend class EventProcessor;
 };
 
 #endif /* Event_hpp */
