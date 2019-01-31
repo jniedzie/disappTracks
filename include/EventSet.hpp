@@ -13,6 +13,7 @@
 #include "Helix.hpp"
 #include "ConfigManager.hpp"
 #include "TrackProcessor.hpp"
+#include "JetProcessor.hpp"
 
 /// This class contains three vectors, for signal, background and data events. In each of those vectors,
 /// there's a vector of events of given type (for instance, in the background vector there will be a
@@ -110,6 +111,7 @@ private:
   void SaveToTree(string fileName, EDataType type, int setIter);
   
   unique_ptr<TrackProcessor> trackProcessor;
+  unique_ptr<JetProcessor>   jetProcessor;
   unique_ptr<EventProcessor> eventProcessor;
 };
 

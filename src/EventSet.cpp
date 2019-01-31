@@ -9,6 +9,7 @@
 
 EventSet::EventSet() :
 trackProcessor(make_unique<TrackProcessor>()),
+jetProcessor(make_unique<JetProcessor>()),
 eventProcessor(make_unique<EventProcessor>())
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
@@ -812,6 +813,7 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
   TTreeReader reader("tree", inFile);
   
   trackProcessor->SetupBranches(tree);
+  jetProcessor->SetupBranches(tree);
   
   TTreeReaderValue<uint>   _run(reader, "run");
   TTreeReaderValue<uint>   _lumi(reader, "lumi");
@@ -913,27 +915,9 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
       }
     }
     
-    for(int iJet=0;iJet<*_nJets;iJet++){
-      auto jet = shared_ptr<Jet>(new Jet());
-      jet->SetPt(_jetPt[iJet]);
-      jet->SetEta(_jetEta[iJet]);
-      jet->SetPhi(_jetPhi[iJet]);
-      jet->SetMass(_jetMass[iJet]);
-      jet->SetChargedHadronEnergyFraction(_jetChHEF[iJet]);
-      jet->SetNeutralHadronEnergyFraction(_jetNeHEF[iJet]);
-      jet->SetIsForward(false);
-      newEvent->AddJet(jet);
-    }
+    vector<shared_ptr<Jet>> jets = jetProcessor->GetJetsFromTree();
     
-    for(int iJet=0;iJet<*_nJetsFwd;iJet++){
-      auto jet = shared_ptr<Jet>(new Jet());
-      jet->SetPt(_jetFwdPt[iJet]);
-      jet->SetEta(_jetFwdEta[iJet]);
-      jet->SetPhi(_jetFwdPhi[iJet]);
-      jet->SetMass(_jetFwdMass[iJet]);
-      jet->SetChargedHadronEnergyFraction(_jetFwdChHEF[iJet]);
-      jet->SetNeutralHadronEnergyFraction(_jetFwdNeHEF[iJet]);
-      jet->SetIsForward(true);
+    for(auto jet : jets){
       newEvent->AddJet(jet);
     }
     

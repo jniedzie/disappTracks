@@ -53,6 +53,8 @@ private:
   double chargedHadronEnergyFraction; ///< Energy fraction carried by charged hadrons
   double neutralHadronEnergyFraction; ///< Energy fraction carried by neutral hadrons
   bool   isForward;                   ///< is this a forward jet, or a regular one
+  
+  friend class JetProcessor;
 };
 
 #endif /* Jet_hpp */

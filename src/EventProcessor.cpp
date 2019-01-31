@@ -17,7 +17,6 @@ EventProcessor::~EventProcessor()
   
 }
 
-
 void EventProcessor::ApplyTrackCut(shared_ptr<Event> event, const unique_ptr<TrackCut> &cut)
 {
   auto track = event->tracks.begin();
