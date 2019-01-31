@@ -7,7 +7,8 @@
 #include "EventProcessor.hpp"
 
 EventProcessor::EventProcessor() :
-trackProcessor(make_unique<TrackProcessor>())
+trackProcessor(make_unique<TrackProcessor>()),
+jetProcessor(make_unique<JetProcessor>())
 {
   
 }
@@ -32,7 +33,7 @@ void EventProcessor::ApplyJetCut(shared_ptr<Event> event, const unique_ptr<JetCu
   auto jet = event->jets.begin();
   
   while(jet != event->jets.end()){
-    if(!(*jet)->IsPassingCut(cut))
+    if(!jetProcessor->IsPassingCut(*jet,cut))
     jet = event->jets.erase(jet);
     else{
       // check separation with all tracks in the event

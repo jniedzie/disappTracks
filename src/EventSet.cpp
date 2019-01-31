@@ -10,6 +10,7 @@
 EventSet::EventSet() :
 trackProcessor(make_unique<TrackProcessor>()),
 jetProcessor(make_unique<JetProcessor>()),
+helixProcessor(make_unique<HelixProcessor>()),
 eventProcessor(make_unique<EventProcessor>())
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
@@ -814,6 +815,7 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
   
   trackProcessor->SetupBranches(tree);
   jetProcessor->SetupBranches(tree);
+  helixProcessor->SetupBranches(tree);
   
   TTreeReaderValue<uint>   _run(reader, "run");
   TTreeReaderValue<uint>   _lumi(reader, "lumi");
@@ -861,29 +863,6 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
   TTreeReaderArray<int>   _leptonThightId(reader, "LepGood_tightId");
   TTreeReaderArray<float> _leptonIsolation(reader, "LepGood_relIso04");
   TTreeReaderArray<int>   _leptonPid(reader, "LepGood_pdgId");
-  
-  TTreeReaderArray<float> _jetPt(reader,  "Jet_pt");
-  TTreeReaderArray<float> _jetEta(reader, "Jet_eta");
-  TTreeReaderArray<float> _jetPhi(reader, "Jet_phi");
-  TTreeReaderArray<float> _jetMass(reader, "Jet_mass");
-  TTreeReaderArray<float> _jetChHEF(reader, "Jet_chHEF");
-  TTreeReaderArray<float> _jetNeHEF(reader, "Jet_neHEF");
-  
-  TTreeReaderArray<float> _jetFwdPt(reader,  "JetFwd_pt");
-  TTreeReaderArray<float> _jetFwdEta(reader, "JetFwd_eta");
-  TTreeReaderArray<float> _jetFwdPhi(reader, "JetFwd_phi");
-  TTreeReaderArray<float> _jetFwdMass(reader, "JetFwd_mass");
-  TTreeReaderArray<float> _jetFwdChHEF(reader, "JetFwd_chHEF");
-  TTreeReaderArray<float> _jetFwdNeHEF(reader, "JetFwd_neHEF");
-
-  TTreeReaderValue<int>   _nHelices(reader, tree->GetBranchStatus("nFittedHelices") ? "nFittedHelices" : "nIsoTrack");
-  TTreeReaderArray<int>   _helixCharge(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_charge" : "nIsoTrack");
-  TTreeReaderArray<float> _helixX(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_x" : "Jet_pt");
-  TTreeReaderArray<float> _helixY(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_y" : "Jet_pt");
-  TTreeReaderArray<float> _helixZ(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_z" : "Jet_pt");
-  TTreeReaderArray<float> _helixPx(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_px" : "Jet_pt");
-  TTreeReaderArray<float> _helixPy(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_py" : "Jet_pt");
-  TTreeReaderArray<float> _helixPz(reader, tree->GetBranchStatus("nFittedHelices") ?  "helix_pz" : "Jet_pt");
 
   int iter=0;
   
@@ -906,15 +885,12 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
       newEvent->AddTrack(track);
     }
     
-    if(tree->GetBranchStatus("nFittedHelices")){
-      for(int iHelix=0;iHelix<*_nHelices;iHelix++){
-        auto origin   = make_unique<Point>(_helixX[iHelix],  _helixY[iHelix],  _helixZ[iHelix]);
-        auto momentum = make_unique<Point>(_helixPx[iHelix], _helixPy[iHelix], _helixPz[iHelix]);
-        auto helix    = make_shared<Helix>(origin, momentum, _helixCharge[iHelix]);
-        newEvent->AddHelix(helix);
-      }
-    }
+    vector<shared_ptr<Helix>> helices = helixProcessor->GetHelicesFromTree();
     
+    for(auto helix : helices){
+      newEvent->AddHelix(helix);
+    }
+
     vector<shared_ptr<Jet>> jets = jetProcessor->GetJetsFromTree();
     
     for(auto jet : jets){

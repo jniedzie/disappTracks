@@ -19,7 +19,6 @@ public:
   /// Default destructor
   ~JetProcessor();
   
-  
   /// Check if jet passes selection criteria
   /// \param jet Jet to which cuts should be applied
   /// \param cut Jet selection criteria to be checked
@@ -38,7 +37,7 @@ private:
   int nJets;                          ///< Number of jets in the current tree entry
   int nJetsFwd;                       ///< Number of forward jets in the current tree entry
   
-  map<string, float[maxNjets]>  arrayValuesFloat;  ///< Float per-track variables in the current entry
+  map<string, float[maxNjets]>  arrayValuesFloat;  ///< Float per-jet variables in the current entry
 };
 
 #endif /* JetProcessor_hpp */

@@ -23,10 +23,6 @@ public:
   /// Print basic information about the jet
   void Print();
   
-  /// Checks if jet passes selection criteria
-  /// \param cut Jets selection criteria to be checked
-  bool IsPassingCut(const unique_ptr<JetCut> &cut);
-  
   // Setters
   inline void SetPt(double val){pt = val;}
   inline void SetEta(double val){eta = val;}

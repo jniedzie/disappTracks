@@ -38,7 +38,21 @@ public:
   
   unique_ptr<Helix> GetRandomPionHelix(const shared_ptr<Track> &track);
   
+  
+  /// Link class variables to branches of a specified tree
+  /// \param tree Tree from which helix parameters will be read
+  void SetupBranches(TTree *tree);
+  
+  /// Returns a vector of helices with parameters read from tree previously set with SetupBranches(..)
+  vector<shared_ptr<Helix>> GetHelicesFromTree();
+  
 private:
+  static const int maxNhelices = 1000;   ///< Maximum supported number of helices per event
+  int nHelices;                          ///< Number of helices in the current tree entry
+  
+  map<string, float[maxNhelices]> arrayValuesFloat; ///< Float per-helix variables in the current entry
+  map<string, int[maxNhelices]>   arrayValuesInt;   ///< Int per-helix variables in the current entry
+  
   unique_ptr<PointsProcessor> pointsProcessor;
 };
 

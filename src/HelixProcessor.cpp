@@ -156,3 +156,48 @@ unique_ptr<Helix> HelixProcessor::GetRandomPionHelix(const shared_ptr<Track> &tr
   
   return pionHelix;
 }
+
+
+vector<shared_ptr<Helix>> HelixProcessor::GetHelicesFromTree()
+{
+  vector<shared_ptr<Helix>> helices = vector<shared_ptr<Helix>>();
+  
+  for(int iHelix=0;iHelix<nHelices;iHelix++){
+    auto origin   = make_unique<Point>(arrayValuesFloat["helix_x"][iHelix],
+                                       arrayValuesFloat["helix_y"][iHelix],
+                                       arrayValuesFloat["helix_z"][iHelix]);
+    
+    auto momentum = make_unique<Point>(arrayValuesFloat["helix_px"][iHelix],
+                                       arrayValuesFloat["helix_py"][iHelix],
+                                       arrayValuesFloat["helix_pz"][iHelix]);
+    
+    auto helix    = make_shared<Helix>(origin, momentum, arrayValuesInt["helix_charge"][iHelix]);
+    
+    helices.push_back(helix);
+  }
+
+  return helices;
+}
+
+void HelixProcessor::SetupBranches(TTree *tree)
+{
+  // check if there is a branch with helices in the tree
+  if(!tree->GetBranchStatus("nFittedHelices")){
+    nHelices = 0;
+    return;
+  }
+ 
+  // single int variables
+  tree->SetBranchAddress("nFittedHelices", &nHelices);
+  
+  // int array variables
+  tree->SetBranchAddress("helix_charge", &arrayValuesInt["helix_charge"]);
+  
+  // float array variables
+  tree->SetBranchAddress("helix_x",   &arrayValuesFloat["helix_x"]);
+  tree->SetBranchAddress("helix_y",   &arrayValuesFloat["helix_y"]);
+  tree->SetBranchAddress("helix_z",   &arrayValuesFloat["helix_z"]);
+  tree->SetBranchAddress("helix_px",  &arrayValuesFloat["helix_px"]);
+  tree->SetBranchAddress("helix_py",  &arrayValuesFloat["helix_py"]);
+  tree->SetBranchAddress("helix_pz",  &arrayValuesFloat["helix_pz"]);
+}

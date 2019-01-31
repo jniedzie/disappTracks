@@ -10,6 +10,7 @@
 #include "Helpers.hpp"
 #include "Event.hpp"
 #include "TrackProcessor.hpp"
+#include "JetProcessor.hpp"
 
 class EventProcessor {
 public:
@@ -30,8 +31,8 @@ public:
   bool IsPassingCut(const shared_ptr<Event> event, const unique_ptr<EventCut> &cut);
   
 private:
-  unique_ptr<TrackProcessor> trackProcessor;
-  
+  unique_ptr<TrackProcessor>  trackProcessor;
+  unique_ptr<JetProcessor>    jetProcessor;
 };
 
 #endif /* EventProcessor_hpp */
