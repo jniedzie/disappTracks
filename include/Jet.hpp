@@ -23,15 +23,6 @@ public:
   /// Print basic information about the jet
   void Print();
   
-  // Setters
-  inline void SetPt(double val){pt = val;}
-  inline void SetEta(double val){eta = val;}
-  inline void SetPhi(double val){phi = val;}
-  inline void SetMass(double val){mass = val;}
-  inline void SetChargedHadronEnergyFraction(double val){chargedHadronEnergyFraction = val;}
-  inline void SetNeutralHadronEnergyFraction(double val){neutralHadronEnergyFraction = val;}
-  inline void SetIsForward(bool val){isForward = val;}
-  
   // Getters
   inline double GetPt(){return pt;}
   inline double GetEta(){return eta;}
