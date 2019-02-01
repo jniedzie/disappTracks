@@ -11,6 +11,7 @@
 #include "Event.hpp"
 #include "TrackProcessor.hpp"
 #include "JetProcessor.hpp"
+#include "LeptonProcessor.hpp"
 
 class EventProcessor {
 public:
@@ -33,6 +34,7 @@ public:
 private:
   unique_ptr<TrackProcessor>  trackProcessor;
   unique_ptr<JetProcessor>    jetProcessor;
+  unique_ptr<LeptonProcessor> leptonProcessor;
 };
 
 #endif /* EventProcessor_hpp */

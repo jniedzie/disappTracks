@@ -8,7 +8,8 @@
 
 EventProcessor::EventProcessor() :
 trackProcessor(make_unique<TrackProcessor>()),
-jetProcessor(make_unique<JetProcessor>())
+jetProcessor(make_unique<JetProcessor>()),
+leptonProcessor(make_unique<LeptonProcessor>())
 {
   
 }
@@ -66,7 +67,7 @@ void EventProcessor::ApplyLeptonCut(shared_ptr<Event> event, const unique_ptr<Le
   auto lepton = event->leptons.begin();
   
   while(lepton != event->leptons.end()){
-    if(!(*lepton)->IsPassingCut(cut))
+    if(!leptonProcessor->IsPassingCut(*lepton, cut))
     lepton = event->leptons.erase(lepton);
     else
     lepton++;
@@ -123,7 +124,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const unique_pt
     
     bool atLeastOneTightMuon = false;
     for(auto muon : muons){
-      if(muon->IsPassingCut(tightMuonCut)) atLeastOneTightMuon = true;
+      if(leptonProcessor->IsPassingCut(muon, tightMuonCut)) atLeastOneTightMuon = true;
     }
     if(!atLeastOneTightMuon) return false;
   }

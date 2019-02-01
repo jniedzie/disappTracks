@@ -14,6 +14,7 @@
 #include "TrackProcessor.hpp"
 #include "JetProcessor.hpp"
 #include "HelixProcessor.hpp"
+#include "LeptonProcessor.hpp"
 
 /// This class contains three vectors, for signal, background and data events. In each of those vectors,
 /// there's a vector of events of given type (for instance, in the background vector there will be a
@@ -114,6 +115,7 @@ private:
   unique_ptr<JetProcessor>    jetProcessor;
   unique_ptr<HelixProcessor>  helixProcessor;
   unique_ptr<EventProcessor>  eventProcessor;
+  unique_ptr<LeptonProcessor> leptonProcessor;
 };
 
 

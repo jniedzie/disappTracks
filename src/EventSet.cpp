@@ -11,7 +11,8 @@ EventSet::EventSet() :
 trackProcessor(make_unique<TrackProcessor>()),
 jetProcessor(make_unique<JetProcessor>()),
 helixProcessor(make_unique<HelixProcessor>()),
-eventProcessor(make_unique<EventProcessor>())
+eventProcessor(make_unique<EventProcessor>()),
+leptonProcessor(make_unique<LeptonProcessor>())
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
     eventsSignal.push_back(vector<shared_ptr<Event>>());
@@ -816,6 +817,7 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
   trackProcessor->SetupBranches(tree);
   jetProcessor->SetupBranches(tree);
   helixProcessor->SetupBranches(tree);
+  leptonProcessor->SetupBranches(tree);
   
   TTreeReaderValue<uint>   _run(reader, "run");
   TTreeReaderValue<uint>   _lumi(reader, "lumi");
@@ -857,13 +859,6 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
   TTreeReaderValue<float> _metNoMuPhi(reader, "metNoMu_phi");
   TTreeReaderValue<float> _metNoMuEta(reader, "metNoMu_eta");
   
-  TTreeReaderArray<float> _leptonPt(reader, "LepGood_pt");
-  TTreeReaderArray<float> _leptonPhi(reader, "LepGood_phi");
-  TTreeReaderArray<float> _leptonEta(reader, "LepGood_eta");
-  TTreeReaderArray<int>   _leptonThightId(reader, "LepGood_tightId");
-  TTreeReaderArray<float> _leptonIsolation(reader, "LepGood_relIso04");
-  TTreeReaderArray<int>   _leptonPid(reader, "LepGood_pdgId");
-
   int iter=0;
   
   while(reader.Next()){
@@ -897,14 +892,9 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
       newEvent->AddJet(jet);
     }
     
-    for(int iLepton=0;iLepton<*_nLepton;iLepton++){
-      auto lepton = shared_ptr<Lepton>(new Lepton());
-      lepton->SetPt(_leptonPt[iLepton]);
-      lepton->SetEta(_leptonEta[iLepton]);
-      lepton->SetPhi(_leptonPhi[iLepton]);
-      lepton->SetTightID(_leptonThightId[iLepton]);
-      lepton->SetRelativeIsolation(_leptonIsolation[iLepton]);
-      lepton->SetPid(_leptonPid[iLepton]);
+    vector<shared_ptr<Lepton>> leptons = leptonProcessor->GetLeptonsFromTree();
+    
+    for(auto lepton : leptons){
       newEvent->AddLepton(lepton);
     }
     

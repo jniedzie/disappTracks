@@ -19,7 +19,6 @@ public:
   /// Default desctructor
   ~JetCut();
   
-  
   // Setters
   inline void SetPt(range<double> val){pt=val;}
   inline void SetEta(range<double> val){eta=val;}
@@ -27,7 +26,6 @@ public:
   inline void SetChargedHadronEnergyFraction(range<double> val){chargedHadronEnergyFraction=val;}
   inline void SetNeutralHadronEnergyFraction(range<double> val){neutralHadronEnergyFraction=val;}
   inline void SetTrackDeltaR(range<double> val){trackDeltaR=val;}
-  
   
   // Getters
   inline range<double> GetPt(){return pt;}
@@ -44,7 +42,6 @@ private:
   range<double> chargedHadronEnergyFraction;  ///< allowed charged hadron energy fraction
   range<double> neutralHadronEnergyFraction;  ///< allowed neutral hadron energy fraction
   range<double> trackDeltaR;                  ///< allowed separation with any of the tracks
-  
 };
 
 #endif /* JetCut_hpp */

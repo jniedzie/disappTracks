@@ -17,19 +17,4 @@ pid(inf)
 
 };
 
-bool Lepton::IsPassingCut(const unique_ptr<LeptonCut> &cut)
-{
-  // check pt
-  if(cut->GetPt().IsOutside(pt)) return false;
-
-  // check isolation
-  if(cut->GetRelativeIsolation().IsOutside(relativeIsolation)) return false;
-  
-  // check tight id requirement
-  if(cut->RequiresTightID() && !tightID) return false;
-  
-  return true;
-}
-
-
 
