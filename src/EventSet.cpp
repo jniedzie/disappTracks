@@ -199,20 +199,30 @@ void EventSet::SaveToTree(string fileName, EDataType dataType, int setIter)
   
   float dedx[nLayers];
   int subDetId[nLayers], sizeX[nLayers], sizeY[nLayers];
+  int detType[nLayers], layer[nLayers], ladder[nLayers];
   
-  for(int iLayer=0;iLayer<nLayers;iLayer++){
+  for(int iHit=0;iHit<nLayers;iHit++){
     
-    tree->Branch(Form("IsoTrack_dedxByLayer%i",iLayer), &dedx,
-                 Form("IsoTrack_dedxByLayer%i[nIsoTrack]/F",iLayer));
+    tree->Branch(Form("IsoTrack_dedxByLayer%i",iHit), &dedx,
+                 Form("IsoTrack_dedxByLayer%i[nIsoTrack]/F",iHit));
     
-    tree->Branch(Form("IsoTrack_subDetIdByLayer%i",iLayer), &subDetId,
-                 Form("IsoTrack_subDetIdByLayer%i[nIsoTrack]/I",iLayer));
+    tree->Branch(Form("IsoTrack_subDetIdByLayer%i",iHit), &subDetId,
+                 Form("IsoTrack_subDetIdByLayer%i[nIsoTrack]/I",iHit));
     
-    tree->Branch(Form("IsoTrack_sizeXbyLayer%i",iLayer), &sizeX,
-                 Form("IsoTrack_sizeXbyLayer%i[nIsoTrack]/I",iLayer));
+    tree->Branch(Form("IsoTrack_sizeXbyLayer%i",iHit), &sizeX,
+                 Form("IsoTrack_sizeXbyLayer%i[nIsoTrack]/I",iHit));
     
-    tree->Branch(Form("IsoTrack_sizeYbyLayer%i",iLayer), &sizeY,
-                 Form("IsoTrack_sizeYbyLayer%i[nIsoTrack]/I",iLayer));
+    tree->Branch(Form("IsoTrack_sizeYbyLayer%i",iHit), &sizeY,
+                 Form("IsoTrack_sizeYbyLayer%i[nIsoTrack]/I",iHit));
+    
+    tree->Branch(Form("IsoTrack_layerOrSideByLayer%i",iHit), &layer,
+                 Form("IsoTrack_layerOrSideByLayer%i[nIsoTrack]/I",iHit));
+    
+    tree->Branch(Form("IsoTrack_ladderOrBladeByLayer%i",iHit), &layer,
+                 Form("IsoTrack_ladderOrBladeByLayer%i[nIsoTrack]/I",iHit));
+    
+    tree->Branch(Form("IsoTrack_pixByLayer%i",iHit), &detType,
+                 Form("IsoTrack_pixByLayer%i[nIsoTrack]/I",iHit));
   }
   
   
@@ -285,11 +295,14 @@ void EventSet::SaveToTree(string fileName, EDataType dataType, int setIter)
       IsoTrack_missingOuterTrackerHits[iTrack] = event->GetTrack(iTrack)->GetNmissingOuterTrackerHits();
       IsoTrack_missingMiddleTrackerHits[iTrack] = event->GetTrack(iTrack)->GetNmissingMiddleTrackerHits();
       
-      for(int iLayer=0;iLayer<nLayers;iLayer++){
-        dedx[iLayer] = event->GetTrack(iTrack)->GetDeDxInLayer(iLayer);
-        subDetId[iLayer] = event->GetTrack(iTrack)->GetSubDetIdInLayer(iLayer);
-        sizeX[iLayer] = event->GetTrack(iTrack)->GetSizeXinLayer(iLayer);
-        sizeY[iLayer] = event->GetTrack(iTrack)->GetSizeYinLayer(iLayer);
+      for(int iHit=0;iHit<event->GetTrack(iTrack)->GetNdEdxHits();iHit++){
+        dedx[iHit]     = event->GetTrack(iTrack)->GetDeDxForHit(iHit);
+        subDetId[iHit] = event->GetTrack(iTrack)->GetSubDetIdForHit(iHit);
+        sizeX[iHit]    = event->GetTrack(iTrack)->GetSizeXforHit(iHit);
+        sizeY[iHit]    = event->GetTrack(iTrack)->GetSizeYforHit(iHit);
+        layer[iHit]    = event->GetTrack(iTrack)->GetLayerForHit(iHit);
+        ladder[iHit]   = event->GetTrack(iTrack)->GetLadderForHit(iHit);
+        detType[iHit]  = event->GetTrack(iTrack)->GetDetTypeForHit(iHit);
       }
     }
     

@@ -107,39 +107,42 @@ vector<shared_ptr<Track>> TrackProcessor::GetTracksFromTree()
     auto track = make_shared<Track>();
     
     // float variables
-    track->eta = arrayValuesFloat["IsoTrack_eta"][iTrack];
-    track->phi = arrayValuesFloat["IsoTrack_phi"][iTrack];
-    track->caloEmEnergy = arrayValuesFloat["IsoTrack_caloEmEnergy"][iTrack];
-    track->caloHadEnergy = arrayValuesFloat["IsoTrack_caloHadEnergy"][iTrack];
-    track->dxy = arrayValuesFloat["IsoTrack_dxy"][iTrack];
-    track->dxyErr = arrayValuesFloat["IsoTrack_edxy"][iTrack];
-    track->dz = arrayValuesFloat["IsoTrack_dz"][iTrack];
-    track->dzErr = arrayValuesFloat["IsoTrack_edz"][iTrack];
-    track->mass = arrayValuesFloat["IsoTrack_mass"][iTrack];
-    track->pt = arrayValuesFloat["IsoTrack_pt"][iTrack];
+    track->eta               = arrayValuesFloat["IsoTrack_eta"][iTrack];
+    track->phi               = arrayValuesFloat["IsoTrack_phi"][iTrack];
+    track->caloEmEnergy      = arrayValuesFloat["IsoTrack_caloEmEnergy"][iTrack];
+    track->caloHadEnergy     = arrayValuesFloat["IsoTrack_caloHadEnergy"][iTrack];
+    track->dxy               = arrayValuesFloat["IsoTrack_dxy"][iTrack];
+    track->dxyErr            = arrayValuesFloat["IsoTrack_edxy"][iTrack];
+    track->dz                = arrayValuesFloat["IsoTrack_dz"][iTrack];
+    track->dzErr             = arrayValuesFloat["IsoTrack_edz"][iTrack];
+    track->mass              = arrayValuesFloat["IsoTrack_mass"][iTrack];
+    track->pt                = arrayValuesFloat["IsoTrack_pt"][iTrack];
     track->relativeIsolation = arrayValuesFloat["IsoTrack_relIso03"][iTrack];
 
     // int variables
-    track->pid = arrayValuesInt["IsoTrack_pdgId"][iTrack];
-    track->charge = arrayValuesInt["IsoTrack_charge"][iTrack];
-    track->mcMatch = arrayValuesInt["IsoTrack_mcMatch"][iTrack];
-    track->nTrackerLayers = arrayValuesInt["IsoTrack_trackerLayers"][iTrack];
-    track->nPixelLayers = arrayValuesInt["IsoTrack_pixelLayers"][iTrack];
-    track->nTrackerHits = arrayValuesInt["IsoTrack_trackerHits"][iTrack];
-    track->nPixelHits = arrayValuesInt["IsoTrack_pixelHits"][iTrack];
-    track->nMissingInnerPixelHits = arrayValuesInt["IsoTrack_missingInnerPixelHits"][iTrack];
-    track->nMissingOuterPixelHits = arrayValuesInt["IsoTrack_missingOuterPixelHits"][iTrack];
-    track->nMissingInnerStripHits = arrayValuesInt["IsoTrack_missingInnerStripHits"][iTrack];
-    track->nMissingOuterStripHits = arrayValuesInt["IsoTrack_missingOuterStripHits"][iTrack];
-    track->nMissingInnerTrackerHits = arrayValuesInt["IsoTrack_missingInnerTrackerHits"][iTrack];
-    track->nMissingOuterTrackerHits = arrayValuesInt["IsoTrack_missingOuterTrackerHits"][iTrack];
+    track->pid                       = arrayValuesInt["IsoTrack_pdgId"][iTrack];
+    track->charge                    = arrayValuesInt["IsoTrack_charge"][iTrack];
+    track->mcMatch                   = arrayValuesInt["IsoTrack_mcMatch"][iTrack];
+    track->nTrackerLayers            = arrayValuesInt["IsoTrack_trackerLayers"][iTrack];
+    track->nPixelLayers              = arrayValuesInt["IsoTrack_pixelLayers"][iTrack];
+    track->nTrackerHits              = arrayValuesInt["IsoTrack_trackerHits"][iTrack];
+    track->nPixelHits                = arrayValuesInt["IsoTrack_pixelHits"][iTrack];
+    track->nMissingInnerPixelHits    = arrayValuesInt["IsoTrack_missingInnerPixelHits"][iTrack];
+    track->nMissingOuterPixelHits    = arrayValuesInt["IsoTrack_missingOuterPixelHits"][iTrack];
+    track->nMissingInnerStripHits    = arrayValuesInt["IsoTrack_missingInnerStripHits"][iTrack];
+    track->nMissingOuterStripHits    = arrayValuesInt["IsoTrack_missingOuterStripHits"][iTrack];
+    track->nMissingInnerTrackerHits  = arrayValuesInt["IsoTrack_missingInnerTrackerHits"][iTrack];
+    track->nMissingOuterTrackerHits  = arrayValuesInt["IsoTrack_missingOuterTrackerHits"][iTrack];
     track->nMissingMiddleTrackerHits = arrayValuesInt["IsoTrack_missingMiddleTrackerHits"][iTrack];
 
     for(int iLayer=0;iLayer<nLayers;iLayer++){
-      track->dedx[iLayer] = arrayValuesFloat[Form("IsoTrack_dedxByLayer%i",iLayer)][iTrack];
-      track->subDetId[iLayer] = arrayValuesFloat[Form("IsoTrack_subDetIdByLayer%i",iLayer)][iTrack];
-      track->sizeX[iLayer] = arrayValuesFloat[Form("IsoTrack_sizeXbyLayer%i",iLayer)][iTrack];
-      track->sizeY[iLayer] = arrayValuesFloat[Form("IsoTrack_sizeYbyLayer%i",iLayer)][iTrack];
+      track->dedx[iLayer]     = arrayValuesFloat[Form("IsoTrack_dedxByLayer%i",iLayer)][iTrack];
+      track->subDetId[iLayer] = arrayValuesInt[Form("IsoTrack_subDetIdByLayer%i",iLayer)][iTrack];
+      track->sizeX[iLayer]    = arrayValuesInt[Form("IsoTrack_sizeXbyLayer%i",iLayer)][iTrack];
+      track->sizeY[iLayer]    = arrayValuesInt[Form("IsoTrack_sizeYbyLayer%i",iLayer)][iTrack];
+      track->detType[iLayer]  = arrayValuesInt[Form("IsoTrack_pixByLayer%i",iLayer)][iTrack];
+      track->layer[iLayer]    = arrayValuesInt[Form("IsoTrack_layerOrSideByLayer%i",iLayer)][iTrack];
+      track->ladder[iLayer]   = arrayValuesInt[Form("IsoTrack_ladderOrBladeByLayer%i",iLayer)][iTrack];
     }
     track->CalculateInternals();
     
@@ -172,16 +175,21 @@ void TrackProcessor::SetupBranches(TTree *tree)
   tree->SetBranchAddress("IsoTrack_relIso03",&arrayValuesFloat["IsoTrack_relIso03"]);
   
   for(int iLayer=0;iLayer<nLayers;iLayer++){
-    tree->SetBranchAddress(Form("IsoTrack_dedxByLayer%i",iLayer),&arrayValuesFloat[Form("IsoTrack_dedxByLayer%i",iLayer)]);
-    tree->SetBranchAddress(Form("IsoTrack_subDetIdByLayer%i",iLayer),&arrayValuesFloat[Form("IsoTrack_subDetIdByLayer%i",iLayer)]);
-    tree->SetBranchAddress(Form("IsoTrack_sizeXbyLayer%i",iLayer),&arrayValuesFloat[Form("IsoTrack_sizeXbyLayer%i",iLayer)]);
-    tree->SetBranchAddress(Form("IsoTrack_sizeYbyLayer%i",iLayer),&arrayValuesFloat[Form("IsoTrack_sizeYbyLayer%i",iLayer)]);
+    tree->SetBranchAddress(Form("IsoTrack_dedxByLayer%i",iLayer),
+                           &arrayValuesFloat[Form("IsoTrack_dedxByLayer%i",iLayer)]);
   }
   
   // int array variables
   tree->SetBranchAddress("IsoTrack_pdgId",&arrayValuesInt["IsoTrack_pdgId"]);
   tree->SetBranchAddress("IsoTrack_charge",&arrayValuesInt["IsoTrack_charge"]);
-  tree->SetBranchAddress("IsoTrack_mcMatch",&arrayValuesInt["IsoTrack_mcMatch"]);
+  
+  if(tree->GetBranchStatus("IsoTrack_mcMatch")){
+    tree->SetBranchAddress("IsoTrack_mcMatch",&arrayValuesInt["IsoTrack_mcMatch"]);
+  }
+  else{
+    cout<<"WARNING -- branch IsoTrack_mcMatch was not found. Will assume true for MC match"<<endl;
+    for(int i=0; i<maxNtracks;i++){arrayValuesInt["IsoTrack_mcMatch"][i] = 1;}
+  }
   tree->SetBranchAddress("IsoTrack_trackerLayers",&arrayValuesInt["IsoTrack_trackerLayers"]);
   tree->SetBranchAddress("IsoTrack_pixelLayers",&arrayValuesInt["IsoTrack_pixelLayers"]);
   tree->SetBranchAddress("IsoTrack_trackerHits",&arrayValuesInt["IsoTrack_trackerHits"]);
@@ -193,4 +201,22 @@ void TrackProcessor::SetupBranches(TTree *tree)
   tree->SetBranchAddress("IsoTrack_missingInnerTrackerHits",&arrayValuesInt["IsoTrack_missingInnerTrackerHits"]);
   tree->SetBranchAddress("IsoTrack_missingOuterTrackerHits",&arrayValuesInt["IsoTrack_missingOuterTrackerHits"]);
   tree->SetBranchAddress("IsoTrack_missingMiddleTrackerHits",&arrayValuesInt["IsoTrack_missingMiddleTrackerHits"]);
+  
+  for(int iLayer=0;iLayer<nLayers;iLayer++){
+    tree->SetBranchAddress(Form("IsoTrack_subDetIdByLayer%i",iLayer),
+                           &arrayValuesInt[Form("IsoTrack_subDetIdByLayer%i",iLayer)]);
+    tree->SetBranchAddress(Form("IsoTrack_sizeXbyLayer%i",iLayer),
+                           &arrayValuesInt[Form("IsoTrack_sizeXbyLayer%i",iLayer)]);
+    tree->SetBranchAddress(Form("IsoTrack_sizeYbyLayer%i",iLayer),
+                           &arrayValuesInt[Form("IsoTrack_sizeYbyLayer%i",iLayer)]);
+    tree->SetBranchAddress(Form("IsoTrack_pixByLayer%i",iLayer),
+                           &arrayValuesInt[Form("IsoTrack_pixByLayer%i",iLayer)]);
+    
+    tree->SetBranchAddress(Form("IsoTrack_layerOrSideByLayer%i",iLayer),
+                           &arrayValuesInt[Form("IsoTrack_layerOrSideByLayer%i",iLayer)]);
+    tree->SetBranchAddress(Form("IsoTrack_ladderOrBladeByLayer%i",iLayer),
+                           &arrayValuesInt[Form("IsoTrack_ladderOrBladeByLayer%i",iLayer)]);
+    
+  }
+  
 }

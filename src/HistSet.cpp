@@ -194,12 +194,12 @@ void HistSet::Fill(const shared_ptr<TH1D> &hist,
           value = metVector.DeltaPhi(trackVector);
         }
         else if(var == kDedx || var == kSizeX || var == kSizeY){
-          for(int i=0;i<nLayers;i++){
-            int detId = track->GetSubDetIdInLayer(i);
+          for(int i=0;i<track->GetNdEdxHits();i++){
+            int detId = track->GetSubDetIdForHit(i);
             if(detId == iDetId){
               if(var == kDedx)        value = track->GetDedxInSubDet(i);
-              else if(var == kSizeX)  value = track->GetSizeXinLayer(i);
-              else if(var == kSizeY)  value = track->GetSizeYinLayer(i);
+              else if(var == kSizeX)  value = track->GetSizeXforHit(i);
+              else if(var == kSizeY)  value = track->GetSizeYforHit(i);
               
               if(value > 0.00001) hist->Fill(value, event->GetWeight());
             }
@@ -207,13 +207,12 @@ void HistSet::Fill(const shared_ptr<TH1D> &hist,
           continue;
         }
         else if(var == kTrackDedxPerHit){
-          for(int i=0;i<nLayers;i++){
-            value = track->GetDeDxInLayer(i);
+          for(int i=0;i<track->GetNdEdxHits();i++){
+            value = track->GetDeDxForHit(i);
             if(value > 0.00001) hist->Fill(value, event->GetWeight());
           }
           continue;
         }
-        
         hist->Fill(value, event->GetWeight());
       }
     }

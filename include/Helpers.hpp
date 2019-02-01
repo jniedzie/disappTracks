@@ -200,16 +200,16 @@ const vector<vector<string>> inFileNameBackground = {
 };
 
 const vector<string> inFileNameSignal = {
-  "../Signal/Wino_M_300_cTau_3/",
-  "../Signal/Wino_M_300_cTau_10/",
-  "../Signal/Wino_M_300_cTau_30/",
-  "../Signal/Wino_M_500_cTau_10/",
+  "../data_andrea/Signal/Wino_M_300_cTau_3/",
+  "../data_andrea/Signal/Wino_M_300_cTau_10/",
+  "../data_andrea/Signal/Wino_M_300_cTau_30/",
+  "../data_andrea/Signal/Wino_M_500_cTau_10/",
   "../Signal/Wino_M_500_cTau_20/",
-  "../Signal/Wino_M_650_cTau_10/",
+  "../data_andrea/Signal/Wino_M_650_cTau_10/",
   "../Signal/Wino_M_650_cTau_20/",
-  "../Signal/Wino_M_800_cTau_10/",
+  "../data_andrea/Signal/Wino_M_800_cTau_10/",
   "../Signal/Wino_M_800_cTau_20/",
-  "../Signal/Wino_M_1000_cTau_10/",
+  "../data_andrea/Signal/Wino_M_1000_cTau_10/",
   "../Signal/Wino_M_1000_cTau_20/",
 };
 

@@ -44,6 +44,9 @@ eventMetMass(inf)
     subDetId.push_back(-1);
     sizeX.push_back(-1);
     sizeY.push_back(-1);
+    detType.push_back(-1);
+    layer.push_back(-1);
+    ladder.push_back(-1);
   }
 };
 

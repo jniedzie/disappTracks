@@ -34,13 +34,17 @@ public:
   inline void SetDecayPoint(unique_ptr<Point> val){decayPoint = move(val);}
   
   // Getters
-  inline double  GetDeDxInLayer(int layer){return dedx[layer];}
+  inline int     GetNdEdxHits(){return (int)dedx.size();}
+  inline double  GetDeDxForHit(int iHit){return dedx[iHit];}
   inline double  GetTotalDedx(){return accumulate(dedx.begin(),dedx.end(),0.0);}
   double         GetDedxInSubDet(int det);
   
-  inline int     GetSubDetIdInLayer(int layer){return subDetId[layer];}
-  inline int     GetSizeXinLayer(int layer){return sizeX[layer];}
-  inline int     GetSizeYinLayer(int layer){return sizeY[layer];}
+  inline int     GetSubDetIdForHit(int iHit){return subDetId[iHit];}
+  inline int     GetSizeXforHit(int iHit){return sizeX[iHit];}
+  inline int     GetSizeYforHit(int iHit){return sizeY[iHit];}
+  inline int     GetDetTypeForHit(int iHit){return detType[iHit];}
+  inline int     GetLayerForHit(int iHit){return layer[iHit];}
+  inline int     GetLadderForHit(int iHit){return ladder[iHit];}
   
   inline double  GetPt(){return pt;}
   inline double  GetEta(){return eta;}
@@ -89,6 +93,10 @@ private:
   vector<int> subDetId;       ///< Sub-detector IDs for each layer
   vector<int> sizeX;          ///< Cluster size X in each layer
   vector<int> sizeY;          ///< Cluster size Y in each layer
+  vector<int> detType;        ///< Type of detector from which the hit comes (0 = strips, 1 = bpix, 2 = fpix)
+  vector<int> layer;          ///< Layer for given dE/dx hit
+  vector<int> ladder;         ///< Ladder for gien dE/dx hit
+  
   double pt;                  ///< Transverse momentum (GeV)
   double eta;                 ///< Pseudorapidity
   double phi;                 ///< Polar angle
