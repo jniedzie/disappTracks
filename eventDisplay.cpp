@@ -11,7 +11,7 @@ uint searchRun = 297100;
 uint searchLumi = 136;
 unsigned long long searchEvent = 245000232;
 
-string configPath = "configs/helixFitter.md";
+string configPath = "configs/eventDisplay.md";
 
 Display *display;
 
@@ -82,15 +82,26 @@ int main(int argc, char* argv[])
   auto trackProcessor = make_unique<TrackProcessor>();
   
   auto events = make_shared<EventSet>();
-  events->LoadEventsFromFiles("after_L2/3layers/");
+  events->LoadEventsFromFiles("/");
 //  events->LoadEventsFromFiles("after_L0/");
   
-  auto event = events->GetEvent(EventSet::kData, searchRun, searchLumi, searchEvent);
+//  auto event = events->GetEvent(EventSet::kBackground, searchRun, searchLumi, searchEvent);
+  auto event = events->At(EventSet::kSignal, kWino_M_300_cTau_10, 3);
+  
   if(!event){
     cout<<"eventDisplay -- event not found"<<endl;
     exit(0);
   }
 
+  auto jetCut = make_unique<JetCut>();
+  
+  jetCut->SetPt(range<double>(30.0, inf));
+  jetCut->SetChargedHadronEnergyFraction(range<double>(0.01,0.99));
+  jetCut->SetNeutralHadronEnergyFraction(range<double>(0.01,0.99));
+  
+  auto eventProcessor = make_unique<EventProcessor>();
+  eventProcessor->ApplyJetCut(event, jetCut);
+  
   display->DrawEvent(event, dedxOptions);
   event->Print();
 
@@ -101,35 +112,44 @@ int main(int argc, char* argv[])
   cout<<"Preparing hits, track and pion's helix"<<endl;
   shared_ptr<vector<Point>> allSimplePoints; // all hits in the event
   allSimplePoints = event->GetTrackerHits();
+  display->DrawSimplePoints(allSimplePoints, filteredPointsOptions);
   
-  shared_ptr<Track> track = trackProcessor->GetRandomTrack(config->nTrackHits, config->maxEta);
+//  shared_ptr<Track> track = trackProcessor->GetRandomTrack(config->nTrackHits, config->maxEta);
+  shared_ptr<Track> track = event->GetTrack(0);
   
   // Draw decay point to make sure that it's correctly located
-  shared_ptr<vector<Point>> decayPoint = make_shared<vector<Point>>();
-  decayPoint->push_back(Point(track->GetDecayPoint()->GetX(),
-                              track->GetDecayPoint()->GetY(),
-                              track->GetDecayPoint()->GetZ()));
-  display->DrawSimplePoints(decayPoint, decayPointOptions);
+//  shared_ptr<vector<Point>> decayPoint = make_shared<vector<Point>>();
+//  decayPoint->push_back(Point(track->GetDecayPoint()->GetX(),
+//                              track->GetDecayPoint()->GetY(),
+//                              track->GetDecayPoint()->GetZ()));
+//  display->DrawSimplePoints(decayPoint, decayPointOptions);
   
   // Draw true pion helix
-  unique_ptr<Helix> pionHelix = helixProcessor->GetRandomPionHelix(track);
-  display->DrawHelix(pionHelix,helixOptions);
+  auto truePionHelix = make_unique<Helix>(make_unique<Point>(11.5,255.4,458.3),
+                                          make_unique<Point>(-140.8,58.7,264.5),
+                                          1
+                                          );
+
+  display->DrawHelix(truePionHelix,helixOptions);
+  
+//  unique_ptr<Helix> pionHelix = helixProcessor->GetRandomPionHelix(track);
+//  display->DrawHelix(pionHelix,helixOptions);
   
   // Calculate and draw points along the helix that hit the silicon
-  shared_ptr<vector<Point>> pionPoints = helixProcessor->GetPointsHittingSilicon(pionHelix);
-  for(auto &p : *pionPoints){p.SetIsPionHit(true);}
-  pionHelix->SetPoints(pionPoints);
-  display->DrawSimplePoints(pionPoints, pionPointsOptions);
+//  shared_ptr<vector<Point>> pionPoints = helixProcessor->GetPointsHittingSilicon(pionHelix);
+//  for(auto &p : *pionPoints){p.SetIsPionHit(true);}
+//  pionHelix->SetPoints(pionPoints);
+//  display->DrawSimplePoints(pionPoints, pionPointsOptions);
   
   // inject hits from pion into all points in the tracker
-  allSimplePoints->insert(allSimplePoints->end(),pionPoints->begin(), pionPoints->end());
+//  allSimplePoints->insert(allSimplePoints->end(),pionPoints->begin(), pionPoints->end());
   
   // remove hits that for sure don't belong to the pion's helix
   cout<<"Fitting best helix"<<endl;
   unique_ptr<Fitter> fitter = make_unique<Fitter>();
   
-  unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(allSimplePoints, track);
-  display->DrawSimplePoints(allSimplePoints, filteredPointsOptions);
+  unique_ptr<Helix> bestHelix = nullptr; //fitter->GetBestFittingHelix(allSimplePoints, track);
+  
   
   if(bestHelix){
     map<string,any> bestHelixOptions = {
@@ -152,8 +172,8 @@ int main(int argc, char* argv[])
     cout<<"\n\nBest helix is:"<<endl;
     bestHelix->Print();
     
-    cout<<"\nPion helix:"<<endl;
-    pionHelix->Print();
+//    cout<<"\nPion helix:"<<endl;
+//    pionHelix->Print();
   }
     
   

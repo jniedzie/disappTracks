@@ -66,7 +66,7 @@ void Track::Print()
 {
   cout<<"PID:"<<pid<<"\trel iso:"<<relativeIsolation<<endl;
   cout<<"eta:"<<eta<<"\tphi:"<<phi<<"\tpT:"<<pt<<endl;
-  cout<<"Tracker layers:"<<nTrackerLayers<<"\tpixel layers:"<<nPixelLayers<<endl;
+  cout<<"Tracker layers:"<<GetLastBarrelLayer();
   cout<<"Missing outer tracker hits:"<<nMissingOuterTrackerHits<<endl;
 }
 
@@ -82,4 +82,24 @@ void Track::CalculateInternals()
   for(float d : dedx){
     if(d > 0.000001) nDedxClusters++;
   }
+}
+
+int Track::GetLastBarrelLayer()
+{
+  int lastBarrelLayer = -1;
+  
+  for(int iHit=0;iHit<GetNdEdxHits();iHit++){
+    if(detType[iHit] == 2) continue; // Endcaps, we don't care
+    
+    if(layer[iHit] > lastBarrelLayer){
+      lastBarrelLayer = layer[iHit];
+    }
+  }
+  
+  return lastBarrelLayer-1;
+}
+
+double Track::GetAverageDedx()
+{
+  return GetTotalDedx()/nDedxClusters;
 }

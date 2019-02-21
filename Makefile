@@ -7,7 +7,7 @@ TMP_DIR = tmp
 
 INC_LIBS = ${TMP_DIR}/Event.o ${TMP_DIR}/EventSet.o ${TMP_DIR}/EventCut.o ${TMP_DIR}/Track.o ${TMP_DIR}/TrackCut.o ${TMP_DIR}/Jet.o ${TMP_DIR}/JetCut.o ${TMP_DIR}/HistSet.o ${TMP_DIR}/Lepton.o ${TMP_DIR}/LeptonCut.o ${TMP_DIR}/Point.o ${TMP_DIR}/ConfigManager.o ${TMP_DIR}/PointsProcessor.o ${TMP_DIR}/Helix.o ${TMP_DIR}/TrackProcessor.o ${TMP_DIR}/EventProcessor.o ${TMP_DIR}/HelixProcessor.o ${TMP_DIR}/JetProcessor.o ${TMP_DIR}/Fitter.o ${TMP_DIR}/Circle.o ${TMP_DIR}/Display.o ${TMP_DIR}/MonitorsManager.o ${TMP_DIR}/LeptonProcessor.o
 
-all: runAnalysis eventDisplay helixFitter getFfactor scanCuts singleCutDetails helixTagger
+all: runAnalysis eventDisplay helixFitter getFfactor scanCuts singleCutDetails helixTagger cutsCorrelations
 
 runAnalysis: ${TMP_DIR}/runAnalysis.o ${INC_LIBS}
 	$(CC) $^ -o $@ $(LDFLAGS)
@@ -25,6 +25,9 @@ getFfactor: ${TMP_DIR}/getFfactor.o ${INC_LIBS}
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 scanCuts: ${TMP_DIR}/scanCuts.o ${INC_LIBS}
+	$(CC) $^ -o $@ $(LDFLAGS)
+
+cutsCorrelations: ${TMP_DIR}/cutsCorrelations.o ${INC_LIBS}
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 singleCutDetails: ${TMP_DIR}/singleCutDetails.o ${INC_LIBS}
@@ -51,6 +54,10 @@ ${TMP_DIR}/getFfactor.o: getFfactor.cpp
 	$(CC) $^ -o $@ $(CCFLAGS)
 
 ${TMP_DIR}/scanCuts.o: scanCuts.cpp
+	@mkdir -p $(@D)
+	$(CC) $^ -o $@ $(CCFLAGS)
+
+${TMP_DIR}/cutsCorrelations.o: cutsCorrelations.cpp
 	@mkdir -p $(@D)
 	$(CC) $^ -o $@ $(CCFLAGS)
 

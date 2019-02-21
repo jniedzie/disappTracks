@@ -49,7 +49,6 @@ private:
   
   bool showUnderflowBins   = false;         ///< Should underflow dE/dx hits be shown by defdault
   bool showOverflowBins    = true;          ///< Should overflow dE/dx hits be shown by defdault
-  bool showGeometry        = false;         ///< Should detector geometry be shown
   
   int geomTransparency     = 90;            ///< Transparency of geometry (something between 30 - 100)
   

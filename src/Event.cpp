@@ -85,7 +85,8 @@ shared_ptr<vector<Point>> Event::GetTrackerHits()
 {
   shared_ptr<vector<Point>> trackerPoints = make_shared<vector<Point>>();
   
-  TFile *inFile = TFile::Open("pickhists.root");
+//  TFile *inFile = TFile::Open("pickhists.root");
+  TFile *inFile = TFile::Open("charginoAllHits.root");
   //  TFile *inFile = TFile::Open("/afs/cern.ch/work/j/jniedzie/private/pickhists.root");
   //  TFile *inFile = TFile::Open("/afs/cern.ch/work/j/jniedzie/private/pickhists_unfiltered.root");
   if(!inFile){
@@ -138,7 +139,7 @@ shared_ptr<vector<Point>> Event::GetTrackerHits()
       break;
     }
   }
-  
+
   if(!eventFound){
     cout<<"\n\nERROR - could not find all hits for requested event!\n\n"<<endl;
     return trackerPoints;

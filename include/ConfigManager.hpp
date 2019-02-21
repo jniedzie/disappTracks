@@ -94,6 +94,12 @@ struct ConfigManager {
   double tolerancePy;
   double tolerancePz;
   
+  // Event display params
+  bool showGeometryPixel;
+  bool showGeometryStrip;
+  bool showGeometryEcal;
+  bool showGeometryHcal;
+  
 private:
   unique_ptr<TEnv> config;
 };

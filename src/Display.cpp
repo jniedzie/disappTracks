@@ -84,16 +84,19 @@ void Display::DrawEvent(const shared_ptr<Event> &event, const map<string,any> op
   for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
     shared_ptr<Track> track = event->GetTrack(iTrack);
     
-    for(int iLayer=0;iLayer<nLayers;iLayer++){
-      double R = layerR[iLayer];
+    for(int iHit=0;iHit<nLayers;iHit++){
+      
+      int iLayer = track->GetLayerForHit(iHit);
+      
       double phi = track->GetPhi();
       double theta = 2*atan(exp(-track->GetEta()));
+      double R = layerR[iLayer]/sin(theta);
       
       double x = R*sin(theta)*cos(phi);
       double y = R*sin(theta)*sin(phi);
       double z = R*cos(theta);
       
-      points->Fill(scale*x,scale*y,scale*z,track->GetDeDxInLayer(iLayer));
+      points->Fill(scale*x,scale*y,scale*z,track->GetDeDxForHit(iHit));
     }
   }
   points->SetRnrSelf(kTRUE);
@@ -106,41 +109,48 @@ void Display::DrawEvent(const shared_ptr<Event> &event, const map<string,any> op
   DrawMET(metPhi, metTheta);
   
   // Geometry:
-  if(!showGeometry) return;
+  if(config->showGeometryPixel){
+    for(int i=0;i<4;i++){
+      TGeoTube *pixelTube = new TGeoTube(scale*layerR[i]-0.2,scale*layerR[i]+0.2, scale*pixelBarrelZsize);
+      TEveGeoShape *pixel = new TEveGeoShape (Form("Pixel tracker %i",i),Form("Pixel tracker %i",i));
+      pixel->SetShape(pixelTube);
+      pixel->SetMainTransparency(geomTransparency-30);
+      pixel->SetMainColorRGB((Float_t)0.0, 1.0, 0.0);
+      pixel->SetRnrSelf(true);
+      gEve->AddElement(pixel);
+    }
+  }
   
-  TGeoTube *pixelTube = new TGeoTube(scale*0,scale*200, scale*1500);
-  TEveGeoShape *pixel = new TEveGeoShape ("Pixel tracker","Pixel tracker");
-  pixel->SetShape(pixelTube);
-  pixel->SetMainTransparency(geomTransparency-30);
-  pixel->SetMainColorRGB((Float_t)0.0, 1.0, 0.0);
-  pixel->SetRnrSelf(true);
+  if(config->showGeometryStrip){
+    TGeoTube *trackerTube = new TGeoTube(scale*layerR[4],scale*layerR[nLayers-1],scale*2800);
+    TEveGeoShape *tracker = new TEveGeoShape ("Tracker","Tracker");
+    tracker->SetShape(trackerTube);
+    tracker->SetMainTransparency(geomTransparency-20);
+    tracker->SetMainColorRGB((Float_t)1.0, 1.0, 0.0);
+    tracker->SetRnrSelf(true);
+    gEve->AddElement(tracker);
+  }
   
-  TGeoTube *trackerTube = new TGeoTube(scale*230,scale*1100,scale*2800);
-  TEveGeoShape *tracker = new TEveGeoShape ("Tracker","Tracker");
-  tracker->SetShape(trackerTube);
-  tracker->SetMainTransparency(geomTransparency-20);
-  tracker->SetMainColorRGB((Float_t)1.0, 1.0, 0.0);
-  tracker->SetRnrSelf(true);
+  if(config->showGeometryEcal){
+    TGeoTube *emCalTube = new TGeoTube(scale*1100,scale*1800,scale*3700);
+    TEveGeoShape *emCal = new TEveGeoShape ("EM calo","EM calo");
+    emCal->SetShape(emCalTube);
+    emCal->SetMainTransparency(geomTransparency-10);
+    emCal->SetMainColorRGB((Float_t)0.0, 0.0, 1.0);
+    emCal->SetRnrSelf(true);
+    gEve->AddElement(emCal);
+  }
   
-  TGeoTube *emCalTube = new TGeoTube(scale*1100,scale*1800,scale*3700);
-  TEveGeoShape *emCal = new TEveGeoShape ("EM calo","EM calo");
-  emCal->SetShape(emCalTube);
-  emCal->SetMainTransparency(geomTransparency-10);
-  emCal->SetMainColorRGB((Float_t)0.0, 0.0, 1.0);
-  emCal->SetRnrSelf(true);
+  if(config->showGeometryHcal){
+    TGeoTube *hadCalTube = new TGeoTube(scale*1800,scale*2900,scale*5500);
+    TEveGeoShape *hadCal = new TEveGeoShape ("Had calo","Had calo");
+    hadCal->SetShape(hadCalTube);
+    hadCal->SetMainTransparency(geomTransparency);
+    hadCal->SetMainColorRGB((Float_t)1.0, 0.0, 0.5);
+    hadCal->SetRnrSelf(true);
+    gEve->AddElement(hadCal);
+  }
   
-  TGeoTube *hadCalTube = new TGeoTube(scale*1800,scale*2900,scale*5500);
-  TEveGeoShape *hadCal = new TEveGeoShape ("Had calo","Had calo");
-  hadCal->SetShape(hadCalTube);
-  hadCal->SetMainTransparency(geomTransparency);
-  hadCal->SetMainColorRGB((Float_t)1.0, 0.0, 0.5);
-  hadCal->SetRnrSelf(true);
-  
-  
-  gEve->AddElement(pixel);
-  gEve->AddElement(tracker);
-  gEve->AddElement(emCal);
-  gEve->AddElement(hadCal);
   gEve->Redraw3D();
 }
 

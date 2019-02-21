@@ -36,8 +36,10 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
   double maxPy = config->maxPy;
   
   double maxTheta = 2*atan(exp(-config->maxEta));
-  double minL = layerR[track->GetNtrackerLayers()-1]/sin(maxTheta);
-  double maxL = layerR[track->GetNtrackerLayers()]/sin(maxTheta);
+//  double minL = layerR[track->GetLastBarrelLayer()]/sin(maxTheta);
+//  double maxL = layerR[track->GetLastBarrelLayer()+1]/sin(maxTheta);
+  double minL = layerR[track->GetLastBarrelLayer()];
+  double maxL = layerR[track->GetLastBarrelLayer()+1];
   
   double trackTheta = track->GetTheta();
   double trackPhi = track->GetPhi();
@@ -83,9 +85,9 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
           double px = par[1];
           double py = par[2];
           
-          double x0 = L*sin(trackTheta)*cos(trackPhi);
-          double y0 = L*sin(trackTheta)*sin(trackPhi);
-          double z0 = L*cos(trackTheta);
+          double x0 = L*cos(trackPhi);
+          double y0 = L*sin(trackPhi);
+          double z0 = L/sin(trackTheta)*cos(trackTheta);
           
           unique_ptr<Point> decayPoint  = make_unique<Point>(x0,y0,z0);
           unique_ptr<Point> momentum    = make_unique<Point>(px,py,0);
@@ -108,9 +110,9 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
           double px = result.GetParams()[1];
           double py = result.GetParams()[2];
           
-          double x0 = L*sin(trackTheta)*cos(trackPhi);
-          double y0 = L*sin(trackTheta)*sin(trackPhi);
-          double z0 = L*cos(trackTheta);
+          double x0 = L*cos(trackPhi);
+          double y0 = L*sin(trackPhi);
+          double z0 = L/sin(trackTheta)*cos(trackTheta);
           
           unique_ptr<Point> decayPoint = make_unique<Point>(x0,y0,z0);
           unique_ptr<Point> momentum = make_unique<Point>(px,py,0);

@@ -34,16 +34,19 @@ public:
   inline void SetDecayPoint(unique_ptr<Point> val){decayPoint = move(val);}
   
   // Getters
+  int GetLastBarrelLayer();
+  
   inline int     GetNdEdxHits(){return (int)dedx.size();}
   inline double  GetDeDxForHit(int iHit){return dedx[iHit];}
   inline double  GetTotalDedx(){return accumulate(dedx.begin(),dedx.end(),0.0);}
+  double         GetAverageDedx();
   double         GetDedxInSubDet(int det);
   
   inline int     GetSubDetIdForHit(int iHit){return subDetId[iHit];}
   inline int     GetSizeXforHit(int iHit){return sizeX[iHit];}
   inline int     GetSizeYforHit(int iHit){return sizeY[iHit];}
   inline int     GetDetTypeForHit(int iHit){return detType[iHit];}
-  inline int     GetLayerForHit(int iHit){return layer[iHit];}
+  inline int     GetLayerForHit(int iHit){return layer[iHit]-1;}
   inline int     GetLadderForHit(int iHit){return ladder[iHit];}
   
   inline double  GetPt(){return pt;}

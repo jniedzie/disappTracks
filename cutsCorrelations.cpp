@@ -9,9 +9,10 @@
 #include "JetCut.hpp"
 #include "HistSet.hpp"
 #include "Helpers.hpp"
+#include "ConfigManager.hpp"
 
 vector<tuple<double,double>> GetDifferencesForCriticalValues(shared_ptr<EventSet> &events,
-                                               double criticalIso = 0.15, double critialDedx = 3.5)
+                                               double criticalMet = 500, double critialDedx = 3.5)
 {
   auto eventsA = shared_ptr<EventSet>(new EventSet(*events));
   auto eventsB = shared_ptr<EventSet>(new EventSet(*events));
@@ -32,30 +33,29 @@ vector<tuple<double,double>> GetDifferencesForCriticalValues(shared_ptr<EventSet
   eventCut->SetLeadingJetChHEF(range<double>(0.1,inf));
 
   // A: B + S
-  //  jetCut->SetTrackDeltaR(range<double>(0,0.1));       // select Background
-  trackCut->SetRelativeIsolation(range<double>(criticalIso,inf)); // select Background
+  eventCut->SetMetPt(range<double>(criticalMet,inf));           // select Background
   trackCut->SetDedxPerCluster(range<double>(critialDedx,inf));  // select Signal
   eventsA->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
 
   // B: B + B
-  trackCut->SetRelativeIsolation(range<double>(criticalIso,inf)); // select Background
-  trackCut->SetDedxPerCluster(range<double>(0,critialDedx));      // select Background
+  eventCut->SetMetPt(range<double>(criticalMet,inf));           // select Background
+  trackCut->SetDedxPerCluster(range<double>(0,critialDedx));    // select Background
   eventsB->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
 
   // C: S + S
-  trackCut->SetRelativeIsolation(range<double>(0.0,criticalIso));       // select Signal
+  eventCut->SetMetPt(range<double>(0.0,criticalMet));           // select Signal
   trackCut->SetDedxPerCluster(range<double>(critialDedx,inf));  // select Signal
   eventsC->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
 
   // D: S + B
-  trackCut->SetRelativeIsolation(range<double>(criticalIso,inf));       // select Signal
+  eventCut->SetMetPt(range<double>(criticalMet,inf));           // select Signal
   trackCut->SetDedxPerCluster(range<double>(0,critialDedx));    // select Background
   eventsD->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
 
   vector<tuple<double,double>> results;
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    if(!runBackground[iBck]){
+    if(!config->runBackground[iBck]){
       results.push_back(make_tuple(inf,inf));
       continue;
     }
@@ -67,9 +67,55 @@ vector<tuple<double,double>> GetDifferencesForCriticalValues(shared_ptr<EventSet
   return results;
 }
 
+double GetFraction(shared_ptr<EventSet> &events, double criticalMet, double critialDedx, double stepX)
+{
+  auto eventsA = shared_ptr<EventSet>(new EventSet(*events));
+  auto eventsB = shared_ptr<EventSet>(new EventSet(*events));
+  auto eventsC = shared_ptr<EventSet>(new EventSet(*events));
+  auto eventsD = shared_ptr<EventSet>(new EventSet(*events));
+  
+  auto eventCut = unique_ptr<EventCut>(new EventCut());
+  auto trackCut = unique_ptr<TrackCut>(new TrackCut());
+  auto jetCut   = unique_ptr<JetCut>(new JetCut());
+  auto leptonCut= unique_ptr<LeptonCut>(new LeptonCut());
+  
+  // + standard cuts to be applied after L2 selections
+  eventCut->SetNtracks(range<int>(1,1));
+  eventCut->SetNjets(range<int>(1,inf));
+  eventCut->SetLeadingJetPt(range<double>(100,inf));
+  eventCut->SetLeadingJetEta(range<double>(-2.4,2.4));
+  eventCut->SetLeadingJetNeHEF(range<double>(-inf,0.8));
+  eventCut->SetLeadingJetChHEF(range<double>(0.1,inf));
+  
+  // A: B + S
+  eventCut->SetMetPt(range<double>(criticalMet,inf));           // select Background
+  trackCut->SetDedxPerCluster(range<double>(critialDedx,critialDedx+stepX));  // select Signal
+  eventsA->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+  
+  // B: B + B
+  eventCut->SetMetPt(range<double>(0,criticalMet));           // select Background
+  trackCut->SetDedxPerCluster(range<double>(critialDedx, critialDedx+stepX));    // select Background
+  eventsB->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+  
+  int nBackgroundA = 0;
+  int nBackgroundB = 0;
+  
+  for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    if(!config->runBackground[iBck]) continue;
+    
+    nBackgroundA += eventsA->weightedSize(EventSet::kBackground, iBck);
+    nBackgroundB += eventsB->weightedSize(EventSet::kBackground, iBck);
+  }
+  
+  return nBackgroundA/(double)nBackgroundB;
+}
+
 int main(int argc, char* argv[])
 {
   TApplication *theApp = new TApplication("App", &argc, argv);
+  
+  config = make_unique<ConfigManager>("configs/analysis.md");
+  
   // All events with initial cuts only
   shared_ptr<EventSet> events = shared_ptr<EventSet>(new EventSet());
   events->LoadEventsFromFiles("after_L0/");
@@ -78,16 +124,25 @@ int main(int argc, char* argv[])
   c1->Divide(2,2);
   
   TH2D *dedx_vs_isolation = new TH2D("dedx_vs_isolation","dedx_vs_isolation",100,0,10,100,0,0.1);
+  TH2D *met_vs_dedx = new TH2D("met_vs_dedx","met_vs_dedx",100,0,10,100,200,1200);
   TH2D *trackPt_vs_missing = new TH2D("trackPt_vs_missing","trackPt_vs_missing",100,0,1000,20,0,20);
   TH2D *deltaJetTrack_vs_missing = new TH2D("deltaJetTrack_vs_missing","deltaJetTrack_vs_missing",20,0,2,20,0,20);
   
-  for(int iEvent=0;iEvent<events->size(EventSet::kBackground, kWmunuJets);iEvent++){
-    auto event = events->At(EventSet::kBackground, kWmunuJets, iEvent);
+  for(int iEvent=0;iEvent<events->size(EventSet::kBackground, kQCD);iEvent++){
+    auto event = events->At(EventSet::kBackground, kQCD, iEvent);
     
     for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
       auto track = event->GetTrack(iTrack);
-      dedx_vs_isolation->Fill(track->GetDeDxInLayer(0),track->GetRelativeIsolation());
+      dedx_vs_isolation->Fill(track->GetDeDxForHit(0),track->GetRelativeIsolation());
+      
+      double avgDedx=0;
+      for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){avgDedx += track->GetAverageDedx();}
+      avgDedx /= event->GetNtracks();
+      
+      met_vs_dedx->Fill(avgDedx, event->GetMetPt());
+      
       trackPt_vs_missing->Fill(track->GetPt(),track->GetNmissingOuterTrackerHits());
+      
       
       for(int iJet=0;iJet<event->GetNjets();iJet++){
         auto jet = event->GetJet(iJet);
@@ -109,6 +164,10 @@ int main(int argc, char* argv[])
   deltaJetTrack_vs_missing->GetXaxis()->SetTitle("#Delta R(jet,track)");
   deltaJetTrack_vs_missing->GetXaxis()->SetTitle("Missing outer tracker hits");
   deltaJetTrack_vs_missing->Draw("colz");
+//  c1->cd(4);
+//  met_vs_dedx->GetXaxis()->SetTitle("Average dE/dx (MeV)");
+//  met_vs_dedx->GetXaxis()->SetTitle("MET p_{T} (GeV)");
+//  met_vs_dedx->Draw("colz");
   
   auto eventCut = unique_ptr<EventCut>(new EventCut());
   auto trackCut = unique_ptr<TrackCut>(new TrackCut());
@@ -159,11 +218,18 @@ int main(int argc, char* argv[])
     bestResults.push_back(make_tuple(make_tuple(0,inf),inf,inf));
   }
   
-  for(double criticalIso = 0.00;criticalIso<0.25;criticalIso+=0.01){
-    cout<<"iso:"<<criticalIso<<endl;
-    for(double criticalDedx = 0.00;criticalDedx<5.00;criticalDedx+=0.5){
+  TH1D *ratio = new TH1D("ratio","ratio",50,1.0,6.0);
+  double criticalMet = 300;
+  double dedxStep = 0.1;
+//  for(double criticalMet = 200;criticalMet<310;criticalMet+=10){
+//    cout<<"MET pt:"<<criticalMet<<endl;
+    for(double criticalDedx = 1.0;criticalDedx<6.0;criticalDedx+=dedxStep){
+      cout<<"critical dedx:"<<criticalDedx<<endl;
+      double fraction =  GetFraction(events, criticalMet, criticalDedx, dedxStep);
+      ratio->Fill(criticalDedx, fraction);
       
-      vector<tuple<double,double>> results = GetDifferencesForCriticalValues(events, criticalIso, criticalDedx);
+      /*
+      vector<tuple<double,double>> results = GetDifferencesForCriticalValues(events, criticalMet, criticalDedx);
       
       for(int iBck=0;iBck<kNbackgrounds;iBck++){
         auto [expected, predicted] = results[iBck];
@@ -173,22 +239,25 @@ int main(int argc, char* argv[])
         double bestDiff = fabs(bestExpected - bestPredicted)/bestExpected;
         
         if(relDiff < bestDiff){
-          bestResults[iBck] = make_tuple(make_tuple(expected,predicted),criticalIso,criticalDedx);
+          bestResults[iBck] = make_tuple(make_tuple(expected,predicted),criticalMet,criticalDedx);
         }
       }
+       */
     }
-  }
+//  }
+  c1->cd(4);
+  ratio->Draw();
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     auto [bestExpected, bestPredicted] = get<0>(bestResults[iBck]);
-    double bestCriticalIso = get<1>(bestResults[iBck]);
+    double bestCriticalMet = get<1>(bestResults[iBck]);
     double bestCriticalDedx = get<2>(bestResults[iBck]);
     double bestDiff = fabs(bestExpected - bestPredicted)/bestExpected;
     
     cout<<"\n"<<backgroundTitle[iBck]<<endl;
     cout<<"Expected:"<<bestExpected<<"\tABCD:"<<bestPredicted<<endl;
     cout<<"Relative difference:"<< bestDiff<<endl;
-    cout<<"Critical iso:"<<bestCriticalIso<<endl;
+    cout<<"Critical MET:"<<bestCriticalMet<<endl;
     cout<<"Critical dedx:"<<bestCriticalDedx<<endl;
   }
   

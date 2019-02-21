@@ -11,8 +11,7 @@
 
 #include "EventSet.hpp"
 
-bool injectPion = false;
-string configPath = "configs/helixFitter.md";
+string configPath = "configs/helixTagger.md";
 
 uint searchRun = 297100;
 uint searchLumi = 136;
@@ -24,10 +23,11 @@ void InjectPion(shared_ptr<vector<Point>> trackerPoints,
                 shared_ptr<Track> track){
   double theta = track->GetTheta();
   double phi = track->GetPhi();
+
+  int lastBarrelLayer = track->GetLastBarrelLayer();
   
-  int nHits = track->GetNtrackerLayers();
-  double minL = layerR[nHits-1]/sin(theta);
-  double maxL = layerR[nHits]/sin(theta);
+  double minL = layerR[lastBarrelLayer-1]/sin(theta);
+  double maxL = layerR[lastBarrelLayer]/sin(theta);
   double decayR = RandDouble(minL, maxL);
   
   double x = decayR*sin(theta)*cos(phi);
@@ -48,18 +48,19 @@ int main(int argc, char* argv[])
   helixProcessor       = make_unique<HelixProcessor>();
   
   auto events = make_shared<EventSet>();
-  events->LoadEventsFromFiles("after_L2/3layers/");
+  events->LoadEventsFromFiles("after_L1/");
   
   cout<<"helixTagger -- events loaded"<<endl;
   
-  for(int iEvent=0; iEvent<events->size(EventSet::kData, kElectron_Run2017B); iEvent++){
+  for(int iEvent=0; iEvent<events->size(EventSet::kSignal, kWino_M_300_cTau_10); iEvent++){
     cout<<"\n\n=================================================================\n"<<endl;
     cout<<"helixTagger -- processing event "<<iEvent<<endl;
   
 //    auto event = events->GetEvent(EventSet::kData, searchRun, searchLumi, searchEvent);
-    auto event = events->At(EventSet::kData, kElectron_Run2017B, iEvent);
+    auto event = events->At(EventSet::kSignal, kWino_M_300_cTau_10, iEvent);
     
-    shared_ptr<vector<Point>> trackerPoints = event->GetTrackerHits();
+//    shared_ptr<vector<Point>> trackerPoints = event->GetTrackerHits();
+    shared_ptr<vector<Point>> trackerPoints = pointsProcessor->GetRandomPoints(config->nNoiseHits);
     
     if(!trackerPoints || trackerPoints->size()==0){
       cout<<"helixTagger -- no tracker hits for event "<<iEvent<<endl;
@@ -71,9 +72,9 @@ int main(int argc, char* argv[])
       cout<<"helixTagger -- fitting helix for track:"<<iTrack<<endl;
       auto track = event->GetTrack(iTrack);
       
-      if(injectPion) InjectPion(trackerPoints, track);
+      if(config->injectPionHits) InjectPion(trackerPoints, track);
       
-      unique_ptr<Helix> fittedHelix = fitter->GetBestFittingHelix(trackerPoints,track);
+      unique_ptr<Helix> fittedHelix = fitter->GetBestFittingHelix(trackerPoints, track);
       if(fittedHelix){
         fittedHelix->Print();
         event->AddHelix(move(fittedHelix));

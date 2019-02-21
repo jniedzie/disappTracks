@@ -142,7 +142,31 @@ int main(int argc, char* argv[])
     auto trackCut_L1 = unique_ptr<TrackCut>(new TrackCut());
     auto jetCut_L1   = unique_ptr<JetCut>(new JetCut());
     auto leptonCut_L1= unique_ptr<LeptonCut>(new LeptonCut());
+    /*
+    TH2D *met_vs_dedx = new TH2D("met_vs_dedx", "met_vs_dedx", 100, 0, 10, 100, 200, 1200);
     
+//    for(int iBck=0;iBck<kNbackgrounds;iBck++){
+//      if(!config->runBackground[iBck]) continue;
+//      for(int iEvent=0;iEvent<events->size(EventSet::kBackground,iBck);iEvent++){
+//        auto event = events->At(EventSet::kBackground,iBck,iEvent);
+    for(int iSig=0;iSig<kNsignals;iSig++){
+      if(!config->runSignal[iSig]) continue;
+      for(int iEvent=0;iEvent<events->size(EventSet::kSignal,iSig);iEvent++){
+        auto event = events->At(EventSet::kSignal,iSig,iEvent);
+        double avgDedx=0;
+        for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){avgDedx += event->GetTrack(iTrack)->GetAverageDedx();}
+        avgDedx /= event->GetNtracks();
+        
+        met_vs_dedx->Fill(avgDedx, event->GetMetPt());
+      }
+    }
+    met_vs_dedx->SaveAs("abcd_signals.root");
+    TCanvas *cc = new TCanvas("cc","cc",800,600);
+    cc->cd();
+    met_vs_dedx->Draw("colz");
+    cc->Update();
+    theApp->Run();
+    */
     // L1 cuts
     trackCut_L1->SetRelativeIsolation(range<double>(0.0, 0.5));
     jetCut_L1->SetChargedHadronEnergyFraction(range<double>(0.01,0.99));
@@ -172,37 +196,6 @@ int main(int argc, char* argv[])
     auto leptonCut_L2= unique_ptr<LeptonCut>(new LeptonCut());
     
 //    trackCut_L2->SetRequireMcMatch(true);
-    /*
-    TH2D *met_vs_dedx = new TH2D("met_vs_dedx", "met_vs_dedx", 100, 0, 10, 100, 200, 1200);
-    
-    for(int iBck=0;iBck<kNbackgrounds;iBck++){
-      if(!runBackground[iBck]) continue;
-      for(int iEvent=0;iEvent<events->size(EventSet::kBackground,iBck);iEvent++){
-        auto event = events->At(EventSet::kBackground,iBck,iEvent);
-//    for(int iSig=0;iSig<kNsignals;iSig++){
-//      if(!runSignal[iSig]) continue;
-//      for(int iEvent=0;iEvent<events->size(EventSet::kSignal,iSig);iEvent++){
-//        auto event = events->At(EventSet::kSignal,iSig,iEvent);
-        double avgDedx=0;
-        for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
-          double avgDedxPerTrack = 0;
-          for(int iCluster=0;iCluster < event->GetTrack(iTrack)->GetNdedxClusters(); iCluster++){
-            avgDedxPerTrack += event->GetTrack(iTrack)->GetDeDxInLayer(iCluster);
-          }
-          avgDedxPerTrack /= event->GetTrack(iTrack)->GetNdedxClusters();
-          avgDedx += avgDedxPerTrack;
-        }
-        avgDedx /= event->GetNtracks();
-        
-        met_vs_dedx->Fill(avgDedx, event->GetMetPt());
-      }
-    }
-    TCanvas *cc = new TCanvas("cc","cc",800,600);
-    cc->cd();
-    met_vs_dedx->Draw("colz");
-    cc->Update();
-    theApp->Run();
-    */
     
     // pick category
     if(config->category == "2-tracks"){

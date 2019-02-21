@@ -94,6 +94,11 @@ ConfigManager::ConfigManager(string _path)
   maxNeventsData         = config->GetValue("max_N_events_data",-1);
   
   totalLuminosity        = config->GetValue("total_luminosity",146.91);
+  
+  showGeometryPixel      = config->GetValue("show_geometry_pixel",0);
+  showGeometryStrip      = config->GetValue("show_geometry_strip",0);
+  showGeometryEcal       = config->GetValue("show_geometry_ecal",0);
+  showGeometryHcal       = config->GetValue("show_geometry_hcal",0);
 }
 
 
