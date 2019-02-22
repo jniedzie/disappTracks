@@ -15,11 +15,11 @@ cmsenv
 * For your convenience, all required commands are packed in a bash script. Download it to the current location ($WORK_DIR/CMSSW_9_4_6_patch1/):
 
 ```
-curl -O https://raw.githubusercontent.com/jniedzie/disappTracks/master/eventsGeneration/install.sh
+wget -c https://raw.githubusercontent.com/jniedzie/disappTracks/master/eventsGeneration/install.sh
 chmod 777 install.sh
 ```
 
-* Run the script and go get a coffee:
+* Run the script and go get a coffee (a small one):
 
 `./install.sh`
 
@@ -29,8 +29,8 @@ chmod 777 install.sh
 
 `cd src`
 
-* run this scripts with proper arguments
+* run this scripts with proper arguments and go get a coffee (a big one if you scheduled many jobs):
 
 `./submitJobs.sh number_of_jobs number_of_events_per_job`
 
-* If everything goes fine, you should see files like `chargino300GeV_ctau10cm_GEN-SIM_0.root` containing generated events in `generatedEvents` directory.
+* If everything goes fine, after many hours you should see files like `chargino300GeV_ctau10cm_GEN-SIM_0.root` containing generated events in `generatedEvents` directory. To check if jobs are running, use `condor_q` command.
