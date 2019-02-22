@@ -34,3 +34,14 @@ chmod 777 install.sh
 `./submitJobs.sh number_of_jobs number_of_events_per_job`
 
 * If everything goes fine, after many hours you should see files like `chargino300GeV_ctau10cm_GEN-SIM_0.root` containing generated events in `generatedEvents` directory. To check if jobs are running, use `condor_q` command.
+
+
+4. Some random info that may be useful
+
+* if you have some problems with jobs submission, try adding something like this to your ~/.bashrc file:
+
+`export X509_USER_PROXY=/afs/cern.ch/user/a/aalibaba/x509up_u12345`
+
+changing the path to point to an existing file in your user directory
+
+* make sure that you are in BASH shell

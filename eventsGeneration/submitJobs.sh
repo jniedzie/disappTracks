@@ -34,7 +34,7 @@ cmsDriver.py Configuration/GenProduction/python/ThirteenTeV/AMSB_chargino/AMSB_c
 --no_exec \
 -n ${number_of_events_per_job}
 
-FILE2="scripts/run_GEN_SIM_${iJob}.sh"
+FILE2="scripts/run_GEN-SIM_${iJob}.sh"
 /bin/cat <<EOM >$FILE2
 #!/bin/bash
 export XRD_NETWORKSTACK=IPv4
