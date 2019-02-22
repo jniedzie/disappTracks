@@ -15,7 +15,7 @@ cmsenv
 * For your convenience, all required commands are packed in a bash script. Download it to the current location ($WORK_DIR/CMSSW_9_4_6_patch1/):
 
 ```
-wget -N https://raw.githubusercontent.com/jniedzie/disappTracks/master/eventsGeneration/install.sh
+curl -O https://raw.githubusercontent.com/jniedzie/disappTracks/master/eventsGeneration/install.sh
 chmod 777 install.sh
 ```
 
@@ -33,4 +33,4 @@ chmod 777 install.sh
 
 `./submitJobs.sh number_of_jobs number_of_events_per_job`
 
-* If everything goes fine, you should see `chargino300GeV_ctau10cm_GEN-SIM.root` file containing generated events.
+* If everything goes fine, you should see files like `chargino300GeV_ctau10cm_GEN-SIM_0.root` containing generated events in `generatedEvents` directory.
