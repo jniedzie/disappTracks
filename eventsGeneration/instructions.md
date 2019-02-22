@@ -42,4 +42,12 @@ chmod 777 install.sh
 `export X509_USER_PROXY=/afs/cern.ch/user/a/aalibaba/x509up_u12345`
 changing the path to point to an existing file in your user directory
 * make sure that you are in BASH shell
-* sometimes, for some reason, wget doesn't manage 
+* sometimes, for some reason, wget doesn't manage to override previously downloaded files. If you want to update things, it better to remove old files (from: $WORK_DIR/CMSSW_9_4_6_patch1/ directory):
+
+```
+rm install.sh
+rm src/Configuration/GenProduction/python/ThirteenTeV/AMSB_chargino/AMSB_chargino300GeV_ctau10cm_NoFilter_13TeV.py
+rm src/Configuration/GenProduction/python/RandomSeed_cfi.py
+rm -fr src/DisappTrks/SignalMC/data/geant4
+rm src/submitJobs.sh
+```
