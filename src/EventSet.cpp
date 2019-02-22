@@ -25,7 +25,7 @@ leptonProcessor(make_unique<LeptonProcessor>())
   }
 }
 
-EventSet::EventSet(string fileName, EDataType dataType, int maxNevents, ESignal iSig) :
+EventSet::EventSet(string fileName, xtracks::EDataType dataType, int maxNevents, ESignal iSig) :
 trackProcessor(make_unique<TrackProcessor>()),
 eventProcessor(make_unique<EventProcessor>())
 {
@@ -62,7 +62,7 @@ EventSet::~EventSet()
   
 }
 
-void EventSet::SaveToTree(string fileName, EDataType dataType, int setIter)
+void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setIter)
 {
   TFile outFile(fileName.c_str(),"RECREATE");
   outFile.cd();
@@ -341,13 +341,13 @@ void EventSet::SaveToTree(string fileName, EDataType dataType, int setIter)
     tree->Fill();
   };
   
-  if(dataType == kSignal){
+  if(dataType == xtracks::kSignal){
     for(auto &event : eventsSignal[(ESignal)setIter]){func(event, tree);}
   }
-  else if(dataType == kBackground){
+  else if(dataType == xtracks::kBackground){
     for(auto &event : eventsBackground[(EBackground)setIter]){func(event, tree);}
   }
-  else if(dataType == kData){
+  else if(dataType == xtracks::kData){
     for(auto &event : eventsData[(EData)setIter]){func(event, tree);}
   }
   else{
@@ -365,18 +365,18 @@ void EventSet::LoadEventsFromFiles(string prefix)
     
     if(prefix==""){
       for(string path : inFileNameBackground[iBck]){
-        AddEventsFromFile((path+prefix+"tree.root"),kBackground, config->maxNeventsBackground, iBck);
+        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kBackground, config->maxNeventsBackground, iBck);
       }
     }
     else{
       string path = inFileNameBackground[iBck][0];
-      AddEventsFromFile((path+prefix+"tree.root"),kBackground, config->maxNeventsBackground, iBck);
+      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kBackground, config->maxNeventsBackground, iBck);
     }
   }
   
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!config->runSignal[iSig]) continue;
-    AddEventsFromFile((inFileNameSignal[iSig]+prefix+"tree.root"),kSignal,config->maxNeventsSignal,iSig);
+    AddEventsFromFile((inFileNameSignal[iSig]+prefix+"tree.root"),xtracks::kSignal,config->maxNeventsSignal,iSig);
   }
   
   for(int iData=0;iData<kNdata;iData++){
@@ -384,41 +384,41 @@ void EventSet::LoadEventsFromFiles(string prefix)
     
     if(prefix==""){
       for(string path : inFileNameData[iData]){
-        AddEventsFromFile((path+prefix+"tree.root"),kData, config->maxNeventsData, iData);
+        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, config->maxNeventsData, iData);
       }
     }
     else{
       string path = inFileNameData[iData][0];
-      AddEventsFromFile((path+prefix+"tree.root"),kData, config->maxNeventsData, iData);
+      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, config->maxNeventsData, iData);
     }
   }
 }
 
-void EventSet::LoadEventsFromFiles(EDataType dataType, int setIter, string prefix)
+void EventSet::LoadEventsFromFiles(xtracks::EDataType dataType, int setIter, string prefix)
 {
-  if(dataType == kBackground){
+  if(dataType == xtracks::kBackground){
     if(prefix==""){
       for(string path : inFileNameBackground[setIter]){
-        AddEventsFromFile((path+prefix+"tree.root"),kBackground, config->maxNeventsBackground, setIter);
+        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kBackground, config->maxNeventsBackground, setIter);
       }
     }
     else{
       string path = inFileNameBackground[setIter][0];
-      AddEventsFromFile((path+prefix+"tree.root"),kBackground, config->maxNeventsBackground, setIter);
+      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kBackground, config->maxNeventsBackground, setIter);
     }
   }
-  else if(dataType == kSignal){
-    AddEventsFromFile((inFileNameSignal[setIter]+prefix+"tree.root"),kSignal,config->maxNeventsSignal,setIter);
+  else if(dataType == xtracks::kSignal){
+    AddEventsFromFile((inFileNameSignal[setIter]+prefix+"tree.root"),xtracks::kSignal,config->maxNeventsSignal,setIter);
   }
-  else if(dataType == kData){
+  else if(dataType == xtracks::kData){
     if(prefix==""){
       for(string path : inFileNameData[setIter]){
-        AddEventsFromFile((path+prefix+"tree.root"),kData, config->maxNeventsData, setIter);
+        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, config->maxNeventsData, setIter);
       }
     }
     else{
       string path = inFileNameData[setIter][0];
-      AddEventsFromFile((path+prefix+"tree.root"),kData, config->maxNeventsData, setIter);
+      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, config->maxNeventsData, setIter);
     }
   }
 }
@@ -429,7 +429,7 @@ void EventSet::SaveEventsToFiles(string prefix)
     if(!config->runSignal[iSig]) continue;
     system(("mkdir -p "+inFileNameSignal[iSig]+prefix).c_str());
     
-    SaveToTree((inFileNameSignal[iSig]+prefix+"tree.root").c_str(), kSignal, iSig);
+    SaveToTree((inFileNameSignal[iSig]+prefix+"tree.root").c_str(), xtracks::kSignal, iSig);
   }
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
@@ -438,14 +438,14 @@ void EventSet::SaveEventsToFiles(string prefix)
     // merged events will be stored in the first directory for given background
     string path = inFileNameBackground[iBck][0];
     system(("mkdir -p "+path+prefix).c_str());
-    SaveToTree((path+prefix+"tree.root").c_str(), kBackground, iBck);
+    SaveToTree((path+prefix+"tree.root").c_str(), xtracks::kBackground, iBck);
   }
   
   for(int iData=0;iData<kNdata;iData++){
     if(!config->runData[iData]) continue;
     string path = inFileNameData[iData][0];
     system(("mkdir -p "+path+prefix).c_str());
-    SaveToTree((path+prefix+"tree.root").c_str(), kData, iData);
+    SaveToTree((path+prefix+"tree.root").c_str(), xtracks::kData, iData);
   }
 }
 
@@ -456,13 +456,13 @@ void EventSet::PrintYields()
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     if(!config->runBackground[iBck]) continue;
-    nBackgroundTotal += weightedSize(kBackground,iBck);
-    nBackgroundTotalRaw += size(kBackground,iBck);
+    nBackgroundTotal += weightedSize(xtracks::kBackground,iBck);
+    nBackgroundTotalRaw += size(xtracks::kBackground,iBck);
     
     if(config->printYields){
       cout<<backgroundTitle[iBck]<<"\t";
-      cout<<weightedSize(kBackground, (int)iBck);
-      cout<<"\t("<<size(kBackground,(int)iBck)<<")"<<endl;
+      cout<<weightedSize(xtracks::kBackground, (int)iBck);
+      cout<<"\t("<<size(xtracks::kBackground,(int)iBck)<<")"<<endl;
     }
   }
   
@@ -472,27 +472,27 @@ void EventSet::PrintYields()
     for(int iSig=0;iSig<kNsignals;iSig++){
       if(!config->runSignal[iSig]) continue;
       cout<<signalTitle[iSig]<<"\tN events:\t";
-      cout<<weightedSize(kSignal,iSig);
-      cout<<"\t("<<size(kSignal,iSig)<<")"<<endl;
+      cout<<weightedSize(xtracks::kSignal,iSig);
+      cout<<"\t("<<size(xtracks::kSignal,iSig)<<")"<<endl;
     }
     
     for(int iData=0;iData<kNdata;iData++){
       if(!config->runData[iData]) continue;
       cout<<dataTitle[iData]<<"\tsize:\t";
-      cout<<weightedSize(kData,iData)<<"\n";
+      cout<<weightedSize(xtracks::kData,iData)<<"\n";
     }
   }
   
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!config->runSignal[iSig]) continue;
     cout<<signalTitle[iSig]<<"\tS/sqrt(S+B):\t";
-    cout<<weightedSize(kSignal,iSig)/sqrt(nBackgroundTotal+weightedSize(kSignal,iSig))<<endl;
+    cout<<weightedSize(xtracks::kSignal,iSig)/sqrt(nBackgroundTotal+weightedSize(xtracks::kSignal,iSig))<<endl;
   }
   
   for(int iData=0;iData<kNdata;iData++){
     if(!config->runData[iData]) continue;
     cout<<dataTitle[iData]<<"\t(M-B)/sqrt(M):\t";
-    cout<<(weightedSize(kData,iData)-nBackgroundTotal)/sqrt(weightedSize(kData,iData))<<endl;
+    cout<<(weightedSize(xtracks::kData,iData)-nBackgroundTotal)/sqrt(weightedSize(xtracks::kData,iData))<<endl;
   }
 }
 
@@ -502,7 +502,7 @@ vector<double> EventSet::GetSignificance(bool inData)
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     if(!config->runBackground[iBck]) continue;
-    nBackgroundTotal += weightedSize(kBackground,iBck);
+    nBackgroundTotal += weightedSize(xtracks::kBackground,iBck);
   }
   
   vector<double> results;
@@ -513,7 +513,7 @@ vector<double> EventSet::GetSignificance(bool inData)
         results.push_back(inf);
         continue;
       }
-      results.push_back((weightedSize(kData,iData)-nBackgroundTotal)/sqrt(weightedSize(kData,iData)));
+      results.push_back((weightedSize(xtracks::kData,iData)-nBackgroundTotal)/sqrt(weightedSize(xtracks::kData,iData)));
     }
   }
   else{
@@ -522,7 +522,7 @@ vector<double> EventSet::GetSignificance(bool inData)
         results.push_back(inf);
         continue;
       }
-      results.push_back(weightedSize(kSignal,iSig)/sqrt(nBackgroundTotal+weightedSize(kSignal,iSig)));
+      results.push_back(weightedSize(xtracks::kSignal,iSig)/sqrt(nBackgroundTotal+weightedSize(xtracks::kSignal,iSig)));
     }
   }
   return results;
@@ -709,15 +709,15 @@ void EventSet::DrawPerLayerPlots()
 }
 
 
-int EventSet::size(EDataType dataType, int setIter)
+int EventSet::size(xtracks::EDataType dataType, int setIter)
 {
-  if(dataType == kSignal){
+  if(dataType == xtracks::kSignal){
     return (int)eventsSignal[(ESignal)setIter].size();
   }
-  else if(dataType == kBackground){
+  else if(dataType == xtracks::kBackground){
     return (int)eventsBackground[(EBackground)setIter].size();
   }
-  else if(dataType == kData){
+  else if(dataType == xtracks::kData){
     return (int)eventsData[(EData)setIter].size();
   }
   else{
@@ -726,17 +726,17 @@ int EventSet::size(EDataType dataType, int setIter)
   return 1;
 }
 
-double EventSet::weightedSize(EDataType dataType, int setIter)
+double EventSet::weightedSize(xtracks::EDataType dataType, int setIter)
 {
   double sum=0;
   
-  if(dataType == kSignal){
+  if(dataType == xtracks::kSignal){
     for(auto &ev : eventsSignal[(ESignal)setIter]){sum += ev->GetWeight();}
   }
-  else if(dataType == kBackground){
+  else if(dataType == xtracks::kBackground){
     for(auto &ev : eventsBackground[(EBackground)setIter]){sum += ev->GetWeight();}
   }
-  else if(dataType == kData){
+  else if(dataType == xtracks::kData){
     for(auto &ev : eventsData[(EData)setIter]){sum += ev->GetWeight();}
   }
   else{
@@ -746,15 +746,15 @@ double EventSet::weightedSize(EDataType dataType, int setIter)
   return sum;
 }
 
-shared_ptr<Event> EventSet::At(EDataType dataType, int setIter, int index)
+shared_ptr<Event> EventSet::At(xtracks::EDataType dataType, int setIter, int index)
 {
-  if(dataType == kSignal){
+  if(dataType == xtracks::kSignal){
     return eventsSignal[(ESignal)setIter][index];
   }
-  else if(dataType == kBackground){
+  else if(dataType == xtracks::kBackground){
     return eventsBackground[(EBackground)setIter][index];
   }
-  else if(dataType == kData){
+  else if(dataType == xtracks::kData){
     return eventsData[(EData)setIter][index];
   }
   else{
@@ -762,9 +762,9 @@ shared_ptr<Event> EventSet::At(EDataType dataType, int setIter, int index)
   }
 }
 
-shared_ptr<Event> EventSet::GetEvent(EDataType dataType, uint run, uint lumi, unsigned long long eventNumber)
+shared_ptr<Event> EventSet::GetEvent(xtracks::EDataType dataType, uint run, uint lumi, unsigned long long eventNumber)
 {
-  if(dataType == kSignal){
+  if(dataType == xtracks::kSignal){
     for(auto events : eventsSignal){
       for(auto event : events){
         if(event->GetRunNumber() == run &&
@@ -775,7 +775,7 @@ shared_ptr<Event> EventSet::GetEvent(EDataType dataType, uint run, uint lumi, un
       }
     }
   }
-  else if(dataType == kBackground){
+  else if(dataType == xtracks::kBackground){
     for(auto events : eventsBackground){
       for(auto event : events){
         if(event->GetRunNumber() == run &&
@@ -786,7 +786,7 @@ shared_ptr<Event> EventSet::GetEvent(EDataType dataType, uint run, uint lumi, un
       }
     }
   }
-  else if(dataType == kData){
+  else if(dataType == xtracks::kData){
     for(auto events : eventsData){
       for(auto event : events){
         if(event->GetRunNumber() == run &&
@@ -803,16 +803,16 @@ shared_ptr<Event> EventSet::GetEvent(EDataType dataType, uint run, uint lumi, un
   return nullptr;
 }
 
-void EventSet::AddEvent(shared_ptr<Event> event, EDataType dataType, int setIter)
+void EventSet::AddEvent(shared_ptr<Event> event, xtracks::EDataType dataType, int setIter)
 {
   
-  if(dataType == kSignal){
+  if(dataType == xtracks::kSignal){
     eventsSignal[(ESignal)setIter].push_back(event);
   }
-  else if(dataType == kBackground){
+  else if(dataType == xtracks::kBackground){
     eventsBackground[(EBackground)setIter].push_back(event);
   }
-  else if(dataType == kData){
+  else if(dataType == xtracks::kData){
     eventsData[(EData)setIter].push_back(event);
   }
   else{
@@ -820,7 +820,7 @@ void EventSet::AddEvent(shared_ptr<Event> event, EDataType dataType, int setIter
   }
 }
 
-void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int maxNevents, int setIter)
+void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataType, int maxNevents, int setIter)
 {
   cout<<"Reading events from:"<<fileName<<endl;
   TFile *inFile = TFile::Open(fileName.c_str());
@@ -921,10 +921,10 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
     //      cout<<*_genWgt<<"\t"<<fileName<<endl;
     //    }
     
-    if(dataType==kBackground){
+    if(dataType==xtracks::kBackground){
       weight *= (*_xSec);
     }
-    if(dataType==kSignal){
+    if(dataType==xtracks::kSignal){
       // it's not clear how to calculate weights for the signal...
       
       // cross section for given signal (stored in fb, here transformed to pb to match background units
@@ -941,7 +941,7 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
       //        cout<<"WARNING -- number of generator-level charginos different than 1 or 2"<<endl;
       //      }
     }
-    else if(dataType==kData){
+    else if(dataType==xtracks::kData){
       weight = 1;
     }
     
@@ -983,13 +983,16 @@ void EventSet::AddEventsFromFile(std::string fileName, EDataType dataType, int m
     newEvent->SetWgtSum(*_sumWgt);
     newEvent->SetGenWeight(*_genWgt);
     
-    if(dataType == kSignal){
+    newEvent->SetDataType(dataType);
+    newEvent->SetSetIter(setIter);
+    
+    if(dataType == xtracks::kSignal){
       eventsSignal[setIter].push_back(newEvent);
     }
-    else if(dataType == kBackground){
+    else if(dataType == xtracks::kBackground){
       eventsBackground[setIter].push_back(newEvent);
     }
-    else if(dataType == kData){
+    else if(dataType == xtracks::kData){
       eventsData[setIter].push_back(newEvent);
     }
     else{

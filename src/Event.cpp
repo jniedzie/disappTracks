@@ -85,10 +85,14 @@ shared_ptr<vector<Point>> Event::GetTrackerHits()
 {
   shared_ptr<vector<Point>> trackerPoints = make_shared<vector<Point>>();
   
-//  TFile *inFile = TFile::Open("pickhists.root");
-  TFile *inFile = TFile::Open("charginoAllHits.root");
-  //  TFile *inFile = TFile::Open("/afs/cern.ch/work/j/jniedzie/private/pickhists.root");
-  //  TFile *inFile = TFile::Open("/afs/cern.ch/work/j/jniedzie/private/pickhists_unfiltered.root");
+  string basePath;
+  
+  if(dataType == xtracks::kSignal)      basePath = inFileNameSignal[setIter];
+  if(dataType == xtracks::kBackground)  basePath = inFileNameBackground[setIter][0];
+  if(dataType == xtracks::kData)        basePath = inFileNameData[setIter][0];
+  
+  TFile *inFile = TFile::Open(Form("%s/charginoAllHits.root",basePath.c_str()));
+  
   if(!inFile){
     cout<<"ERROR -- no file with all hits was found"<<endl;
     return trackerPoints;
@@ -161,3 +165,76 @@ shared_ptr<vector<Point>> Event::GetTrackerHits()
 }
 
 
+shared_ptr<vector<unique_ptr<Helix>>> Event::GetTruePionHelices()
+{
+  auto trueHelices = make_shared<vector<unique_ptr<Helix>>>();
+  
+  string basePath;
+  
+  if(dataType == xtracks::kSignal)      basePath = inFileNameSignal[setIter];
+  if(dataType == xtracks::kBackground)  basePath = inFileNameBackground[setIter][0];
+  if(dataType == xtracks::kData)        basePath = inFileNameData[setIter][0];
+  
+  TFile *inFile = TFile::Open(Form("%s/charginoAnalysisPions.root",basePath.c_str()));
+  
+  if(!inFile){
+    cout<<"ERROR -- no file with all hits was found"<<endl;
+    return trueHelices;
+  }
+  TTree *tree = (TTree*)inFile->Get("CharginoAnalyzer/pions");
+  
+  if(!tree){
+    cout<<"ERROR -- no tree with gen-level pion helices was found"<<endl;
+    return trueHelices;
+  }
+  
+  vector<double> *pionVx = nullptr;
+  vector<double> *pionVy = nullptr;
+  vector<double> *pionVz = nullptr;
+  vector<double> *pionPx = nullptr;
+  vector<double> *pionPy = nullptr;
+  vector<double> *pionPz = nullptr;
+  vector<int> *pionCharge = nullptr;
+  
+  uint run;
+  uint lumi;
+  unsigned long long event;
+  
+  tree->SetBranchAddress("runNumber",&run);
+  tree->SetBranchAddress("lumiBlock",&lumi);
+  tree->SetBranchAddress("eventNumber",&event);
+  
+  tree->SetBranchAddress("pion_vx",&pionVx);
+  tree->SetBranchAddress("pion_vy",&pionVy);
+  tree->SetBranchAddress("pion_vz",&pionVz);
+  tree->SetBranchAddress("pion_px",&pionPx);
+  tree->SetBranchAddress("pion_py",&pionPy);
+  tree->SetBranchAddress("pion_pz",&pionPz);
+  tree->SetBranchAddress("pion_charge",&pionCharge);
+  
+  bool eventFound = false;
+  
+  for(int i=0;i<tree->GetEntries();i++){
+    tree->GetEntry(i);
+    if(run == runNumber && lumi == lumiSection && event == eventNumber){
+      eventFound = true;
+      break;
+    }
+  }
+  
+  if(!eventFound){
+    cout<<"\n\nERROR - could not find gen pions for requested event!\n\n"<<endl;
+    return trueHelices;
+  }
+  
+  
+  for(uint i=0;i<pionVx->size();i++){
+    // change units from cm to mm and from GeV to MeV
+    auto helix = make_unique<Helix>(make_unique<Point>(10*pionVx->at(i), 10*pionVy->at(i), 10*pionVz->at(i)),
+                                    make_unique<Point>(1000*pionPx->at(i), 1000*pionPy->at(i), 1000*pionPz->at(i)),
+                                    pionCharge->at(i));
+    
+    trueHelices->push_back(move(helix));
+  }
+  return trueHelices;
+}

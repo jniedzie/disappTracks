@@ -36,6 +36,9 @@ public:
   /// Tries to load all tracker hits for this event from a separate file
   shared_ptr<vector<Point>> GetTrackerHits();
   
+  /// Tries to load gen-level info about pion helices for this event from a separate file
+  shared_ptr<vector<unique_ptr<Helix>>> GetTruePionHelices();
+  
   // setters
   inline void AddTrack(shared_ptr<Track> track){tracks.push_back(track);}
   inline void AddJet(shared_ptr<Jet> jet){jets.push_back(jet);}
@@ -80,6 +83,9 @@ public:
   inline void SetXsec(double val){xsec = val;}
   inline void SetWgtSum(double val){wgtsum = val;}
   inline void SetGenWeight(double val){genWeight = val;}
+  
+  inline void SetDataType(xtracks::EDataType val){dataType = val;}
+  inline void SetSetIter(int val){setIter = val;}
   
   // getters
   inline uint  GetLumiSection(){return lumiSection;}
@@ -140,6 +146,9 @@ private:
   vector<shared_ptr<Track>>  tracks;   ///< Vector of isolated tracks
   vector<shared_ptr<Jet>>    jets;     ///< Vector of jets
   vector<shared_ptr<Lepton>> leptons;  ///< Vector of leptons
+  
+  xtracks::EDataType dataType;     ///< Type of the event (signal/background/data)
+  int setIter;            ///< Iterator of the dataset (e.g. which type of background it is)
   
   uint lumiSection;        ///< ID of lumi section
   uint runNumber;          ///< ID of the run

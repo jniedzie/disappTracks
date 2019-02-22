@@ -50,15 +50,15 @@ void HistSet::FillFromEvents(shared_ptr<EventSet> events)
   else{
     for(int iSig=0;iSig<kNsignals;iSig++){
       if(!config->runSignal[iSig]) continue;
-      Fill(signal[iSig], events,EventSet::kSignal, iSig);
+      Fill(signal[iSig], events,xtracks::kSignal, iSig);
     }
     for(int iBck=0;iBck<kNbackgrounds;iBck++){
       if(!config->runBackground[iBck]) continue;
-      Fill(background[iBck],events,EventSet::kBackground, iBck);
+      Fill(background[iBck],events,xtracks::kBackground, iBck);
     }
     for(int iData=0;iData<kNdata;iData++){
       if(!config->runData[iData]) continue;
-      Fill(data[iData],events,EventSet::kData, iData);
+      Fill(data[iData],events,xtracks::kData, iData);
     }
   }
 }
@@ -71,7 +71,7 @@ void HistSet::FillFromEventsPerLayer(shared_ptr<EventSet> events)
       string histTitle = title + "_subDet["+to_string(iDetId)+"]_signal_"+ signalTitle[iSig];
       auto histSignal = shared_ptr<TH1D>(new TH1D(histTitle.c_str(),histTitle.c_str(),nBins,min,max));
       
-      Fill(histSignal,events,EventSet::kSignal,iSig,iDetId);
+      Fill(histSignal,events,xtracks::kSignal,iSig,iDetId);
       signalVector.push_back(histSignal);
     }
     signalPerLayer.push_back(signalVector);
@@ -82,7 +82,7 @@ void HistSet::FillFromEventsPerLayer(shared_ptr<EventSet> events)
       string histTitle = title + "_subDet["+to_string(iDetId)+"]_background_"+ backgroundTitle[iBck];
       auto histBackground = shared_ptr<TH1D>(new TH1D(histTitle.c_str(),histTitle.c_str(),nBins,min,max));
       
-      Fill(histBackground,events,EventSet::kBackground,iBck,iDetId);
+      Fill(histBackground,events,xtracks::kBackground,iBck,iDetId);
       backgroundVector.push_back(histBackground);
     }
     backgroundPerLayer.push_back(backgroundVector);
@@ -93,7 +93,7 @@ void HistSet::FillFromEventsPerLayer(shared_ptr<EventSet> events)
       string histTitle = title + "_subDet["+to_string(iDetId)+"]_data_"+ dataTitle[iData];
       auto histData = shared_ptr<TH1D>(new TH1D(histTitle.c_str(),histTitle.c_str(),nBins,min,max));
       
-      Fill(histData,events,EventSet::kData,iData,iDetId);
+      Fill(histData,events,xtracks::kData,iData,iDetId);
       dataVector.push_back(histData);
     }
     dataPerLayer.push_back(dataVector);
@@ -102,7 +102,7 @@ void HistSet::FillFromEventsPerLayer(shared_ptr<EventSet> events)
 
 void HistSet::Fill(const shared_ptr<TH1D> &hist,
                    const shared_ptr<EventSet> &events,
-                   EventSet::EDataType dataType, int setIter,
+                   xtracks::EDataType dataType, int setIter,
                    int iDetId)
 {
   for(int iEvent=0;iEvent<events->size(dataType, setIter);iEvent++){

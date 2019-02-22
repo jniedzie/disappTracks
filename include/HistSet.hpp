@@ -72,7 +72,7 @@ private:
   /// \param iDetId Detector ID for per-layer histograms
   void Fill(const shared_ptr<TH1D> &hist,
             const shared_ptr<EventSet> &events,
-            EventSet::EDataType dataType, int setIter,
+            xtracks::EDataType dataType, int setIter,
             int iDetId=-1);
 };
 

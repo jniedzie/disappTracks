@@ -39,8 +39,8 @@ void ProcessCuts(shared_ptr<EventSet> events,
     for(int iBck=0;iBck<kNbackgrounds;iBck++){
       if(!config->runBackground[iBck]) continue;
       cout<<"Background events in "<<backgroundTitle[iBck]<<":"<<endl;
-      for(int iEvent=0;iEvent<events->size(EventSet::kBackground,iBck);iEvent++){
-        events->At(EventSet::kBackground,iBck,iEvent)->Print();
+      for(int iEvent=0;iEvent<events->size(xtracks::kBackground,iBck);iEvent++){
+        events->At(xtracks::kBackground,iBck,iEvent)->Print();
       }
     }
   }
@@ -48,8 +48,8 @@ void ProcessCuts(shared_ptr<EventSet> events,
     for(int iData=0;iData<kNdata;iData++){
       if(!config->runData[iData]) continue;
       cout<<"Data events in "<<dataTitle[iData]<<":"<<endl;
-      for(int iEvent=0;iEvent<events->size(EventSet::kData,iData);iEvent++){
-        events->At(EventSet::kData,iData,iEvent)->Print();
+      for(int iEvent=0;iEvent<events->size(xtracks::kData,iData);iEvent++){
+        events->At(xtracks::kData,iData,iEvent)->Print();
       }
     }
   }
@@ -57,8 +57,8 @@ void ProcessCuts(shared_ptr<EventSet> events,
     for(int iSig=0;iSig<kNsignals;iSig++){
       if(!config->runSignal[iSig]) continue;
       cout<<"Signal events in "<<signalTitle[iSig]<<":"<<endl;
-      for(int iEvent=0;iEvent<events->size(EventSet::kSignal,iSig);iEvent++){
-        events->At(EventSet::kSignal,iSig,iEvent)->Print();
+      for(int iEvent=0;iEvent<events->size(xtracks::kSignal,iSig);iEvent++){
+        events->At(xtracks::kSignal,iSig,iEvent)->Print();
       }
     }
   }
@@ -68,11 +68,11 @@ void ProcessCuts(shared_ptr<EventSet> events,
   
   for(int iData=0;iData<kNdata;iData++){
     if(!config->runData[iData]) continue;
-    cout<<"Data events surviving cuts in "<<dataTitle[iData]<<":"<<events->size(EventSet::kData,iData)<<endl;
-    for(int iEvent=0;iEvent<events->size(EventSet::kData,iData);iEvent++){
-      int runNumber = events->At(EventSet::kData,iData,iEvent)->GetRunNumber();
-      int lumiSection = events->At(EventSet::kData,iData,iEvent)->GetLumiSection();
-      long long int eventNumber = events->At(EventSet::kData,iData,iEvent)->GetEventNumber();
+    cout<<"Data events surviving cuts in "<<dataTitle[iData]<<":"<<events->size(xtracks::kData,iData)<<endl;
+    for(int iEvent=0;iEvent<events->size(xtracks::kData,iData);iEvent++){
+      int runNumber = events->At(xtracks::kData,iData,iEvent)->GetRunNumber();
+      int lumiSection = events->At(xtracks::kData,iData,iEvent)->GetLumiSection();
+      long long int eventNumber = events->At(xtracks::kData,iData,iEvent)->GetEventNumber();
       dataSurvivingFile<<runNumber<<":"<<lumiSection<<":"<<eventNumber<<"\n";
     }
   }
@@ -125,7 +125,8 @@ int main(int argc, char* argv[])
     //  trackCut_L0->SetRequireSameNpixelHitsLayers(true);
     trackCut_L0->SetNmissingInnerPixel(range<int>(0, 0));
     trackCut_L0->SetNmissingMiddleTracker(range<int>(0, 0));
-    trackCut_L0->SetNpixelLayers(range<int>(2, inf));
+//    trackCut_L0->SetNpixelLayers(range<int>(2, inf));
+    trackCut_L0->SetNlayers(range<int>(2, inf));
     trackCut_L0->SetEta(range<double>(-2.1, 2.1));
 
     jetCut_L0->SetPt(range<double>(30.0, inf));
@@ -147,12 +148,12 @@ int main(int argc, char* argv[])
     
 //    for(int iBck=0;iBck<kNbackgrounds;iBck++){
 //      if(!config->runBackground[iBck]) continue;
-//      for(int iEvent=0;iEvent<events->size(EventSet::kBackground,iBck);iEvent++){
-//        auto event = events->At(EventSet::kBackground,iBck,iEvent);
+//      for(int iEvent=0;iEvent<events->size(xtracks::kBackground,iBck);iEvent++){
+//        auto event = events->At(xtracks::kBackground,iBck,iEvent);
     for(int iSig=0;iSig<kNsignals;iSig++){
       if(!config->runSignal[iSig]) continue;
-      for(int iEvent=0;iEvent<events->size(EventSet::kSignal,iSig);iEvent++){
-        auto event = events->At(EventSet::kSignal,iSig,iEvent);
+      for(int iEvent=0;iEvent<events->size(xtracks::kSignal,iSig);iEvent++){
+        auto event = events->At(xtracks::kSignal,iSig,iEvent);
         double avgDedx=0;
         for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){avgDedx += event->GetTrack(iTrack)->GetAverageDedx();}
         avgDedx /= event->GetNtracks();
@@ -169,6 +170,7 @@ int main(int argc, char* argv[])
     */
     // L1 cuts
     trackCut_L1->SetRelativeIsolation(range<double>(0.0, 0.5));
+    trackCut_L1->SetNlayers(range<int>(2, inf));
     jetCut_L1->SetChargedHadronEnergyFraction(range<double>(0.01,0.99));
     jetCut_L1->SetNeutralHadronEnergyFraction(range<double>(0.01,0.99));
     eventCut_L1->SetJetMetDeltaPhi(range<double>(0.5,inf));

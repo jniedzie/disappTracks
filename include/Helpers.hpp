@@ -58,6 +58,15 @@ using namespace std;
 
 #define inf 99999999
 
+namespace xtracks {
+  enum EDataType{
+    kBackground,
+    kSignal,
+    kData
+  };
+}
+
+
 // Plotting style
 const double fillOpacity = 1.0;
 const int fillStyleBack = 1000;

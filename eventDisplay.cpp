@@ -65,7 +65,7 @@ const map<string,any> helixOptions = {
   {"color", kGreen}
 };
 
-const map<string,any> filteredPointsOptions = {
+map<string,any> filteredPointsOptions = {
   {"title", "Filtered Points"},
   {"markerStyle", 20},
   {"markerSize", 1.0},
@@ -82,11 +82,11 @@ int main(int argc, char* argv[])
   auto trackProcessor = make_unique<TrackProcessor>();
   
   auto events = make_shared<EventSet>();
-  events->LoadEventsFromFiles("/");
-//  events->LoadEventsFromFiles("after_L0/");
+//  events->LoadEventsFromFiles("/");
+  events->LoadEventsFromFiles("after_L1/");
   
 //  auto event = events->GetEvent(EventSet::kBackground, searchRun, searchLumi, searchEvent);
-  auto event = events->At(EventSet::kSignal, kWino_M_300_cTau_10, 3);
+  auto event = events->At(xtracks::kSignal, kWino_M_300_cTau_10, 0);
   
   if(!event){
     cout<<"eventDisplay -- event not found"<<endl;
@@ -110,9 +110,22 @@ int main(int argc, char* argv[])
   // ------------------------------------------------------------------------------------------------------------
   
   cout<<"Preparing hits, track and pion's helix"<<endl;
-  shared_ptr<vector<Point>> allSimplePoints; // all hits in the event
-  allSimplePoints = event->GetTrackerHits();
+  
+  shared_ptr<vector<Point>> allSimplePoints = event->GetTrackerHits();
   display->DrawSimplePoints(allSimplePoints, filteredPointsOptions);
+  
+  shared_ptr<vector<unique_ptr<Helix>>> truePionHelices = event->GetTruePionHelices();
+  
+  for(auto &helix : *truePionHelices){
+    display->DrawHelix(helix,helixOptions);
+    helix->SetPoints(allSimplePoints);
+    auto helixPoints = helix->GetPoints();
+    filteredPointsOptions["title"] = "true helix points";
+    filteredPointsOptions["color"] = kRed;
+    display->DrawSimplePoints(helixPoints, filteredPointsOptions);
+    
+    helix->Print();
+  }
   
 //  shared_ptr<Track> track = trackProcessor->GetRandomTrack(config->nTrackHits, config->maxEta);
   shared_ptr<Track> track = event->GetTrack(0);
@@ -125,12 +138,7 @@ int main(int argc, char* argv[])
 //  display->DrawSimplePoints(decayPoint, decayPointOptions);
   
   // Draw true pion helix
-  auto truePionHelix = make_unique<Helix>(make_unique<Point>(11.5,255.4,458.3),
-                                          make_unique<Point>(-140.8,58.7,264.5),
-                                          1
-                                          );
-
-  display->DrawHelix(truePionHelix,helixOptions);
+  
   
 //  unique_ptr<Helix> pionHelix = helixProcessor->GetRandomPionHelix(track);
 //  display->DrawHelix(pionHelix,helixOptions);
