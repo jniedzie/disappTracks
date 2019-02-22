@@ -1,0 +1,9 @@
+executable 		= run_GEN-SIM.sh
+arguments             	= $(ClusterID) $(ProcId)
+output                	= output/GEN-SIM.$(ClusterId).$(ProcId).out
+error                 	= error/GEN-SIM.$(ClusterId).$(ProcId).err
+log                   	= log/GEN-SIM.$(ClusterId).log
+transfer_input_files 	= chargino300GeV_ctau10cm_GEN-SIM_Run2_2017_cfg.py
+#transfer_output_files	= chargino300GeV_ctau10cm_GEN-SIM_$(clusterid)_$(procid).root
++JobFlavour 		= "nextweek"
+queue
