@@ -13,10 +13,10 @@ mkdir -p Configuration/GenProduction/python/ThirteenTeV/AMSB_chargino/
 mkdir -p DisappTrks/SignalMC/data/
 
 cd Configuration/GenProduction/python/ThirteenTeV/AMSB_chargino/
-wget -N https://raw.githubusercontent.com/jniedzie/disappTracks/master/eventsGeneration/AMSB_chargino300GeV_ctau10cm_NoFilter_13TeV.py
+wget -N https://github.com/jniedzie/disappTracks/raw/master/eventsGeneration/AMSB_chargino300GeV_ctau10cm_NoFilter_13TeV.py
 
 cd ../..
-wget -N https://raw.githubusercontent.com/jniedzie/disappTracks/master/eventsGeneration/RandomSeed_cfi.py
+wget -N https://github.com/jniedzie/disappTracks/raw/master/eventsGeneration/RandomSeed_cfi.py
 cd ../../..
 
 cd DisappTrks/SignalMC/data/
