@@ -29,14 +29,8 @@ chmod 777 install.sh
 
 `cd src`
 
-* run this command (**modify the last parameter to set desired number of events!**):
+* run this scripts with proper arguments
 
-```
-
-```
-
-* then, you can just run the script:
-
-`cmsRun chargino300GeV_ctau10cm_GEN-SIM.py`
+`./submitJobs.sh number_of_jobs number_of_events_per_job`
 
 * If everything goes fine, you should see `chargino300GeV_ctau10cm_GEN-SIM.root` file containing generated events.

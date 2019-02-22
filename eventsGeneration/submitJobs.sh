@@ -10,7 +10,7 @@ for iJob in $(seq 0 $number_of_jobs);
 do
 FILE="scripts/run_batch_${iJob}.sub"
 /bin/cat <<EOM >$FILE
-executable  = run_GEN-SIM_${iJob}.sh
+executable  = scripts/run_GEN-SIM_${iJob}.sh
 arguments   = \$(ClusterID) \$(ProcId)
 output      = output/GEN-SIM.\$(ClusterId).\$(ProcId).out
 error       = error/GEN-SIM.\$(ClusterId).\$(ProcId).err
