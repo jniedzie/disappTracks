@@ -25,7 +25,7 @@ chmod 777 install.sh
 
 3. **Generate GEN-SIM events**
 
-* once everything is set up, we need to prepare a script for samples generation. Go th the $WORK_DIR/CMSSW_9_4_6_patch1/src/:
+* once everything is set up, go to the $WORK_DIR/CMSSW_9_4_6_patch1/src/:
 
 `cd src`
 

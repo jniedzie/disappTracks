@@ -38,6 +38,7 @@ FILE2="scripts/run_GEN-SIM_${iJob}.sh"
 /bin/cat <<EOM >$FILE2
 #!/bin/bash
 export XRD_NETWORKSTACK=IPv4
+export CMSSWVER="CMSSW_9_4_6_patch1"
 export SCRAM_ARCH="slc6_amd64_gcc630"
 
 source /afs/cern.ch/cms/cmsset_default.sh
