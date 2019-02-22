@@ -41,6 +41,9 @@ export XRD_NETWORKSTACK=IPv4
 export CMSSWVER="CMSSW_9_4_6_patch1"
 export SCRAM_ARCH="slc6_amd64_gcc630"
 
+cd `pwd`
+cmsenv
+
 source /afs/cern.ch/cms/cmsset_default.sh
 eval \`scramv1 runtime -sh\`
 edmPluginRefresh -p ../lib/\$SCRAM_ARCH

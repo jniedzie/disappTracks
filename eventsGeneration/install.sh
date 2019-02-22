@@ -7,6 +7,7 @@ git cms-addpkg Configuration/StandardSequences
 git cms-addpkg Configuration/DataProcessing
 git cms-addpkg SimG4Core/CustomPhysics
 cd src
+cmsenv
 
 echo "\nAdding chargino card and other necessary files\n"
 mkdir -p Configuration/GenProduction/python/ThirteenTeV/AMSB_chargino/
