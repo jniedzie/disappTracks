@@ -23,6 +23,13 @@ cd DisappTrks/SignalMC/data/
 wget https://github.com/jniedzie/disappTracks/raw/master/eventsGeneration/geant4cards.tar
 tar xvf geant4cards.tar
 rm geant4cards.tar
+cd ../../..
+
+mkdir -p error
+mkdir -p output
+mkdir -p log
+mkdir -p scripts
+mkdir -p generatedEvents
 
 echo "\nBuilding CMSSW\n"
 scram b -j8
