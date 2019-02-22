@@ -13,14 +13,14 @@ mkdir -p Configuration/GenProduction/python/ThirteenTeV/AMSB_chargino/
 mkdir -p DisappTrks/SignalMC/data/
 
 cd Configuration/GenProduction/python/ThirteenTeV/AMSB_chargino/
-wget https://raw.githubusercontent.com/jniedzie/disappTracks/master/eventsGeneration/AMSB_chargino300GeV_ctau10cm_NoFilter_13TeV.py
+wget -N https://raw.githubusercontent.com/jniedzie/disappTracks/master/eventsGeneration/AMSB_chargino300GeV_ctau10cm_NoFilter_13TeV.py
 
 cd ../..
-wget https://raw.githubusercontent.com/jniedzie/disappTracks/master/eventsGeneration/RandomSeed_cfi.py
+wget -N https://raw.githubusercontent.com/jniedzie/disappTracks/master/eventsGeneration/RandomSeed_cfi.py
 cd ../../..
 
 cd DisappTrks/SignalMC/data/
-wget https://github.com/jniedzie/disappTracks/raw/master/eventsGeneration/geant4cards.tar
+wget -N https://github.com/jniedzie/disappTracks/raw/master/eventsGeneration/geant4cards.tar
 tar xvf geant4cards.tar
 rm geant4cards.tar
 cd ../../..
@@ -30,6 +30,9 @@ mkdir -p output
 mkdir -p log
 mkdir -p scripts
 mkdir -p generatedEvents
+
+wget -N https://github.com/jniedzie/disappTracks/raw/master/eventsGeneration/submitJobs.sh
+chmod 777 submitJobs.sh
 
 echo "\nBuilding CMSSW\n"
 scram b -j8

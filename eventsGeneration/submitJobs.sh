@@ -1,7 +1,9 @@
 #!/bin/bash
 
-number_of_jobs=2
-number_of_events_per_job=5
+number_of_jobs=$1
+number_of_events_per_job=$2
+
+echo "usage: ./submitJobs.sh number_of_jobs number_of_events_per_job"
 
 # create condor configs and generation scripts
 for iJob in $(seq 0 $number_of_jobs);
