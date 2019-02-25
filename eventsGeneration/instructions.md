@@ -25,18 +25,37 @@ chmod 777 install.sh
 
 3. **Generate GEN-SIM events**
 
-* once everything is set up, go to the $WORK_DIR/CMSSW_9_4_6_patch1/src/:
+* Once everything is set up, go to the $WORK_DIR/CMSSW_9_4_6_patch1/src/:
 
 `cd src`
 
-* run this scripts with proper arguments and go get a coffee (a big one if you scheduled many jobs):
+* Run this scripts with proper arguments and go get a coffee (a big one if you scheduled many jobs):
 
-`./submitJobs.sh number_of_jobs number_of_events_per_job`
+```
+./submitJobs.sh \
+-j number_of_jobs \
+-e number_of_events_per_job \
+-s GEN-SIM \
+-o /eos/cms/store/group/something/something_else/susy/GEN-SIM/
+```
 
-* If everything goes fine, after many hours you should see files like `chargino300GeV_ctau10cm_GEN-SIM_0.root` containing generated events in `generatedEvents` directory. To check if jobs are running, use `condor_q` command.
+* To check if jobs are running, use `condor_q` command.
 
+* If everything goes fine, after many hours you should see files like `chargino300GeV_ctau10cm_GEN-SIM_0.root` containing generated events in the output directory specified.
 
-4. **Some random info that may be useful**
+4. **Generate GEN-SIM-RAW events**
+
+* Once GEN-SIM events are ready, you can run next step using the same script, but this time specifying input path. No need to specify number of events anymore - all events in the file will be processed:
+
+```
+./submitJobs.sh \
+-j number_of_jobs \ 
+-s GEN-SIM-RAW \
+-i /eos/cms/store/group/something/something_else/susy/GEN-SIM/ \
+-o /eos/cms/store/group/something/something_else/susy/GEN-SIM-RAW/
+```
+
+5. **Some random info that may be useful**
 
 * if you have some problems with jobs submission, try adding something like this to your ~/.bashrc file:
 `export X509_USER_PROXY=/afs/cern.ch/user/a/aalibaba/x509up_u12345`
