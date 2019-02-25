@@ -65,9 +65,9 @@ void Display::DrawHelix(const unique_ptr<Helix> &helix, const map<string,any> op
 
 void Display::DrawEvent(const shared_ptr<Event> &event, const map<string,any> options)
 {
-  gEve->GetEventScene()->DestroyElements();
-  gSystem->ProcessEvents();
-  
+//  gEve->GetEventScene()->DestroyElements();
+//  gSystem->ProcessEvents();
+	
   for(int iJet=0;iJet<event->GetNjets();iJet++){
     shared_ptr<Jet> jet = event->GetJet(iJet);
     TEveJetCone *jetCone = new TEveJetCone();
@@ -88,13 +88,13 @@ void Display::DrawEvent(const shared_ptr<Event> &event, const map<string,any> op
       
       int iLayer = track->GetLayerForHit(iHit);
       
-      double phi = track->GetPhi();
-      double theta = 2*atan(exp(-track->GetEta()));
-      double R = layerR[iLayer]/sin(theta);
+      double phi    = track->GetPhi();
+			double theta  = track->GetTheta();
+      double decayR = layerR[iLayer];
       
-      double x = R*sin(theta)*cos(phi);
-      double y = R*sin(theta)*sin(phi);
-      double z = R*cos(theta);
+      double x = decayR*cos(phi);
+      double y = decayR*sin(phi);
+      double z = decayR/sin(theta)*cos(theta);
       
       points->Fill(scale*x,scale*y,scale*z,track->GetDeDxForHit(iHit));
     }
@@ -150,8 +150,8 @@ void Display::DrawEvent(const shared_ptr<Event> &event, const map<string,any> op
     hadCal->SetRnrSelf(true);
     gEve->AddElement(hadCal);
   }
-  
-  gEve->Redraw3D();
+
+	gEve->Redraw3D();
 }
 
 TEvePointSetArray* Display::PreparePointsEventDisplay(map<string,any> options)

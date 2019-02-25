@@ -1,6 +1,6 @@
 **Event display options**
 
-show_geometry_pixel:  1
+show_geometry_pixel:  0
 show_geometry_strip:  0
 show_geometry_ecal:  0
 show_geometry_hcal:  0
@@ -50,10 +50,10 @@ n_tracker_layers: 10
 ### Minimum and maximum allowed momentum:
 min_px: 10
 min_py: 10
-min_pz: 10
+min_pz: 100
 
-max_px: 1000
-max_py: 1000
+max_px: 300
+max_py: 300
 max_pz: 1000
 
 **Chargino's track parameters**
@@ -67,24 +67,24 @@ n_track_hits: 2
 **Fitter parameters**
 
 ### Determines how far points can be from helix to be assigned to it (in mm):
-helix_thickness:  10.0
+helix_thickness:  1.0
 
 ### Determines how far points can be from circle to be assigned to it (in mm):
-circle_thickness: 10.0
+circle_thickness: 1.0
 
 ### Determines how far points can be from each other to be counted as the same z-line (in mm),
 ### when assigining circles (probably this needs to be greater than circle_thickness):
-lines_tolerance_for_circles: 10.0
+lines_tolerance_for_circles: 1.0
 
 ### Determines how far points can be from each other to be counted as the same z-line (in mm), 
 ### when calculating number of regular points:
-lines_tolerance_for_regularity: 10.0
+lines_tolerance_for_regularity: 1.0
 
 ### Precision of pz scanning:
 step_pz:  0.5
 
 ### Determines how far points can be from perfectly regular position in Z to be counted as a regular point (in mm):
-z_regularity_tolerance: 10.0
+z_regularity_tolerance: 1.0
 
 ### Minimum number of hits for each line along Z axis (approximately equivalent to minimum number of helix cycles).
 ### The higher this number, the faster it gets, but less cases will be successfully fitted:

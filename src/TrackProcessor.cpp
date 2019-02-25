@@ -22,19 +22,22 @@ shared_ptr<Track> TrackProcessor::GetRandomTrack(int nLayers, double maxEta)
   
   track->eta = RandDouble(-maxEta, maxEta);
   track->phi = RandDouble(0, 2*TMath::Pi());
-  
   track->nTrackerLayers = track->nPixelLayers = nLayers;
-  
-  double maxTheta = 2*atan(exp(-maxEta));
-  
-  double minL = layerR[nLayers-1]/sin(maxTheta);
-  double maxL = layerR[nLayers]/sin(maxTheta);
-  double decayR = RandDouble(minL, maxL);
-  
-  double theta = track->GetTheta();
-  double decayX = decayR*sin(theta)*cos(track->phi);
-  double decayY = decayR*sin(theta)*sin(track->phi);
-  double decayZ = decayR*cos(theta);
+	
+	for(int iLayer=0;iLayer<nLayers;iLayer++){
+		track->layer[iLayer] = iLayer+1;
+		track->dedx[iLayer] = 5.0;
+	}
+	
+	double theta = track->GetTheta();
+	
+  double minR = layerR[nLayers-1];
+  double maxR = layerR[nLayers];
+  double decayR = RandDouble(minR, maxR);
+	
+  double decayX = decayR*cos(track->phi);
+  double decayY = decayR*sin(track->phi);
+  double decayZ = decayR/sin(theta)*cos(theta);
   
   track->decayPoint = make_unique<Point>(decayX, decayY, decayZ);
   
@@ -146,7 +149,16 @@ vector<shared_ptr<Track>> TrackProcessor::GetTracksFromTree()
       track->ladder[iLayer]   = arrayValuesInt[Form("IsoTrack_ladderOrBladeByLayer%i",iLayer)][iTrack];
     }
     track->CalculateInternals();
-    
+		
+		// Decay point is set only for random pion generation. It's not used in the fitter!!
+		double minR = layerR[track->GetLastBarrelLayer()];
+		double maxR = layerR[track->GetLastBarrelLayer()+1];
+		double decayR = (maxR+minR)/2.;
+		
+		track->decayPoint = make_unique<Point>( decayR*cos(track->phi),
+																						decayR*sin(track->phi),
+																						decayR/sin(track->GetTheta())*cos(track->GetTheta()));
+		
     tracks.push_back(track);
   }
   

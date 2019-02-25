@@ -37,7 +37,8 @@ nDedxClusters(-1),
 eventMetPt(inf),
 eventMetEta(inf),
 eventMetPhi(inf),
-eventMetMass(inf)
+eventMetMass(inf),
+decayPoint(make_unique<Point>(0,0,0))
 {
   for(int iLayer=0;iLayer<nLayers;iLayer++){
     dedx.push_back(0.0);

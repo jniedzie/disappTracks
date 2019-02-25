@@ -26,13 +26,13 @@ void InjectPion(shared_ptr<vector<Point>> trackerPoints,
 
   int lastBarrelLayer = track->GetLastBarrelLayer();
   
-  double minL = layerR[lastBarrelLayer-1]/sin(theta);
-  double maxL = layerR[lastBarrelLayer]/sin(theta);
-  double decayR = RandDouble(minL, maxL);
+  double minR = layerR[lastBarrelLayer-1];
+  double maxR = layerR[lastBarrelLayer];
+  double decayR = RandDouble(minR, maxR);
   
-  double x = decayR*sin(theta)*cos(phi);
-  double y = decayR*sin(theta)*sin(phi);
-  double z = decayR*cos(theta);
+  double x = decayR*cos(phi);
+  double y = decayR*sin(phi);
+  double z = decayR/sin(theta)*cos(theta);
   
   track->SetDecayPoint(make_unique<Point>(x,y,z));
   unique_ptr<Helix> pionHelix = helixProcessor->GetRandomPionHelix(track);
