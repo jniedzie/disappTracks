@@ -105,93 +105,45 @@ int main(int argc, char* argv[])
     auto trackCut_L0 = unique_ptr<TrackCut>(new TrackCut());
     auto jetCut_L0   = unique_ptr<JetCut>(new JetCut());
     auto leptonCut_L0= unique_ptr<LeptonCut>(new LeptonCut());
-    
-    eventCut_L0->SetNtracks(range<int>(1, inf));
-    eventCut_L0->SetNjets(range<int>(1,inf));
-    eventCut_L0->SetNmuons(range<int>(0,0));
-    eventCut_L0->SetNtaus(range<int>(0,0));
-    eventCut_L0->SetNleptons(range<int>(0,0));
-
+		
+		// Remove bad jets
+		jetCut_L0->SetChargedHadronEnergyFraction(range<double>(0.01,0.99));
+		jetCut_L0->SetNeutralHadronEnergyFraction(range<double>(0.01,0.99));
+		jetCut_L0->SetPt(range<double>(30.0, inf));
+		
+		// Remove bad tracks
+		trackCut_L0->SetNmissingInnerPixel(range<int>(0, 0));
+		trackCut_L0->SetNmissingMiddleTracker(range<int>(0, 0));
+		trackCut_L0->SetRelativeIsolation(range<double>(0.0, 0.5));
+		trackCut_L0->SetNlayers(range<int>(2, inf));
+		trackCut_L0->SetEta(range<double>(-2.1, 2.1));
+		
+		// Check MET properties
     eventCut_L0->SetMetNoMuPt(range<double>(200,inf));
     eventCut_L0->SetRequireMetNoMuTrigger(true);
-
     eventCut_L0->SetRequirePassingAllFilters(true);
-
+		eventCut_L0->SetJetMetDeltaPhi(range<double>(0.5,inf));
+		
+		// Check leading jet properties
     eventCut_L0->SetLeadingJetPt(range<double>(100,inf));
     eventCut_L0->SetLeadingJetEta(range<double>(-2.4,2.4));
     eventCut_L0->SetLeadingJetNeHEF(range<double>(-inf,0.8));
     eventCut_L0->SetLeadingJetChHEF(range<double>(0.1,inf));
-    
-    //  trackCut_L0->SetRequireSameNpixelHitsLayers(true);
-    trackCut_L0->SetNmissingInnerPixel(range<int>(0, 0));
-    trackCut_L0->SetNmissingMiddleTracker(range<int>(0, 0));
-//    trackCut_L0->SetNpixelLayers(range<int>(2, inf));
-    trackCut_L0->SetNlayers(range<int>(2, inf));
-    trackCut_L0->SetEta(range<double>(-2.1, 2.1));
-
-    jetCut_L0->SetPt(range<double>(30.0, inf));
-    
+		
+		// Check number of objects after cuts
+		eventCut_L0->SetNtracks(range<int>(1, inf));
+		eventCut_L0->SetNjets(range<int>(1,inf));
+		eventCut_L0->SetNmuons(range<int>(0,0));
+		eventCut_L0->SetNtaus(range<int>(0,0));
+		eventCut_L0->SetNleptons(range<int>(0,0));
+		
     ProcessCuts(events,eventCut_L0, trackCut_L0, jetCut_L0, leptonCut_L0);
   }
-  
+	
   //---------------------------------------------------------------------------
   // Level 1
   //---------------------------------------------------------------------------
-  
   if(config->performCutsLevel == 1){
-    auto eventCut_L1 = unique_ptr<EventCut>(new EventCut());
-    auto trackCut_L1 = unique_ptr<TrackCut>(new TrackCut());
-    auto jetCut_L1   = unique_ptr<JetCut>(new JetCut());
-    auto leptonCut_L1= unique_ptr<LeptonCut>(new LeptonCut());
-    /*
-    TH2D *met_vs_dedx = new TH2D("met_vs_dedx", "met_vs_dedx", 100, 0, 10, 100, 200, 1200);
-    
-//    for(int iBck=0;iBck<kNbackgrounds;iBck++){
-//      if(!config->runBackground[iBck]) continue;
-//      for(int iEvent=0;iEvent<events->size(xtracks::kBackground,iBck);iEvent++){
-//        auto event = events->At(xtracks::kBackground,iBck,iEvent);
-    for(int iSig=0;iSig<kNsignals;iSig++){
-      if(!config->runSignal[iSig]) continue;
-      for(int iEvent=0;iEvent<events->size(xtracks::kSignal,iSig);iEvent++){
-        auto event = events->At(xtracks::kSignal,iSig,iEvent);
-        double avgDedx=0;
-        for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){avgDedx += event->GetTrack(iTrack)->GetAverageDedx();}
-        avgDedx /= event->GetNtracks();
-        
-        met_vs_dedx->Fill(avgDedx, event->GetMetPt());
-      }
-    }
-    met_vs_dedx->SaveAs("abcd_signals.root");
-    TCanvas *cc = new TCanvas("cc","cc",800,600);
-    cc->cd();
-    met_vs_dedx->Draw("colz");
-    cc->Update();
-    theApp->Run();
-    */
-    // L1 cuts
-    trackCut_L1->SetRelativeIsolation(range<double>(0.0, 0.5));
-    trackCut_L1->SetNlayers(range<int>(2, inf));
-    jetCut_L1->SetChargedHadronEnergyFraction(range<double>(0.01,0.99));
-    jetCut_L1->SetNeutralHadronEnergyFraction(range<double>(0.01,0.99));
-    eventCut_L1->SetJetMetDeltaPhi(range<double>(0.5,inf));
-    
-//    jetCut_L1->SetTrackDeltaR(range<double>(0.2,inf)); // this cut is not useful, don't turn it on!
-    
-    // + standard cuts to be applied after L1 selections
-    eventCut_L1->SetNtracks(range<int>(1, inf));
-    eventCut_L1->SetNjets(range<int>(1,inf));
-    eventCut_L1->SetLeadingJetPt(range<double>(100,inf));
-    eventCut_L1->SetLeadingJetEta(range<double>(-2.4,2.4));
-    eventCut_L1->SetLeadingJetNeHEF(range<double>(-inf,0.8));
-    eventCut_L1->SetLeadingJetChHEF(range<double>(0.1,inf));
-
-    ProcessCuts(events,eventCut_L1, trackCut_L1, jetCut_L1, leptonCut_L1);
-  }
-    
-  //---------------------------------------------------------------------------
-  // Level 2
-  //---------------------------------------------------------------------------
-  if(config->performCutsLevel == 2){
     auto eventCut_L2 = unique_ptr<EventCut>(new EventCut());
     auto trackCut_L2 = unique_ptr<TrackCut>(new TrackCut());
     auto jetCut_L2   = unique_ptr<JetCut>(new JetCut());

@@ -203,25 +203,25 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
   
   for(int iHit=0;iHit<nLayers;iHit++){
     
-    tree->Branch(Form("IsoTrack_dedxByLayer%i",iHit), &dedx,
+    tree->Branch(Form("IsoTrack_dedxByLayer%i",iHit), &dedx[iHit],
                  Form("IsoTrack_dedxByLayer%i[nIsoTrack]/F",iHit));
     
-    tree->Branch(Form("IsoTrack_subDetIdByLayer%i",iHit), &subDetId,
+    tree->Branch(Form("IsoTrack_subDetIdByLayer%i",iHit), &subDetId[iHit],
                  Form("IsoTrack_subDetIdByLayer%i[nIsoTrack]/I",iHit));
     
-    tree->Branch(Form("IsoTrack_sizeXbyLayer%i",iHit), &sizeX,
+    tree->Branch(Form("IsoTrack_sizeXbyLayer%i",iHit), &sizeX[iHit],
                  Form("IsoTrack_sizeXbyLayer%i[nIsoTrack]/I",iHit));
     
-    tree->Branch(Form("IsoTrack_sizeYbyLayer%i",iHit), &sizeY,
+    tree->Branch(Form("IsoTrack_sizeYbyLayer%i",iHit), &sizeY[iHit],
                  Form("IsoTrack_sizeYbyLayer%i[nIsoTrack]/I",iHit));
     
-    tree->Branch(Form("IsoTrack_layerOrSideByLayer%i",iHit), &layer,
+    tree->Branch(Form("IsoTrack_layerOrSideByLayer%i",iHit), &layer[iHit],
                  Form("IsoTrack_layerOrSideByLayer%i[nIsoTrack]/I",iHit));
     
-    tree->Branch(Form("IsoTrack_ladderOrBladeByLayer%i",iHit), &layer,
+    tree->Branch(Form("IsoTrack_ladderOrBladeByLayer%i",iHit), &ladder[iHit],
                  Form("IsoTrack_ladderOrBladeByLayer%i[nIsoTrack]/I",iHit));
     
-    tree->Branch(Form("IsoTrack_pixByLayer%i",iHit), &detType,
+    tree->Branch(Form("IsoTrack_pixByLayer%i",iHit), &detType[iHit],
                  Form("IsoTrack_pixByLayer%i[nIsoTrack]/I",iHit));
   }
   
@@ -300,7 +300,7 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
         subDetId[iHit] = event->GetTrack(iTrack)->GetSubDetIdForHit(iHit);
         sizeX[iHit]    = event->GetTrack(iTrack)->GetSizeXforHit(iHit);
         sizeY[iHit]    = event->GetTrack(iTrack)->GetSizeYforHit(iHit);
-        layer[iHit]    = event->GetTrack(iTrack)->GetLayerForHit(iHit);
+        layer[iHit]    = event->GetTrack(iTrack)->GetLayerForHit(iHit)+1;
         ladder[iHit]   = event->GetTrack(iTrack)->GetLadderForHit(iHit);
         detType[iHit]  = event->GetTrack(iTrack)->GetDetTypeForHit(iHit);
       }

@@ -62,7 +62,7 @@ bool TrackProcessor::IsPassingCut(const shared_ptr<Track> track,
   
   if(cut->GetNpixelHits().IsOutside(track->nPixelHits))  return false;
   if(cut->GetNpixelLayers().IsOutside(track->nPixelLayers)) return false;
-  if(cut->GetNlayers().IsOutside(track->GetLastBarrelLayer())) return false;
+  if(cut->GetNlayers().IsOutside(track->GetLastBarrelLayer()+1)) return false;
   if(cut->GetNmissingInnerPixel().IsOutside(track->nMissingInnerPixelHits)) return false;
   if(cut->GetNmissingMiddleTracker().IsOutside(track->nMissingMiddleTrackerHits)) return false;
   if(cut->GetNmissingOuterTracker().IsOutside(track->nMissingOuterTrackerHits))  return false;
