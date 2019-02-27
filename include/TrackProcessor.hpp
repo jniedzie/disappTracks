@@ -36,7 +36,14 @@ public:
   
   /// Returns a vector of tracks with parameters read from tree previously set with SetupBranches(..)
   vector<shared_ptr<Track>> GetTracksFromTree();
-  
+	
+	/// Link class variables to branches of a specified tree
+	/// \param tree Tree to which track parameters will be saved
+	void SetupBranchesForWriting(TTree *tree);
+	
+	/// Writes all tracks in the vector to the tree previously set with SetupBranchesForWriting(...)
+	void SaveTracksToTree(vector<shared_ptr<Track>> tracks);
+	
 private:
   static const int maxNtracks = 1000;   ///< Maximum supported number of tracks per event
   int nTracks;                          ///< Number of tracks in the current tree entry
