@@ -86,7 +86,7 @@ void Display::DrawEvent(const shared_ptr<Event> &event, const map<string,any> op
     
     for(int iHit=0;iHit<nLayers;iHit++){
       
-      int iLayer = track->GetLayerForHit(iHit);
+      int iLayer = track->GetLayerForHit(iHit) - 1;
       
       double phi    = track->GetPhi();
 			double theta  = track->GetTheta();

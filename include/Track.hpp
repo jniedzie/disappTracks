@@ -37,17 +37,17 @@ public:
   int GetLastBarrelLayer();
   
   inline int     GetNdEdxHits(){return (int)dedx.size();}
-  inline double  GetDeDxForHit(int iHit){return dedx[iHit];}
+	inline double  GetDeDxForHit(int iHit){return iHit < dedx.size() ? dedx[iHit] : 0;}
   inline double  GetTotalDedx(){return accumulate(dedx.begin(),dedx.end(),0.0);}
   double         GetAverageDedx();
   double         GetDedxInSubDet(int det);
   
-  inline int     GetSubDetIdForHit(int iHit){return subDetId[iHit];}
-  inline int     GetSizeXforHit(int iHit){return sizeX[iHit];}
-  inline int     GetSizeYforHit(int iHit){return sizeY[iHit];}
-  inline int     GetDetTypeForHit(int iHit){return detType[iHit];}
-  inline int     GetLayerForHit(int iHit){return layer[iHit]-1;}
-  inline int     GetLadderForHit(int iHit){return ladder[iHit];}
+  inline int     GetSubDetIdForHit(int iHit){return iHit < subDetId.size() ? subDetId[iHit] : 0;}
+	inline int     GetSizeXforHit(int iHit){return iHit < sizeX.size() ? sizeX[iHit] : 0;}
+	inline int     GetSizeYforHit(int iHit){return iHit < sizeY.size() ? sizeY[iHit] : 0;}
+	inline int     GetDetTypeForHit(int iHit){return iHit < detType.size() ? detType[iHit] : 0;}
+	inline int     GetLayerForHit(int iHit){return iHit < layer.size() ? layer[iHit] : 0;}
+	inline int     GetLadderForHit(int iHit){return iHit < ladder.size() ? ladder[iHit] : 0;}
   
   inline double  GetPt(){return pt;}
   inline double  GetEta(){return eta;}
