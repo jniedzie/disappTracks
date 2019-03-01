@@ -103,7 +103,7 @@ void HelixProcessor::CalculateNregularPoints(unique_ptr<Helix> &helix, int limit
   double testingDistance;
   
   // Maybe just calculate what would be the distance for given pz?
-  // For whatever reason it's not actually faster...
+  // For whatever reason it's not actually faster... (maybe with more noise it will be faster)
   testingDistance = fabs(helix->GetSlope())*2*TMath::Pi();
   nPointsForDistance = 0;
   

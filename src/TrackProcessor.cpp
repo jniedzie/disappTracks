@@ -149,16 +149,6 @@ vector<shared_ptr<Track>> TrackProcessor::GetTracksFromTree()
       track->ladder[iLayer]   = arrayValuesInt[Form("IsoTrack_ladderOrBladeByLayer%i",iLayer)][iTrack];
     }
     track->CalculateInternals();
-		
-		// Decay point is set only for random pion generation. It's not used in the fitter!!
-		double minR = layerR[track->GetLastBarrelLayer()];
-		double maxR = layerR[track->GetLastBarrelLayer()+1];
-		double decayR = (maxR+minR)/2.;
-		
-		track->decayPoint = make_unique<Point>( decayR*cos(track->phi),
-																						decayR*sin(track->phi),
-																						decayR/sin(track->GetTheta())*cos(track->GetTheta()));
-		
     tracks.push_back(track);
   }
   

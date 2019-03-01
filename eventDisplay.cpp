@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
 	if(fitHelix){
 		cout<<"Fitting best helix"<<endl;
 		auto fitter = make_unique<Fitter>();
-		auto bestHelix = fitter->GetBestFittingHelix(allSimplePoints, track);
+		auto bestHelix = fitter->GetBestFittingHelix(allSimplePoints, track, event->GetVertex());
 		
 		if(bestHelix){
 			map<string,any> bestHelixOptions = {
@@ -178,6 +178,9 @@ int main(int argc, char* argv[])
 			cout<<"\n\nBest helix is:"<<endl;
 			bestHelix->Print();
 		}
+    else{
+      cout<<"\n\nCould not fit any helix..."<<endl;
+    }
   }
 	
   gEve->Redraw3D(true);

@@ -69,6 +69,7 @@ void Event::Print(){
   cout<<"Event:"<<endl;
   cout<<"\t lumi section:"<<lumiSection<<"\trun number:"<<runNumber<<"\tevent number:"<<eventNumber<<endl;
   cout<<"\t n vertices:"<<nVertices<<endl;
+  cout<<"\t primary vertex:("<<vertex->GetX()<<", "<<vertex->GetY()<<", "<<vertex->GetZ()<<")"<<endl;
   cout<<"\t MET pT:"<<metPt<<"\teta:"<<metEta<<"\tphi:"<<metPhi<<endl;
   cout<<"weigth:"<<genWeight<<endl;
   cout<<"xsec:"<<xsec<<endl;

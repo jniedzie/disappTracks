@@ -30,6 +30,7 @@ public:
   /// \drawCircles Optionally, graph with all candidate circles can be plotted
   unique_ptr<Helix> GetBestFittingHelix(const shared_ptr<vector<Point>> _points,
                                         const shared_ptr<Track> _track,
+                                        const unique_ptr<Point> &_vertex,
                                         bool drawCircles=false);
   
 private:
@@ -38,6 +39,7 @@ private:
   
   shared_ptr<vector<Point>> points;
   shared_ptr<Track> track;
+  unique_ptr<Point> vertex;
   
   
   /// Finds circles fitting points, matching all the other criteria specified in the config and for
