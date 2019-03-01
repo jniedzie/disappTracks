@@ -90,11 +90,11 @@ void Display::DrawEvent(const shared_ptr<Event> &event, const map<string,any> op
       
       double phi    = track->GetPhi();
 			double theta  = track->GetTheta();
-      double decayR = layerR[iLayer];
+      double decayR = layerR[iLayer] + 10*track->GetDxy();
       
-      double x = decayR*cos(phi);
-      double y = decayR*sin(phi);
-      double z = decayR/sin(theta)*cos(theta);
+      double x = decayR*cos(phi)              + 10*event->GetVertex()->GetX();
+      double y = decayR*sin(phi)              + 10*event->GetVertex()->GetY();
+      double z = decayR/sin(theta)*cos(theta) + 10*event->GetVertex()->GetZ() + 10*track->GetDz();
       
       points->Fill(scale*x,scale*y,scale*z,track->GetDeDxForHit(iHit));
     }

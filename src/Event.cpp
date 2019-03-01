@@ -9,6 +9,7 @@
 #include <TLorentzVector.h>
 
 Event::Event() :
+vertex(make_unique<Point>(0,0,0)),
 trackProcessor(make_unique<TrackProcessor>())
 {
   
@@ -23,6 +24,7 @@ Event::Event(const Event &e)
   
   SetWeight(e.weight);
   SetNvertices(e.nVertices);
+  vertex = make_unique<Point>(e.vertex);
   SetNjet30(e.nJet30);
   SetNjet30a(e.nJet30a);
   SetNlepton(e.nLepton);
@@ -178,7 +180,7 @@ shared_ptr<vector<unique_ptr<Helix>>> Event::GetTruePionHelices()
   TFile *inFile = TFile::Open(Form("%s/charginoAnalysisPions.root",basePath.c_str()));
   
   if(!inFile){
-    cout<<"ERROR -- no file with all hits was found"<<endl;
+    cout<<"ERROR -- no file with true pion helices was found"<<endl;
     return trueHelices;
   }
   TTree *tree = (TTree*)inFile->Get("CharginoAnalyzer/pions");

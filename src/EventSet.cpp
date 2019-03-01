@@ -76,6 +76,7 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
   unsigned long long evt;
   uint lumi, run;
   int nVert, nJet, nJetFwd, nJet30, nJet30a, nLepGood, nTauGood, nGenChargino;
+  float vertex_x, vertex_y, vertex_z;
   float xsec, wgtsum, genWeight, met_sumEt, met_pt, met_mass, met_phi, met_eta;
   int metNoMuTrigger, flag_goodVertices, flag_badPFmuon, flag_HBHEnoise, flag_HBHEnoiseIso, flag_EcalDeadCell, flag_eeBadSc, flag_badChargedCandidate, flag_ecalBadCalib, flag_globalTightHalo2016;
   float metNoMu_pt, metNoMu_mass, metNoMu_phi, metNoMu_eta;
@@ -99,6 +100,9 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
 
   tree->Branch("nFittedHelices", &nFittedHelices, "nFittedHelices/I");
   tree->Branch("nVert", &nVert, "nVert/I");
+  tree->Branch("vertex_x", &vertex_x, "vertex_x/F");
+  tree->Branch("vertex_y", &vertex_y, "vertex_y/F");
+  tree->Branch("vertex_z", &vertex_z, "vertex_z/F");
   tree->Branch("nJet", &nJet, "nJet/I");
   tree->Branch("nJetFwd", &nJetFwd, "nJetFwd/I");
   tree->Branch("nJet30", &nJet30, "nJet30/I");
@@ -169,6 +173,9 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
     evt = event->GetEventNumber();
     
     nVert = event->GetNvertices();
+    vertex_x = event->GetVertex()->GetX();
+    vertex_y = event->GetVertex()->GetY();
+    vertex_z = event->GetVertex()->GetZ();
     nFittedHelices = (int)event->GetNhelices();
     nJet = (int)event->GetNjets();
     nJetFwd = 0;
@@ -736,6 +743,9 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
   
   TTreeReaderValue<int>   _nTracks(reader, "nIsoTrack");
   TTreeReaderValue<int>   _nVert(reader, "nVert");
+  TTreeReaderValue<float> _vertex_x(reader, "vertex_x");
+  TTreeReaderValue<float> _vertex_y(reader, "vertex_y");
+  TTreeReaderValue<float> _vertex_z(reader, "vertex_z");
   TTreeReaderValue<int>   _nJets(reader, "nJet");
   TTreeReaderValue<int>   _nJetsFwd(reader, "nJetFwd");
   TTreeReaderValue<int>   _nJet30(reader, "nJet30");
@@ -849,6 +859,7 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
     newEvent->SetWeight(weight);
     
     newEvent->SetNvertices(*_nVert);
+    newEvent->SetVertex(make_unique<Point>(*_vertex_x, *_vertex_y, *_vertex_z));
     newEvent->SetNjet30(*_nJet30);
     newEvent->SetNjet30a(*_nJet30a);
     newEvent->SetNlepton(*_nLepton);

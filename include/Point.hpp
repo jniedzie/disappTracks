@@ -15,6 +15,9 @@ public:
   /// Default constructor taking XYZ coordinates and optionally a value in this point
   Point(double _x, double _y, double _z, double _value=0);
   
+  /// Copy constructor
+  Point(const unique_ptr<Point> &p);
+  
   /// Constructs a point that is an average of provided vector of points
   Point(vector<Point> points);
   

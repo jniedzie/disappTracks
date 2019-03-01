@@ -51,6 +51,7 @@ public:
   
   inline void SetWeight(double val){weight = val;}
   
+  inline void SetVertex(unique_ptr<Point> val){vertex = make_unique<Point>(val);}
   inline void SetNvertices(int n){nVertices = n;}
   inline void SetNjet30(int n){nJet30 = n;}
   inline void SetNjet30a(int n){nJet30a = n;}
@@ -104,6 +105,7 @@ public:
     return n;
   }
   inline int GetNvertices(){return nVertices;}
+  inline unique_ptr<Point> GetVertex(){return make_unique<Point>(vertex);}
   inline int GetNjet30(){return nJet30;}
   inline int GetNjet30a(){return nJet30a;}
   inline int GetNlepton(){return nLepton;}
@@ -159,6 +161,7 @@ private:
   double weight;          ///< Weight for this event resulting from lumi, cross section and generator weights
   
   int nVertices;          ///< Number of good verices
+  unique_ptr<Point> vertex; ///< Primary vertex of the event
   int nJet30;             ///< Number of jets with pt > 30, |eta|<2.4
   int nJet30a;            ///< Number of jets with pt > 30, |eta|<4.7
   int nLepton;            ///< Number of leptons

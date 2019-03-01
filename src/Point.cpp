@@ -16,6 +16,15 @@ isPionHit(false)
   
 }
 
+Point::Point(const unique_ptr<Point> &p)
+{
+  x = p->x;
+  y = p->y;
+  z = p->z;
+  value = p->value;
+  isPionHit = p->isPionHit;
+}
+
 Point::Point(vector<Point> points)
 {
   x=0; y=0; z=0;
