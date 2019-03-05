@@ -111,6 +111,6 @@ void JetProcessor::SetupBranchesForWriting(TTree *tree)
   tree->Branch("nJetFwd", &nJetsFwd,  "nJetFwd/I");
   
   for(string name : arrayNamesFloat){
-    tree->Branch(name.c_str(), &arrayValuesFloat[name], Form("%s[nIsoTrack]/F", name.c_str()));
+    tree->Branch(name.c_str(), &arrayValuesFloat[name], Form("%s[nJet]/F", name.c_str()));
   }
 }

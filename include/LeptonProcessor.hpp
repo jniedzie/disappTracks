@@ -27,10 +27,17 @@ public:
   
   /// Link class variables to branches of a specified tree
   /// \param tree Tree from which Lepton parameters will be read
-  void SetupBranches(TTree *tree);
+  void SetupBranchesForReading(TTree *tree);
   
   /// Returns a vector of Lepton with parameters read from tree previously set with SetupBranches(..)
   vector<shared_ptr<Lepton>> GetLeptonsFromTree();
+  
+  /// Link class variables to branches of a specified tree
+  /// \param tree Tree to which leptons parameters will be saved
+  void SetupBranchesForWriting(TTree *tree);
+  
+  /// Writes all leptons in the vector to the tree previously set with SetupBranchesForWriting(...)
+  void SaveLeptonsToTree(vector<shared_ptr<Lepton>> leptons);
   
 private:
   static const int maxNleptons = 1000;   ///< Maximum supported number of Leptons per event
@@ -38,6 +45,9 @@ private:
   
   map<string, float[maxNleptons]>  arrayValuesFloat;  ///< Float per-Lepton variables in the current entry
   map<string, int[maxNleptons]>    arrayValuesInt;    ///< Int per-Lepton variables in the current entry
+  
+  vector<string> arrayNamesFloat;     ///< Names or float per-track variables
+  vector<string> arrayNamesInt;       ///< Names or int per-track variables
 };
 
 

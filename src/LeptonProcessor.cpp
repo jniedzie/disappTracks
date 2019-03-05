@@ -8,7 +8,17 @@
 
 LeptonProcessor::LeptonProcessor()
 {
+  arrayNamesFloat = {
+    "LepGood_pt",
+    "LepGood_eta",
+    "LepGood_phi",
+    "LepGood_relIso04"
+  };
   
+  arrayNamesInt = {
+    "LepGood_tightId",
+    "LepGood_pdgId",
+  };
 }
 
 LeptonProcessor::~LeptonProcessor()
@@ -54,19 +64,43 @@ vector<shared_ptr<Lepton>> LeptonProcessor::GetLeptonsFromTree()
   return leptons;
 }
 
+void LeptonProcessor::SaveLeptonsToTree(vector<shared_ptr<Lepton>> leptons)
+{
+  nLeptons = (int)leptons.size();
+  
+  for(int iLepton=0;iLepton<nLeptons;iLepton++){
+    arrayValuesFloat["LepGood_pt"][iLepton]       = leptons[iLepton]->GetPt();
+    arrayValuesFloat["LepGood_eta"][iLepton]      = leptons[iLepton]->GetEta();
+    arrayValuesFloat["LepGood_phi"][iLepton]      = leptons[iLepton]->GetPhi();
+    arrayValuesFloat["LepGood_relIso04"][iLepton] = leptons[iLepton]->GetRelativeIsolation();
+    arrayValuesInt["LepGood_tightId"][iLepton]    = leptons[iLepton]->GetTightID();
+    arrayValuesInt["LepGood_pdgId"][iLepton]      = leptons[iLepton]->GetPid();
+  }
+}
 
-void LeptonProcessor::SetupBranches(TTree *tree)
+void LeptonProcessor::SetupBranchesForReading(TTree *tree)
 {
   // single int variables
   tree->SetBranchAddress("nLepGood",    &nLeptons);
   
-  // float array variables
-  tree->SetBranchAddress("LepGood_pt",        &arrayValuesFloat["LepGood_pt"]);
-  tree->SetBranchAddress("LepGood_eta",       &arrayValuesFloat["LepGood_eta"]);
-  tree->SetBranchAddress("LepGood_phi",       &arrayValuesFloat["LepGood_phi"]);
-  tree->SetBranchAddress("LepGood_relIso04",  &arrayValuesFloat["LepGood_relIso04"]);
+  for(string name : arrayNamesFloat){
+    tree->SetBranchAddress(name.c_str(), &arrayValuesFloat[name]);
+  }
   
-  // int array variables
-  tree->SetBranchAddress("LepGood_tightId",   &arrayValuesInt["LepGood_tightId"]);
-  tree->SetBranchAddress("LepGood_pdgId",     &arrayValuesInt["LepGood_pdgId"]);
+  for(string name : arrayNamesInt){
+    tree->SetBranchAddress(name.c_str(), &arrayValuesInt[name]);
+  }
+}
+
+void LeptonProcessor::SetupBranchesForWriting(TTree *tree)
+{
+  tree->Branch("nLepGood",    &nLeptons,     "nLepGood/I");
+  
+  for(string name : arrayNamesFloat){
+    tree->Branch(name.c_str(), &arrayValuesFloat[name], Form("%s[nLepGood]/F", name.c_str()));
+  }
+  
+  for(string name : arrayNamesInt){
+    tree->Branch(name.c_str(), &arrayValuesInt[name], Form("%s[nLepGood]/I", name.c_str()));
+  }
 }

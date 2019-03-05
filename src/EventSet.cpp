@@ -68,12 +68,11 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
   outFile.cd();
   TTree *tree = new TTree("tree","tree");
 	
-  const int nLeptons = 100;
   const int nHelices = 100;
   
   unsigned long long evt;
   uint lumi, run;
-  int nVert, nJet30, nJet30a, nLepGood, nTauGood, nGenChargino;
+  int nVert, nJet30, nJet30a, nTauGood, nGenChargino;
   float vertex_x, vertex_y, vertex_z;
   float xsec, wgtsum, genWeight, met_sumEt, met_pt, met_mass, met_phi, met_eta;
   int metNoMuTrigger, flag_goodVertices, flag_badPFmuon, flag_HBHEnoise, flag_HBHEnoiseIso, flag_EcalDeadCell, flag_eeBadSc, flag_badChargedCandidate, flag_ecalBadCalib, flag_globalTightHalo2016;
@@ -85,10 +84,9 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
   
   int helix_charge[nHelices];
   
-  float LepGood_pt[nLeptons], LepGood_phi[nLeptons], LepGood_eta[nLeptons], LepGood_tightId[nLeptons], LepGood_relIso04[nLeptons], LepGood_pdgId[nLeptons];
-	
 	trackProcessor->SetupBranchesForWriting(tree);
   jetProcessor->SetupBranchesForWriting(tree);
+  leptonProcessor->SetupBranchesForWriting(tree);
 	
   tree->Branch("lumi", &lumi, "lumi/i");
   tree->Branch("run", &run, "run/i");
@@ -101,7 +99,6 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
   tree->Branch("vertex_z", &vertex_z, "vertex_z/F");
   tree->Branch("nJet30", &nJet30, "nJet30/I");
   tree->Branch("nJet30a", &nJet30a, "nJet30a/I");
-  tree->Branch("nLepGood", &nLepGood, "nLepGood/I");
   tree->Branch("nTauGood", &nTauGood, "nTauGood/I");
   tree->Branch("nGenChargino", &nGenChargino, "nGenChargino/I");
   
@@ -140,13 +137,6 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
   
   tree->Branch("helix_charge", &helix_charge, "helix_charge[nFittedHelices]/I");
   
-  tree->Branch("LepGood_pt", &LepGood_pt, "LepGood_pt[nLepGood]/F");
-  tree->Branch("LepGood_phi", &LepGood_phi, "LepGood_phi[nLepGood]/F");
-  tree->Branch("LepGood_eta", &LepGood_eta, "LepGood_eta[nLepGood]/F");
-  tree->Branch("LepGood_tightId", &LepGood_tightId, "LepGood_tightId[nLepGood]/I");
-  tree->Branch("LepGood_relIso04", &LepGood_relIso04, "LepGood_relIso04[nLepGood]/F");
-  tree->Branch("LepGood_pdgId", &LepGood_pdgId, "LepGood_pdgId[nLepGood]/I");
-  
   function<void(shared_ptr<Event>, TTree*)> func = [&](shared_ptr<Event> event, TTree *tree) -> void {
     lumi = event->GetLumiSection();
     run = event->GetRunNumber();
@@ -159,7 +149,6 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
     nFittedHelices = (int)event->GetNhelices();
     nJet30 = event->GetNjet30();
     nJet30a = event->GetNjet30a();
-    nLepGood = event->GetNlepton();
     nTauGood = event->GetNtau();
     nGenChargino = event->GetNgenChargino();
     xsec = event->GetXsec();
@@ -202,16 +191,7 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
       }
     }
     
-    for(int iLep=0;iLep<nLepGood;iLep++){
-      LepGood_pt[iLep] = event->GetLepton(iLep)->GetPt();
-      
-      LepGood_phi[iLep] = event->GetLepton(iLep)->GetPt();
-      LepGood_eta[iLep] = event->GetLepton(iLep)->GetEta();
-      LepGood_tightId[iLep] = event->GetLepton(iLep)->GetTightID();
-      LepGood_relIso04[iLep] = event->GetLepton(iLep)->GetRelativeIsolation();
-      LepGood_pdgId[iLep] = event->GetLepton(iLep)->GetPid();
-    }
-    
+    leptonProcessor->SaveLeptonsToTree(event->GetLeptons());
     jetProcessor->SaveJetsToTree(event->GetJets());
     
     tree->Fill();
@@ -705,8 +685,8 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
   
   trackProcessor->SetupBranchesForReading(tree);
   jetProcessor->SetupBranchesForReading(tree);
+  leptonProcessor->SetupBranchesForReading(tree);
   helixProcessor->SetupBranches(tree);
-  leptonProcessor->SetupBranches(tree);
   
   TTreeReaderValue<uint>   _run(reader, "run");
   TTreeReaderValue<uint>   _lumi(reader, "lumi");
