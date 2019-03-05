@@ -8,7 +8,20 @@
 
 JetProcessor::JetProcessor()
 {
-  
+  arrayNamesFloat = {
+    "Jet_pt",
+    "Jet_eta",
+    "Jet_phi",
+    "Jet_mass",
+    "Jet_chHEF",
+    "Jet_neHEF",
+    "JetFwd_pt",
+    "JetFwd_eta",
+    "JetFwd_phi",
+    "JetFwd_mass",
+    "JetFwd_chHEF",
+    "JetFwd_neHEF"
+  };
 }
 
 JetProcessor::~JetProcessor()
@@ -66,25 +79,38 @@ vector<shared_ptr<Jet>> JetProcessor::GetJetsFromTree()
   return jets;
 }
 
+void JetProcessor::SaveJetsToTree(vector<shared_ptr<Jet>> jets)
+{
+  nJets = (int)jets.size();
+  nJetsFwd = 0;
+  
+  for(int iJet=0;iJet<nJets;iJet++){
+    arrayValuesFloat["Jet_pt"][iJet]    = jets[iJet]->GetPt();
+    arrayValuesFloat["Jet_eta"][iJet]   = jets[iJet]->GetEta();
+    arrayValuesFloat["Jet_phi"][iJet]   = jets[iJet]->GetPhi();
+    arrayValuesFloat["Jet_mass"][iJet]  = jets[iJet]->GetMass();
+    arrayValuesFloat["Jet_chHEF"][iJet] = jets[iJet]->GetChargedHadronEnergyFraction();
+    arrayValuesFloat["Jet_neHEF"][iJet] = jets[iJet]->GetNeutralHadronEnergyFraction();
+  }
+}
 
-void JetProcessor::SetupBranches(TTree *tree)
+void JetProcessor::SetupBranchesForReading(TTree *tree)
 {
   // single int variables
   tree->SetBranchAddress("nJet",    &nJets);
   tree->SetBranchAddress("nJetFwd", &nJetsFwd);
   
-  // float array variables
-  tree->SetBranchAddress("Jet_pt",        &arrayValuesFloat["Jet_pt"]);
-  tree->SetBranchAddress("Jet_eta",       &arrayValuesFloat["Jet_eta"]);
-  tree->SetBranchAddress("Jet_phi",       &arrayValuesFloat["Jet_phi"]);
-  tree->SetBranchAddress("Jet_mass",      &arrayValuesFloat["Jet_mass"]);
-  tree->SetBranchAddress("Jet_chHEF",     &arrayValuesFloat["Jet_chHEF"]);
-  tree->SetBranchAddress("Jet_neHEF",     &arrayValuesFloat["Jet_neHEF"]);
+  for(string name : arrayNamesFloat){
+    tree->SetBranchAddress(name.c_str(), &arrayValuesFloat[name]);
+  }
+}
+
+void JetProcessor::SetupBranchesForWriting(TTree *tree)
+{
+  tree->Branch("nJet",    &nJets,     "nJet/I");
+  tree->Branch("nJetFwd", &nJetsFwd,  "nJetFwd/I");
   
-  tree->SetBranchAddress("JetFwd_pt",     &arrayValuesFloat["JetFwd_pt"]);
-  tree->SetBranchAddress("JetFwd_eta",    &arrayValuesFloat["JetFwd_eta"]);
-  tree->SetBranchAddress("JetFwd_phi",    &arrayValuesFloat["JetFwd_phi"]);
-  tree->SetBranchAddress("JetFwd_mass",   &arrayValuesFloat["JetFwd_mass"]);
-  tree->SetBranchAddress("JetFwd_chHEF",  &arrayValuesFloat["JetFwd_chHEF"]);
-  tree->SetBranchAddress("JetFwd_neHEF",  &arrayValuesFloat["JetFwd_neHEF"]);
+  for(string name : arrayNamesFloat){
+    tree->Branch(name.c_str(), &arrayValuesFloat[name], Form("%s[nIsoTrack]/F", name.c_str()));
+  }
 }

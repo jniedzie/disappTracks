@@ -68,14 +68,12 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
   outFile.cd();
   TTree *tree = new TTree("tree","tree");
 	
-  const int nJets = 100;
   const int nLeptons = 100;
-  const int nJetsFwd = 0;
   const int nHelices = 100;
   
   unsigned long long evt;
   uint lumi, run;
-  int nVert, nJet, nJetFwd, nJet30, nJet30a, nLepGood, nTauGood, nGenChargino;
+  int nVert, nJet30, nJet30a, nLepGood, nTauGood, nGenChargino;
   float vertex_x, vertex_y, vertex_z;
   float xsec, wgtsum, genWeight, met_sumEt, met_pt, met_mass, met_phi, met_eta;
   int metNoMuTrigger, flag_goodVertices, flag_badPFmuon, flag_HBHEnoise, flag_HBHEnoiseIso, flag_EcalDeadCell, flag_eeBadSc, flag_badChargedCandidate, flag_ecalBadCalib, flag_globalTightHalo2016;
@@ -88,11 +86,9 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
   int helix_charge[nHelices];
   
   float LepGood_pt[nLeptons], LepGood_phi[nLeptons], LepGood_eta[nLeptons], LepGood_tightId[nLeptons], LepGood_relIso04[nLeptons], LepGood_pdgId[nLeptons];
-  float Jet_pt[nJets], Jet_eta[nJets], Jet_phi[nJets], Jet_mass[nJets], Jet_chHEF[nJets], Jet_neHEF[nJets];
-	
-  float JetFwd_pt[nJetsFwd], JetFwd_eta[nJetsFwd], JetFwd_phi[nJetsFwd], JetFwd_mass[nJetsFwd], JetFwd_chHEF[nJetsFwd], JetFwd_neHEF[nJetsFwd];
 	
 	trackProcessor->SetupBranchesForWriting(tree);
+  jetProcessor->SetupBranchesForWriting(tree);
 	
   tree->Branch("lumi", &lumi, "lumi/i");
   tree->Branch("run", &run, "run/i");
@@ -103,8 +99,6 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
   tree->Branch("vertex_x", &vertex_x, "vertex_x/F");
   tree->Branch("vertex_y", &vertex_y, "vertex_y/F");
   tree->Branch("vertex_z", &vertex_z, "vertex_z/F");
-  tree->Branch("nJet", &nJet, "nJet/I");
-  tree->Branch("nJetFwd", &nJetFwd, "nJetFwd/I");
   tree->Branch("nJet30", &nJet30, "nJet30/I");
   tree->Branch("nJet30a", &nJet30a, "nJet30a/I");
   tree->Branch("nLepGood", &nLepGood, "nLepGood/I");
@@ -153,20 +147,6 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
   tree->Branch("LepGood_relIso04", &LepGood_relIso04, "LepGood_relIso04[nLepGood]/F");
   tree->Branch("LepGood_pdgId", &LepGood_pdgId, "LepGood_pdgId[nLepGood]/I");
   
-  tree->Branch("Jet_pt", &Jet_pt, "Jet_pt[nJet]/F");
-  tree->Branch("Jet_eta", &Jet_eta, "Jet_eta[nJet]/F");
-  tree->Branch("Jet_phi", &Jet_phi, "Jet_phi[nJet]/F");
-  tree->Branch("Jet_mass", &Jet_mass, "Jet_mass[nJet]/F");
-  tree->Branch("Jet_chHEF", &Jet_chHEF, "Jet_chHEF[nJet]/F");
-  tree->Branch("Jet_neHEF", &Jet_neHEF, "Jet_neHEF[nJet]/F");
-  
-  tree->Branch("JetFwd_pt", &JetFwd_pt, "JetFwd_pt[nJetFwd]/F");
-  tree->Branch("JetFwd_eta", &JetFwd_eta, "JetFwd_eta[nJetFwd]/F");
-  tree->Branch("JetFwd_phi", &JetFwd_phi, "JetFwd_phi[nJetFwd]/F");
-  tree->Branch("JetFwd_mass", &JetFwd_mass, "JetFwd_mass[nJetFwd]/F");
-  tree->Branch("JetFwd_chHEF", &JetFwd_chHEF, "JetFwd_chHEF[nJetFwd]/F");
-  tree->Branch("JetFwd_neHEF", &JetFwd_neHEF, "JetFwd_neHEF[nJetFwd]/F");
-	
   function<void(shared_ptr<Event>, TTree*)> func = [&](shared_ptr<Event> event, TTree *tree) -> void {
     lumi = event->GetLumiSection();
     run = event->GetRunNumber();
@@ -177,8 +157,6 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
     vertex_y = event->GetVertex()->GetY();
     vertex_z = event->GetVertex()->GetZ();
     nFittedHelices = (int)event->GetNhelices();
-    nJet = (int)event->GetNjets();
-    nJetFwd = 0;
     nJet30 = event->GetNjet30();
     nJet30a = event->GetNjet30a();
     nLepGood = event->GetNlepton();
@@ -234,14 +212,7 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
       LepGood_pdgId[iLep] = event->GetLepton(iLep)->GetPid();
     }
     
-    for(int iJet=0;iJet<nJet;iJet++){
-      Jet_pt[iJet] = event->GetJet(iJet)->GetPt();
-      Jet_eta[iJet] = event->GetJet(iJet)->GetEta();
-      Jet_phi[iJet] = event->GetJet(iJet)->GetPhi();
-      Jet_mass[iJet] = event->GetJet(iJet)->GetMass();
-      Jet_chHEF[iJet] = event->GetJet(iJet)->GetChargedHadronEnergyFraction();
-      Jet_neHEF[iJet] = event->GetJet(iJet)->GetNeutralHadronEnergyFraction();
-    }
+    jetProcessor->SaveJetsToTree(event->GetJets());
     
     tree->Fill();
   };
@@ -733,7 +704,7 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
   TTreeReader reader("tree", inFile);
   
   trackProcessor->SetupBranchesForReading(tree);
-  jetProcessor->SetupBranches(tree);
+  jetProcessor->SetupBranchesForReading(tree);
   helixProcessor->SetupBranches(tree);
   leptonProcessor->SetupBranches(tree);
   
