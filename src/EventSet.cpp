@@ -732,7 +732,7 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
   TTree *tree = (TTree*)inFile->Get("tree");
   TTreeReader reader("tree", inFile);
   
-  trackProcessor->SetupBranches(tree);
+  trackProcessor->SetupBranchesForReading(tree);
   jetProcessor->SetupBranches(tree);
   helixProcessor->SetupBranches(tree);
   leptonProcessor->SetupBranches(tree);

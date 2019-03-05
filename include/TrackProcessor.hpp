@@ -32,7 +32,7 @@ public:
   
   /// Link class variables to branches of a specified tree
   /// \param tree Tree from which track parameters will be read
-  void SetupBranches(TTree *tree);
+  void SetupBranchesForReading(TTree *tree);
   
   /// Returns a vector of tracks with parameters read from tree previously set with SetupBranches(..)
   vector<shared_ptr<Track>> GetTracksFromTree();
@@ -50,6 +50,9 @@ private:
   
   map<string, float[maxNtracks] >  arrayValuesFloat;  ///< Float per-track variables in the current entry
   map<string, int[maxNtracks] >    arrayValuesInt;    ///< Int per-track variables in the current entry
+  
+  vector<string> arrayNamesFloat;     ///< Names or float per-track variables
+  vector<string> arrayNamesInt;       ///< Names or int per-track variables
 };
 
 #endif /* TrackProcessor_hpp */

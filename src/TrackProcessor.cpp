@@ -8,7 +8,47 @@
 
 TrackProcessor::TrackProcessor()
 {
+  arrayNamesFloat = {
+    "IsoTrack_eta",
+    "IsoTrack_phi",
+    "IsoTrack_caloEmEnergy",
+    "IsoTrack_caloHadEnergy",
+    "IsoTrack_dxy",
+    "IsoTrack_edxy",
+    "IsoTrack_dz",
+    "IsoTrack_edz",
+    "IsoTrack_mass",
+    "IsoTrack_pt",
+    "IsoTrack_relIso03"
+  };
   
+  arrayNamesInt = {
+    "IsoTrack_pdgId",
+    "IsoTrack_charge",
+    "IsoTrack_trackerLayers",
+    "IsoTrack_pixelLayers",
+    "IsoTrack_trackerHits",
+    "IsoTrack_pixelHits",
+    "IsoTrack_missingInnerPixelHits",
+    "IsoTrack_missingOuterPixelHits",
+    "IsoTrack_missingInnerStripHits",
+    "IsoTrack_missingOuterStripHits",
+    "IsoTrack_missingInnerTrackerHits",
+    "IsoTrack_missingOuterTrackerHits",
+    "IsoTrack_missingMiddleTrackerHits",
+    "IsoTrack_mcMatch"
+  };
+  
+  for(int iLayer=0;iLayer<nLayers;iLayer++){
+    arrayNamesFloat.push_back(Form("IsoTrack_dedxByLayer%i",iLayer));
+    
+    arrayNamesInt.push_back(Form("IsoTrack_subDetIdByLayer%i",iLayer));
+    arrayNamesInt.push_back(Form("IsoTrack_sizeXbyLayer%i",iLayer));
+    arrayNamesInt.push_back(Form("IsoTrack_sizeYbyLayer%i",iLayer));
+    arrayNamesInt.push_back(Form("IsoTrack_pixByLayer%i",iLayer));
+    arrayNamesInt.push_back(Form("IsoTrack_layerOrSideByLayer%i",iLayer));
+    arrayNamesInt.push_back(Form("IsoTrack_ladderOrBladeByLayer%i",iLayer));
+  }
 }
 
 TrackProcessor::~TrackProcessor()
@@ -202,137 +242,37 @@ void TrackProcessor::SaveTracksToTree(vector<shared_ptr<Track>> tracks)
 	}
 }
 
-void TrackProcessor::SetupBranches(TTree *tree)
+void TrackProcessor::SetupBranchesForReading(TTree *tree)
 {
-  // single int variables
   tree->SetBranchAddress("nIsoTrack",&nTracks);
-	
-  // float array variables
-  tree->SetBranchAddress("IsoTrack_eta",&arrayValuesFloat["IsoTrack_eta"]);
-  tree->SetBranchAddress("IsoTrack_phi",&arrayValuesFloat["IsoTrack_phi"]);
-  tree->SetBranchAddress("IsoTrack_caloEmEnergy",&arrayValuesFloat["IsoTrack_caloEmEnergy"]);
-  tree->SetBranchAddress("IsoTrack_caloHadEnergy",&arrayValuesFloat["IsoTrack_caloHadEnergy"]);
-  tree->SetBranchAddress("IsoTrack_dxy",&arrayValuesFloat["IsoTrack_dxy"]);
-  tree->SetBranchAddress("IsoTrack_edxy",&arrayValuesFloat["IsoTrack_edxy"]);
-  tree->SetBranchAddress("IsoTrack_dz",&arrayValuesFloat["IsoTrack_dz"]);
-  tree->SetBranchAddress("IsoTrack_edz",&arrayValuesFloat["IsoTrack_edz"]);
-  tree->SetBranchAddress("IsoTrack_mass",&arrayValuesFloat["IsoTrack_mass"]);
-  tree->SetBranchAddress("IsoTrack_pt",&arrayValuesFloat["IsoTrack_pt"]);
-  tree->SetBranchAddress("IsoTrack_relIso03",&arrayValuesFloat["IsoTrack_relIso03"]);
   
-  for(int iLayer=0;iLayer<nLayers;iLayer++){
-    tree->SetBranchAddress(Form("IsoTrack_dedxByLayer%i",iLayer),
-                           &arrayValuesFloat[Form("IsoTrack_dedxByLayer%i",iLayer)]);
+  for(string name : arrayNamesFloat){
+    tree->SetBranchAddress(name.c_str(), &arrayValuesFloat[name]);
   }
   
-  // int array variables
-  tree->SetBranchAddress("IsoTrack_pdgId",&arrayValuesInt["IsoTrack_pdgId"]);
-  tree->SetBranchAddress("IsoTrack_charge",&arrayValuesInt["IsoTrack_charge"]);
-  
-  if(tree->GetBranchStatus("IsoTrack_mcMatch")){
-    tree->SetBranchAddress("IsoTrack_mcMatch",&arrayValuesInt["IsoTrack_mcMatch"]);
-  }
-  else{
-    cout<<"WARNING -- branch IsoTrack_mcMatch was not found. Will assume true for MC match"<<endl;
-    for(int i=0; i<maxNtracks;i++){arrayValuesInt["IsoTrack_mcMatch"][i] = 1;}
-  }
-  tree->SetBranchAddress("IsoTrack_trackerLayers",&arrayValuesInt["IsoTrack_trackerLayers"]);
-  tree->SetBranchAddress("IsoTrack_pixelLayers",&arrayValuesInt["IsoTrack_pixelLayers"]);
-  tree->SetBranchAddress("IsoTrack_trackerHits",&arrayValuesInt["IsoTrack_trackerHits"]);
-  tree->SetBranchAddress("IsoTrack_pixelHits",&arrayValuesInt["IsoTrack_pixelHits"]);
-  tree->SetBranchAddress("IsoTrack_missingInnerPixelHits",&arrayValuesInt["IsoTrack_missingInnerPixelHits"]);
-  tree->SetBranchAddress("IsoTrack_missingOuterPixelHits",&arrayValuesInt["IsoTrack_missingOuterPixelHits"]);
-  tree->SetBranchAddress("IsoTrack_missingInnerStripHits",&arrayValuesInt["IsoTrack_missingInnerStripHits"]);
-  tree->SetBranchAddress("IsoTrack_missingOuterStripHits",&arrayValuesInt["IsoTrack_missingOuterStripHits"]);
-  tree->SetBranchAddress("IsoTrack_missingInnerTrackerHits",&arrayValuesInt["IsoTrack_missingInnerTrackerHits"]);
-  tree->SetBranchAddress("IsoTrack_missingOuterTrackerHits",&arrayValuesInt["IsoTrack_missingOuterTrackerHits"]);
-  tree->SetBranchAddress("IsoTrack_missingMiddleTrackerHits",&arrayValuesInt["IsoTrack_missingMiddleTrackerHits"]);
-  
-  for(int iLayer=0;iLayer<nLayers;iLayer++){
-    tree->SetBranchAddress(Form("IsoTrack_subDetIdByLayer%i",iLayer),
-                           &arrayValuesInt[Form("IsoTrack_subDetIdByLayer%i",iLayer)]);
-    tree->SetBranchAddress(Form("IsoTrack_sizeXbyLayer%i",iLayer),
-                           &arrayValuesInt[Form("IsoTrack_sizeXbyLayer%i",iLayer)]);
-    tree->SetBranchAddress(Form("IsoTrack_sizeYbyLayer%i",iLayer),
-                           &arrayValuesInt[Form("IsoTrack_sizeYbyLayer%i",iLayer)]);
-    tree->SetBranchAddress(Form("IsoTrack_pixByLayer%i",iLayer),
-                           &arrayValuesInt[Form("IsoTrack_pixByLayer%i",iLayer)]);
+  for(string name : arrayNamesInt){
+    // special check for mcMatch branch, which may not exist
+    if(name=="IsoTrack_mcMatch" && !tree->GetBranchStatus(name.c_str())){
+      cout<<"WARNING -- branch IsoTrack_mcMatch was not found. Will assume true for MC match"<<endl;
+      for(int i=0; i<maxNtracks;i++){arrayValuesInt[name.c_str()][i] = 1;}
+      continue;
+    }
     
-    tree->SetBranchAddress(Form("IsoTrack_layerOrSideByLayer%i",iLayer),
-                           &arrayValuesInt[Form("IsoTrack_layerOrSideByLayer%i",iLayer)]);
-    tree->SetBranchAddress(Form("IsoTrack_ladderOrBladeByLayer%i",iLayer),
-                           &arrayValuesInt[Form("IsoTrack_ladderOrBladeByLayer%i",iLayer)]);
-    
+    tree->SetBranchAddress(name.c_str(), &arrayValuesInt[name]);
   }
-  
 }
 
 void TrackProcessor::SetupBranchesForWriting(TTree *tree)
 {
-	// single int variables
 	tree->Branch("nIsoTrack", &nTracks, "nIsoTrack/I");
-	
-	// float array variables
-	tree->Branch("IsoTrack_eta", &arrayValuesFloat["IsoTrack_eta"], "IsoTrack_eta[nIsoTrack]/F");
-	tree->Branch("IsoTrack_phi", &arrayValuesFloat["IsoTrack_phi"], "IsoTrack_phi[nIsoTrack]/F");
-	tree->Branch("IsoTrack_caloEmEnergy", &arrayValuesFloat["IsoTrack_caloEmEnergy"], "IsoTrack_caloEmEnergy[nIsoTrack]/F");
-	tree->Branch("IsoTrack_caloHadEnergy", &arrayValuesFloat["IsoTrack_caloHadEnergy"], "IsoTrack_caloHadEnergy[nIsoTrack]/F");
-	tree->Branch("IsoTrack_dxy", &arrayValuesFloat["IsoTrack_dxy"], "IsoTrack_dxy[nIsoTrack]/F");
-	tree->Branch("IsoTrack_edxy", &arrayValuesFloat["IsoTrack_edxy"], "IsoTrack_edxy[nIsoTrack]/F");
-	tree->Branch("IsoTrack_dz", &arrayValuesFloat["IsoTrack_dz"], "IsoTrack_dz[nIsoTrack]/F");
-	tree->Branch("IsoTrack_edz", &arrayValuesFloat["IsoTrack_edz"], "IsoTrack_edz[nIsoTrack]/F");
-	tree->Branch("IsoTrack_mass", &arrayValuesFloat["IsoTrack_mass"], "IsoTrack_mass[nIsoTrack]/F");
-	tree->Branch("IsoTrack_pt", &arrayValuesFloat["IsoTrack_pt"], "IsoTrack_pt[nIsoTrack]/F");
-	tree->Branch("IsoTrack_relIso03", &arrayValuesFloat["IsoTrack_relIso03"], "IsoTrack_relIso03[nIsoTrack]/F");
-	
-	for(int iHit=0;iHit<nLayers;iHit++){
-		tree->Branch(Form("IsoTrack_dedxByLayer%i",iHit),
-								 &arrayValuesFloat[Form("IsoTrack_dedxByLayer%i",iHit)],
-								 Form("IsoTrack_dedxByLayer%i[nIsoTrack]/F",iHit));
-	}
-	
-	// int arrat variables
-	tree->Branch("IsoTrack_pdgId", &arrayValuesInt["IsoTrack_pdgId"], "IsoTrack_pdgId[nIsoTrack]/I");
-	tree->Branch("IsoTrack_charge", &arrayValuesInt["IsoTrack_charge"], "IsoTrack_charge[nIsoTrack]/I");
-	tree->Branch("IsoTrack_mcMatch", &arrayValuesInt["IsoTrack_mcMatch"], "IsoTrack_mcMatch[nIsoTrack]/I");
-	
-	tree->Branch("IsoTrack_trackerLayers", &arrayValuesInt["IsoTrack_trackerLayers"], "IsoTrack_trackerLayers[nIsoTrack]/I");
-	tree->Branch("IsoTrack_pixelLayers", &arrayValuesInt["IsoTrack_pixelLayers"], "IsoTrack_pixelLayers[nIsoTrack]/I");
-	tree->Branch("IsoTrack_trackerHits", &arrayValuesInt["IsoTrack_trackerHits"], "IsoTrack_trackerHits[nIsoTrack]/I");
-	tree->Branch("IsoTrack_pixelHits", &arrayValuesInt["IsoTrack_pixelHits"], "IsoTrack_pixelHits[nIsoTrack]/I");
-	tree->Branch("IsoTrack_missingInnerPixelHits", &arrayValuesInt["IsoTrack_missingInnerPixelHits"], "IsoTrack_missingInnerPixelHits[nIsoTrack]/I");
-	tree->Branch("IsoTrack_missingOuterPixelHits", &arrayValuesInt["IsoTrack_missingOuterPixelHits"], "IsoTrack_missingOuterPixelHits[nIsoTrack]/I");
-	tree->Branch("IsoTrack_missingInnerStripHits", &arrayValuesInt["IsoTrack_missingInnerStripHits"], "IsoTrack_missingInnerStripHits[nIsoTrack]/I");
-	tree->Branch("IsoTrack_missingOuterStripHits", &arrayValuesInt["IsoTrack_missingOuterStripHits"], "IsoTrack_missingOuterStripHits[nIsoTrack]/I");
-	tree->Branch("IsoTrack_missingInnerTrackerHits", &arrayValuesInt["IsoTrack_missingInnerTrackerHits"], "IsoTrack_missingInnerTrackerHits[nIsoTrack]/I");
-	tree->Branch("IsoTrack_missingOuterTrackerHits", &arrayValuesInt["IsoTrack_missingOuterTrackerHits"], "IsoTrack_missingOuterTrackerHits[nIsoTrack]/I");
-	tree->Branch("IsoTrack_missingMiddleTrackerHits", &arrayValuesInt["IsoTrack_missingMiddleTrackerHits"], "IsoTrack_missingMiddleTrackerHits[nIsoTrack]/I");
-	
-	for(int iHit=0;iHit<nLayers;iHit++){
-		tree->Branch(Form("IsoTrack_subDetIdByLayer%i",iHit),
-								 &arrayValuesInt[Form("IsoTrack_subDetIdByLayer%i",iHit)],
-								 Form("IsoTrack_subDetIdByLayer%i[nIsoTrack]/I",iHit));
-		
-		tree->Branch(Form("IsoTrack_sizeXbyLayer%i",iHit),
-								 &arrayValuesInt[Form("IsoTrack_sizeXbyLayer%i",iHit)],
-								 Form("IsoTrack_sizeXbyLayer%i[nIsoTrack]/I",iHit));
-		
-		tree->Branch(Form("IsoTrack_sizeYbyLayer%i",iHit),
-								 &arrayValuesInt[Form("IsoTrack_sizeYbyLayer%i",iHit)],
-								 Form("IsoTrack_sizeYbyLayer%i[nIsoTrack]/I",iHit));
-		
-		tree->Branch(Form("IsoTrack_pixByLayer%i",iHit),
-								 &arrayValuesInt[Form("IsoTrack_pixByLayer%i",iHit)],
-								 Form("IsoTrack_pixByLayer%i[nIsoTrack]/I",iHit));
-		
-		tree->Branch(Form("IsoTrack_layerOrSideByLayer%i",iHit),
-								 &arrayValuesInt[Form("IsoTrack_layerOrSideByLayer%i",iHit)],
-								 Form("IsoTrack_layerOrSideByLayer%i[nIsoTrack]/I",iHit));
-		
-		tree->Branch(Form("IsoTrack_ladderOrBladeByLayer%i",iHit),
-								 &arrayValuesInt[Form("IsoTrack_ladderOrBladeByLayer%i",iHit)],
-								 Form("IsoTrack_ladderOrBladeByLayer%i[nIsoTrack]/I",iHit));
-	}
+
+  for(string name : arrayNamesFloat){
+    tree->Branch(name.c_str(), &arrayValuesFloat[name], Form("%s[nIsoTrack]/F", name.c_str()));
+  }
+  
+  for(string name : arrayNamesInt){
+      tree->Branch(name.c_str(), &arrayValuesInt[name], Form("%s[nIsoTrack]/I", name.c_str()));
+  }
 }
 
 
