@@ -82,9 +82,9 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
           double px = par[1];
           double py = par[2];
           
-          double x0 = L*cos(trackPhi) + vertex->GetX();
-          double y0 = L*sin(trackPhi) + vertex->GetY();
-          double z0 = L/sin(trackTheta)*cos(trackTheta) + vertex->GetZ();
+          double x0 = L*cos(trackPhi) + 10*vertex->GetX();
+          double y0 = L*sin(trackPhi) + 10*vertex->GetY();
+          double z0 = L/sin(trackTheta)*cos(trackTheta) + 10*vertex->GetZ();
           
           unique_ptr<Point> decayPoint  = make_unique<Point>(x0,y0,z0);
           unique_ptr<Point> momentum    = make_unique<Point>(px,py,0);
@@ -107,9 +107,9 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
           double px = result.GetParams()[1];
           double py = result.GetParams()[2];
           
-          double x0 = L*cos(trackPhi) + vertex->GetX();
-          double y0 = L*sin(trackPhi) + vertex->GetY();
-          double z0 = L/sin(trackTheta)*cos(trackTheta) + vertex->GetZ();
+          double x0 = L*cos(trackPhi) + 10*vertex->GetX();
+          double y0 = L*sin(trackPhi) + 10*vertex->GetY();
+          double z0 = L/sin(trackTheta)*cos(trackTheta) + 10*vertex->GetZ();
           
           unique_ptr<Point> decayPoint = make_unique<Point>(x0,y0,z0);
           unique_ptr<Point> momentum = make_unique<Point>(px,py,0);

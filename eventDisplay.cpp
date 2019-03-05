@@ -7,21 +7,87 @@
 #include "HelixProcessor.hpp"
 #include "TrackProcessor.hpp"
 
-uint searchRun = 297100;
-uint searchLumi = 136;
-unsigned long long searchEvent = 245000232;
+uint searchRun = 1;
+uint searchLumi = 1;
+unsigned long long searchEvent = 2662;
 
 string configPath = "configs/eventDisplay.md";
 string cutLevel = "";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 0;
+int iEvent = 26; // 8, 12, 20, 21, 26
 
-bool injectPion = true;
-bool fitHelix = true;
+bool injectPion = false;
+bool fitHelix = false;
 
 Display *display;
+
+vector<vector<double>> charginoPoints = {};
+vector<vector<double>> pionPoints = {};
+
+// event 8 (2646)
+//vector<vector<double>> charginoPoints = {
+//  // low hits
+//  {2.459, -1.452, 6.62},
+//  {6.839, -1.409, 6.624},
+//  {10.95, -1.582, 6.628},
+//  {2.459, -1.452, 6.62},
+//  // high hits
+//  // none
+//};
+//
+//vector<vector<double>> pionPoints = {
+//  // low hits
+//  {2.718, 1.614, 6.579},
+//  {6.774, 1.699, 6.529},
+//  {10.64, 1.468, -0.08096},
+//  {14.94, 6.188, -0.1679},
+//  // high hits
+//  // none
+//};
+
+// event 12 (2602)
+//vector<vector<double>> charginoPoints = {
+//  // low hits
+//  {-0.008219, -3.375, 13.26},
+//  {0.1146, -7.249, 13.29},
+//  {-0.02884, -11.34, 13.31},
+//  {-0.02884, -11.34, 13.31},
+//  {0.1146, -7.249, 13.29},
+//  // high hits
+//  // none
+//};
+//
+//vector<vector<double>> pionPoints = {
+//  {-0.01882, -16.44, 19.94},
+//};
+
+// event 21 (1358)
+//vector<vector<double>> charginoPoints = {
+//  {2.715, 1.623, -0.06231},
+//  {6.449, 1.522, -0.1197},
+//  {5.373, 4.458, -0.1305},
+//  {9.797, 4.397, -6.776},
+//  {14.65, 6.018, -6.867},
+//  {9.797, 4.397, -6.776}
+//};
+//vector<vector<double>> pionPoints = {
+//};
+
+// event 26 (2089)
+//vector<vector<double>> charginoPoints = {
+//  {2.457, -1.46, 6.618},
+//  {2.764, -1.539, 6.617},
+//  {5.207, -4.1, 6.61},
+//  {10.06, -4.603, 6.565},
+//  {13.14, -8.838, 6.538},
+//  {5.207, -4.1, 6.611},
+//};
+//
+//vector<vector<double>> pionPoints = {
+//};
+
 
 map<string,any> filteredPointsOptions = {
   {"title", "Filtered Points"},
@@ -90,6 +156,36 @@ int main(int argc, char* argv[])
   auto allSimplePoints = event->GetTrackerHits();
   display->DrawSimplePoints(allSimplePoints, filteredPointsOptions);
 	
+  
+  auto charginoSimHits = make_shared<vector<Point>>();
+  for(int i=0;i<charginoPoints.size();i++){
+    charginoSimHits->push_back(Point(10*charginoPoints[i][0],
+                                     10*charginoPoints[i][1],
+                                     10*charginoPoints[i][2]));
+  }
+  const map<string,any> charginoSimHitsOptions = {
+    {"title", "Chargino sim hits"},
+    {"markerStyle", 22},
+    {"markerSize", 2.0},
+    {"color", kMagenta}
+  };
+  display->DrawSimplePoints(charginoSimHits, charginoSimHitsOptions);
+  
+  auto pionSimHits = make_shared<vector<Point>>();
+  for(int i=0;i<pionPoints.size();i++){
+    pionSimHits->push_back(Point(10*pionPoints[i][0],
+                                 10*pionPoints[i][1],
+                                 10*pionPoints[i][2]));
+  }
+  const map<string,any> pionSimHitsOptions = {
+    {"title", "Pion sim hits"},
+    {"markerStyle", 22},
+    {"markerSize", 2.0},
+    {"color", kCyan}
+  };
+  display->DrawSimplePoints(pionSimHits, pionSimHitsOptions);
+  
+   
 	const map<string,any> trueHelixOptions = {
 		{"title", "True helix"},
 		{"markerStyle", 20},

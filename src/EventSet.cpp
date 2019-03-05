@@ -804,8 +804,8 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
       double decayR = (maxR+minR)/2.;
       
       track->SetDecayPoint(make_unique<Point>(decayR*cos(track->GetPhi()) + *_vertex_x*10,
-                                             decayR*sin(track->GetPhi()) + *_vertex_y*10,
-                                             decayR/sin(track->GetTheta())*cos(track->GetTheta())+*_vertex_z*10)
+                                              decayR*sin(track->GetPhi()) + *_vertex_y*10,
+                                              decayR/sin(track->GetTheta())*cos(track->GetTheta())+*_vertex_z*10)
                            );
       
       newEvent->AddTrack(track);
@@ -869,9 +869,7 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
     newEvent->SetWeight(weight);
     
     newEvent->SetNvertices(*_nVert);
-    newEvent->SetVertex(make_unique<Point>(*_vertex_x *10,
-                                           *_vertex_y *10,
-                                           *_vertex_z *10));
+    newEvent->SetVertex(make_unique<Point>(*_vertex_x, *_vertex_y, *_vertex_z));
     newEvent->SetNjet30(*_nJet30);
     newEvent->SetNjet30a(*_nJet30a);
     newEvent->SetNlepton(*_nLepton);

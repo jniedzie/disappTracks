@@ -164,6 +164,14 @@ shared_ptr<vector<Point>> Event::GetTrackerHits()
     // convert cm to mm
     trackerPoints->push_back(Point(10*hitX->at(i),10*hitY->at(i),10*hitZ->at(i),hitCharge->at(i)));
   }
+  
+  for(uint i=0;i<stripX->size();i++){
+    if(stripCharge->at(i) < chargeThreshold) continue;
+    // convert cm to mm
+    trackerPoints->push_back(Point(10*stripX->at(i),10*stripY->at(i),10*stripZ->at(i),stripCharge->at(i)));
+  }
+  
+  
   return trackerPoints;
 }
 
