@@ -147,10 +147,12 @@ public:
 	inline vector<shared_ptr<Track>>   GetTracks(){return tracks;}
   inline vector<shared_ptr<Jet>>     GetJets(){return jets;}
   inline vector<shared_ptr<Lepton>>  GetLeptons(){return leptons;}
+  inline vector<shared_ptr<Helix>>   GetHelices(){return helices;}
 private:
   vector<shared_ptr<Track>>  tracks;   ///< Vector of isolated tracks
   vector<shared_ptr<Jet>>    jets;     ///< Vector of jets
   vector<shared_ptr<Lepton>> leptons;  ///< Vector of leptons
+  vector<shared_ptr<Helix>>  helices; ///< Parameters of the fitted helices (one per track)
   
   xtracks::EDataType dataType;     ///< Type of the event (signal/background/data)
   int setIter;            ///< Iterator of the dataset (e.g. which type of background it is)
@@ -195,8 +197,6 @@ private:
   double xsec;
   double wgtsum;
   double genWeight;
-  
-  vector<shared_ptr<Helix>> helices; ///< Parameters of the fitted helices (one per track)
   
   unique_ptr<TrackProcessor> trackProcessor;
   

@@ -10,7 +10,19 @@
 HelixProcessor::HelixProcessor() :
 pointsProcessor(make_unique<PointsProcessor>())
 {
-
+  arrayNamesFloat = {
+    "helix_x",
+    "helix_y",
+    "helix_z",
+    "helix_px",
+    "helix_py",
+    "helix_pz"
+  };
+  
+  arrayNamesInt = {
+    "helix_charge"
+  };
+  
 }
 
 HelixProcessor::~HelixProcessor()
@@ -179,25 +191,52 @@ vector<shared_ptr<Helix>> HelixProcessor::GetHelicesFromTree()
   return helices;
 }
 
-void HelixProcessor::SetupBranches(TTree *tree)
+void HelixProcessor::SaveHelicesToTree(vector<shared_ptr<Helix>> helices)
+{
+  nHelices = (int)helices.size();
+  
+  for(int iHelix=0;iHelix<nHelices;iHelix++){
+    if(!helices[iHelix]) continue;
+    
+    arrayValuesFloat["helix_x"][iHelix]    = helices[iHelix]->GetOrigin()->GetX();
+    arrayValuesFloat["helix_y"][iHelix]    = helices[iHelix]->GetOrigin()->GetY();
+    arrayValuesFloat["helix_z"][iHelix]    = helices[iHelix]->GetOrigin()->GetZ();
+    arrayValuesFloat["helix_px"][iHelix]   = helices[iHelix]->GetMomentum()->GetX();
+    arrayValuesFloat["helix_py"][iHelix]   = helices[iHelix]->GetMomentum()->GetY();
+    arrayValuesFloat["helix_pz"][iHelix]   = helices[iHelix]->GetMomentum()->GetZ();
+    arrayValuesInt["helix_charge"][iHelix] = helices[iHelix]->GetCharge();
+  }
+}
+
+void HelixProcessor::SetupBranchesForReading(TTree *tree)
 {
   // check if there is a branch with helices in the tree
   if(!tree->GetBranchStatus("nFittedHelices")){
     nHelices = 0;
     return;
   }
- 
-  // single int variables
-  tree->SetBranchAddress("nFittedHelices", &nHelices);
+  else{
+    tree->SetBranchAddress("nFittedHelices", &nHelices);
+  }
   
-  // int array variables
-  tree->SetBranchAddress("helix_charge", &arrayValuesInt["helix_charge"]);
+  for(string name : arrayNamesFloat){
+    tree->SetBranchAddress(name.c_str(), &arrayValuesFloat[name]);
+  }
   
-  // float array variables
-  tree->SetBranchAddress("helix_x",   &arrayValuesFloat["helix_x"]);
-  tree->SetBranchAddress("helix_y",   &arrayValuesFloat["helix_y"]);
-  tree->SetBranchAddress("helix_z",   &arrayValuesFloat["helix_z"]);
-  tree->SetBranchAddress("helix_px",  &arrayValuesFloat["helix_px"]);
-  tree->SetBranchAddress("helix_py",  &arrayValuesFloat["helix_py"]);
-  tree->SetBranchAddress("helix_pz",  &arrayValuesFloat["helix_pz"]);
+  for(string name : arrayNamesInt){
+    tree->SetBranchAddress(name.c_str(), &arrayValuesInt[name]);
+  }
+}
+
+void HelixProcessor::SetupBranchesForWriting(TTree *tree)
+{
+  tree->Branch("nFittedHelices", &nHelices, "nFittedHelices/I");
+  
+  for(string name : arrayNamesFloat){
+    tree->Branch(name.c_str(), &arrayValuesFloat[name], Form("%s[nFittedHelices]/F", name.c_str()));
+  }
+  
+  for(string name : arrayNamesInt){
+    tree->Branch(name.c_str(), &arrayValuesInt[name], Form("%s[nFittedHelices]/I", name.c_str()));
+  }
 }

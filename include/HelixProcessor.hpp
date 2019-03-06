@@ -40,11 +40,18 @@ public:
   
   
   /// Link class variables to branches of a specified tree
-  /// \param tree Tree from which helix parameters will be read
-  void SetupBranches(TTree *tree);
+  /// \param tree Tree from which fitted helix parameters will be read
+  void SetupBranchesForReading(TTree *tree);
   
-  /// Returns a vector of helices with parameters read from tree previously set with SetupBranches(..)
+  /// Returns a vector of fitted helices read from tree previously set with SetupBranchesForReading(..)
   vector<shared_ptr<Helix>> GetHelicesFromTree();
+  
+  /// Link class variables to branches of a specified tree
+  /// \param tree Tree to which fitted helices parameters will be saved
+  void SetupBranchesForWriting(TTree *tree);
+  
+  /// Writes all fitted helices in the vector to the tree previously set with SetupBranchesForWriting(...)
+  void SaveHelicesToTree(vector<shared_ptr<Helix>> helices);
   
 private:
   static const int maxNhelices = 1000;   ///< Maximum supported number of helices per event
@@ -52,6 +59,9 @@ private:
   
   map<string, float[maxNhelices]> arrayValuesFloat; ///< Float per-helix variables in the current entry
   map<string, int[maxNhelices]>   arrayValuesInt;   ///< Int per-helix variables in the current entry
+  
+  vector<string> arrayNamesFloat;     ///< Names or float per-track variables
+  vector<string> arrayNamesInt;       ///< Names or int per-track variables
   
   unique_ptr<PointsProcessor> pointsProcessor;
 };

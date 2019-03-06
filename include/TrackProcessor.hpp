@@ -34,7 +34,7 @@ public:
   /// \param tree Tree from which track parameters will be read
   void SetupBranchesForReading(TTree *tree);
   
-  /// Returns a vector of tracks with parameters read from tree previously set with SetupBranches(..)
+  /// Returns a vector of tracks with parameters read from tree previously set with SetupBranchesForReading(..)
   vector<shared_ptr<Track>> GetTracksFromTree();
 	
 	/// Link class variables to branches of a specified tree

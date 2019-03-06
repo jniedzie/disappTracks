@@ -68,8 +68,6 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
   outFile.cd();
   TTree *tree = new TTree("tree","tree");
 	
-  const int nHelices = 100;
-  
   unsigned long long evt;
   uint lumi, run;
   int nVert, nJet30, nJet30a, nTauGood, nGenChargino;
@@ -78,21 +76,15 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
   int metNoMuTrigger, flag_goodVertices, flag_badPFmuon, flag_HBHEnoise, flag_HBHEnoiseIso, flag_EcalDeadCell, flag_eeBadSc, flag_badChargedCandidate, flag_ecalBadCalib, flag_globalTightHalo2016;
   float metNoMu_pt, metNoMu_mass, metNoMu_phi, metNoMu_eta;
 	
-  int nFittedHelices;
-  float helix_x[nHelices],  helix_y[nHelices],  helix_z[nHelices],
-        helix_px[nHelices], helix_py[nHelices], helix_pz[nHelices];
-  
-  int helix_charge[nHelices];
-  
 	trackProcessor->SetupBranchesForWriting(tree);
   jetProcessor->SetupBranchesForWriting(tree);
   leptonProcessor->SetupBranchesForWriting(tree);
-	
+  helixProcessor->SetupBranchesForWriting(tree);
+  
   tree->Branch("lumi", &lumi, "lumi/i");
   tree->Branch("run", &run, "run/i");
   tree->Branch("evt", &evt, "evt/l");
 
-  tree->Branch("nFittedHelices", &nFittedHelices, "nFittedHelices/I");
   tree->Branch("nVert", &nVert, "nVert/I");
   tree->Branch("vertex_x", &vertex_x, "vertex_x/F");
   tree->Branch("vertex_y", &vertex_y, "vertex_y/F");
@@ -128,15 +120,6 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
   tree->Branch("metNoMu_phi", &metNoMu_phi, "metNoMu_phi/F");
   tree->Branch("metNoMu_eta", &metNoMu_eta, "metNoMu_eta/F");
 	
-  tree->Branch("helix_x", &helix_x, "helix_x[nFittedHelices]/F");
-  tree->Branch("helix_y", &helix_y, "helix_y[nFittedHelices]/F");
-  tree->Branch("helix_z", &helix_z, "helix_z[nFittedHelices]/F");
-  tree->Branch("helix_px", &helix_px, "helix_px[nFittedHelices]/F");
-  tree->Branch("helix_py", &helix_py, "helix_py[nFittedHelices]/F");
-  tree->Branch("helix_pz", &helix_pz, "helix_pz[nFittedHelices]/F");
-  
-  tree->Branch("helix_charge", &helix_charge, "helix_charge[nFittedHelices]/I");
-  
   function<void(shared_ptr<Event>, TTree*)> func = [&](shared_ptr<Event> event, TTree *tree) -> void {
     lumi = event->GetLumiSection();
     run = event->GetRunNumber();
@@ -146,7 +129,6 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
     vertex_x = event->GetVertex()->GetX();
     vertex_y = event->GetVertex()->GetY();
     vertex_z = event->GetVertex()->GetZ();
-    nFittedHelices = (int)event->GetNhelices();
     nJet30 = event->GetNjet30();
     nJet30a = event->GetNjet30a();
     nTauGood = event->GetNtau();
@@ -177,22 +159,9 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
     flag_globalTightHalo2016 = event->GetGlobalTightHalo2016Flag();
 		
 		trackProcessor->SaveTracksToTree(event->GetTracks());
-		
-    for(int iHelix=0;iHelix<nFittedHelices;iHelix++){
-      auto helix = event->GetHelix(iHelix);
-      if(helix){
-        helix_x[iHelix]      = helix->GetOrigin()->GetX();
-        helix_y[iHelix]      = helix->GetOrigin()->GetY();
-        helix_z[iHelix]      = helix->GetOrigin()->GetZ();
-        helix_px[iHelix]     = helix->GetMomentum()->GetX();
-        helix_py[iHelix]     = helix->GetMomentum()->GetY();
-        helix_pz[iHelix]     = helix->GetMomentum()->GetZ();
-        helix_charge[iHelix] = helix->GetCharge();
-      }
-    }
-    
     leptonProcessor->SaveLeptonsToTree(event->GetLeptons());
     jetProcessor->SaveJetsToTree(event->GetJets());
+    helixProcessor->SaveHelicesToTree(event->GetHelices());
     
     tree->Fill();
   };
@@ -686,13 +655,12 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
   trackProcessor->SetupBranchesForReading(tree);
   jetProcessor->SetupBranchesForReading(tree);
   leptonProcessor->SetupBranchesForReading(tree);
-  helixProcessor->SetupBranches(tree);
+  helixProcessor->SetupBranchesForReading(tree);
   
   TTreeReaderValue<uint>   _run(reader, "run");
   TTreeReaderValue<uint>   _lumi(reader, "lumi");
   TTreeReaderValue<unsigned long long>   _evt(reader, "evt");
   
-  TTreeReaderValue<int>   _nTracks(reader, "nIsoTrack");
   TTreeReaderValue<int>   _nVert(reader, "nVert");
   TTreeReaderValue<float> _vertex_x(reader, "vertex_x");
   TTreeReaderValue<float> _vertex_y(reader, "vertex_y");
@@ -735,13 +703,12 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
   
   while(reader.Next()){
     if(maxNevents>0 && iter>maxNevents) break;
-    
-    shared_ptr<Event> newEvent = shared_ptr<Event>(new Event());
-    
     tree->GetEntry(iter++);
+    auto newEvent = make_shared<Event>();
+    
     vector<shared_ptr<Track>> tracks = trackProcessor->GetTracksFromTree();
     
-    for(int iTrack=0;iTrack<*_nTracks;iTrack++){
+    for(int iTrack=0;iTrack<tracks.size();iTrack++){
       auto track = tracks[iTrack];
       
       track->SetEventMetPt(*_metPt);
