@@ -59,8 +59,8 @@ vector<tuple<double,double>> GetDifferencesForCriticalValues(shared_ptr<EventSet
       results.push_back(make_tuple(inf,inf));
       continue;
     }
-    double expectedBck = eventsC->weightedSize(EventSet::kBackground, iBck);
-    double predictedBck = eventsA->weightedSize(EventSet::kBackground, iBck)/eventsB->weightedSize(EventSet::kBackground, iBck)*eventsD->weightedSize(EventSet::kBackground, iBck);
+    double expectedBck = eventsC->weightedSize(xtracks::kBackground, iBck);
+    double predictedBck = eventsA->weightedSize(xtracks::kBackground, iBck)/eventsB->weightedSize(xtracks::kBackground, iBck)*eventsD->weightedSize(xtracks::kBackground, iBck);
     
     results.push_back(make_tuple(expectedBck,predictedBck));
     }
@@ -103,8 +103,8 @@ double GetFraction(shared_ptr<EventSet> &events, double criticalMet, double crit
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     if(!config->runBackground[iBck]) continue;
     
-    nBackgroundA += eventsA->weightedSize(EventSet::kBackground, iBck);
-    nBackgroundB += eventsB->weightedSize(EventSet::kBackground, iBck);
+    nBackgroundA += eventsA->weightedSize(xtracks::kBackground, iBck);
+    nBackgroundB += eventsB->weightedSize(xtracks::kBackground, iBck);
   }
   
   return nBackgroundA/(double)nBackgroundB;
@@ -128,8 +128,8 @@ int main(int argc, char* argv[])
   TH2D *trackPt_vs_missing = new TH2D("trackPt_vs_missing","trackPt_vs_missing",100,0,1000,20,0,20);
   TH2D *deltaJetTrack_vs_missing = new TH2D("deltaJetTrack_vs_missing","deltaJetTrack_vs_missing",20,0,2,20,0,20);
   
-  for(int iEvent=0;iEvent<events->size(EventSet::kBackground, kQCD);iEvent++){
-    auto event = events->At(EventSet::kBackground, kQCD, iEvent);
+  for(int iEvent=0;iEvent<events->size(xtracks::kBackground, kQCD);iEvent++){
+    auto event = events->At(xtracks::kBackground, kQCD, iEvent);
     
     for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
       auto track = event->GetTrack(iTrack);

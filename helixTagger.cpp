@@ -52,12 +52,12 @@ int main(int argc, char* argv[])
   
   cout<<"helixTagger -- events loaded"<<endl;
   
-  for(int iEvent=0; iEvent<events->size(EventSet::kSignal, kWino_M_300_cTau_10); iEvent++){
+  for(int iEvent=0; iEvent<events->size(xtracks::kSignal, kWino_M_300_cTau_10); iEvent++){
     cout<<"\n\n=================================================================\n"<<endl;
     cout<<"helixTagger -- processing event "<<iEvent<<endl;
   
-//    auto event = events->GetEvent(EventSet::kData, searchRun, searchLumi, searchEvent);
-    auto event = events->At(EventSet::kSignal, kWino_M_300_cTau_10, iEvent);
+//    auto event = events->GetEvent(xtracks::kData, searchRun, searchLumi, searchEvent);
+    auto event = events->At(xtracks::kSignal, kWino_M_300_cTau_10, iEvent);
     
 //    shared_ptr<vector<Point>> trackerPoints = event->GetTrackerHits();
     shared_ptr<vector<Point>> trackerPoints = pointsProcessor->GetRandomPoints(config->nNoiseHits);
@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
       
       if(config->injectPionHits) InjectPion(trackerPoints, track);
       
-      unique_ptr<Helix> fittedHelix = fitter->GetBestFittingHelix(trackerPoints, track);
+      unique_ptr<Helix> fittedHelix = fitter->GetBestFittingHelix(trackerPoints, track, event->GetVertex());
       if(fittedHelix){
         fittedHelix->Print();
         event->AddHelix(move(fittedHelix));

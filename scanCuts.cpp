@@ -80,12 +80,12 @@ int main()
             double nBackgroundTotal=0;
             for(int iBck=0;iBck<kNbackgrounds;iBck++){
               if(!config->runBackground[iBck]) continue;
-              nBackgroundTotal += eventsAfterCuts->weightedSize(EventSet::kBackground, iBck);
+              nBackgroundTotal += eventsAfterCuts->weightedSize(xtracks::kBackground, iBck);
             }
 
             for(int iSig=0;iSig<kNsignals;iSig++){
               if(!config->runSignal[iSig]) continue;
-              double sb = eventsAfterCuts->weightedSize(EventSet::kSignal,iSig)/sqrt(nBackgroundTotal+eventsAfterCuts->weightedSize(EventSet::kSignal,iSig));
+              double sb = eventsAfterCuts->weightedSize(xtracks::kSignal,iSig)/sqrt(nBackgroundTotal+eventsAfterCuts->weightedSize(xtracks::kSignal,iSig));
               
               if(sb > bestSb[iSig]){
                 bestSb[iSig] = sb;

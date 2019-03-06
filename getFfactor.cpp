@@ -13,13 +13,13 @@ int main(int argc, char* argv[])
   
   // Load W->μν, Z->νν and Z->μμ events
   shared_ptr<EventSet> eventsZmm = shared_ptr<EventSet>(new EventSet);
-  eventsZmm->LoadEventsFromFiles(EventSet::kBackground,kZmumuJets);
+  eventsZmm->LoadEventsFromFiles(xtracks::kBackground,kZmumuJets);
   
   shared_ptr<EventSet> eventsWmv = shared_ptr<EventSet>(new EventSet);
-  eventsWmv->LoadEventsFromFiles(EventSet::kBackground,kWmunuJets);
+  eventsWmv->LoadEventsFromFiles(xtracks::kBackground,kWmunuJets);
   
   shared_ptr<EventSet> eventsZvv = shared_ptr<EventSet>(new EventSet);
-  eventsZvv->LoadEventsFromFiles(EventSet::kBackground,kZnunuJets);
+  eventsZvv->LoadEventsFromFiles(xtracks::kBackground,kZnunuJets);
   
   // Prepare histograms
   const int nBins = 11;
@@ -101,18 +101,18 @@ int main(int argc, char* argv[])
   eventsWmv->ApplyCuts(eventCutWmv, trackCut, jetCut, leptonCut);
   eventsZvv->ApplyCuts(eventCutZvv, trackCut, jetCut, leptonCut);
   
-  for(int iEvent=0;iEvent<eventsZmm->size(EventSet::kBackground,kZmumuJets);iEvent++){
-    shared_ptr<Event> event = eventsZmm->At(EventSet::kBackground,kZmumuJets,iEvent);
+  for(int iEvent=0;iEvent<eventsZmm->size(xtracks::kBackground,kZmumuJets);iEvent++){
+    shared_ptr<Event> event = eventsZmm->At(xtracks::kBackground,kZmumuJets,iEvent);
     nEventsZmm->Fill(event->GetMetNoMuPt(), event->GetWeight());
   }
   
-  for(int iEvent=0;iEvent<eventsWmv->size(EventSet::kBackground,kWmunuJets);iEvent++){
-    shared_ptr<Event> event = eventsWmv->At(EventSet::kBackground,kWmunuJets,iEvent);
+  for(int iEvent=0;iEvent<eventsWmv->size(xtracks::kBackground,kWmunuJets);iEvent++){
+    shared_ptr<Event> event = eventsWmv->At(xtracks::kBackground,kWmunuJets,iEvent);
     nEventsWmv->Fill(event->GetMetNoMuPt(), event->GetWeight());
   }
   
-  for(int iEvent=0;iEvent<eventsZvv->size(EventSet::kBackground,kZnunuJets);iEvent++){
-    shared_ptr<Event> event = eventsZvv->At(EventSet::kBackground,kZnunuJets,iEvent);
+  for(int iEvent=0;iEvent<eventsZvv->size(xtracks::kBackground,kZnunuJets);iEvent++){
+    shared_ptr<Event> event = eventsZvv->At(xtracks::kBackground,kZnunuJets,iEvent);
     nEventsZvv->Fill(event->GetMetNoMuPt(), event->GetWeight());
   }
   

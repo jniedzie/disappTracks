@@ -11,6 +11,50 @@ trackProcessor(make_unique<TrackProcessor>()),
 jetProcessor(make_unique<JetProcessor>()),
 leptonProcessor(make_unique<LeptonProcessor>())
 {
+  singleNamesUint = {
+    "run",
+    "lumi"
+  };
+  
+  singleNamesUlongLong = {
+    "evt"
+  };
+  
+  singleNamesFloat = {
+    "vertex_x",
+    "vertex_y",
+    "vertex_z",
+    "xsec",
+    "wgtsum",
+    "genWeight",
+    "met_sumEt",
+    "met_pt",
+    "met_mass",
+    "met_phi",
+    "met_eta",
+    "metNoMu_pt",
+    "metNoMu_mass",
+    "metNoMu_phi",
+    "metNoMu_eta"
+  };
+  
+  singleNamesInt = {
+    "nVert",
+    "nJet30",
+    "nJet30a",
+    "nTauGood",
+    "nGenChargino",
+    "HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight",
+    "Flag_goodVertices",
+    "Flag_BadPFMuonFilter",
+    "Flag_HBHENoiseFilter",
+    "Flag_HBHENoiseIsoFilter",
+    "Flag_EcalDeadCellTriggerPrimitiveFilter",
+    "Flag_eeBadScFilter",
+    "Flag_BadChargedCandidateFilter",
+    "Flag_ecalBadCalibFilter",
+    "Flag_globalTightHalo2016Filter"
+  };
   
 }
 
@@ -248,4 +292,118 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const unique_pt
   }
   
   return true;
+}
+
+void EventProcessor::SetupBranchesForReading(TTree *tree)
+{
+  for(string name : singleNamesFloat){
+    if(!tree->GetBranchStatus(name.c_str())){
+      singleValuesFloat[name] = 0;
+      continue;
+    }
+    tree->SetBranchAddress(name.c_str(), &singleValuesFloat[name]);
+  }
+  
+  for(string name : singleNamesInt){
+    tree->SetBranchAddress(name.c_str(), &singleValuesInt[name]);
+  }
+  
+  for(string name : singleNamesUint){
+    tree->SetBranchAddress(name.c_str(), &singleValuesUint[name]);
+  }
+  
+  for(string name : singleNamesUlongLong){
+    tree->SetBranchAddress(name.c_str(), &singleValuesUlonglong[name]);
+  }  
+}
+
+shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, int setIter)
+{
+  auto event = make_shared<Event>();
+  
+  double lumi = config->totalLuminosity * 1000.; // transform from fb^-1 to pb^-1
+  double weight = lumi * singleValuesFloat["genWeight"] / singleValuesFloat["wgtsum"];
+  
+  //    static map<string,set<double>> wgts;
+  //
+  //    if(*_genWgt != 1.0 && wgts[fileName].find(*_genWgt) == wgts[fileName].end() ){
+  //      wgts[fileName].insert(*_genWgt);
+  //      cout<<*_genWgt<<"\t"<<fileName<<endl;
+  //    }
+  
+  if(dataType==xtracks::kBackground){
+    weight *= singleValuesFloat["xsec"];
+  }
+  if(dataType==xtracks::kSignal){
+    // it's not clear how to calculate weights for the signal...
+    
+    // cross section for given signal (stored in fb, here transformed to pb to match background units
+    weight *= 0.001 * (signalCrossSectionOneTrack[(ESignal)setIter] +
+                       signalCrossSectionTwoTracks[(ESignal)setIter]);
+    
+    //      if(*_nGenChargino == 1){
+    //        weight *= 0.001 * signalCrossSectionOneTrack[iSig]; // cross section for given signal (stored in fb, here transformed to pb to match background units
+    //      }
+    //      else if(*_nGenChargino == 2){
+    //        weight *= 0.001 * signalCrossSectionTwoTracks[iSig];
+    //      }
+    //      else{
+    //        cout<<"WARNING -- number of generator-level charginos different than 1 or 2"<<endl;
+    //      }
+  }
+  else if(dataType==xtracks::kData){
+    weight = 1;
+  }
+  event->weight   = weight;
+  event->dataType = dataType;
+  event->setIter  = setIter;
+  
+  event->lumiSection = singleValuesUint["lumi"];
+  event->runNumber   = singleValuesUint["run"];
+  event->eventNumber = singleValuesUlonglong["evt"];
+  
+  event->nVertices                = singleValuesInt["nVert"];
+  event->nJet30                   = singleValuesInt["nJet30"];
+  event->nJet30a                  = singleValuesInt["nJet30a"];
+  event->nTau                     = singleValuesInt["nTauGood"];
+  event->nGenChargino             = singleValuesInt["nGenChargino"];
+  event->metNoMuTrigger           = singleValuesInt["HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight"];
+  event->flag_goodVertices        = singleValuesInt["Flag_goodVertices"];
+  event->flag_badPFmuon           = singleValuesInt["Flag_BadPFMuonFilter"];
+  event->flag_HBHEnoise           = singleValuesInt["Flag_HBHENoiseFilter"];
+  event->flag_HBHEnoiseIso        = singleValuesInt["Flag_HBHENoiseIsoFilter"];
+  event->flag_EcalDeadCell        = singleValuesInt["Flag_EcalDeadCellTriggerPrimitiveFilter"];
+  event->flag_eeBadSc             = singleValuesInt["Flag_eeBadScFilter"];
+  event->flag_badChargedCandidate = singleValuesInt["Flag_BadChargedCandidateFilter"];
+  event->flag_ecalBadCalib        = singleValuesInt["Flag_ecalBadCalibFilter"];
+  event->flag_globalTightHalo2016 = singleValuesInt["Flag_globalTightHalo2016Filter"];
+  
+  event->vertex      = make_unique<Point>(singleValuesFloat["vertex_x"],
+                                          singleValuesFloat["vertex_y"],
+                                          singleValuesFloat["vertex_z"]);
+  
+  event->xsec        = singleValuesFloat["xsec"];
+  event->wgtsum      = singleValuesFloat["wgtsum"];
+  event->genWeight   = singleValuesFloat["genWeight"];
+  event->metSumEt    = singleValuesFloat["met_sumEt"];
+  event->metPt       = singleValuesFloat["met_pt"];
+  event->metMass     = singleValuesFloat["met_mass"];
+  event->metPhi      = singleValuesFloat["met_phi"];
+  event->metEta      = singleValuesFloat["met_eta"];
+  event->metNoMuPt   = singleValuesFloat["metNoMu_pt"];
+  event->metNoMuMass = singleValuesFloat["metNoMu_mass"];
+  event->metNoMuPhi  = singleValuesFloat["metNoMu_phi"];
+  event->metNoMuEta  = singleValuesFloat["metNoMu_eta"];
+  
+  return event;
+}
+
+void EventProcessor::SetupBranchesForWriting(TTree *tree)
+{
+  
+}
+
+void EventProcessor::SaveEventToTree(shared_ptr<Event> event)
+{
+  
 }

@@ -254,7 +254,7 @@ void TrackProcessor::SetupBranchesForReading(TTree *tree)
     // special check for mcMatch branch, which may not exist
     if(name=="IsoTrack_mcMatch" && !tree->GetBranchStatus(name.c_str())){
       cout<<"WARNING -- branch IsoTrack_mcMatch was not found. Will assume true for MC match"<<endl;
-      for(int i=0; i<maxNtracks;i++){arrayValuesInt[name.c_str()][i] = 1;}
+      for(int i=0; i<maxNtracks;i++){arrayValuesInt[name][i] = 1;}
       continue;
     }
     

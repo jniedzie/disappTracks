@@ -652,189 +652,63 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
   TTree *tree = (TTree*)inFile->Get("tree");
   TTreeReader reader("tree", inFile);
   
+  eventProcessor->SetupBranchesForReading(tree);
   trackProcessor->SetupBranchesForReading(tree);
   jetProcessor->SetupBranchesForReading(tree);
   leptonProcessor->SetupBranchesForReading(tree);
   helixProcessor->SetupBranchesForReading(tree);
   
-  TTreeReaderValue<uint>   _run(reader, "run");
-  TTreeReaderValue<uint>   _lumi(reader, "lumi");
-  TTreeReaderValue<unsigned long long>   _evt(reader, "evt");
-  
-  TTreeReaderValue<int>   _nVert(reader, "nVert");
-  TTreeReaderValue<float> _vertex_x(reader, "vertex_x");
-  TTreeReaderValue<float> _vertex_y(reader, "vertex_y");
-  TTreeReaderValue<float> _vertex_z(reader, "vertex_z");
-  TTreeReaderValue<int>   _nJets(reader, "nJet");
-  TTreeReaderValue<int>   _nJetsFwd(reader, "nJetFwd");
-  TTreeReaderValue<int>   _nJet30(reader, "nJet30");
-  TTreeReaderValue<int>   _nJet30a(reader, "nJet30a");
-  TTreeReaderValue<int>   _nLepton(reader, "nLepGood");
-  TTreeReaderValue<int>   _nTau(reader, "nTauGood");
-  TTreeReaderValue<int>   _nGenChargino(reader, "nGenChargino");
-  
-  TTreeReaderValue<float> _xSec  (reader,(tree->GetBranchStatus("xsec")) ? "xsec" : "rho");
-  TTreeReaderValue<float> _sumWgt(reader,(tree->GetBranchStatus("wgtsum")) ? "wgtsum" : "rho");
-  TTreeReaderValue<float> _genWgt(reader,(tree->GetBranchStatus("genWeight")) ? "genWeight" : "rho");
-  
-  TTreeReaderValue<float> _metSumEt(reader, "met_sumEt");
-  TTreeReaderValue<float> _metPt(reader, "met_pt");
-  TTreeReaderValue<float> _metMass(reader, "met_mass");
-  TTreeReaderValue<float> _metPhi(reader, "met_phi");
-  TTreeReaderValue<float> _metEta(reader, "met_eta");
-  
-  TTreeReaderValue<int>   _metNoMuTrigger(reader, "HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight");
-  TTreeReaderValue<int>   _flag_goodVertices(reader, "Flag_goodVertices");
-  TTreeReaderValue<int>   _flag_badPFmuon(reader, "Flag_BadPFMuonFilter");
-  TTreeReaderValue<int>   _flag_HBHEnoise(reader, "Flag_HBHENoiseFilter");
-  TTreeReaderValue<int>   _flag_HBHEnoiseIso(reader, "Flag_HBHENoiseIsoFilter");
-  TTreeReaderValue<int>   _flag_EcalDeadCell(reader, "Flag_EcalDeadCellTriggerPrimitiveFilter");
-  TTreeReaderValue<int>   _flag_eeBadSc(reader, "Flag_eeBadScFilter");
-  TTreeReaderValue<int>   _flag_badChargedCandidate(reader, "Flag_BadChargedCandidateFilter");
-  TTreeReaderValue<int>   _flag_ecalBadCalib(reader, "Flag_ecalBadCalibFilter");
-  TTreeReaderValue<int>   _flag_globalTightHalo2016(reader, "Flag_globalTightHalo2016Filter");
-  
-  TTreeReaderValue<float> _metNoMuPt(reader, "metNoMu_pt");
-  TTreeReaderValue<float> _metNoMuMass(reader, "metNoMu_mass");
-  TTreeReaderValue<float> _metNoMuPhi(reader, "metNoMu_phi");
-  TTreeReaderValue<float> _metNoMuEta(reader, "metNoMu_eta");
-  
-  int iter=0;
-  
-  while(reader.Next()){
-    if(maxNevents>0 && iter>maxNevents) break;
-    tree->GetEntry(iter++);
-    auto newEvent = make_shared<Event>();
+  for(int iEntry=0;iEntry<tree->GetEntries();iEntry++){
+    if(maxNevents>0 && iEntry>maxNevents) break;
+    tree->GetEntry(iEntry);
+    
+    auto event = eventProcessor->GetEventFromTree(dataType, setIter);
     
     vector<shared_ptr<Track>> tracks = trackProcessor->GetTracksFromTree();
     
     for(int iTrack=0;iTrack<tracks.size();iTrack++){
       auto track = tracks[iTrack];
       
-      track->SetEventMetPt(*_metPt);
-      track->SetEventMetEta(*_metEta);
-      track->SetEventMetPhi(*_metPhi);
-      track->SetEventMetMass(*_metMass);
+      track->SetEventMetPt(event->GetMetPt());
+      track->SetEventMetEta(event->GetMetEta());
+      track->SetEventMetPhi(event->GetMetPhi());
+      track->SetEventMetMass(event->GetMetMass());
       
       // Decay point is set only for random pion generation. It's not used in the fitter!!
       double minR = layerR[track->GetLastBarrelLayer()];
       double maxR = layerR[track->GetLastBarrelLayer()+1];
       double decayR = (maxR+minR)/2.;
       
-      track->SetDecayPoint(make_unique<Point>(decayR*cos(track->GetPhi()) + *_vertex_x*10,
-                                              decayR*sin(track->GetPhi()) + *_vertex_y*10,
-                                              decayR/sin(track->GetTheta())*cos(track->GetTheta())+*_vertex_z*10)
+      track->SetDecayPoint(make_unique<Point>(decayR*cos(track->GetPhi()) + event->GetVertex()->GetX()*10,
+                                              decayR*sin(track->GetPhi()) + event->GetVertex()->GetY()*10,
+                                              decayR/sin(track->GetTheta())*cos(track->GetTheta())+event->GetVertex()->GetZ()*10)
                            );
       
-      newEvent->AddTrack(track);
+      event->AddTrack(track);
     }
     
     vector<shared_ptr<Helix>> helices = helixProcessor->GetHelicesFromTree();
     
     for(auto helix : helices){
-      newEvent->AddHelix(helix);
+      event->AddHelix(helix);
     }
 
     vector<shared_ptr<Jet>> jets = jetProcessor->GetJetsFromTree();
     
     for(auto jet : jets){
-      newEvent->AddJet(jet);
+      event->AddJet(jet);
     }
     
     vector<shared_ptr<Lepton>> leptons = leptonProcessor->GetLeptonsFromTree();
     
     for(auto lepton : leptons){
-      newEvent->AddLepton(lepton);
+      event->AddLepton(lepton);
     }
     
-    double lumi = config->totalLuminosity * 1000.; // transform from fb^-1 to pb^-1
-    double weight = lumi * (*_genWgt) / (*_sumWgt);
-    
-    //    static map<string,set<double>> wgts;
-    //
-    //    if(*_genWgt != 1.0 && wgts[fileName].find(*_genWgt) == wgts[fileName].end() ){
-    //      wgts[fileName].insert(*_genWgt);
-    //      cout<<*_genWgt<<"\t"<<fileName<<endl;
-    //    }
-    
-    if(dataType==xtracks::kBackground){
-      weight *= (*_xSec);
-    }
-    if(dataType==xtracks::kSignal){
-      // it's not clear how to calculate weights for the signal...
-      
-      // cross section for given signal (stored in fb, here transformed to pb to match background units
-      weight *= 0.001 * (signalCrossSectionOneTrack[(ESignal)setIter] +
-                         signalCrossSectionTwoTracks[(ESignal)setIter]);
-      
-      //      if(*_nGenChargino == 1){
-      //        weight *= 0.001 * signalCrossSectionOneTrack[iSig]; // cross section for given signal (stored in fb, here transformed to pb to match background units
-      //      }
-      //      else if(*_nGenChargino == 2){
-      //        weight *= 0.001 * signalCrossSectionTwoTracks[iSig];
-      //      }
-      //      else{
-      //        cout<<"WARNING -- number of generator-level charginos different than 1 or 2"<<endl;
-      //      }
-    }
-    else if(dataType==xtracks::kData){
-      weight = 1;
-    }
-    
-    newEvent->SetLumiSection(*_lumi);
-    newEvent->SetRunNumber(*_run);
-    newEvent->SetEventNumber(*_evt);
-    newEvent->SetWeight(weight);
-    
-    newEvent->SetNvertices(*_nVert);
-    newEvent->SetVertex(make_unique<Point>(*_vertex_x, *_vertex_y, *_vertex_z));
-    newEvent->SetNjet30(*_nJet30);
-    newEvent->SetNjet30a(*_nJet30a);
-    newEvent->SetNlepton(*_nLepton);
-    newEvent->SetNtau(*_nTau);
-    
-    newEvent->SetMetSumEt(*_metSumEt);
-    newEvent->SetMetPt(*_metPt);
-    newEvent->SetMetMass(*_metMass);
-    newEvent->SetMetEta(*_metEta);
-    newEvent->SetMetPhi(*_metPhi);
-    
-    newEvent->SetHasNoMuTrigger(*_metNoMuTrigger);
-    newEvent->SetMetNoMuPt(*_metNoMuPt);
-    newEvent->SetMetNoMuMass(*_metNoMuMass);
-    newEvent->SetMetNoMuEta(*_metNoMuEta);
-    newEvent->SetMetNoMuPhi(*_metNoMuPhi);
-    
-    newEvent->SetGoodVerticesFlag(*_flag_goodVertices);
-    newEvent->SetBadPFmuonFlag(*_flag_badPFmuon);
-    newEvent->SetHBHEnoiseFlag(*_flag_HBHEnoise);
-    newEvent->SetHBHEnoiseIsoFlag(*_flag_HBHEnoiseIso);
-    newEvent->SetEcalDeadCellFlag(*_flag_EcalDeadCell);
-    newEvent->SetEeBadScFlag(*_flag_eeBadSc);
-    newEvent->SetBadChargedCandidateFlag(*_flag_badChargedCandidate);
-    newEvent->SetEcalBadCalibFlag(*_flag_ecalBadCalib);
-    newEvent->SetGlobalTightHalo2016Flag(*_flag_globalTightHalo2016);
-    
-    newEvent->SetNgenChargino(*_nGenChargino);
-    newEvent->SetXsec(*_xSec);
-    newEvent->SetWgtSum(*_sumWgt);
-    newEvent->SetGenWeight(*_genWgt);
-    
-    newEvent->SetDataType(dataType);
-    newEvent->SetSetIter(setIter);
-    
-    if(dataType == xtracks::kSignal){
-      eventsSignal[setIter].push_back(newEvent);
-    }
-    else if(dataType == xtracks::kBackground){
-      eventsBackground[setIter].push_back(newEvent);
-    }
-    else if(dataType == xtracks::kData){
-      eventsData[setIter].push_back(newEvent);
-    }
-    else{
-      throw out_of_range("Unknown data type provided");
-    }
-    
+   
+    if(dataType == xtracks::kSignal)          eventsSignal[setIter].push_back(event);
+    else if(dataType == xtracks::kBackground) eventsBackground[setIter].push_back(event);
+    else if(dataType == xtracks::kData)       eventsData[setIter].push_back(event);
+    else                                      throw out_of_range("Unknown data type provided");
   }
 }

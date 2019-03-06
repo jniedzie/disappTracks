@@ -63,13 +63,13 @@ int main(int argc, char* argv[])
     double nBackgroundTotal=0;
     for(int iBck=0;iBck<kNbackgrounds;iBck++){
       if(!config->runBackground[iBck]) continue;
-      nBackgroundTotal += eventsAfterCuts->weightedSize(EventSet::kBackground,iBck);
+      nBackgroundTotal += eventsAfterCuts->weightedSize(xtracks::kBackground,iBck);
     }
     nBackgroundTotal = sqrt(nBackgroundTotal);
     
     for(int iSig=0;iSig<kNsignals;iSig++){
       if(!config->runSignal[iSig]) continue;
-      double val = eventsAfterCuts->weightedSize(EventSet::kSignal,iSig)/nBackgroundTotal;
+      double val = eventsAfterCuts->weightedSize(xtracks::kSignal,iSig)/nBackgroundTotal;
       sb[iSig]->SetPoint(iPoint,cut,val);
     }
     iPoint++;
