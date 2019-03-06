@@ -294,29 +294,6 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const unique_pt
   return true;
 }
 
-void EventProcessor::SetupBranchesForReading(TTree *tree)
-{
-  for(string name : singleNamesFloat){
-    if(!tree->GetBranchStatus(name.c_str())){
-      singleValuesFloat[name] = 0;
-      continue;
-    }
-    tree->SetBranchAddress(name.c_str(), &singleValuesFloat[name]);
-  }
-  
-  for(string name : singleNamesInt){
-    tree->SetBranchAddress(name.c_str(), &singleValuesInt[name]);
-  }
-  
-  for(string name : singleNamesUint){
-    tree->SetBranchAddress(name.c_str(), &singleValuesUint[name]);
-  }
-  
-  for(string name : singleNamesUlongLong){
-    tree->SetBranchAddress(name.c_str(), &singleValuesUlonglong[name]);
-  }  
-}
-
 shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, int setIter)
 {
   auto event = make_shared<Event>();
@@ -331,10 +308,10 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   //      cout<<*_genWgt<<"\t"<<fileName<<endl;
   //    }
   
-  if(dataType==xtracks::kBackground){
+  if(dataType == xtracks::kBackground){
     weight *= singleValuesFloat["xsec"];
   }
-  if(dataType==xtracks::kSignal){
+  if(dataType == xtracks::kSignal){
     // it's not clear how to calculate weights for the signal...
     
     // cross section for given signal (stored in fb, here transformed to pb to match background units
@@ -351,7 +328,7 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
     //        cout<<"WARNING -- number of generator-level charginos different than 1 or 2"<<endl;
     //      }
   }
-  else if(dataType==xtracks::kData){
+  else if(dataType == xtracks::kData){
     weight = 1;
   }
   event->weight   = weight;
@@ -398,12 +375,83 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   return event;
 }
 
-void EventProcessor::SetupBranchesForWriting(TTree *tree)
-{
-  
-}
-
 void EventProcessor::SaveEventToTree(shared_ptr<Event> event)
 {
+  singleValuesUint["lumi"]      = event->lumiSection;
+  singleValuesUint["run"]       = event->runNumber;
+  singleValuesUlonglong["evt"]  = event->eventNumber;
   
+  singleValuesInt["nVert"]                                         = event->nVertices;
+  singleValuesInt["nJet30"]                                        = event->nJet30;
+  singleValuesInt["nJet30a"]                                       = event->nJet30a;
+  singleValuesInt["nTauGood"]                                      = event->nTau;
+  singleValuesInt["nGenChargino"]                                  = event->nGenChargino;
+  singleValuesInt["HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight"] = event->metNoMuTrigger;
+  singleValuesInt["Flag_goodVertices"]                             = event->flag_goodVertices;
+  singleValuesInt["Flag_BadPFMuonFilter"]                          = event->flag_badPFmuon;
+  singleValuesInt["Flag_HBHENoiseFilter"]                          = event->flag_HBHEnoise;
+  singleValuesInt["Flag_HBHENoiseIsoFilter"]                       = event->flag_HBHEnoiseIso;
+  singleValuesInt["Flag_EcalDeadCellTriggerPrimitiveFilter"]       = event->flag_EcalDeadCell;
+  singleValuesInt["Flag_eeBadScFilter"]                            = event->flag_eeBadSc;
+  singleValuesInt["Flag_BadChargedCandidateFilter"]                = event->flag_badChargedCandidate;
+  singleValuesInt["Flag_ecalBadCalibFilter"]                       = event->flag_ecalBadCalib;
+  singleValuesInt["Flag_globalTightHalo2016Filter"]                = event->flag_globalTightHalo2016;
+  
+  singleValuesFloat["vertex_x"]     = event->vertex->GetX();
+  singleValuesFloat["vertex_y"]     = event->vertex->GetY();
+  singleValuesFloat["vertex_z"]     = event->vertex->GetZ();
+  singleValuesFloat["xsec"]         = event->xsec;
+  singleValuesFloat["wgtsum"]       = event->wgtsum;
+  singleValuesFloat["genWeight"]    = event->genWeight;
+  singleValuesFloat["met_sumEt"]    = event->metSumEt;
+  singleValuesFloat["met_pt"]       = event->metPt;
+  singleValuesFloat["met_mass"]     = event->metMass;
+  singleValuesFloat["met_phi"]      = event->metPhi;
+  singleValuesFloat["met_eta"]      = event->metEta;
+  singleValuesFloat["metNoMu_pt"]   = event->metNoMuPt;
+  singleValuesFloat["metNoMu_mass"] = event->metNoMuMass;
+  singleValuesFloat["metNoMu_phi"]  = event->metNoMuPhi;
+  singleValuesFloat["metNoMu_eta"]  = event->metNoMuEta;
+}
+
+void EventProcessor::SetupBranchesForReading(TTree *tree)
+{
+  for(string name : singleNamesFloat){
+    if(!tree->GetBranchStatus(name.c_str())){
+      singleValuesFloat[name] = 0;
+      continue;
+    }
+    tree->SetBranchAddress(name.c_str(), &singleValuesFloat[name]);
+  }
+  
+  for(string name : singleNamesInt){
+    tree->SetBranchAddress(name.c_str(), &singleValuesInt[name]);
+  }
+  
+  for(string name : singleNamesUint){
+    tree->SetBranchAddress(name.c_str(), &singleValuesUint[name]);
+  }
+  
+  for(string name : singleNamesUlongLong){
+    tree->SetBranchAddress(name.c_str(), &singleValuesUlonglong[name]);
+  }
+}
+
+void EventProcessor::SetupBranchesForWriting(TTree *tree)
+{
+  for(string name : singleNamesFloat){
+    tree->Branch(name.c_str(), &singleValuesFloat[name], Form("%s/F", name.c_str()));
+  }
+  
+  for(string name : singleNamesInt){
+    tree->Branch(name.c_str(), &singleValuesInt[name], Form("%s/I", name.c_str()));
+  }
+  
+  for(string name : singleNamesUint){
+    tree->Branch(name.c_str(), &singleValuesUint[name], Form("%s/i", name.c_str()));
+  }
+  
+  for(string name : singleNamesUlongLong){
+    tree->Branch(name.c_str(), &singleValuesUlonglong[name], Form("%s/l", name.c_str()));
+  }
 }

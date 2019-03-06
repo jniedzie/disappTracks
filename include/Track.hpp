@@ -84,11 +84,6 @@ public:
   inline int GetNdetIDs(){return nDetIDs;}
   inline int GetNdedxClusters(){return nDedxClusters;}
   
-  inline double GetEventMetPt(){return eventMetPt;}
-  inline double GetEventMetEta(){return eventMetEta;}
-  inline double GetEventMetPhi(){return eventMetPhi;}
-  inline double GetEventMetMass(){return eventMetMass;}
-  
   inline unique_ptr<Point> GetDecayPoint(){return make_unique<Point>(*decayPoint);}
   
 private:

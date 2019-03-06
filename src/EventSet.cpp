@@ -27,16 +27,21 @@ leptonProcessor(make_unique<LeptonProcessor>())
 
 EventSet::EventSet(string fileName, xtracks::EDataType dataType, int maxNevents, ESignal iSig) :
 trackProcessor(make_unique<TrackProcessor>()),
-eventProcessor(make_unique<EventProcessor>())
+jetProcessor(make_unique<JetProcessor>()),
+helixProcessor(make_unique<HelixProcessor>()),
+eventProcessor(make_unique<EventProcessor>()),
+leptonProcessor(make_unique<LeptonProcessor>())
 {
   AddEventsFromFile(fileName,dataType,maxNevents,iSig);
 }
 
-EventSet::EventSet(const EventSet &e)
+EventSet::EventSet(const EventSet &e) :
+trackProcessor(make_unique<TrackProcessor>()),
+jetProcessor(make_unique<JetProcessor>()),
+helixProcessor(make_unique<HelixProcessor>()),
+eventProcessor(make_unique<EventProcessor>()),
+leptonProcessor(make_unique<LeptonProcessor>())
 {
-  eventProcessor = make_unique<EventProcessor>();
-  trackProcessor = make_unique<TrackProcessor>();
-  
   for(int iSig=0;iSig<kNsignals;iSig++){
     eventsSignal.push_back(vector<shared_ptr<Event>>());
     for(auto &event : e.eventsSignal[iSig]){
@@ -68,96 +73,15 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
   outFile.cd();
   TTree *tree = new TTree("tree","tree");
 	
-  unsigned long long evt;
-  uint lumi, run;
-  int nVert, nJet30, nJet30a, nTauGood, nGenChargino;
-  float vertex_x, vertex_y, vertex_z;
-  float xsec, wgtsum, genWeight, met_sumEt, met_pt, met_mass, met_phi, met_eta;
-  int metNoMuTrigger, flag_goodVertices, flag_badPFmuon, flag_HBHEnoise, flag_HBHEnoiseIso, flag_EcalDeadCell, flag_eeBadSc, flag_badChargedCandidate, flag_ecalBadCalib, flag_globalTightHalo2016;
-  float metNoMu_pt, metNoMu_mass, metNoMu_phi, metNoMu_eta;
-	
+  eventProcessor->SetupBranchesForWriting(tree);
 	trackProcessor->SetupBranchesForWriting(tree);
   jetProcessor->SetupBranchesForWriting(tree);
   leptonProcessor->SetupBranchesForWriting(tree);
   helixProcessor->SetupBranchesForWriting(tree);
   
-  tree->Branch("lumi", &lumi, "lumi/i");
-  tree->Branch("run", &run, "run/i");
-  tree->Branch("evt", &evt, "evt/l");
-
-  tree->Branch("nVert", &nVert, "nVert/I");
-  tree->Branch("vertex_x", &vertex_x, "vertex_x/F");
-  tree->Branch("vertex_y", &vertex_y, "vertex_y/F");
-  tree->Branch("vertex_z", &vertex_z, "vertex_z/F");
-  tree->Branch("nJet30", &nJet30, "nJet30/I");
-  tree->Branch("nJet30a", &nJet30a, "nJet30a/I");
-  tree->Branch("nTauGood", &nTauGood, "nTauGood/I");
-  tree->Branch("nGenChargino", &nGenChargino, "nGenChargino/I");
-  
-  tree->Branch("xsec", &xsec, "xsec/F");
-  tree->Branch("wgtsum", &wgtsum, "wgtsum/F");
-  tree->Branch("genWeight", &genWeight, "genWeight/F");
-  
-  tree->Branch("met_sumEt", &met_sumEt, "met_sumEt/F");
-  tree->Branch("met_pt", &met_pt, "met_pt/F");
-  tree->Branch("met_mass", &met_mass, "met_mass/F");
-  tree->Branch("met_phi", &met_phi, "met_phi/F");
-  tree->Branch("met_eta", &met_eta, "met_eta/F");
-  
-  tree->Branch("HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight", &metNoMuTrigger, "HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight/I");
-  tree->Branch("Flag_goodVertices", &flag_goodVertices, "Flag_goodVertices/I");
-  tree->Branch("Flag_BadPFMuonFilter", &flag_badPFmuon, "Flag_BadPFMuonFilter/I");
-  tree->Branch("Flag_HBHENoiseFilter", &flag_HBHEnoise, "Flag_HBHENoiseFilter/I");
-  tree->Branch("Flag_HBHENoiseIsoFilter", &flag_HBHEnoiseIso, "Flag_HBHENoiseIsoFilter/I");
-  tree->Branch("Flag_EcalDeadCellTriggerPrimitiveFilter", &flag_EcalDeadCell, "Flag_EcalDeadCellTriggerPrimitiveFilter/I");
-  tree->Branch("Flag_eeBadScFilter", &flag_eeBadSc, "Flag_eeBadScFilter/I");
-  tree->Branch("Flag_BadChargedCandidateFilter", &flag_badChargedCandidate, "Flag_BadChargedCandidateFilter/I");
-  tree->Branch("Flag_ecalBadCalibFilter", &flag_ecalBadCalib, "Flag_ecalBadCalibFilter/I");
-  tree->Branch("Flag_globalTightHalo2016Filter", &flag_globalTightHalo2016, "Flag_globalTightHalo2016Filter/I");
-  
-  tree->Branch("metNoMu_pt", &metNoMu_pt, "metNoMu_pt/F");
-  tree->Branch("metNoMu_mass", &metNoMu_mass, "metNoMu_mass/F");
-  tree->Branch("metNoMu_phi", &metNoMu_phi, "metNoMu_phi/F");
-  tree->Branch("metNoMu_eta", &metNoMu_eta, "metNoMu_eta/F");
-	
   function<void(shared_ptr<Event>, TTree*)> func = [&](shared_ptr<Event> event, TTree *tree) -> void {
-    lumi = event->GetLumiSection();
-    run = event->GetRunNumber();
-    evt = event->GetEventNumber();
     
-    nVert = event->GetNvertices();
-    vertex_x = event->GetVertex()->GetX();
-    vertex_y = event->GetVertex()->GetY();
-    vertex_z = event->GetVertex()->GetZ();
-    nJet30 = event->GetNjet30();
-    nJet30a = event->GetNjet30a();
-    nTauGood = event->GetNtau();
-    nGenChargino = event->GetNgenChargino();
-    xsec = event->GetXsec();
-    wgtsum = event->GetWgtSum();
-    genWeight = event->GetGenWeight();
-    met_sumEt = event->GetMetSumEt();
-    met_pt = event->GetMetPt();
-    met_mass = event->GetMetMass();
-    met_phi = event->GetMetPhi();
-    met_eta = event->GetMetEta();
-    
-    metNoMu_pt = event->GetMetNoMuPt();
-    metNoMu_mass = event->GetMetNoMuMass();
-    metNoMu_phi = event->GetMetNoMuPhi();
-    metNoMu_eta = event->GetMetNoMuEta();
-    
-    metNoMuTrigger    = event->HetMetNoMuTrigger();
-    flag_goodVertices = event->GetGoodVerticesFlag();
-    flag_badPFmuon    = event->GetBadPFmuonFlag();
-    flag_HBHEnoise    = event->GetHBHEnoiseFlag();
-    flag_HBHEnoiseIso = event->GetHBHEnoiseIsoFlag();
-    flag_EcalDeadCell = event->GetEcalDeadCellFlag();
-    flag_eeBadSc      = event->GetEeBadScFlag();
-    flag_ecalBadCalib = event->GetEcalBadCalibFlag();
-    flag_badChargedCandidate = event->GetBadChargedCandidateFlag();
-    flag_globalTightHalo2016 = event->GetGlobalTightHalo2016Flag();
-		
+    eventProcessor->SaveEventToTree(event);
 		trackProcessor->SaveTracksToTree(event->GetTracks());
     leptonProcessor->SaveLeptonsToTree(event->GetLeptons());
     jetProcessor->SaveJetsToTree(event->GetJets());
@@ -180,7 +104,6 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
   }
   
   tree->Write();
-  //  outFile.Close();
 }
 
 void EventSet::LoadEventsFromFiles(string prefix)
