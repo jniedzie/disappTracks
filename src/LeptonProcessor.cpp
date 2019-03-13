@@ -84,10 +84,18 @@ void LeptonProcessor::SetupBranchesForReading(TTree *tree)
   tree->SetBranchAddress("nLepGood",    &nLeptons);
   
   for(string name : arrayNamesFloat){
+    if(!tree->GetBranchStatus(name.c_str())){
+      cout<<"WARNING -- no branch named "<<name<<"!!"<<endl;
+      continue;
+    }
     tree->SetBranchAddress(name.c_str(), &arrayValuesFloat[name]);
   }
   
   for(string name : arrayNamesInt){
+    if(!tree->GetBranchStatus(name.c_str())){
+      cout<<"WARNING -- no branch named "<<name<<"!!"<<endl;
+      continue;
+    }
     tree->SetBranchAddress(name.c_str(), &arrayValuesInt[name]);
   }
 }

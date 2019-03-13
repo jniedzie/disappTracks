@@ -61,6 +61,7 @@ private:
   int nRegularPoints = 0; ///< Number of points that are distributed regularly along Z axis
   int nPionPoints = 0;    ///< Number of points along the helix that are true pion hits
   
+  unique_ptr<Point> vertex;     ///< Center of the helix
   unique_ptr<Point> origin;     ///< Center of the helix
   unique_ptr<Point> momentum;   ///< Pion's momentum vector
   double radius;                ///< Radius of the helix

@@ -418,6 +418,7 @@ void EventProcessor::SetupBranchesForReading(TTree *tree)
 {
   for(string name : singleNamesFloat){
     if(!tree->GetBranchStatus(name.c_str())){
+      cout<<"WARNING -- no branch named "<<name<<"!!"<<endl;
       singleValuesFloat[name] = 0;
       continue;
     }
@@ -425,14 +426,29 @@ void EventProcessor::SetupBranchesForReading(TTree *tree)
   }
   
   for(string name : singleNamesInt){
+    if(!tree->GetBranchStatus(name.c_str())){
+      cout<<"WARNING -- no branch named "<<name<<"!!"<<endl;
+      singleValuesInt[name] = 0;
+      continue;
+    }
     tree->SetBranchAddress(name.c_str(), &singleValuesInt[name]);
   }
   
   for(string name : singleNamesUint){
+    if(!tree->GetBranchStatus(name.c_str())){
+      cout<<"WARNING -- no branch named "<<name<<"!!"<<endl;
+      singleValuesUint[name] = 0;
+      continue;
+    }
     tree->SetBranchAddress(name.c_str(), &singleValuesUint[name]);
   }
   
   for(string name : singleNamesUlongLong){
+    if(!tree->GetBranchStatus(name.c_str())){
+      cout<<"WARNING -- no branch named "<<name<<"!!"<<endl;
+      singleValuesUlonglong[name] = 0;
+      continue;
+    }
     tree->SetBranchAddress(name.c_str(), &singleValuesUlonglong[name]);
   }
 }

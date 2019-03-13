@@ -10,7 +10,11 @@
 
 Event::Event() :
 vertex(make_unique<Point>(0,0,0)),
-trackProcessor(make_unique<TrackProcessor>())
+trackProcessor(make_unique<TrackProcessor>()),
+trackerClusters(make_shared<vector<Point>>()),
+pionSimHits(make_shared<vector<Point>>()),
+charginoSimHits(make_shared<vector<Point>>()),
+genPionHelices(make_shared<vector<unique_ptr<Helix>>>())
 {
   
 }
@@ -84,128 +88,51 @@ void Event::Print(){
 }
 
 
-shared_ptr<vector<Point>> Event::GetTrackerHits()
+void Event::LoadAdditionalInfo()
 {
-  shared_ptr<vector<Point>> trackerPoints = make_shared<vector<Point>>();
-  
   string basePath;
   
   if(dataType == xtracks::kSignal)      basePath = inFileNameSignal[setIter];
   if(dataType == xtracks::kBackground)  basePath = inFileNameBackground[setIter][0];
   if(dataType == xtracks::kData)        basePath = inFileNameData[setIter][0];
   
-  TFile *inFile = TFile::Open(Form("%s/charginoAllHits.root",basePath.c_str()));
+  TFile *inFile = TFile::Open(Form("%s/tree_friend.root",basePath.c_str()));
   
   if(!inFile){
-    cout<<"ERROR -- no file with all hits was found"<<endl;
-    return trackerPoints;
+    cout<<"ERROR -- no file with all hits was found in path: "<<basePath<<"/tree_friend.root"<<endl;
+    return;
   }
-  TTree *tree = (TTree*)inFile->Get("hitsExtractor/hits");
+  TTree *tree = (TTree*)inFile->Get("CharginoAnalyzer/tree");
   
   if(!tree){
-    cout<<"ERROR -- no tree with all hits was found"<<endl;
-    return trackerPoints;
+    cout<<"ERROR -- no tree with additional information was found"<<endl;
+    return;
   }
   
-  vector<double> *hitX = nullptr;
-  vector<double> *hitY = nullptr;
-  vector<double> *hitZ = nullptr;
-  vector<double> *hitCharge = nullptr;
-  vector<double> *hitSizeX = nullptr;
-  vector<double> *hitSizeY = nullptr;
-  vector<double> *stripX = nullptr;
-  vector<double> *stripY = nullptr;
-  vector<double> *stripZ = nullptr;
-  vector<double> *stripCharge = nullptr;
+  vector<double> *pionVx           = nullptr;
+  vector<double> *pionVy           = nullptr;
+  vector<double> *pionVz           = nullptr;
+  vector<double> *pionPx           = nullptr;
+  vector<double> *pionPy           = nullptr;
+  vector<double> *pionPz           = nullptr;
+  vector<int>    *pionCharge       = nullptr;
+  vector<double> *pionSimHitsX     = nullptr;
+  vector<double> *pionSimHitsY     = nullptr;
+  vector<double> *pionSimHitsZ     = nullptr;
   
-  uint run;
-  uint lumi;
-  unsigned long long event;
+  vector<double> *charginoSimHitsX = nullptr;
+  vector<double> *charginoSimHitsY = nullptr;
+  vector<double> *charginoSimHitsZ = nullptr;
   
-  tree->SetBranchAddress("runNumber",&run);
-  tree->SetBranchAddress("lumiBlock",&lumi);
-  tree->SetBranchAddress("eventNumber",&event);
+  vector<double> *pixelClusterX = nullptr;
+  vector<double> *pixelClusterY = nullptr;
+  vector<double> *pixelClusterZ = nullptr;
+  vector<double> *pixelClusterCharge = nullptr;
   
-  tree->SetBranchAddress("hitX",&hitX);
-  tree->SetBranchAddress("hitY",&hitY);
-  tree->SetBranchAddress("hitZ",&hitZ);
-  tree->SetBranchAddress("hitCharge",&hitCharge);
-  tree->SetBranchAddress("hitSizeX",&hitSizeX);
-  tree->SetBranchAddress("hitSizeY",&hitSizeY);
-  tree->SetBranchAddress("stripX",&stripX);
-  tree->SetBranchAddress("stripY",&stripY);
-  tree->SetBranchAddress("stripZ",&stripZ);
-  tree->SetBranchAddress("stripCharge",&stripCharge);
-  
-  bool eventFound = false;
-  
-  for(int i=0;i<tree->GetEntries();i++){
-    tree->GetEntry(i);
-    if(run == runNumber && lumi == lumiSection && event == eventNumber){
-      eventFound = true;
-      break;
-    }
-  }
-
-  if(!eventFound){
-    cout<<"\n\nERROR - could not find all hits for requested event!\n\n"<<endl;
-    return trackerPoints;
-  }
-
-  // Parameters for all hits in the pixel barrel
-  const double chargeThreshold = 0; // 2000, 5000, 25000
-  const double minClusterSize = 0;
-  const double maxClusterSize = inf;
-  
-  for(uint i=0;i<hitX->size();i++){
-    if(hitCharge->at(i) < chargeThreshold) continue;
-    double clusterSize = sqrt(pow(hitSizeX->at(i),2)+pow(hitSizeY->at(i),2));
-    if(clusterSize < minClusterSize || clusterSize > maxClusterSize) continue;
-    // convert cm to mm
-    trackerPoints->push_back(Point(10*hitX->at(i),10*hitY->at(i),10*hitZ->at(i),hitCharge->at(i)));
-  }
-  
-  for(uint i=0;i<stripX->size();i++){
-    if(stripCharge->at(i) < chargeThreshold) continue;
-    // convert cm to mm
-    trackerPoints->push_back(Point(10*stripX->at(i),10*stripY->at(i),10*stripZ->at(i),stripCharge->at(i)));
-  }
-  
-  
-  return trackerPoints;
-}
-
-
-shared_ptr<vector<unique_ptr<Helix>>> Event::GetTruePionHelices()
-{
-  auto trueHelices = make_shared<vector<unique_ptr<Helix>>>();
-  
-  string basePath;
-  
-  if(dataType == xtracks::kSignal)      basePath = inFileNameSignal[setIter];
-  if(dataType == xtracks::kBackground)  basePath = inFileNameBackground[setIter][0];
-  if(dataType == xtracks::kData)        basePath = inFileNameData[setIter][0];
-  
-  TFile *inFile = TFile::Open(Form("%s/charginoAnalysisPions.root",basePath.c_str()));
-  
-  if(!inFile){
-    cout<<"ERROR -- no file with true pion helices was found"<<endl;
-    return trueHelices;
-  }
-  TTree *tree = (TTree*)inFile->Get("CharginoAnalyzer/pions");
-  
-  if(!tree){
-    cout<<"ERROR -- no tree with gen-level pion helices was found"<<endl;
-    return trueHelices;
-  }
-  
-  vector<double> *pionVx = nullptr;
-  vector<double> *pionVy = nullptr;
-  vector<double> *pionVz = nullptr;
-  vector<double> *pionPx = nullptr;
-  vector<double> *pionPy = nullptr;
-  vector<double> *pionPz = nullptr;
-  vector<int> *pionCharge = nullptr;
+  vector<double> *stripClusterX = nullptr;
+  vector<double> *stripClusterY = nullptr;
+  vector<double> *stripClusterZ = nullptr;
+  vector<double> *stripClusterCharge = nullptr;
   
   uint run;
   uint lumi;
@@ -223,6 +150,24 @@ shared_ptr<vector<unique_ptr<Helix>>> Event::GetTruePionHelices()
   tree->SetBranchAddress("pion_pz",&pionPz);
   tree->SetBranchAddress("pion_charge",&pionCharge);
   
+  tree->SetBranchAddress("pion_simHits_x",&pionSimHitsX);
+  tree->SetBranchAddress("pion_simHits_y",&pionSimHitsY);
+  tree->SetBranchAddress("pion_simHits_z",&pionSimHitsZ);
+  
+  tree->SetBranchAddress("chargino_simHits_x",&charginoSimHitsX);
+  tree->SetBranchAddress("chargino_simHits_y",&charginoSimHitsY);
+  tree->SetBranchAddress("chargino_simHits_z",&charginoSimHitsZ);
+  
+  tree->SetBranchAddress("pixelCluster_x",&pixelClusterX);
+  tree->SetBranchAddress("pixelCluster_y",&pixelClusterY);
+  tree->SetBranchAddress("pixelCluster_z",&pixelClusterZ);
+  tree->SetBranchAddress("pixelCluster_charge",&pixelClusterCharge);
+  
+  tree->SetBranchAddress("stripCluster_x",&stripClusterX);
+  tree->SetBranchAddress("stripCluster_y",&stripClusterY);
+  tree->SetBranchAddress("stripCluster_z",&stripClusterZ);
+  tree->SetBranchAddress("stripCluster_charge",&stripClusterCharge);
+  
   bool eventFound = false;
   
   for(int i=0;i<tree->GetEntries();i++){
@@ -232,20 +177,53 @@ shared_ptr<vector<unique_ptr<Helix>>> Event::GetTruePionHelices()
       break;
     }
   }
-  
+
   if(!eventFound){
-    cout<<"\n\nERROR - could not find gen pions for requested event!\n\n"<<endl;
-    return trueHelices;
+    cout<<"\n\nERROR - could not find all hits for requested event!\n\n"<<endl;
+    return;
   }
-  
-  
+
   for(uint i=0;i<pionVx->size();i++){
     // change units from cm to mm and from GeV to MeV
     auto helix = make_unique<Helix>(make_unique<Point>(10*pionVx->at(i), 10*pionVy->at(i), 10*pionVz->at(i)),
-                                    make_unique<Point>(1000*pionPx->at(i), 1000*pionPy->at(i), 1000*pionPz->at(i)),
-                                    pionCharge->at(i));
+                                    make_unique<Point>(1000*pionPx->at(i),
+                                                       1000*pionPy->at(i),
+                                                       1000*pionPz->at(i)),
+                                    -1*pionCharge->at(i));
     
-    trueHelices->push_back(move(helix));
+    genPionHelices->push_back(move(helix));
   }
-  return trueHelices;
+  
+  for(uint i=0;i<pionSimHitsX->size();i++){
+    // convert cm to mm
+    pionSimHits->push_back(Point(10*pionSimHitsX->at(i),
+                                 10*pionSimHitsY->at(i),
+                                 10*pionSimHitsZ->at(i),
+                                 0));
+  }
+  
+  for(uint i=0;i<charginoSimHitsX->size();i++){
+    // convert cm to mm
+    charginoSimHits->push_back(Point(10*charginoSimHitsX->at(i),
+                                     10*charginoSimHitsY->at(i),
+                                     10*charginoSimHitsZ->at(i),
+                                     0));
+  }
+  
+  // Parameters for all hits in the pixel barrel
+  for(uint i=0;i<pixelClusterX->size();i++){
+    // convert cm to mm
+    trackerClusters->push_back(Point(10*pixelClusterX->at(i),
+                                     10*pixelClusterY->at(i),
+                                     10*pixelClusterZ->at(i),
+                                     pixelClusterCharge->at(i)));
+  }
+  
+  for(uint i=0;i<stripClusterX->size();i++){
+    // convert cm to mm
+    trackerClusters->push_back(Point(10*stripClusterX->at(i),
+                                     10*stripClusterY->at(i),
+                                     10*stripClusterZ->at(i),
+                                     stripClusterCharge->at(i)));
+  }
 }

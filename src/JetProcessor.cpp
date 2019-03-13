@@ -101,6 +101,10 @@ void JetProcessor::SetupBranchesForReading(TTree *tree)
   tree->SetBranchAddress("nJetFwd", &nJetsFwd);
   
   for(string name : arrayNamesFloat){
+    if(!tree->GetBranchStatus(name.c_str())){
+      cout<<"WARNING -- no branch named "<<name<<"!!"<<endl;
+      continue;
+    }
     tree->SetBranchAddress(name.c_str(), &arrayValuesFloat[name]);
   }
 }

@@ -10,6 +10,7 @@ Helix::Helix(const unique_ptr<Point> &_origin,
              const unique_ptr<Point> &_momentum,
              int _charge) :
 points(make_shared<vector<Point>>()),
+vertex(make_unique<Point>(*_origin)),
 origin(make_unique<Point>(*_origin)),
 momentum(make_unique<Point>(*_momentum)),
 charge(_charge),
@@ -35,12 +36,12 @@ pointsProcessor(make_unique<PointsProcessor>())
 
 void Helix::Print()
 {
-  cout<<"\tOrigin:("<<origin->GetX()<<","<<origin->GetY()<<","<<origin->GetZ()<<")\t";
-  cout<<"Momentum:("<<momentum->GetX()<<","<<momentum->GetY()<<","<<momentum->GetZ()<<")\n";
-cout<<"\tR:"<<radius<<"\tc:"<<slope<<"\tnPoints:"<<points->size()<<"\tnPionPoints:"<<nPionPoints<<"\tnRegularPoints:"<<nRegularPoints<<"\n";
+  cout<<"\tVertex:("<<vertex->GetX()<<","<<vertex->GetY()<<","<<vertex->GetZ()<<")\n";
+  cout<<"\tOrigin:("<<origin->GetX()<<","<<origin->GetY()<<","<<origin->GetZ()<<")\n";
+  cout<<"\tMomentum:("<<momentum->GetX()<<","<<momentum->GetY()<<","<<momentum->GetZ()<<")\n";
+  cout<<"\tR:"<<radius<<"\tc:"<<slope<<"\tnPoints:"<<points->size()<<"\t";
+  cout<<"nPionPoints:"<<nPionPoints<<"\tnRegularPoints:"<<nRegularPoints<<"\n";
 }
-
-
 
 void Helix::SetPoints(const shared_ptr<vector<Point>> _points)
 {

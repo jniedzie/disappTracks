@@ -40,14 +40,14 @@ TrackProcessor::TrackProcessor()
   };
   
   for(int iLayer=0;iLayer<nLayers;iLayer++){
-    arrayNamesFloat.push_back(Form("IsoTrack_dedxByLayer%i",iLayer));
+    arrayNamesFloat.push_back(Form("IsoTrack_dedxByHit%i",iLayer));
     
-    arrayNamesInt.push_back(Form("IsoTrack_subDetIdByLayer%i",iLayer));
-    arrayNamesInt.push_back(Form("IsoTrack_sizeXbyLayer%i",iLayer));
-    arrayNamesInt.push_back(Form("IsoTrack_sizeYbyLayer%i",iLayer));
-    arrayNamesInt.push_back(Form("IsoTrack_pixByLayer%i",iLayer));
-    arrayNamesInt.push_back(Form("IsoTrack_layerOrSideByLayer%i",iLayer));
-    arrayNamesInt.push_back(Form("IsoTrack_ladderOrBladeByLayer%i",iLayer));
+    arrayNamesInt.push_back(Form("IsoTrack_subDetIdByHit%i",iLayer));
+    arrayNamesInt.push_back(Form("IsoTrack_sizeXbyHit%i",iLayer));
+    arrayNamesInt.push_back(Form("IsoTrack_sizeYbyHit%i",iLayer));
+    arrayNamesInt.push_back(Form("IsoTrack_pixByHit%i",iLayer));
+    arrayNamesInt.push_back(Form("IsoTrack_layerOrSideByHit%i",iLayer));
+    arrayNamesInt.push_back(Form("IsoTrack_ladderOrBladeByHit%i",iLayer));
   }
 }
 
@@ -180,13 +180,13 @@ vector<shared_ptr<Track>> TrackProcessor::GetTracksFromTree()
     track->nMissingMiddleTrackerHits = arrayValuesInt["IsoTrack_missingMiddleTrackerHits"][iTrack];
 
     for(int iLayer=0;iLayer<nLayers;iLayer++){
-      track->dedx[iLayer]     = arrayValuesFloat[Form("IsoTrack_dedxByLayer%i",iLayer)][iTrack];
-      track->subDetId[iLayer] = arrayValuesInt[Form("IsoTrack_subDetIdByLayer%i",iLayer)][iTrack];
-      track->sizeX[iLayer]    = arrayValuesInt[Form("IsoTrack_sizeXbyLayer%i",iLayer)][iTrack];
-      track->sizeY[iLayer]    = arrayValuesInt[Form("IsoTrack_sizeYbyLayer%i",iLayer)][iTrack];
-      track->detType[iLayer]  = arrayValuesInt[Form("IsoTrack_pixByLayer%i",iLayer)][iTrack];
-      track->layer[iLayer]    = arrayValuesInt[Form("IsoTrack_layerOrSideByLayer%i",iLayer)][iTrack];
-      track->ladder[iLayer]   = arrayValuesInt[Form("IsoTrack_ladderOrBladeByLayer%i",iLayer)][iTrack];
+      track->dedx[iLayer]     = arrayValuesFloat[Form("IsoTrack_dedxByHit%i",iLayer)][iTrack];
+      track->subDetId[iLayer] = arrayValuesInt[Form("IsoTrack_subDetIdByHit%i",iLayer)][iTrack];
+      track->sizeX[iLayer]    = arrayValuesInt[Form("IsoTrack_sizeXbyHit%i",iLayer)][iTrack];
+      track->sizeY[iLayer]    = arrayValuesInt[Form("IsoTrack_sizeYbyHit%i",iLayer)][iTrack];
+      track->detType[iLayer]  = arrayValuesInt[Form("IsoTrack_pixByHit%i",iLayer)][iTrack];
+      track->layer[iLayer]    = arrayValuesInt[Form("IsoTrack_layerOrSideByHit%i",iLayer)][iTrack];
+      track->ladder[iLayer]   = arrayValuesInt[Form("IsoTrack_ladderOrBladeByHit%i",iLayer)][iTrack];
     }
     track->CalculateInternals();
     tracks.push_back(track);
@@ -231,13 +231,13 @@ void TrackProcessor::SaveTracksToTree(vector<shared_ptr<Track>> tracks)
 		arrayValuesInt["IsoTrack_missingMiddleTrackerHits"][iTrack] = tracks[iTrack]->GetNmissingMiddleTrackerHits();
 		
 		for(int iHit=0;iHit<nLayers;iHit++){
-			arrayValuesFloat[Form("IsoTrack_dedxByLayer%i",iHit)][iTrack] 			 = tracks[iTrack]->GetDeDxForHit(iHit);
-			arrayValuesInt[Form("IsoTrack_subDetIdByLayer%i",iHit)][iTrack]      = tracks[iTrack]->GetSubDetIdForHit(iHit);
-			arrayValuesInt[Form("IsoTrack_sizeXbyLayer%i",iHit)][iTrack]         = tracks[iTrack]->GetSizeXforHit(iHit);
-			arrayValuesInt[Form("IsoTrack_sizeYbyLayer%i",iHit)][iTrack]         = tracks[iTrack]->GetSizeYforHit(iHit);
-			arrayValuesInt[Form("IsoTrack_pixByLayer%i",iHit)][iTrack]           = tracks[iTrack]->GetDetTypeForHit(iHit);
-			arrayValuesInt[Form("IsoTrack_layerOrSideByLayer%i",iHit)][iTrack]   = tracks[iTrack]->GetLayerForHit(iHit);
-			arrayValuesInt[Form("IsoTrack_ladderOrBladeByLayer%i",iHit)][iTrack] = tracks[iTrack]->GetLadderForHit(iHit);
+			arrayValuesFloat[Form("IsoTrack_dedxByHit%i",iHit)][iTrack] 			 = tracks[iTrack]->GetDeDxForHit(iHit);
+			arrayValuesInt[Form("IsoTrack_subDetIdByHit%i",iHit)][iTrack]      = tracks[iTrack]->GetSubDetIdForHit(iHit);
+			arrayValuesInt[Form("IsoTrack_sizeXbyHit%i",iHit)][iTrack]         = tracks[iTrack]->GetSizeXforHit(iHit);
+			arrayValuesInt[Form("IsoTrack_sizeYbyHit%i",iHit)][iTrack]         = tracks[iTrack]->GetSizeYforHit(iHit);
+			arrayValuesInt[Form("IsoTrack_pixByHit%i",iHit)][iTrack]           = tracks[iTrack]->GetDetTypeForHit(iHit);
+			arrayValuesInt[Form("IsoTrack_layerOrSideByHit%i",iHit)][iTrack]   = tracks[iTrack]->GetLayerForHit(iHit);
+			arrayValuesInt[Form("IsoTrack_ladderOrBladeByHit%i",iHit)][iTrack] = tracks[iTrack]->GetLadderForHit(iHit);
 		}
 	}
 }
@@ -247,10 +247,19 @@ void TrackProcessor::SetupBranchesForReading(TTree *tree)
   tree->SetBranchAddress("nIsoTrack",&nTracks);
   
   for(string name : arrayNamesFloat){
+    if(!tree->GetBranchStatus(name.c_str())){
+      cout<<"WARNING -- no branch named "<<name<<"!!"<<endl;
+      continue;
+    }
     tree->SetBranchAddress(name.c_str(), &arrayValuesFloat[name]);
   }
   
   for(string name : arrayNamesInt){
+    if(!tree->GetBranchStatus(name.c_str())){
+      cout<<"WARNING -- no branch named "<<name<<"!!"<<endl;
+      continue;
+    }
+    
     // special check for mcMatch branch, which may not exist
     if(name=="IsoTrack_mcMatch" && !tree->GetBranchStatus(name.c_str())){
       cout<<"WARNING -- branch IsoTrack_mcMatch was not found. Will assume true for MC match"<<endl;
