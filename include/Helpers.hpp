@@ -210,16 +210,16 @@ const vector<vector<string>> inFileNameBackground = {
 
 const vector<string> inFileNameSignal = {
   "../data_andrea/SIG-SR/Wino_M_300_cTau_3/",
-  "../pionSignal/",/*"../data_andrea/SIG-SR/Wino_M_300_cTau_10/",*/
+  /*"../data_andrea/SIG-SR/Wino_M_300_cTau_10/",*/"../pionSignal/",
   "../data_andrea/SIG-SR/Wino_M_300_cTau_30/",
   "../data_andrea/SIG-SR/Wino_M_500_cTau_10/",
-  "../SIG-SR/Wino_M_500_cTau_20/",
+  "../data_andrea/SIG-SR/Wino_M_500_cTau_20/",
   "../data_andrea/SIG-SR/Wino_M_650_cTau_10/",
-  "../SIG-SR/Wino_M_650_cTau_20/",
+  "../data_andrea/SIG-SR/Wino_M_650_cTau_20/",
   "../data_andrea/SIG-SR/Wino_M_800_cTau_10/",
-  "../SIG-SR/Wino_M_800_cTau_20/",
+  "../data_andrea/SIG-SR/Wino_M_800_cTau_20/",
   "../data_andrea/SIG-SR/Wino_M_1000_cTau_10/",
-  "../SIG-SR/Wino_M_1000_cTau_20/",
+  "../data_andrea/SIG-SR/Wino_M_1000_cTau_20/",
 };
 
 const vector<vector<string>> inFileNameData = {
@@ -296,6 +296,7 @@ enum EData{
 // Constants for tracker layers
 const int nLayers = 14;
 const double pixelBarrelZsize = 265; // mm
+const double trackerZsize = 2700; // mm
 const double layerR[nLayers] = { 29, 68, 109, 160, 250, 340, 430, 520, 610, 696, 782, 868, 965, 1080 };
 
 const double solenoidField = 3.7; // T
@@ -571,5 +572,29 @@ inline std::chrono::time_point<std::chrono::steady_clock> now()
   return std::chrono::steady_clock::now();
   //  return std::chrono::system_clock::now();
 }
+
+inline map<int, string> subDetMap = {
+  {0,  "PixelBarrel"},
+  {1,  "PixelEndcap"},
+  {2,  "TIB"},
+  {3,  "TOB"},
+  {4,  "TID"},
+  {5,  "TEC"},
+  {6,  "CSC"},
+  {7,  "DT"},
+  {8,  "RPCBarrel"},
+  {9,  "RPCEndcap"},
+  {10, "GEM"},
+  {11, "ME0"},
+  {12, "P2OTB"},
+  {13, "P2OTEC"},
+  {14, "P1PXB"},
+  {15, "P1PXEC"},
+  {16, "P2PXB"},
+  {17, "P2PXEC"},
+  {18, "TimingBarrel"},
+  {19, "TimingEndcap"},
+  {20, "invalidDet"}
+};
 
 #endif /* Helpers_h */

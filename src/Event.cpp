@@ -109,30 +109,34 @@ void Event::LoadAdditionalInfo()
     return;
   }
   
-  vector<double> *pionVx           = nullptr;
-  vector<double> *pionVy           = nullptr;
-  vector<double> *pionVz           = nullptr;
-  vector<double> *pionPx           = nullptr;
-  vector<double> *pionPy           = nullptr;
-  vector<double> *pionPz           = nullptr;
-  vector<int>    *pionCharge       = nullptr;
-  vector<double> *pionSimHitsX     = nullptr;
-  vector<double> *pionSimHitsY     = nullptr;
-  vector<double> *pionSimHitsZ     = nullptr;
+  vector<double> *pionVx            = nullptr;
+  vector<double> *pionVy            = nullptr;
+  vector<double> *pionVz            = nullptr;
+  vector<double> *pionPx            = nullptr;
+  vector<double> *pionPy            = nullptr;
+  vector<double> *pionPz            = nullptr;
+  vector<int>    *pionCharge        = nullptr;
+  vector<double> *pionSimHitsX      = nullptr;
+  vector<double> *pionSimHitsY      = nullptr;
+  vector<double> *pionSimHitsZ      = nullptr;
+  vector<int>    *pionSimHitsSubDet = nullptr;
   
-  vector<double> *charginoSimHitsX = nullptr;
-  vector<double> *charginoSimHitsY = nullptr;
-  vector<double> *charginoSimHitsZ = nullptr;
+  vector<double> *charginoSimHitsX      = nullptr;
+  vector<double> *charginoSimHitsY      = nullptr;
+  vector<double> *charginoSimHitsZ      = nullptr;
+  vector<int>    *charginoSimHitsSubDet = nullptr;
   
-  vector<double> *pixelClusterX = nullptr;
-  vector<double> *pixelClusterY = nullptr;
-  vector<double> *pixelClusterZ = nullptr;
+  vector<double> *pixelClusterX      = nullptr;
+  vector<double> *pixelClusterY      = nullptr;
+  vector<double> *pixelClusterZ      = nullptr;
   vector<double> *pixelClusterCharge = nullptr;
+  vector<int>    *pixelClusterSubDet = nullptr;
   
-  vector<double> *stripClusterX = nullptr;
-  vector<double> *stripClusterY = nullptr;
-  vector<double> *stripClusterZ = nullptr;
+  vector<double> *stripClusterX      = nullptr;
+  vector<double> *stripClusterY      = nullptr;
+  vector<double> *stripClusterZ      = nullptr;
   vector<double> *stripClusterCharge = nullptr;
+  vector<int>    *stripClusterSubDet = nullptr;
   
   uint run;
   uint lumi;
@@ -153,20 +157,24 @@ void Event::LoadAdditionalInfo()
   tree->SetBranchAddress("pion_simHits_x",&pionSimHitsX);
   tree->SetBranchAddress("pion_simHits_y",&pionSimHitsY);
   tree->SetBranchAddress("pion_simHits_z",&pionSimHitsZ);
+  tree->SetBranchAddress("pion_simHits_subDet",&pionSimHitsSubDet);
   
   tree->SetBranchAddress("chargino_simHits_x",&charginoSimHitsX);
   tree->SetBranchAddress("chargino_simHits_y",&charginoSimHitsY);
   tree->SetBranchAddress("chargino_simHits_z",&charginoSimHitsZ);
+  tree->SetBranchAddress("chargino_simHits_subDet",&charginoSimHitsSubDet);
   
   tree->SetBranchAddress("pixelCluster_x",&pixelClusterX);
   tree->SetBranchAddress("pixelCluster_y",&pixelClusterY);
   tree->SetBranchAddress("pixelCluster_z",&pixelClusterZ);
   tree->SetBranchAddress("pixelCluster_charge",&pixelClusterCharge);
+  tree->SetBranchAddress("pixelCluster_subDet",&pixelClusterSubDet);
   
   tree->SetBranchAddress("stripCluster_x",&stripClusterX);
   tree->SetBranchAddress("stripCluster_y",&stripClusterY);
   tree->SetBranchAddress("stripCluster_z",&stripClusterZ);
   tree->SetBranchAddress("stripCluster_charge",&stripClusterCharge);
+  tree->SetBranchAddress("stripCluster_subDet",&stripClusterSubDet);
   
   bool eventFound = false;
   
@@ -177,7 +185,7 @@ void Event::LoadAdditionalInfo()
       break;
     }
   }
-
+  
   if(!eventFound){
     cout<<"\n\nERROR - could not find all hits for requested event!\n\n"<<endl;
     return;
@@ -185,11 +193,13 @@ void Event::LoadAdditionalInfo()
 
   for(uint i=0;i<pionVx->size();i++){
     // change units from cm to mm and from GeV to MeV
-    auto helix = make_unique<Helix>(make_unique<Point>(10*pionVx->at(i), 10*pionVy->at(i), 10*pionVz->at(i)),
+    auto helix = make_unique<Helix>(make_unique<Point>(10*pionVx->at(i),
+                                                       10*pionVy->at(i),
+                                                       10*pionVz->at(i)),
                                     make_unique<Point>(1000*pionPx->at(i),
                                                        1000*pionPy->at(i),
                                                        1000*pionPz->at(i)),
-                                    -1*pionCharge->at(i));
+                                    1*pionCharge->at(i));
     
     genPionHelices->push_back(move(helix));
   }
@@ -199,7 +209,8 @@ void Event::LoadAdditionalInfo()
     pionSimHits->push_back(Point(10*pionSimHitsX->at(i),
                                  10*pionSimHitsY->at(i),
                                  10*pionSimHitsZ->at(i),
-                                 0));
+                                 0,
+                                 subDetMap[pionSimHitsSubDet->at(i)]));
   }
   
   for(uint i=0;i<charginoSimHitsX->size();i++){
@@ -207,7 +218,8 @@ void Event::LoadAdditionalInfo()
     charginoSimHits->push_back(Point(10*charginoSimHitsX->at(i),
                                      10*charginoSimHitsY->at(i),
                                      10*charginoSimHitsZ->at(i),
-                                     0));
+                                     0,
+                                     subDetMap[charginoSimHitsSubDet->at(i)]));
   }
   
   // Parameters for all hits in the pixel barrel
@@ -216,7 +228,8 @@ void Event::LoadAdditionalInfo()
     trackerClusters->push_back(Point(10*pixelClusterX->at(i),
                                      10*pixelClusterY->at(i),
                                      10*pixelClusterZ->at(i),
-                                     pixelClusterCharge->at(i)));
+                                     pixelClusterCharge->at(i),
+                                     subDetMap[pixelClusterSubDet->at(i)]));
   }
   
   for(uint i=0;i<stripClusterX->size();i++){
@@ -224,6 +237,7 @@ void Event::LoadAdditionalInfo()
     trackerClusters->push_back(Point(10*stripClusterX->at(i),
                                      10*stripClusterY->at(i),
                                      10*stripClusterZ->at(i),
-                                     stripClusterCharge->at(i)));
+                                     stripClusterCharge->at(i),
+                                     subDetMap[stripClusterSubDet->at(i)]));
   }
 }

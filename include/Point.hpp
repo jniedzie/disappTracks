@@ -13,7 +13,7 @@ class Point
 {
 public:
   /// Default constructor taking XYZ coordinates and optionally a value in this point
-  Point(double _x, double _y, double _z, double _value=0);
+  Point(double _x, double _y, double _z, double _value=0, string _subDetName="");
   
   /// Copy constructor
   Point(const unique_ptr<Point> &p);
@@ -35,6 +35,7 @@ public:
   inline double GetY() const {return y;}
   inline double GetZ() const {return z;}
   inline double GetValue() const {return value;}
+  inline string GetSubDetName() const {return subDetName;}
   
   // Trivial setters
   inline void SetX(double val){x = val;}
@@ -44,6 +45,7 @@ public:
 private:
   double x,y,z; ///< XYZ coordinates of the point
   double value; ///< Value at this point
+  string subDetName; ///< Can store name of the sub-detector
   
   bool isPionHit; ///< Flag saying whether or not this point belongs to a true pion's helix
   

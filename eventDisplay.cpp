@@ -12,11 +12,24 @@ uint searchLumi = 1;
 unsigned long long searchEvent = 2662;
 
 string configPath = "configs/eventDisplay.md";
-string cutLevel = "";//after_L1/";
+string cutLevel = "after_L0/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 26; // 8, 12, 20, 21, 26
+int iEvent = 23;
+
+// 6  (q+, vz+, pz-) OK
+// 10 (q+, vz+, pz-) OK
+// 11 (q+, vz-, pz-) OK [strong breaking]
+// 13 (q-, vz-, pz-) OK
+// 14 (q-, vz+, pz+) OK
+// 15 (q+, vz+, pz+) OK
+// 18 (q-, vz+, pz+), (q+, vz+, pz+) OK [nice two helices]
+// 19 (q-, vz-, pz-), (q+, vz-, pz-) OK [crazy stuff, probably 3rd soft particle there...]
+// 20 (q+, vz+, pz+) OK [very high p_z]
+// 21 (q-, vz+, pz-), (q+, vz+, pz+) OK [two big helices, one stronly breaking]
+// 23 (q+, vz+, pz+) OK
+
 
 bool injectPion = false;
 bool fitHelix = false;
@@ -31,6 +44,52 @@ map<string,any> filteredPointsOptions = {
   {"markerSize", 1.0},
   {"color", kYellow}
 };
+
+void DrawHitsOrClusters(const shared_ptr<Event> event, int pointsType)
+{
+  
+  shared_ptr<vector<Point>> hitsOrClusters;
+  
+  map<string,any> drawingOptions = {
+    {"markerStyle", (pointsType==2) ? 20 : 22},
+    {"markerSize", (pointsType==2) ? 1.0 : 2.0},
+  };
+  
+  string typeName;
+  
+  if(pointsType == 0){
+    hitsOrClusters = event->GetPionSimHits();
+    drawingOptions["color"] = kCyan;
+    typeName = "Pions hits ";
+  }
+  else if(pointsType == 1){
+    hitsOrClusters = event->GetCharginoSimHits();
+    drawingOptions["color"] = kMagenta;
+    typeName = "Charginos hits ";
+  }
+  else if(pointsType == 2){
+    hitsOrClusters = event->GetTrackerClusters();
+    drawingOptions["color"] = kYellow;
+    typeName = "Clusters ";
+  }
+  
+  map<string, shared_ptr<vector<Point>>> hitsOrClustersBySubDet;
+  
+  for(auto &[iter, name] : subDetMap){
+    hitsOrClustersBySubDet[name] = make_shared<vector<Point>>();
+  }
+  
+  for(auto hit : *hitsOrClusters){
+    hitsOrClustersBySubDet[hit.GetSubDetName()]->push_back(hit);
+  }
+  
+  for(auto &[name, hitsVector] : hitsOrClustersBySubDet){
+    if(hitsVector->size() == 0) continue;
+    
+    drawingOptions["title"] = (typeName+name).c_str();
+    display->DrawSimplePoints(hitsVector, drawingOptions);
+  }
+}
 
 shared_ptr<Event> GetEvent()
 {
@@ -89,31 +148,12 @@ int main(int argc, char* argv[])
   // ------------------------------------------------------------------------------------------------------------
   
   cout<<"Preparing hits, track and pion's helix"<<endl;
-  auto allSimplePoints = event->GetTrackerClusters();
-  display->DrawSimplePoints(allSimplePoints, filteredPointsOptions);
-	
   
-  auto charginoSimHits = event->GetCharginoSimHits();
+  DrawHitsOrClusters(event, 0); // pions
+  DrawHitsOrClusters(event, 1); // charginos
+  DrawHitsOrClusters(event, 2); // tracker clusters
   
-  const map<string,any> charginoSimHitsOptions = {
-    {"title", "Chargino sim hits"},
-    {"markerStyle", 22},
-    {"markerSize", 2.0},
-    {"color", kMagenta}
-  };
-  display->DrawSimplePoints(charginoSimHits, charginoSimHitsOptions);
   
-  auto pionSimHits = event->GetPionSimHits();
-  
-  const map<string,any> pionSimHitsOptions = {
-    {"title", "Pion sim hits"},
-    {"markerStyle", 22},
-    {"markerSize", 2.0},
-    {"color", kCyan}
-  };
-  display->DrawSimplePoints(pionSimHits, pionSimHitsOptions);
-  
-   
 	const map<string,any> trueHelixOptions = {
 		{"title", "True helix"},
 		{"markerStyle", 20},
@@ -121,6 +161,8 @@ int main(int argc, char* argv[])
 		{"color", kGreen}
 	};
 	
+  auto allSimplePoints = event->GetTrackerClusters();
+  
 	if(injectPion){
 		// Draw decay point to make sure that it's correctly located
 		auto decayPoint = make_shared<vector<Point>>();

@@ -6,11 +6,12 @@
 
 #include "Point.hpp"
 
-Point::Point(double _x, double _y, double _z, double _value) :
+Point::Point(double _x, double _y, double _z, double _value, string _subDetName) :
 x(_x),
 y(_y),
 z(_z),
 value(_value),
+subDetName(_subDetName),
 isPionHit(false)
 {
   

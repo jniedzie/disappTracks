@@ -47,7 +47,7 @@ public:
   inline int      GetNpionPoints(){return nPionPoints;}
   inline int      GetNregularPoints(){return nRegularPoints;}
   
-  inline double   GetNcycles(){return sgn(momentum->GetZ())*((sgn(momentum->GetZ())*pixelBarrelZsize) - origin->GetZ())/(fabs(slope)*2*TMath::Pi());}
+  inline double   GetNcycles(){return sgn(momentum->GetZ())*((sgn(momentum->GetZ())*trackerZsize) - origin->GetZ())/(fabs(slope)*2*TMath::Pi());}
   
   /// Calculates average of the squared distances between points (hits) and the helix
   double GetChi2();

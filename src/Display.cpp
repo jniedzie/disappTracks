@@ -44,7 +44,7 @@ void Display::DrawHelix(const unique_ptr<Helix> &helix, const map<string,any> op
     double y = helix->GetOrigin()->GetY();
     double z = helix->GetOrigin()->GetZ() + fabs(helix->GetSlope())*t;
     
-    if(helix->GetCharge() > 0){
+    if(helix->GetCharge()*zSign < 0){
       x += helix->GetRadius()*cos(t);
       y += helix->GetRadius()*sin(t);
     }

@@ -17,20 +17,34 @@ charge(_charge),
 pointsProcessor(make_unique<PointsProcessor>())
 {
   radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
-  slope = charge*momentum->GetVectorSlopeC();
+  slope = radius * charge * momentum->GetVectorSlopeC();
   slopeAbs = fabs(slope);
   tStep = 0.01;
   
   // take a vector perpendicular to the pion's momentum vector
-  const Point v = Point(charge * -momentum->GetY(),charge * momentum->GetX(), 0.0);
+  Point v = Point(charge * momentum->GetY(),charge * -momentum->GetX(), 0.0);
   const double scale = radius/sqrt(pow(v.GetX(),2)+pow(v.GetY(),2));
   
-  origin->SetX(origin->GetX() + scale*v.GetX());
-  origin->SetY(origin->GetY() + scale*v.GetY());
- 
-  tShift = -atan2(charge * v.GetY(), -charge * v.GetX());
+  v.SetX(scale * v.GetX());
+  v.SetY(scale * v.GetY());
   
-  origin->SetZ(origin->GetZ() - tShift*slopeAbs);
+  origin->SetX(origin->GetX() + v.GetX());
+  origin->SetY(origin->GetY() + v.GetY());
+ 
+  if(momentum->GetZ() > 0){
+    if(charge > 0) tShift = TMath::Pi() - atan2(-v.GetX(),-v.GetY());
+    if(charge < 0) tShift = TMath::Pi() - atan2( v.GetY(), v.GetX());
+    origin->SetZ(origin->GetZ() - fabs(tShift)*fabs(slope));
+  }
+  if(momentum->GetZ() < 0){
+    if(charge > 0) tShift = TMath::Pi() - atan2(-v.GetY(),+v.GetX());
+    if(charge < 0) tShift = TMath::Pi() - atan2(-v.GetX(),+v.GetY());
+    // for charge > 0, should be -
+    origin->SetZ(origin->GetZ() - fabs(tShift)*fabs(slope));
+  }
+  
+
+  
   tMax = GetNcycles()*2*TMath::Pi();
 }
 
@@ -39,8 +53,8 @@ void Helix::Print()
   cout<<"\tVertex:("<<vertex->GetX()<<","<<vertex->GetY()<<","<<vertex->GetZ()<<")\n";
   cout<<"\tOrigin:("<<origin->GetX()<<","<<origin->GetY()<<","<<origin->GetZ()<<")\n";
   cout<<"\tMomentum:("<<momentum->GetX()<<","<<momentum->GetY()<<","<<momentum->GetZ()<<")\n";
-  cout<<"\tR:"<<radius<<"\tc:"<<slope<<"\tnPoints:"<<points->size()<<"\t";
-  cout<<"nPionPoints:"<<nPionPoints<<"\tnRegularPoints:"<<nRegularPoints<<"\n";
+  cout<<"\tCharge: "<<charge<<"\tR:"<<radius<<"\tc:"<<slope<<"\n";
+  cout<<"\tnPoints:"<<points->size()<<"\tnPionPoints:"<<nPionPoints<<"\tnRegularPoints:"<<nRegularPoints<<"\n";
 }
 
 void Helix::SetPoints(const shared_ptr<vector<Point>> _points)
