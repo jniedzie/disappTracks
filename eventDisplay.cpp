@@ -30,7 +30,6 @@ int iEvent = 23;
 // 21 (q-, vz+, pz-), (q+, vz+, pz+) OK [two big helices, one stronly breaking]
 // 23 (q+, vz+, pz+) OK
 
-
 bool injectPion = false;
 bool fitHelix = false;
 

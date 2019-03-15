@@ -32,18 +32,14 @@ pointsProcessor(make_unique<PointsProcessor>())
   origin->SetY(origin->GetY() + v.GetY());
  
   if(momentum->GetZ() > 0){
-    if(charge > 0) tShift = TMath::Pi() - atan2(-v.GetX(),-v.GetY());
-    if(charge < 0) tShift = TMath::Pi() - atan2( v.GetY(), v.GetX());
-    origin->SetZ(origin->GetZ() - fabs(tShift)*fabs(slope));
+    if(charge > 0) tShift = TMath::Pi() - atan2(-v.GetX(), v.GetY());
+    if(charge < 0) tShift = TMath::Pi() - atan2(-v.GetY(), v.GetX());
   }
   if(momentum->GetZ() < 0){
-    if(charge > 0) tShift = TMath::Pi() - atan2(-v.GetY(),+v.GetX());
-    if(charge < 0) tShift = TMath::Pi() - atan2(-v.GetX(),+v.GetY());
-    // for charge > 0, should be -
-    origin->SetZ(origin->GetZ() - fabs(tShift)*fabs(slope));
+    if(charge > 0) tShift = TMath::Pi() - atan2(-v.GetY(), v.GetX());
+    if(charge < 0) tShift = TMath::Pi() - atan2(-v.GetX(), v.GetY());
   }
-  
-
+  origin->SetZ(origin->GetZ() - fabs(tShift)*fabs(slope));
   
   tMax = GetNcycles()*2*TMath::Pi();
 }
