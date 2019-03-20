@@ -94,11 +94,21 @@ struct ConfigManager {
   double tolerancePy;
   double tolerancePz;
   
-  // Event display params
+  //------------------------------//
+  // Event Display configuration  //
+  //------------------------------//
+  
   bool showGeometryPixel;
   bool showGeometryStrip;
   bool showGeometryEcal;
   bool showGeometryHcal;
+  
+  bool drawTrackerClusters;
+  bool drawMET;
+  bool drawJets;
+  bool drawPionSimHits;
+  bool drawPionClusters;
+  bool drawCharginoSimHits;
   
 private:
   unique_ptr<TEnv> config;

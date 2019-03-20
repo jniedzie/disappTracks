@@ -10,6 +10,7 @@
 #include "Helpers.hpp"
 #include "PointsProcessor.hpp"
 #include "Circle.hpp"
+#include "ArcSet2D.hpp"
 #include "HelixProcessor.hpp"
 #include "ConfigManager.hpp"
 #include "Track.hpp"
@@ -32,6 +33,10 @@ public:
                                         const shared_ptr<Track> _track,
                                         const unique_ptr<Point> &_vertex,
                                         bool drawCircles=false);
+  
+  unique_ptr<Helix> FitHelix(shared_ptr<vector<Point>> _points,
+                             const shared_ptr<Track> _track,
+                             const unique_ptr<Point> &_vertex);
   
 private:
   unique_ptr<PointsProcessor> pointsProcessor;

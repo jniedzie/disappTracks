@@ -39,6 +39,9 @@ public:
   /// Returns vector of tracker clusters not assigned to any tracks
   inline shared_ptr<vector<Point>> GetTrackerClusters(){return trackerClusters;}
   
+  /// Returns vector of rec pion clusters
+  inline shared_ptr<vector<Point>> GetPionClusters(){return pionClusters;}
+  
   /// Returns helices of generated pion(s)
   inline shared_ptr<vector<unique_ptr<Helix>>> GetGenPionHelices(){return genPionHelices;}
   
@@ -209,6 +212,8 @@ private:
   
   // Additional info from RAW-RECO files
   shared_ptr<vector<Point>> trackerClusters;  ///< All reconstructed tracker clusters not assigned to any track
+  shared_ptr<vector<Point>> pionClusters;  ///< Reconstructed clusters associated with generated pion(s)
+  
   shared_ptr<vector<Point>> pionSimHits;  ///< Sim hits associated with generated pion(s) coming from chargino decay vertex
   shared_ptr<vector<Point>> charginoSimHits; ///< Sim hits associated with generated chargino(s)
   shared_ptr<vector<unique_ptr<Helix>>> genPionHelices; ///< Helix representing gen-level pion(s)

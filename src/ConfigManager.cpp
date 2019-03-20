@@ -99,6 +99,13 @@ ConfigManager::ConfigManager(string _path)
   showGeometryStrip      = config->GetValue("show_geometry_strip",0);
   showGeometryEcal       = config->GetValue("show_geometry_ecal",0);
   showGeometryHcal       = config->GetValue("show_geometry_hcal",0);
+  
+  drawTrackerClusters = config->GetValue("draw_tracker_clusters",1);
+  drawMET             = config->GetValue("draw_met",1);
+  drawJets            = config->GetValue("draw_jets",1);
+  drawPionSimHits     = config->GetValue("draw_pion_simhits",1);
+  drawPionClusters    = config->GetValue("draw_pion_clusters",1);
+  drawCharginoSimHits = config->GetValue("draw_chargino_simhits",1);
 }
 
 

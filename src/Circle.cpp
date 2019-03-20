@@ -14,7 +14,7 @@ momentum(make_unique<Point>(*_momentum))
   radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
   
   // take a vector perpendicular to the pion's momentum vector
-  Point v = Point(-momentum->GetY(), momentum->GetX(), 0.0);
+  Point v = Point(momentum->GetY(), -momentum->GetX(), 0.0);
   double scale = radius/sqrt(pow(v.GetX(),2)+pow(v.GetY(),2));
   
   center = make_unique<Point>(*decayPoint);
@@ -22,6 +22,17 @@ momentum(make_unique<Point>(*_momentum))
   center->SetY(center->GetY() + scale*v.GetY());
   
   tShift = -atan2(v.GetY(), -v.GetX());
+}
+
+Circle::Circle(const unique_ptr<Circle> &c)
+{
+  decayPoint = make_unique<Point>(c->decayPoint);
+  center = make_unique<Point>(c->center);
+  momentum = make_unique<Point>(c->momentum);
+  
+  for(auto p : c->points){ points.push_back(p);}
+  radius = c->radius;
+  tShift = c->tShift;
 }
 
 void Circle::Print()

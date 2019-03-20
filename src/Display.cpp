@@ -68,17 +68,20 @@ void Display::DrawEvent(const shared_ptr<Event> &event, const map<string,any> op
 //  gEve->GetEventScene()->DestroyElements();
 //  gSystem->ProcessEvents();
 	
-  for(int iJet=0;iJet<event->GetNjets();iJet++){
-    shared_ptr<Jet> jet = event->GetJet(iJet);
-    TEveJetCone *jetCone = new TEveJetCone();
-    jetCone->SetCylinder(scale*2900, scale*5500);
-    jetCone->AddCone(jet->GetEta(), jet->GetPhi(), jetConeRadius);
-    jetCone->SetMainColorRGB((Float_t)1.0, 0.0, 0.0);
-    jetCone->SetRnrSelf(kTRUE);
-    gEve->AddElement(jetCone);
-    gEve->Redraw3D();
-  }
   
+  if(config->drawJets){
+    for(int iJet=0;iJet<event->GetNjets();iJet++){
+      shared_ptr<Jet> jet = event->GetJet(iJet);
+      TEveJetCone *jetCone = new TEveJetCone();
+      jetCone->SetCylinder(scale*2900, scale*5500);
+      jetCone->AddCone(jet->GetEta(), jet->GetPhi(), jetConeRadius);
+      jetCone->SetMainColorRGB((Float_t)1.0, 0.0, 0.0);
+      jetCone->SetRnrSelf(kTRUE);
+      gEve->AddElement(jetCone);
+      gEve->Redraw3D();
+    }
+  }
+    
   TEvePointSetArray *points = PreparePointsEventDisplay(options);
   
   for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
@@ -104,10 +107,12 @@ void Display::DrawEvent(const shared_ptr<Event> &event, const map<string,any> op
   gEve->Redraw3D();
   
   // MET
-  double metPhi = event->GetMetPhi();
-  double metTheta = 2*atan(exp(-event->GetMetEta()));
-  DrawMET(metPhi, metTheta);
-  
+  if(config->drawMET){
+    double metPhi = event->GetMetPhi();
+    double metTheta = 2*atan(exp(-event->GetMetEta()));
+    DrawMET(metPhi, metTheta);
+  }
+    
   // Geometry:
   if(config->showGeometryPixel){
     for(int i=0;i<4;i++){

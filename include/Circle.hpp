@@ -20,6 +20,8 @@ public:
   Circle(const unique_ptr<Point> &_decayPoint,
          const unique_ptr<Point> &_momentum);
   
+  Circle(const unique_ptr<Circle> &c);
+  
   /// Prints basic information about the circle
   void Print();
   

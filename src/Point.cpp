@@ -41,7 +41,7 @@ Point::Point(vector<Point> points)
 
 void Point::Print() const
 {
-  cout<<"("<<x<<","<<y<<","<<z<<")"<<endl;
+  cout<<"("<<x<<","<<y<<","<<z<<")";
 }
 
 double Point::GetVectorSlopeC() const

@@ -47,6 +47,8 @@ vector<int> HelixProcessor::AreIdentical(const unique_ptr<Helix> &h1, const uniq
 
 shared_ptr<vector<Point>> HelixProcessor::GetPointsHittingSilicon(const unique_ptr<Helix> &helix)
 {
+  // this method may reaquire updating after sign of the pion charge changed...
+  
   shared_ptr<vector<Point>> points = make_shared<vector<Point>>();
   unique_ptr<Point> origin = make_unique<Point>(*(helix->origin));
   

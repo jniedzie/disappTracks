@@ -16,10 +16,10 @@ string cutLevel = "after_L0/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 23;
+int iEvent = 10;
 
 // 6  (q+, vz+, pz-) OK
-// 10 (q+, vz+, pz-) OK
+// 10 (q+, vz+, pz-) OK - RECO
 // 11 (q+, vz-, pz-) OK [strong breaking]
 // 13 (q-, vz-, pz-) OK
 // 14 (q-, vz+, pz+) OK
@@ -34,6 +34,7 @@ bool injectPion = false;
 bool fitHelix = false;
 
 Display *display;
+shared_ptr<EventSet> events;
 
 map<string,any> filteredPointsOptions = {
   {"title", "Filtered Points"},
@@ -53,23 +54,35 @@ void DrawHitsOrClusters(const shared_ptr<Event> event, int pointsType)
     {"markerStyle", (pointsType==2) ? 20 : 22},
     {"markerSize", (pointsType==2) ? 1.0 : 2.0},
   };
-  
   string typeName;
   
   if(pointsType == 0){
+    if(!config->drawPionSimHits) return;
+    
     hitsOrClusters = event->GetPionSimHits();
     drawingOptions["color"] = kCyan;
     typeName = "Pions hits ";
   }
   else if(pointsType == 1){
+    if(!config->drawCharginoSimHits) return;
+    
     hitsOrClusters = event->GetCharginoSimHits();
     drawingOptions["color"] = kMagenta;
     typeName = "Charginos hits ";
   }
   else if(pointsType == 2){
+    if(!config->drawTrackerClusters) return;
+    
     hitsOrClusters = event->GetTrackerClusters();
     drawingOptions["color"] = kYellow;
-    typeName = "Clusters ";
+    typeName = "Tracker clusters ";
+  }
+  else if(pointsType == 3){
+    if(!config->drawPionClusters) return;
+    
+    hitsOrClusters = event->GetPionClusters();
+    drawingOptions["color"] = kBlue;
+    typeName = "Pion clusters ";
   }
   
   map<string, shared_ptr<vector<Point>>> hitsOrClustersBySubDet;
@@ -92,7 +105,7 @@ void DrawHitsOrClusters(const shared_ptr<Event> event, int pointsType)
 
 shared_ptr<Event> GetEvent()
 {
-	auto events = make_shared<EventSet>();
+	events = make_shared<EventSet>();
 	//  events->LoadEventsFromFiles("/");
 	events->LoadEventsFromFiles(cutLevel);
 	
@@ -151,6 +164,7 @@ int main(int argc, char* argv[])
   DrawHitsOrClusters(event, 0); // pions
   DrawHitsOrClusters(event, 1); // charginos
   DrawHitsOrClusters(event, 2); // tracker clusters
+  DrawHitsOrClusters(event, 3); // pion rec clusters
   
   
 	const map<string,any> trueHelixOptions = {
@@ -220,7 +234,9 @@ int main(int argc, char* argv[])
 	if(fitHelix){
 		cout<<"Fitting best helix"<<endl;
 		auto fitter = make_unique<Fitter>();
-		auto bestHelix = fitter->GetBestFittingHelix(allSimplePoints, track, event->GetVertex());
+		
+    auto bestHelix = fitter->FitHelix(event->GetPionSimHits(), track, event->GetVertex());
+//    auto bestHelix = fitter->GetBestFittingHelix(allSimplePoints, track, event->GetVertex());
 		
 		if(bestHelix){
 			map<string,any> bestHelixOptions = {
@@ -248,6 +264,40 @@ int main(int argc, char* argv[])
     }
   }
 	
+  /*
+  TCanvas *c1 = new TCanvas("c1","c1",800,600);
+  c1->cd();
+  TH1D *chargeHistClusters = new TH1D("chargeHistClusters","chargeHistClusters",100,0,1000);
+  TH1D *chargeHistPion = new TH1D("chargeHistPion","chargeHistPion",100,0,1000);
+  chargeHistClusters->Sumw2();
+  chargeHistPion->Sumw2();
+  chargeHistClusters->SetLineColor(kRed);
+  chargeHistPion->SetLineColor(kBlue);
+  
+  for(int i=0;i<30;i++){
+    auto event = events->At(dataType, setIter, i);
+    event->LoadAdditionalInfo();
+    
+    auto clusters = event->GetTrackerClusters();
+    auto pionHits = event->GetPionClusters();
+    
+    for(auto cluster : *clusters){
+      chargeHistClusters->Fill(cluster.GetValue());
+    }
+    for(auto hit : *pionHits){
+      chargeHistPion->Fill(hit.GetValue());
+    }
+  }
+  
+  chargeHistClusters->DrawNormalized();
+  chargeHistPion->DrawNormalized("same");
+  c1->Update();
+  
+  cout<<"tracker mean:"<<chargeHistClusters->GetMean()<<" +/- "<<chargeHistClusters->GetMeanError()<<endl;
+  cout<<"pion mean:"<<chargeHistPion->GetMean()<<" +/- "<<chargeHistPion->GetMeanError()<<endl;
+  
+  */
+  
   gEve->Redraw3D(true);
   theApp.Run();
   return 0;
