@@ -71,6 +71,21 @@ private:
   
   /// Sets and fixes a value for a ROOT fitter's parameter
   void FixParameter(ROOT::Fit::Fitter *fitter, int i, string name, double val);
+  
+  
+  vector<shared_ptr<Point>> GetPointsInCycle(double cycleMaxZ, double minPointsSeparation);
+  
+  ROOT::Fit::Fitter* GetCirclesFitter();
+  
+  vector<unique_ptr<Circle>> GetCirclesForPoints(const vector<vector<shared_ptr<Point>>> &pointTriplets,
+                                                 double chi2threshold);
+  
+  vector<vector<shared_ptr<Point>>> BuildPointTriplets(const vector<shared_ptr<Point>> &inputPoints);
+  
+  vector<unique_ptr<ArcSet2D>> BuildArcSetsFromCircles(const vector<unique_ptr<Circle>> &circles,
+                                                       vector<vector<shared_ptr<Point>>> pointTriplets);
+  
+  unique_ptr<Circle> GetCircleFromFitterParams(const double *par);
 };
 
 #endif /* Fitter_hpp */

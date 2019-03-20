@@ -20,11 +20,16 @@ public:
   
   void AddCircle(const unique_ptr<Circle> &circle, range<double> range);
   
+  inline void AddPoint(shared_ptr<Point> p){points.push_back(p);}
+  
+  inline shared_ptr<Point> GetOrigin(){return points[0];}
+  
   vector<TArc*> GetArcs();
   
 private:
   vector<unique_ptr<Circle>> circles;
   vector<range<double>> circlesRanges;
+  vector<shared_ptr<Point>> points; ///< Points along the track
   
 };
 

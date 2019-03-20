@@ -38,6 +38,7 @@ Circle::Circle(const unique_ptr<Circle> &c)
 void Circle::Print()
 {
   cout<<"Circle center ("<<center->GetX()<<","<<center->GetY()<<")\tR:"<<radius<<endl;
+  cout<<"Momentum:";momentum->Print();cout<<endl;
 }
 
 double Circle::GetDistanceToPoint(Point p)
