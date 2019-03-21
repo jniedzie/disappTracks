@@ -37,3 +37,8 @@ vector<TArc*> ArcSet2D::GetArcs()
   }
   return arcs;
 }
+
+void ArcSet2D::AddPoints(vector<shared_ptr<Point>> p)
+{
+  points.insert(points.end(), p.begin(), p.end());
+}

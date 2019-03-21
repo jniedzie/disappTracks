@@ -76,3 +76,9 @@ void Circle::RemoveSimilarCircles(vector<unique_ptr<Circle>> &circles)
     }
   }
 }
+
+double Circle::GetPointAngle(double x, double y)
+{
+  return TMath::Pi()/2. + atan2(-(x-center->GetX()),
+                                 (y- center->GetY()));
+}

@@ -22,6 +22,8 @@ public:
   
   inline void AddPoint(shared_ptr<Point> p){points.push_back(p);}
   
+  void AddPoints(vector<shared_ptr<Point>> p);
+  
   inline shared_ptr<Point> GetOrigin(){return points[0];}
   
   vector<TArc*> GetArcs();

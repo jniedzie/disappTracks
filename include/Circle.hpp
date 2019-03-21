@@ -56,6 +56,9 @@ public:
   inline double GetToffset(){return tShift;}
   
   static void RemoveSimilarCircles(vector<unique_ptr<Circle>> &circles);
+  
+  /// Returns phi angle for given point (x,y)
+  double GetPointAngle(double x, double y);
 private:
   unique_ptr<Point> decayPoint;   ///< Decay point of the chargino
   unique_ptr<Point> center;       ///< Center of the circle (will be automatically shifted in the constructor)

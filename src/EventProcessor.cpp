@@ -78,6 +78,7 @@ void EventProcessor::ApplyJetCut(shared_ptr<Event> event, const unique_ptr<JetCu
   auto jet = event->jets.begin();
   
   while(jet != event->jets.end()){
+    
     if(!jetProcessor->IsPassingCut(*jet,cut))
     jet = event->jets.erase(jet);
     else{

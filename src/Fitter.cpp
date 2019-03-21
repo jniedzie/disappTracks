@@ -286,8 +286,8 @@ vector<shared_ptr<Point>> Fitter::GetPointsInCycle(double cycleMaxZ, double minP
     
     pointsIter++;
     
-    //    if(pointsIter != 3 &&
-    //       pointsIter != 4) continue;
+//    if(pointsIter != 0 &&
+//       pointsIter != 1) continue;
     
     pointsInCycle.push_back(make_shared<Point>(point));
   }
@@ -364,7 +364,7 @@ unique_ptr<Circle> Fitter::GetCircleFromFitterParams(const double *par)
   return make_unique<Circle>(decayPoint, momentum);
 }
 
-vector<unique_ptr<Circle>> Fitter::GetCirclesForPoints(const vector<vector<shared_ptr<Point>>> &pointTriplets,
+vector<unique_ptr<Circle>> Fitter::GetCirclesForPoints(vector<vector<shared_ptr<Point>>> &pointTriplets,
                                                        double chi2threshold)
 {
   int nPar=3;
@@ -410,6 +410,60 @@ vector<unique_ptr<Circle>> Fitter::GetCirclesForPoints(const vector<vector<share
   return circles;
 }
 
+bool Fitter::IsValidSeed(const unique_ptr<Circle> &circle, vector<shared_ptr<Point>> pointTriplet)
+{
+  double phiVertex = circle->GetPointAngle(pointTriplet[0]->GetX(), pointTriplet[0]->GetY());
+  double phi1      = circle->GetPointAngle(pointTriplet[1]->GetX(), pointTriplet[1]->GetY());
+  double phi2      = circle->GetPointAngle(pointTriplet[2]->GetX(), pointTriplet[2]->GetY());
+  
+  // Reject cases where hits are on the both sides of the vertex point instead of forming a tracklet
+  if((phi1 < phiVertex && phi2 > phiVertex) ||
+     (phi2 < phiVertex && phi1 > phiVertex)){
+    return false;
+  }
+  
+  double stripSensorLength = 200; // mm (to be determined more precisely later)
+  
+  double z0 = pointTriplet[0]->GetZ();
+  double z1 = pointTriplet[1]->GetZ();
+  double z2 = pointTriplet[2]->GetZ();
+  
+  // this is the range of where point 1 can be located along Z axis
+  double z1min = z1 - stripSensorLength/2.;
+  double z1max = z1 + stripSensorLength/2.;
+  
+  // which determines range in the slope:
+  double slopeMin = (z1min - z0)/phi1;
+  double slopeMax = (z1max - z0)/phi1;
+  
+  // point 2 can be located somewhere between:
+  double z2min = z2 - stripSensorLength/2.;
+  double z2max = z2 + stripSensorLength/2.;
+  
+  // check if point 2 lays between limits derived from positions of points 0 and 1
+  double z2a = z0 + slopeMin * phi2;
+  double z2b = z0 + slopeMax * phi2;
+  
+  if((z2a < z2min || z2a > z2max) &&
+     (z2b < z2min || z2a > z2max)){
+    return false;
+  }
+  
+  return true;
+}
+
+range<double> Fitter::GetPhiRange(const unique_ptr<Circle> &circle, vector<shared_ptr<Point>> pointTriplet)
+{
+  double phiVertex = circle->GetPointAngle(pointTriplet[0]->GetX(), pointTriplet[0]->GetY());
+  double phi1      = circle->GetPointAngle(pointTriplet[1]->GetX(), pointTriplet[1]->GetY());
+  double phi2      = circle->GetPointAngle(pointTriplet[2]->GetX(), pointTriplet[2]->GetY());
+  
+  double phiMin = min(min(phi1, phi2), phiVertex)/TMath::Pi() * 180;
+  double phiMax = max(max(phi1, phi2), phiVertex)/TMath::Pi() * 180;
+  
+  return range<double>(phiMin, phiMax);
+}
+
 vector<unique_ptr<ArcSet2D>> Fitter::BuildArcSetsFromCircles(const vector<unique_ptr<Circle>> &circles,
                                                              vector<vector<shared_ptr<Point>>> pointTriplets)
 {
@@ -418,42 +472,12 @@ vector<unique_ptr<ArcSet2D>> Fitter::BuildArcSetsFromCircles(const vector<unique
   
   for(auto &circle : circles){
     
-    unique_ptr<Point> center = circle->GetCenter();
-    
-    double phiVertex = -TMath::Pi()/2. +atan2( (pointTriplets[iter][0]->GetX()-center->GetX()),
-                                              -(pointTriplets[iter][0]->GetY()-center->GetY()));
-    
-    double phi1 = -TMath::Pi()/2. +atan2( (pointTriplets[iter][1]->GetX()-center->GetX()),
-                                         -(pointTriplets[iter][1]->GetY()-center->GetY()));
-    
-    double phi2 = -TMath::Pi()/2. +atan2( (pointTriplets[iter][2]->GetX()-center->GetX()),
-                                         -(pointTriplets[iter][2]->GetY()-center->GetY()));
-    
-    iter++;
-    
-    // Reject cases where hits are on the both sides of the vertex point instead of forming a tracklet
-    if((phi1 < phiVertex && phi2 > phiVertex) ||
-       (phi2 < phiVertex && phi1 > phiVertex)){
-      continue;
-    }
-    
-    double phiMin = min(min(phi1, phi2), phiVertex);
-    double phiMax = max(max(phi1, phi2), phiVertex);
-    
-    //    cout<<"Phi vertex:"<<phiVertex<<endl;
-    //    cout<<"Phi 1:"<<phi1<<endl;
-    //    cout<<"Phi 2:"<<phi2<<endl;
-    //    cout<<"Phi min:"<<phiMin<<endl;
-    //    cout<<"Phi max:"<<phiMax<<endl;
+    if(!IsValidSeed(circle, pointTriplets[iter])) continue;
     
     auto arcSet2D = make_unique<ArcSet2D>();
-    arcSet2D->AddCircle(circle, range<double>(phiMin/TMath::Pi() * 180,
-                                              phiMax/TMath::Pi() * 180));
-    
-    
-    arcSet2D->AddPoint(pointTriplets[iter][0]);
-    arcSet2D->AddPoint(pointTriplets[iter][1]);
-    arcSet2D->AddPoint(pointTriplets[iter][2]);
+    arcSet2D->AddCircle(circle, GetPhiRange(circle, pointTriplets[iter]));
+    arcSet2D->AddPoints(pointTriplets[iter]);
+    arcs.push_back(move(arcSet2D));
     
     cout<<"Creating a seed:";
     pointTriplets[iter][0]->Print();cout<<"\t";
@@ -461,7 +485,7 @@ vector<unique_ptr<ArcSet2D>> Fitter::BuildArcSetsFromCircles(const vector<unique
     pointTriplets[iter][2]->Print();cout<<"\n";
     circle->Print();
     
-    arcs.push_back(move(arcSet2D));
+    iter++;
   }
   
   return arcs;
@@ -479,13 +503,10 @@ unique_ptr<Helix> Fitter::FitHelix(shared_ptr<vector<Point>> _points,
   cout<<"Fitting starts\n\n"<<endl;
   cout<<"Initial number of points:"<<points->size()<<endl;
   
-  
-  double pz = -85;
-  double cycleMaxZ = 250; // mm
+  double cycleMaxZ = 1000; // mm
   double minPointsSeparation = 3.0;
   double chi2threshold = 1E-2;
   
-  cout<<"pz set to:"<<pz<<endl;
   cout<<"max distance in Z for the first cycle:"<<cycleMaxZ<<endl;
   cout<<"min points separation:"<<minPointsSeparation<<endl;
   cout<<"chi2 threshold:"<<chi2threshold<<endl;
@@ -502,23 +523,37 @@ unique_ptr<Helix> Fitter::FitHelix(shared_ptr<vector<Point>> _points,
   vector<unique_ptr<ArcSet2D>> arcs = BuildArcSetsFromCircles(circles, pointTriplets);
   
   // Draw 2D histogram
-  TCanvas *c1 = new TCanvas("c1","c1",800,600);
+  TCanvas *c1 = new TCanvas("c1","c1",1000,1000);
   c1->cd();
   TH2D *pointsHist = new TH2D("points","points",
 //                              300, -layerR[nLayers-1], layerR[nLayers-1],
 //                              300, -layerR[nLayers-1], layerR[nLayers-1]);
-                              300, -500, 200,
-                              300, -200, 600);
+                              300, -500, 300,
+                              300, -300, 500);
+  
+  pointsHist->Fill(0.0,0.0,5.0);
   
   for(auto &p : pointsInCycle){
     pointsHist->Fill(p->GetX(),p->GetY());
   }
-  for(auto &arcSet : arcs){
-    pointsHist->Fill(arcSet->GetOrigin()->GetX(),
-                     arcSet->GetOrigin()->GetY(), 5);
-  }
-  
   pointsHist->Draw("colz");
+  
+  TGraph *graphDecay = new TGraph();
+  graphDecay->SetPoint(1, track->GetDecayPoint()->GetX(), track->GetDecayPoint()->GetY());
+  graphDecay->SetMarkerStyle(20);
+  graphDecay->SetMarkerSize(1.0);
+  graphDecay->SetMarkerColor(kRed);
+  graphDecay->Draw("P");
+  
+  
+  for(auto &arcSet : arcs){
+    TGraph *graph = new TGraph();
+    graph->SetPoint(0, arcSet->GetOrigin()->GetX(), arcSet->GetOrigin()->GetY());
+    graph->SetMarkerStyle(25);
+    graph->SetMarkerSize(1.0);
+    graph->SetMarkerColor(kGreen);
+    graph->Draw("P");
+  }
   
   for(auto &aa : arcs){
     for(auto a : aa->GetArcs()){
@@ -526,12 +561,13 @@ unique_ptr<Helix> Fitter::FitHelix(shared_ptr<vector<Point>> _points,
       a->SetLineWidth(1.0);
       a->SetLineColor(kRed);
       a->Draw("sameLonly");
+//      a->Draw("sameL");
     }
   }
   c1->Update();
   //---------------------
   
-  auto momentum = make_unique<Point>(0,0,0);
+  auto momentum = circles[0]->GetMomentum();
   auto helix = make_unique<Helix>(track->GetDecayPoint(), momentum, track->GetCharge());
   return helix;
 }
