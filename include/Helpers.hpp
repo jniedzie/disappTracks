@@ -521,7 +521,11 @@ public:
     if(val < min || val > max) return true;
     else return false;
   }
-    
+  
+  inline void Print(){
+    cout<<"( "<<min<<" -- "<<max<<" )";
+  }
+  
 private:
   T min;
   T max;
@@ -531,6 +535,11 @@ private:
 inline double GetRadiusInMagField(double px, double py, double B)
 {
   return sqrt(pow(px,2)+pow(py,2))/(B*3)*10;
+}
+
+inline double GetPtInMagField(double radius, double B)
+{
+  return B*3*radius/10;
 }
 
 inline int RandInt(int min, int max)

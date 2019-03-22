@@ -18,6 +18,8 @@ public:
   ArcSet2D();
   ~ArcSet2D();
   
+  void Print();
+  
   void AddCircle(const unique_ptr<Circle> &circle, range<double> range);
   
   inline void AddPoint(shared_ptr<Point> p){points.push_back(p);}
@@ -25,6 +27,10 @@ public:
   void AddPoints(vector<shared_ptr<Point>> p);
   
   inline shared_ptr<Point> GetOrigin(){return points[0];}
+  
+  inline shared_ptr<Point> GetPoint(uint i){return points[i];}
+  
+  inline unique_ptr<Circle> GetCircle(uint i){return make_unique<Circle>(circles[i]);}
   
   vector<TArc*> GetArcs();
   

@@ -24,6 +24,21 @@ momentum(make_unique<Point>(*_momentum))
   tShift = -atan2(v.GetY(), -v.GetX());
 }
 
+Circle::Circle(const unique_ptr<Point> &_decayPoint,
+               const unique_ptr<Point> &_center,
+               double _radius) :
+decayPoint(make_unique<Point>(*_decayPoint)),
+center(make_unique<Point>(*_center)),
+radius(_radius)
+{
+  double pt = GetPtInMagField(radius, solenoidField);
+  
+  tShift = atan2(center->GetY() - decayPoint->GetY(),
+                 center->GetX() - decayPoint->GetX());
+  
+  momentum = make_unique<Point>(pt * sin(tShift), pt * cos(tShift), 0.0);
+}
+
 Circle::Circle(const unique_ptr<Circle> &c)
 {
   decayPoint = make_unique<Point>(c->decayPoint);

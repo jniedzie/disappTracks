@@ -20,6 +20,11 @@ public:
   Circle(const unique_ptr<Point> &_decayPoint,
          const unique_ptr<Point> &_momentum);
   
+  /// Constructor for the circle that takes its center, point where it begins and a radius
+  Circle(const unique_ptr<Point> &_decayPoint,
+         const unique_ptr<Point> &_center,
+         double _radius);
+  
   Circle(const unique_ptr<Circle> &c);
   
   /// Prints basic information about the circle

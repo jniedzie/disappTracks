@@ -77,8 +77,11 @@ private:
   
   ROOT::Fit::Fitter* GetCirclesFitter();
   
+  vector<unique_ptr<Circle>> FitCirclesAndAdjustFirstPoint(vector<vector<shared_ptr<Point>>> &pointTriplets,
+                                                           double chi2threshold);
+  
   vector<unique_ptr<Circle>> GetCirclesForPoints(vector<vector<shared_ptr<Point>>> &pointTriplets,
-                                                 double chi2threshold);
+                                                         double chi2threshold);
   
   vector<vector<shared_ptr<Point>>> BuildPointTriplets(const vector<shared_ptr<Point>> &inputPoints);
   
@@ -90,6 +93,13 @@ private:
   bool IsValidSeed(const unique_ptr<Circle> &circle, vector<shared_ptr<Point>> pointTriplet);
   
   range<double> GetPhiRange(const unique_ptr<Circle> &circle, vector<shared_ptr<Point>> pointTriplet);
+  
+  vector<vector<shared_ptr<Point>>> BuildPointTriplets(const shared_ptr<Point> point1,
+                                                       const shared_ptr<Point> point2,
+                                                       const vector<shared_ptr<Point>> &inputPoints,
+                                                       const unique_ptr<Circle> &circle);
+  
+  TCanvas *c1;
 };
 
 #endif /* Fitter_hpp */

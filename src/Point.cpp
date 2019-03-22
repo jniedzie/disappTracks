@@ -50,3 +50,17 @@ double Point::GetVectorSlopeC() const
 }
 
 
+bool Point::operator==(const Point &p) const
+{
+  bool theSame = true;
+  
+  if(fabs(x - p.x) > 0.000001 ||
+     fabs(y - p.y) > 0.000001 ||
+     fabs(z - p.z) > 0.000001 ||
+     fabs(value - p.value) > 0.000001) theSame = false;
+  
+  if(isPionHit != p.isPionHit ||
+     subDetName != p.subDetName) theSame = false;
+  
+  return theSame;
+}

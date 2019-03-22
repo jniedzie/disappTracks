@@ -21,6 +21,10 @@ public:
   /// Constructs a point that is an average of provided vector of points
   Point(vector<Point> points);
   
+  /// Comparison operator (points are identical if x, y, z, value are identical within 0.000001 and
+  /// sub-detector and isPionHit match
+  bool operator==(const Point &p) const;
+  
   /// Prints basic info about the point
   void Print() const;
   
