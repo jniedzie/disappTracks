@@ -53,6 +53,10 @@ public:
   /// Writes all fitted helices in the vector to the tree previously set with SetupBranchesForWriting(...)
   void SaveHelicesToTree(vector<shared_ptr<Helix>> helices);
   
+  double GetHelixToPointDistance(const unique_ptr<Helix> &helix, const shared_ptr<Point> &point);
+  
+  double GetChi2toPoints(const unique_ptr<Helix> &helix, const vector<shared_ptr<Point>> &points);
+  
 private:
   static const int maxNhelices = 1000;   ///< Maximum supported number of helices per event
   int nHelices;                          ///< Number of helices in the current tree entry

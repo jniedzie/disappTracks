@@ -36,6 +36,8 @@ public:
   /// Sets points that belong to this circle (will automatically filter out those that are further than thickness)
   void SetPoints(const vector<shared_ptr<Point>> &_points);
   
+  inline void SetPz(double pz){momentum->SetZ(pz);}
+  
   /// Returns number of points laying on the circle
   int GetNpoints(){return (int)points.size();}
   

@@ -8,16 +8,29 @@
 
 #include "ArcSet2D.hpp"
 
-ArcSet2D::ArcSet2D()
+ArcSet2D::ArcSet2D(bool _clockwise) :
+clockwise(_clockwise),
+iCycle(0)
 {
   
 }
 
-ArcSet2D::ArcSet2D(const ArcSet2D& a)
+ArcSet2D::ArcSet2D(const ArcSet2D &a)
 {
   for(auto &c : a.circles){circles.push_back(make_unique<Circle>(c));}
   for(auto r : a.circlesRanges){circlesRanges.push_back(r);}
   for(auto &p : a.points){points.push_back(make_shared<Point>(p));}
+  clockwise = a.clockwise;
+  iCycle = a.iCycle;
+}
+
+ArcSet2D::ArcSet2D(const unique_ptr<ArcSet2D> &a)
+{
+  for(auto &c : a->circles){circles.push_back(make_unique<Circle>(c));}
+  for(auto r : a->circlesRanges){circlesRanges.push_back(r);}
+  for(auto &p : a->points){points.push_back(make_shared<Point>(p));}
+  clockwise = a->clockwise;
+  iCycle = a->iCycle;
 }
 
 ArcSet2D::~ArcSet2D()
@@ -67,4 +80,9 @@ vector<TArc*> ArcSet2D::GetArcs()
 void ArcSet2D::AddPoints(vector<shared_ptr<Point>> p)
 {
   points.insert(points.end(), p.begin(), p.end());
+}
+
+double ArcSet2D::GetOriginPhi()
+{
+  return circles[0]->GetPointAngle(points[0]->GetX(), points[0]->GetY());
 }

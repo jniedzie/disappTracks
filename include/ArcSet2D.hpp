@@ -16,15 +16,26 @@
 class ArcSet2D {
 public:
   /// Default constructor
-  ArcSet2D();
+  ArcSet2D(bool _clockwise);
   
   /// Copy constructor
-  ArcSet2D(const ArcSet2D& a);
+  ArcSet2D(const ArcSet2D &a);
+  ArcSet2D(const unique_ptr<ArcSet2D> &a);
   
   /// Default destructor
   ~ArcSet2D();
   
   void Print();
+  
+  double GetOriginPhi();
+  
+  inline unsigned long GetNarcs(){return circles.size();}
+  
+  inline bool IsClockwise(){return clockwise;}
+  
+  inline int GetCycle(){return iCycle;}
+  
+  inline void IncreaseCycle(){iCycle++;}
   
   void AddCircle(const unique_ptr<Circle> &circle, range<double> range);
   
@@ -53,6 +64,8 @@ private:
   vector<range<double>> circlesRanges;
   vector<shared_ptr<Point>> points; ///< Points along the track
   
+  bool clockwise;
+  int iCycle;
 };
 
 #endif /* ArcSet2D_hpp */

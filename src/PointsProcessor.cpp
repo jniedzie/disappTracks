@@ -70,6 +70,17 @@ double PointsProcessor::distance(shared_ptr<Point> p1, shared_ptr<Point> p2) con
   return sqrt(pow(p1->x-p2->x,2)+pow(p1->y-p2->y,2)+pow(p1->z-p2->z,2));
 }
 
+double PointsProcessor::distanceWithUncertainZ(shared_ptr<Point> p1, shared_ptr<Point> p2,  double zTolerance) const
+{
+  int shiftSign = 0;
+  double zDifference = fabs(p1->z - p2->z);
+  
+  if(zDifference < zTolerance) zDifference = 0;
+  else                         zDifference -= zTolerance;
+  
+  return sqrt(pow(p1->x-p2->x, 2) + pow(p1->y-p2->y, 2) + pow(zDifference, 2));
+}
+
 double PointsProcessor::distanceXY(Point p1, Point p2) const
 {
   return sqrt(pow(p1.x-p2.x,2)+pow(p1.y-p2.y,2));

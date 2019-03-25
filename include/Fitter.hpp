@@ -73,11 +73,12 @@ private:
   void FixParameter(ROOT::Fit::Fitter *fitter, int i, string name, double val);
   
   
-  vector<shared_ptr<Point>> GetPointsInCycle(double cycleMaxZ, double minPointsSeparation);
+  vector<shared_ptr<Point>> GetPointsInCycle(double minPointsSeparation);
   
-  ROOT::Fit::Fitter* GetCirclesFitter();
+  ROOT::Fit::Fitter* GetCirclesFitter(int pxSign, int pySign);
   
   vector<unique_ptr<Circle>> FitCirclesAndAdjustFirstPoint(vector<vector<shared_ptr<Point>>> &pointTriplets,
+                                                           int pxSign, int pySign,
                                                            double chi2threshold);
   
   vector<unique_ptr<Circle>> GetCirclesForPoints(vector<vector<shared_ptr<Point>>> &pointTriplets,
@@ -92,7 +93,12 @@ private:
   
   bool IsValidSeed(const unique_ptr<Circle> &circle, vector<shared_ptr<Point>> pointTriplet);
   
-  range<double> GetPhiRange(const unique_ptr<Circle> &circle, vector<shared_ptr<Point>> pointTriplet);
+  range<double> GetPhiRange(const unique_ptr<Circle> &circle,
+                            const unique_ptr<ArcSet2D> &pionTrack);
+  
+  range<double> GetSeedPhiRange(const unique_ptr<Circle> &circle,
+                                vector<shared_ptr<Point>> pointTriplet,
+                                bool &clockwise);
   
   vector<vector<shared_ptr<Point>>> BuildPointTriplets(const unique_ptr<ArcSet2D> &pionTrack,
                                                        const vector<shared_ptr<Point>> &inputPoints);
@@ -101,6 +107,7 @@ private:
                                    const unique_ptr<Circle> &previousCircle);
   
   TCanvas *c1;
+  TH1D *radiiAnglesHist;
 };
 
 #endif /* Fitter_hpp */

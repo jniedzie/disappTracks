@@ -249,3 +249,44 @@ void HelixProcessor::SetupBranchesForWriting(TTree *tree)
     tree->Branch(name.c_str(), &arrayValuesInt[name], Form("%s[nFittedHelices]/I", name.c_str()));
   }
 }
+
+double HelixProcessor::GetHelixToPointDistance(const unique_ptr<Helix> &helix, const shared_ptr<Point> &point)
+{
+  int zSign = sgn(helix->momentum->GetZ());
+  
+  double t = TMath::Pi() - atan2(-(point->GetX() - helix->origin->GetX()),
+                                  (point->GetY() - helix->origin->GetY()) );
+  
+//  if(helix->charge < 0) t = TMath::Pi()/2. - t;
+  
+  double x = helix->origin->GetX();
+  double y = helix->origin->GetY();
+  double z = helix->origin->GetZ() + helix->slopeAbs*t;
+  
+  if(helix->charge * zSign < 0){
+    x += helix->radius*cos(t);
+    y += helix->radius*sin(t);
+  }
+  else{
+    x += helix->radius*sin(t);
+    y += helix->radius*cos(t);
+  }
+  
+  int nCycles = round(fabs(point->GetZ() - z) / (helix->slopeAbs * 2 * TMath::Pi()));
+  z += zSign * nCycles * helix->slopeAbs * 2 * TMath::Pi();
+  
+  double stripModuleLength = 200;
+  
+  return pointsProcessor->distanceWithUncertainZ(make_shared<Point>(x,y,z), point, stripModuleLength);
+}
+
+double HelixProcessor::GetChi2toPoints(const unique_ptr<Helix> &helix, const vector<shared_ptr<Point>> &points)
+{
+  double chi2 = 0;
+  
+  for(auto &point : points){
+    chi2 += pow(GetHelixToPointDistance(helix, point), 2);
+  }
+  
+  return inf;
+}

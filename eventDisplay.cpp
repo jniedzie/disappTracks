@@ -16,7 +16,7 @@ string cutLevel = "after_L0/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 10;
+int iEvent = 6;
 
 // 6  (q+, vz+, pz-) OK
 // 10 (q+, vz+, pz-) OK - RECO
@@ -236,6 +236,7 @@ int main(int argc, char* argv[])
 		auto fitter = make_unique<Fitter>();
 		
     auto bestHelix = fitter->FitHelix(event->GetPionSimHits(), track, event->GetVertex());
+//    auto bestHelix = fitter->FitHelix(event->GetPionClusters(), track, event->GetVertex());
 //    auto bestHelix = fitter->GetBestFittingHelix(allSimplePoints, track, event->GetVertex());
 		
 		if(bestHelix){
