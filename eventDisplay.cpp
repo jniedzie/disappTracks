@@ -27,11 +27,11 @@ int iEvent = 10;
 // 18 (q-, vz+, pz+), (q+, vz+, pz+) OK [nice two helices]
 // 19 (q-, vz-, pz-), (q+, vz-, pz-) OK [crazy stuff, probably 3rd soft particle there...]
 // 20 (q+, vz+, pz+) OK [very high p_z]
-// 21 (q-, vz+, pz-), (q+, vz+, pz+) OK [two big helices, one stronly breaking]
+// 21 (q-, vz+, pz-), (q+, vz+, pz+) OK [two big helices, one strongly breaking]
 // 23 (q+, vz+, pz+) OK
 
 bool injectPion = false;
-bool fitHelix = false;
+bool fitHelix = true;
 
 Display *display;
 shared_ptr<EventSet> events;
@@ -48,7 +48,7 @@ map<string,any> filteredPointsOptions = {
 void DrawHitsOrClusters(const shared_ptr<Event> event, int pointsType)
 {
   
-  shared_ptr<vector<Point>> hitsOrClusters;
+  vector<shared_ptr<Point>> hitsOrClusters;
   
   map<string,any> drawingOptions = {
     {"markerStyle", (pointsType==2) ? 20 : 22},
@@ -85,18 +85,18 @@ void DrawHitsOrClusters(const shared_ptr<Event> event, int pointsType)
     typeName = "Pion clusters ";
   }
   
-  map<string, shared_ptr<vector<Point>>> hitsOrClustersBySubDet;
+  map<string, vector<shared_ptr<Point>>> hitsOrClustersBySubDet;
   
   for(auto &[iter, name] : subDetMap){
-    hitsOrClustersBySubDet[name] = make_shared<vector<Point>>();
+    hitsOrClustersBySubDet[name] = vector<shared_ptr<Point>>();
   }
   
-  for(auto hit : *hitsOrClusters){
-    hitsOrClustersBySubDet[hit.GetSubDetName()]->push_back(hit);
+  for(auto &hit : hitsOrClusters){
+    hitsOrClustersBySubDet[hit->GetSubDetName()].push_back(hit);
   }
   
   for(auto &[name, hitsVector] : hitsOrClustersBySubDet){
-    if(hitsVector->size() == 0) continue;
+    if(hitsVector.size() == 0) continue;
     
     drawingOptions["title"] = (typeName+name).c_str();
     display->DrawSimplePoints(hitsVector, drawingOptions);
@@ -178,10 +178,10 @@ int main(int argc, char* argv[])
   
 	if(injectPion){
 		// Draw decay point to make sure that it's correctly located
-		auto decayPoint = make_shared<vector<Point>>();
-		decayPoint->push_back(Point(track->GetDecayPoint()->GetX(),
-																track->GetDecayPoint()->GetY(),
-																track->GetDecayPoint()->GetZ()));
+    vector<shared_ptr<Point>> decayPoint;
+    decayPoint.push_back(make_shared<Point>(track->GetDecayPoint()->GetX(),
+                                            track->GetDecayPoint()->GetY(),
+                                            track->GetDecayPoint()->GetZ()));
 		
 		const map<string,any> decayPointOptions = {
 			{"title", "Decay Point"},
@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
 		
 		// Calculate and draw points along the helix that hit the silicon
 		auto pionPoints = helixProcessor->GetPointsHittingSilicon(pionHelix);
-		for(auto &p : *pionPoints){p.SetIsPionHit(true);}
+		for(auto &p : pionPoints){p->SetIsPionHit(true);}
 		pionHelix->SetPoints(pionPoints);
 		
 		const map<string,any> pionPointsOptions = {
@@ -213,12 +213,12 @@ int main(int argc, char* argv[])
 		display->DrawSimplePoints(pionPoints, pionPointsOptions);
 		
 		// inject hits from pion into all points in the tracker
-		allSimplePoints->insert(allSimplePoints->end(), pionPoints->begin(), pionPoints->end());
+		allSimplePoints.insert(allSimplePoints.end(), pionPoints.begin(), pionPoints.end());
 	}
 	else{
-		auto truePionHelices = event->GetGenPionHelices();
+		const vector<unique_ptr<Helix>> &truePionHelices = event->GetGenPionHelices();
 		
-		for(auto &helix : *truePionHelices){
+		for(auto &helix : truePionHelices){
 			display->DrawHelix(helix,trueHelixOptions);
 			helix->SetPoints(allSimplePoints);
 			auto helixPoints = helix->GetPoints();

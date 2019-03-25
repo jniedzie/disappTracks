@@ -45,11 +45,10 @@ vector<int> HelixProcessor::AreIdentical(const unique_ptr<Helix> &h1, const uniq
   return reasons;
 }
 
-shared_ptr<vector<Point>> HelixProcessor::GetPointsHittingSilicon(const unique_ptr<Helix> &helix)
+vector<shared_ptr<Point>> HelixProcessor::GetPointsHittingSilicon(const unique_ptr<Helix> &helix)
 {
   // this method may reaquire updating after sign of the pion charge changed...
-  
-  shared_ptr<vector<Point>> points = make_shared<vector<Point>>();
+  vector<shared_ptr<Point>> points;
   unique_ptr<Point> origin = make_unique<Point>(*(helix->origin));
   
   double dh = sqrt(pow(origin->GetX(),2)+pow(origin->GetY(),2));
@@ -89,14 +88,14 @@ shared_ptr<vector<Point>> HelixProcessor::GetPointsHittingSilicon(const unique_p
          ){
         z1 = origin->GetZ() + slopeAbs*(t1 + signZ*n*2*TMath::Pi());
         
-        points->push_back(Point(x1, y1, z1));
+        points.push_back(make_shared<Point>(x1, y1, z1));
       }
       if(n>0
          || (signZ > 0 && t2 > tShift)
          || (signZ < 0 && t2 < tShift)
          ){
         z2 = origin->GetZ() + slopeAbs*(t2 + signZ*n*2*TMath::Pi());
-        points->push_back(Point(x2, y2, z2));
+        points.push_back(make_shared<Point>(x2, y2, z2));
       }
     }
     
@@ -164,8 +163,8 @@ unique_ptr<Helix> HelixProcessor::GetRandomPionHelix(const shared_ptr<Track> &tr
   int pionCharge = RandSign();
   
   unique_ptr<Helix> pionHelix = make_unique<Helix>(track->GetDecayPoint(), pionVector, pionCharge);
-  shared_ptr<vector<Point>> pionPoints = GetPointsHittingSilicon(pionHelix);
-  for(auto &p : *pionPoints){p.SetIsPionHit(true);}
+  vector<shared_ptr<Point>> pionPoints = GetPointsHittingSilicon(pionHelix);
+  for(auto &p : pionPoints){p->SetIsPionHit(true);}
   pionHelix->SetPoints(pionPoints);
   
   return pionHelix;

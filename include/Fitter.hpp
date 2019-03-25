@@ -29,20 +29,20 @@ public:
   /// \trackTheta Theta angle of the track
   /// \trackPhi Phi angle of the track
   /// \drawCircles Optionally, graph with all candidate circles can be plotted
-  unique_ptr<Helix> GetBestFittingHelix(const shared_ptr<vector<Point>> _points,
+  unique_ptr<Helix> GetBestFittingHelix(const vector<shared_ptr<Point>> _points,
                                         const shared_ptr<Track> _track,
                                         const unique_ptr<Point> &_vertex,
                                         bool drawCircles=false);
   
-  unique_ptr<Helix> FitHelix(shared_ptr<vector<Point>> _points,
-                             const shared_ptr<Track> _track,
+  unique_ptr<Helix> FitHelix(const vector<shared_ptr<Point>> &_points,
+                             const shared_ptr<Track> &_track,
                              const unique_ptr<Point> &_vertex);
   
 private:
   unique_ptr<PointsProcessor> pointsProcessor;
   unique_ptr<HelixProcessor> helixProcessor;
   
-  shared_ptr<vector<Point>> points;
+  vector<shared_ptr<Point>> points;
   shared_ptr<Track> track;
   unique_ptr<Point> vertex;
   
@@ -94,10 +94,11 @@ private:
   
   range<double> GetPhiRange(const unique_ptr<Circle> &circle, vector<shared_ptr<Point>> pointTriplet);
   
-  vector<vector<shared_ptr<Point>>> BuildPointTriplets(const shared_ptr<Point> point1,
-                                                       const shared_ptr<Point> point2,
-                                                       const vector<shared_ptr<Point>> &inputPoints,
-                                                       const unique_ptr<Circle> &circle);
+  vector<vector<shared_ptr<Point>>> BuildPointTriplets(const unique_ptr<ArcSet2D> &pionTrack,
+                                                       const vector<shared_ptr<Point>> &inputPoints);
+  
+  unique_ptr<Circle> GetBestCircle(const vector<unique_ptr<Circle>> &newCircles,
+                                   const unique_ptr<Circle> &previousCircle);
   
   TCanvas *c1;
 };

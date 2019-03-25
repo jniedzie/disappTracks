@@ -34,13 +34,13 @@ public:
   double GetDistanceToPoint(Point p);
   
   /// Sets points that belong to this circle (will automatically filter out those that are further than thickness)
-  void SetPoints(const shared_ptr<vector<Point>> _points);
+  void SetPoints(const vector<shared_ptr<Point>> &_points);
   
   /// Returns number of points laying on the circle
   int GetNpoints(){return (int)points.size();}
   
   /// Returns vector of points laying on the circle
-  vector<Point> GetPoints(){return points;}
+  vector<shared_ptr<Point>> GetPoints(){return points;}
   
   /// Returns ROOT object representing a circle, that can be plotted in a canvas
   TArc* GetArc();
@@ -69,7 +69,7 @@ private:
   unique_ptr<Point> center;       ///< Center of the circle (will be automatically shifted in the constructor)
   unique_ptr<Point> momentum;     ///< Pion's momentum vector
   
-  vector<Point> points;           ///< Points belonging to this circle
+  vector<shared_ptr<Point>> points;           ///< Points belonging to this circle
   double radius;                  ///< Radius of the circle (calculated from the momentum)
   double tShift;                  ///< Angle by which circle is rotated due to the shift of its origin
 };

@@ -37,19 +37,19 @@ public:
   void LoadAdditionalInfo();
   
   /// Returns vector of tracker clusters not assigned to any tracks
-  inline shared_ptr<vector<Point>> GetTrackerClusters(){return trackerClusters;}
+  inline vector<shared_ptr<Point>> GetTrackerClusters(){return trackerClusters;}
   
   /// Returns vector of rec pion clusters
-  inline shared_ptr<vector<Point>> GetPionClusters(){return pionClusters;}
+  inline vector<shared_ptr<Point>> GetPionClusters(){return pionClusters;}
   
   /// Returns helices of generated pion(s)
-  inline shared_ptr<vector<unique_ptr<Helix>>> GetGenPionHelices(){return genPionHelices;}
+  inline const vector<unique_ptr<Helix>>& GetGenPionHelices(){return genPionHelices;}
   
   /// Returns vector of pion(s) sim hits
-  inline shared_ptr<vector<Point>> GetPionSimHits(){return pionSimHits;}
+  inline vector<shared_ptr<Point>> GetPionSimHits(){return pionSimHits;}
   
   /// Returns vector of chargino(s) sim hits
-  inline shared_ptr<vector<Point>> GetCharginoSimHits(){return charginoSimHits;}
+  inline vector<shared_ptr<Point>> GetCharginoSimHits(){return charginoSimHits;}
   
   // setters
   inline void AddTrack(shared_ptr<Track> track){tracks.push_back(track);}
@@ -211,12 +211,12 @@ private:
   double genWeight;
   
   // Additional info from RAW-RECO files
-  shared_ptr<vector<Point>> trackerClusters;  ///< All reconstructed tracker clusters not assigned to any track
-  shared_ptr<vector<Point>> pionClusters;  ///< Reconstructed clusters associated with generated pion(s)
+  vector<shared_ptr<Point>> trackerClusters;  ///< All reconstructed tracker clusters not assigned to any track
+  vector<shared_ptr<Point>> pionClusters;  ///< Reconstructed clusters associated with generated pion(s)
   
-  shared_ptr<vector<Point>> pionSimHits;  ///< Sim hits associated with generated pion(s) coming from chargino decay vertex
-  shared_ptr<vector<Point>> charginoSimHits; ///< Sim hits associated with generated chargino(s)
-  shared_ptr<vector<unique_ptr<Helix>>> genPionHelices; ///< Helix representing gen-level pion(s)
+  vector<shared_ptr<Point>> pionSimHits;  ///< Sim hits associated with generated pion(s) coming from chargino decay vertex
+  vector<shared_ptr<Point>> charginoSimHits; ///< Sim hits associated with generated chargino(s)
+  vector<unique_ptr<Helix>> genPionHelices; ///< Helix representing gen-level pion(s)
   
   unique_ptr<TrackProcessor> trackProcessor;
   

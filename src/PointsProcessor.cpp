@@ -16,13 +16,13 @@ PointsProcessor::~PointsProcessor()
   
 }
 
-vector<vector<Point>> PointsProcessor::SplitPointsIntoLines(const shared_ptr<vector<Point>> points, double tolerance) const
+vector<vector<Point>> PointsProcessor::SplitPointsIntoLines(const vector<shared_ptr<Point>> &points, double tolerance) const
 {
   vector<vector<Point>> pointsByLines;
   bool addedToExisting;
   double toleranceSquared = tolerance*tolerance;
   
-  for(Point p : *points){
+  for(auto &p : points){
     addedToExisting = false;
     
     // loop over existing lines and check if this point belongs to one of them

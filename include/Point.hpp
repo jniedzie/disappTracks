@@ -18,6 +18,9 @@ public:
   /// Copy constructor
   Point(const unique_ptr<Point> &p);
   
+  /// Copy constructor
+  Point(const shared_ptr<Point> &p);
+  
   /// Constructs a point that is an average of provided vector of points
   Point(vector<Point> points);
   

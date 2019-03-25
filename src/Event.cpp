@@ -10,12 +10,7 @@
 
 Event::Event() :
 vertex(make_unique<Point>(0,0,0)),
-trackProcessor(make_unique<TrackProcessor>()),
-trackerClusters(make_shared<vector<Point>>()),
-pionClusters(make_shared<vector<Point>>()),
-pionSimHits(make_shared<vector<Point>>()),
-charginoSimHits(make_shared<vector<Point>>()),
-genPionHelices(make_shared<vector<unique_ptr<Helix>>>())
+trackProcessor(make_unique<TrackProcessor>())
 {
   
 }
@@ -214,57 +209,57 @@ void Event::LoadAdditionalInfo()
                                                        1000*pionPz->at(i)),
                                     1*pionCharge->at(i));
     
-    genPionHelices->push_back(move(helix));
+    genPionHelices.push_back(move(helix));
   }
   
   for(uint i=0;i<pionSimHitsX->size();i++){
     // convert cm to mm
-    pionSimHits->push_back(Point(10*pionSimHitsX->at(i),
-                                 10*pionSimHitsY->at(i),
-                                 10*pionSimHitsZ->at(i),
-                                 0,
-                                 subDetMap[pionSimHitsSubDet->at(i)]));
+    pionSimHits.push_back(make_shared<Point>(10*pionSimHitsX->at(i),
+                                             10*pionSimHitsY->at(i),
+                                             10*pionSimHitsZ->at(i),
+                                             0,
+                                             subDetMap[pionSimHitsSubDet->at(i)]));
   }
   
   for(uint i=0;i<charginoSimHitsX->size();i++){
     // convert cm to mm
-    charginoSimHits->push_back(Point(10*charginoSimHitsX->at(i),
-                                     10*charginoSimHitsY->at(i),
-                                     10*charginoSimHitsZ->at(i),
-                                     0,
-                                     subDetMap[charginoSimHitsSubDet->at(i)]));
+    charginoSimHits.push_back(make_shared<Point>(10*charginoSimHitsX->at(i),
+                                                 10*charginoSimHitsY->at(i),
+                                                 10*charginoSimHitsZ->at(i),
+                                                 0,
+                                                 subDetMap[charginoSimHitsSubDet->at(i)]));
   }
   
   // Parameters for all hits in the pixel barrel
   for(uint i=0;i<pixelClusterX->size();i++){
     // convert cm to mm
-    trackerClusters->push_back(Point(10*pixelClusterX->at(i),
-                                     10*pixelClusterY->at(i),
-                                     10*pixelClusterZ->at(i),
-                                     pixelClusterCharge->at(i),
-                                     subDetMap[pixelClusterSubDet->at(i)]));
+    trackerClusters.push_back(make_shared<Point>(10*pixelClusterX->at(i),
+                                                 10*pixelClusterY->at(i),
+                                                 10*pixelClusterZ->at(i),
+                                                 pixelClusterCharge->at(i),
+                                                 subDetMap[pixelClusterSubDet->at(i)]));
   }
   
  
   
   for(uint i=0;i<stripClusterX->size();i++){
     // convert cm to mm
-    trackerClusters->push_back(Point(10*stripClusterX->at(i),
-                                     10*stripClusterY->at(i),
-                                     10*stripClusterZ->at(i),
-                                     stripClusterCharge->at(i),
-                                     subDetMap[stripClusterSubDet->at(i)]));
+    trackerClusters.push_back(make_shared<Point>(10*stripClusterX->at(i),
+                                                 10*stripClusterY->at(i),
+                                                 10*stripClusterZ->at(i),
+                                                 stripClusterCharge->at(i),
+                                                 subDetMap[stripClusterSubDet->at(i)]));
     
     
   }
   
   for(uint i=0;i<pionClusterX->size();i++){
     // convert cm to mm
-    pionClusters->push_back(Point(10*pionClusterX->at(i),
-                                     10*pionClusterY->at(i),
-                                     10*pionClusterZ->at(i),
-                                     pionClusterCharge->at(i),
-                                     subDetMap[pionClusterSubDet->at(i)]));
+    pionClusters.push_back(make_shared<Point>(10*pionClusterX->at(i),
+                                              10*pionClusterY->at(i),
+                                              10*pionClusterZ->at(i),
+                                              pionClusterCharge->at(i),
+                                              subDetMap[pionClusterSubDet->at(i)]));
     
   }
   

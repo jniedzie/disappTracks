@@ -64,10 +64,10 @@ double Circle::GetDistanceToPoint(Point p)
   return sqrt(pow(p.GetX()-x,2)+pow(p.GetY()-y,2));
 }
 
-void Circle::SetPoints(const shared_ptr<vector<Point>> _points)
+void Circle::SetPoints(const vector<shared_ptr<Point>> &_points)
 {
   points.clear();
-  for(auto p : *_points){
+  for(auto &p : _points){
     if(GetDistanceToPoint(p) < config->circleThickness) points.push_back(p);
   }
 }
