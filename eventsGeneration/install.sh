@@ -6,6 +6,7 @@ echo "\nAdding additional CMSSW modules\n"
 git cms-addpkg Configuration/StandardSequences
 git cms-addpkg Configuration/DataProcessing
 git cms-addpkg SimG4Core/CustomPhysics
+git cms-addpkg SimG4Core/Application
 cd src
 cmsenv
 
