@@ -45,6 +45,9 @@ public:
                                              const unique_ptr<Circle> &theCircle,
                                              vector<double> &alphaVector);
   
+  unique_ptr<Circle> CopyCircleAddingRange(const unique_ptr<Circle> &circle,
+                                           const range<double> &phiRange);
+  
 private:
   unique_ptr<PointsProcessor> pointsProcessor;
   

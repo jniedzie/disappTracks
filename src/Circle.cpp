@@ -7,9 +7,11 @@
 #include "Circle.hpp"
 
 Circle::Circle(const unique_ptr<Point> &_decayPoint,
-               const unique_ptr<Point> &_momentum) :
+               const unique_ptr<Point> &_momentum,
+               const range<double> &_phiRange) :
 decayPoint(make_unique<Point>(*_decayPoint)),
-momentum(make_unique<Point>(*_momentum))
+momentum(make_unique<Point>(*_momentum)),
+phiRange(_phiRange)
 {
   radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
   
@@ -26,10 +28,12 @@ momentum(make_unique<Point>(*_momentum))
 
 Circle::Circle(const unique_ptr<Point> &_decayPoint,
                const unique_ptr<Point> &_center,
-               double _radius) :
+               double _radius,
+               const range<double> &_phiRange) :
 decayPoint(make_unique<Point>(*_decayPoint)),
 center(make_unique<Point>(*_center)),
-radius(_radius)
+radius(_radius),
+phiRange(_phiRange)
 {
   double pt = GetPtInMagField(radius, solenoidField);
   
@@ -46,14 +50,16 @@ Circle::Circle(const unique_ptr<Circle> &c)
   momentum = make_unique<Point>(c->momentum);
   
   for(auto p : c->points){ points.push_back(p);}
-  radius = c->radius;
-  tShift = c->tShift;
+  radius   = c->radius;
+  tShift   = c->tShift;
+  phiRange = c->phiRange;
 }
 
 void Circle::Print()
 {
   cout<<"Circle center ("<<center->GetX()<<","<<center->GetY()<<")\tR:"<<radius<<endl;
   cout<<"Momentum:";momentum->Print();cout<<endl;
+  cout<<"Range:"<<phiRange.GetMin()<<" -- "<<phiRange.GetMax()<<endl;
 }
 
 double Circle::GetDistanceToPoint(Point p)

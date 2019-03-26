@@ -18,12 +18,14 @@ public:
   /// \param _decayPoint Point to which the circle must be tangent
   /// \param _momentum Pion's momentum determining shift and rotation of the circle
   Circle(const unique_ptr<Point> &_decayPoint,
-         const unique_ptr<Point> &_momentum);
+         const unique_ptr<Point> &_momentum,
+         const range<double> &_phiRange = range<double>(0, 2*TMath::Pi()));
   
   /// Constructor for the circle that takes its center, point where it begins and a radius
   Circle(const unique_ptr<Point> &_decayPoint,
          const unique_ptr<Point> &_center,
-         double _radius);
+         double _radius,
+         const range<double> &_phiRange = range<double>(0, 2*TMath::Pi()));
   
   Circle(const unique_ptr<Circle> &c);
   
@@ -69,6 +71,8 @@ public:
   /// \param i Index of the circle's point
   double GetPointAngle(uint i);
   
+  inline range<double> GetRange(){return phiRange;}
+  
 private:
   unique_ptr<Point> decayPoint;   ///< Decay point of the chargino
   unique_ptr<Point> center;       ///< Center of the circle (will be automatically shifted in the constructor)
@@ -78,7 +82,10 @@ private:
   double radius;                    ///< Radius of the circle (calculated from the momentum)
   double tShift;                    ///< Angle by which circle is rotated due to the shift of its origin
   
+  range<double> phiRange;  ///< Beginning and end of the circle in phi
+  
   friend class CircleProcessor;
+  friend class ArcSetProcessor;
 };
 
 #endif /* Circle_hpp */

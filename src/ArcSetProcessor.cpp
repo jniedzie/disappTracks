@@ -7,7 +7,8 @@
 #include "ArcSetProcessor.hpp"
 
 ArcSetProcessor::ArcSetProcessor() :
-pointsProcessor(make_unique<PointsProcessor>())
+pointsProcessor(make_unique<PointsProcessor>()),
+circleProcessor(make_unique<CircleProcessor>())
 {
   
 }
@@ -24,14 +25,27 @@ vector<unique_ptr<ArcSet2D>> ArcSetProcessor::BuildArcSetsFromCircles(const vect
   for(auto &circle : circles){
     
     if(!IsValidSeed(circle)) continue;
+   
+    // re-order circle points is needed:
+    double phi0 = circle->GetPointAngle(0);
+    double phi1 = circle->GetPointAngle(1);
+    double phi2 = circle->GetPointAngle(2);
+    
+    if((phi1 < phi2 && phi2 < phi0) ||
+       (phi1 > phi2 && phi2 > phi0)
+       ){
+      auto tmp = circle->GetPoint(1);
+      circle->points[1] = circle->points[2];
+      circle->points[2] = tmp;
+    }
     
     auto arcSet2D = make_unique<ArcSet2D>();
     
     // Add two first points, as they are not added automatically when adding a circle
     arcSet2D->points.push_back(circle->GetPoint(0));
     arcSet2D->points.push_back(circle->GetPoint(1));
+    arcSet2D->AddCircle(circle); // this will also add third point
     
-    arcSet2D->AddCircle(circle);
     arcs.push_back(move(arcSet2D));
   }
   

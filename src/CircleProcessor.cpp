@@ -103,9 +103,18 @@ unique_ptr<Circle> CircleProcessor::GetMostCompatibleCircle(const vector<unique_
   double r1_y = c1_y - p_y;
   double r1_mod = sqrt(r1_x*r1_x + r1_y*r1_y);
   
+  
+  
   for(auto &testingCircle : circles){
     // New track segment cannot have greater radius (within some tolerance)
     if(testingCircle->GetRadius() > 1.1*theCircle->GetRadius()) continue; // FILTER
+  
+    // make sure that the new circle doesn't go in an opposite direction
+    if(testingCircle->GetRange().GetMin() > theCircle->GetRange().GetMin() ||
+       testingCircle->GetRange().GetMax() > theCircle->GetRange().GetMin()){
+      continue;
+    }
+    
     
     // The center of the new circle should be withing the previous circle
     double centerDifference = pointsProcessor->distanceXY(theCircle->GetCenter(), testingCircle->GetCenter());
@@ -132,4 +141,12 @@ unique_ptr<Circle> CircleProcessor::GetMostCompatibleCircle(const vector<unique_
   }
   
   return bestCircle;
+}
+
+unique_ptr<Circle> CircleProcessor::CopyCircleAddingRange(const unique_ptr<Circle> &circle,
+                                                          const range<double> &phiRange)
+{
+  auto newCircle = make_unique<Circle>(circle);
+  newCircle->phiRange = phiRange;
+  return newCircle;
 }

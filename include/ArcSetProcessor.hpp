@@ -10,6 +10,7 @@
 #include "Helpers.hpp"
 #include "ArcSet2D.hpp"
 #include "PointsProcessor.hpp"
+#include "CircleProcessor.hpp"
 
 class ArcSetProcessor {
 public:
@@ -34,6 +35,7 @@ public:
   
 private:
   unique_ptr<PointsProcessor> pointsProcessor;
+  unique_ptr<CircleProcessor> circleProcessor;
   
   bool IsValidSeed(const unique_ptr<Circle> &circle);
 };

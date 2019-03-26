@@ -11,7 +11,7 @@
 
 #include "Helpers.hpp"
 
-#include "Circle.hpp"
+#include "CircleProcessor.hpp"
 
 class ArcSet2D {
 public:
@@ -59,10 +59,11 @@ public:
   
 private:
   vector<unique_ptr<Circle>> circles;     ///< Segments of the track (first one is the seed)
-  vector<range<double>> circlesRanges;    ///< Ranges in phi of corresponding track segments in circles
   vector<shared_ptr<Point>> points;       ///< Points along the track
   
   int iCycle;
+  
+  unique_ptr<CircleProcessor> circleProcessor;
   
   friend class ArcSetProcessor;
 };
