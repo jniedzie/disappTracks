@@ -8,8 +8,7 @@
 
 #include "ArcSet2D.hpp"
 
-ArcSet2D::ArcSet2D(bool _clockwise) :
-clockwise(_clockwise),
+ArcSet2D::ArcSet2D() :
 iCycle(0)
 {
   
@@ -20,7 +19,6 @@ ArcSet2D::ArcSet2D(const ArcSet2D &a)
   for(auto &c : a.circles){circles.push_back(make_unique<Circle>(c));}
   for(auto r : a.circlesRanges){circlesRanges.push_back(r);}
   for(auto &p : a.points){points.push_back(make_shared<Point>(p));}
-  clockwise = a.clockwise;
   iCycle = a.iCycle;
 }
 
@@ -29,7 +27,6 @@ ArcSet2D::ArcSet2D(const unique_ptr<ArcSet2D> &a)
   for(auto &c : a->circles){circles.push_back(make_unique<Circle>(c));}
   for(auto r : a->circlesRanges){circlesRanges.push_back(r);}
   for(auto &p : a->points){points.push_back(make_shared<Point>(p));}
-  clockwise = a->clockwise;
   iCycle = a->iCycle;
 }
 
@@ -56,10 +53,43 @@ void ArcSet2D::Print()
   }
 }
 
-void ArcSet2D::AddCircle(const unique_ptr<Circle> &circle, range<double> range)
+void ArcSet2D::AddCircle(const unique_ptr<Circle> &circle)
 {
+  // add circle to the vector of segments
   circles.push_back(make_unique<Circle>(circle));
-  circlesRanges.push_back(range);
+  
+  // calculate phi range of this segment
+  double phiVertex = circle->GetPointAngle(0);
+  double phi1      = circle->GetPointAngle(1);
+  double phi2      = circle->GetPointAngle(2);
+  
+  if(phi2 > phiVertex &&
+     phi2 > phi1){
+  
+    iCycle++;
+    phi2 -= iCycle * 2*TMath::Pi();
+  }
+  else if(phi2 > phiVertex &&
+          phi1 > phiVertex){
+    
+    phi1 -= iCycle * 2*TMath::Pi();
+    phi2 -= iCycle * 2*TMath::Pi();
+  }
+  else{
+    phiVertex -= iCycle * 2*TMath::Pi();
+    phi1      -= iCycle * 2*TMath::Pi();
+    phi2      -= iCycle * 2*TMath::Pi();
+  }
+  
+  double phiMin = min(min(phi1, phi2), phiVertex)/TMath::Pi() * 180;
+  double phiMax = max(max(phi1, phi2), phiVertex)/TMath::Pi() * 180;
+  
+  auto r = range<double>(phiMin, phiMax);
+  
+  circlesRanges.push_back(r);
+  
+  // add last point of the circle to the collection (first two should already be there)
+  points.push_back(circle->GetPoint(2));
 }
 
 vector<TArc*> ArcSet2D::GetArcs()
@@ -77,12 +107,7 @@ vector<TArc*> ArcSet2D::GetArcs()
   return arcs;
 }
 
-void ArcSet2D::AddPoints(vector<shared_ptr<Point>> p)
-{
-  points.insert(points.end(), p.begin(), p.end());
-}
-
 double ArcSet2D::GetOriginPhi()
 {
-  return circles[0]->GetPointAngle(points[0]->GetX(), points[0]->GetY());
+  return circles[0]->GetPointAngle(0);
 }

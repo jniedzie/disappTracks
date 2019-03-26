@@ -6,7 +6,8 @@
 
 #include "CircleProcessor.hpp"
 
-CircleProcessor::CircleProcessor()
+CircleProcessor::CircleProcessor() :
+pointsProcessor(make_unique<PointsProcessor>())
 {
   
 }
@@ -31,7 +32,7 @@ void CircleProcessor::RemoveSimilarCircles(vector<unique_ptr<Circle>> &circles)
   }
 }
 
-vector<unique_ptr<Circle>> CircleProcessor::BuildCirclesFromPoints(const vector<vector<shared_ptr<Point>>> &points);
+vector<unique_ptr<Circle>> CircleProcessor::BuildCirclesFromPoints(const TripletsVector &points)
 {
   vector<unique_ptr<Circle>> circles;
   
@@ -65,4 +66,70 @@ vector<unique_ptr<Circle>> CircleProcessor::BuildCirclesFromPoints(const vector<
   }
   
   return circles;
+}
+
+unique_ptr<Circle> CircleProcessor::BuildCircleFromParams(const double *par,
+                                                          const unique_ptr<Point> &vertex,
+                                                          const shared_ptr<Track> &track)
+{
+  double L  = par[0];
+  double px = par[1];
+  double py = par[2];
+  
+  double x0 = L*cos(track->GetPhi())                          + 10*vertex->GetX();
+  double y0 = L*sin(track->GetPhi())                          + 10*vertex->GetY();
+  double z0 = L/sin(track->GetTheta())*cos(track->GetTheta()) + 10*vertex->GetZ();
+  
+  auto decayPoint  = make_unique<Point>(x0,y0,z0);
+  auto momentum    = make_unique<Point>(px,py,0);
+  
+  return make_unique<Circle>(decayPoint, momentum);
+}
+
+
+unique_ptr<Circle> CircleProcessor::GetMostCompatibleCircle(const vector<unique_ptr<Circle>> &circles,
+                                                            const unique_ptr<Circle> &theCircle,
+                                                            vector<double> &alphaVector)
+{
+  double bestRadiiDifference = inf;
+  unique_ptr<Circle> bestCircle = nullptr;
+  
+  // Calculate parameters of the circle
+  double p_x  = theCircle->GetPoints()[2]->GetX();
+  double p_y  = theCircle->GetPoints()[2]->GetY();
+  double c1_x = theCircle->GetCenter()->GetX();
+  double c1_y = theCircle->GetCenter()->GetY();
+  double r1_x = c1_x - p_x;
+  double r1_y = c1_y - p_y;
+  double r1_mod = sqrt(r1_x*r1_x + r1_y*r1_y);
+  
+  for(auto &testingCircle : circles){
+    // New track segment cannot have greater radius (within some tolerance)
+    if(testingCircle->GetRadius() > 1.1*theCircle->GetRadius()) continue; // FILTER
+    
+    // The center of the new circle should be withing the previous circle
+    double centerDifference = pointsProcessor->distanceXY(theCircle->GetCenter(), testingCircle->GetCenter());
+    if(centerDifference > 1.1*theCircle->GetRadius()) continue; // FILTER
+    
+    // Here we calculate an angle between radius of the previous circle and radius of the testing circle
+    // looking from the last point of previous circle. For perfectly matching circles that would be zero
+    double r2_x   = testingCircle->GetCenter()->GetX() - p_x;
+    double r2_y   = testingCircle->GetCenter()->GetY() - p_y;
+    double r2_mod = sqrt(r2_x*r2_x + r2_y*r2_y);
+    double alpha  = acos((r1_x*r2_x + r1_y*r2_y) / (r1_mod*r2_mod));
+    alphaVector.push_back(alpha);
+    
+    if(alpha > 0.05) continue; // FILTER
+    
+    // This circle is better than previous if it's radius is closer to the desired one
+    // TODO: This condition may not be the best one...
+    double radiiDifference = theCircle->GetRadius() - testingCircle->GetRadius();
+    
+    if(radiiDifference < bestRadiiDifference){
+      bestRadiiDifference = radiiDifference;
+      bestCircle = make_unique<Circle>(testingCircle);
+    }
+  }
+  
+  return bestCircle;
 }

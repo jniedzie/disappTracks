@@ -10,7 +10,7 @@
 #include "Helpers.hpp"
 #include "PointsProcessor.hpp"
 #include "CircleProcessor.hpp"
-#include "ArcSet2D.hpp"
+#include "ArcSetProcessor.hpp"
 #include "HelixProcessor.hpp"
 #include "ConfigManager.hpp"
 #include "Track.hpp"
@@ -42,6 +42,7 @@ private:
   unique_ptr<PointsProcessor> pointsProcessor;
   unique_ptr<HelixProcessor>  helixProcessor;
   unique_ptr<CircleProcessor> circleProcessor;
+  unique_ptr<ArcSetProcessor> arcSetProcessor;
   
   vector<shared_ptr<Point>> points;
   shared_ptr<Track> track;
@@ -82,32 +83,13 @@ private:
   /// \param pxSign px component direction
   /// \param pySign py component direction
   /// \param chi2threshold Max allowed chi2
-  vector<unique_ptr<Circle>> FitCirclesAndAdjustFirstPoint(vector<vector<shared_ptr<Point>>> &pointTriplets,
+  vector<unique_ptr<Circle>> FitCirclesAndAdjustFirstPoint(TripletsVector &pointTriplets,
                                                            int pxSign, int pySign,
                                                            double chi2threshold);
   
-  
-  vector<vector<shared_ptr<Point>>> BuildPointTriplets(const vector<shared_ptr<Point>> &inputPoints);
-  
-  vector<unique_ptr<ArcSet2D>> BuildArcSetsFromCircles(const vector<unique_ptr<Circle>> &circles,
-                                                       vector<vector<shared_ptr<Point>>> pointTriplets);
-  
-  unique_ptr<Circle> GetCircleFromFitterParams(const double *par);
-  
-  bool IsValidSeed(const unique_ptr<Circle> &circle, vector<shared_ptr<Point>> pointTriplet);
-  
-  range<double> GetPhiRange(const unique_ptr<Circle> &circle,
-                            const unique_ptr<ArcSet2D> &pionTrack);
-  
-  range<double> GetSeedPhiRange(const unique_ptr<Circle> &circle,
-                                vector<shared_ptr<Point>> pointTriplet,
-                                bool &clockwise);
-  
-  vector<vector<shared_ptr<Point>>> BuildPointTriplets(const unique_ptr<ArcSet2D> &pionTrack,
-                                                       const vector<shared_ptr<Point>> &inputPoints);
-  
-  unique_ptr<Circle> GetBestCircle(const vector<unique_ptr<Circle>> &newCircles,
-                                   const unique_ptr<Circle> &previousCircle);
+  void PlotSeeds(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks);
+  void PlotTracks(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks);
+  void PlotRadiiAngles(const vector<double> &alphaVector);
   
   TCanvas *c1;
   TH1D *radiiAnglesHist;

@@ -44,6 +44,9 @@ public:
   /// Returns vector of points laying on the circle
   vector<shared_ptr<Point>> GetPoints(){return points;}
   
+  /// Returns point at index i
+  shared_ptr<Point> GetPoint(unsigned long i){return points[i];}
+  
   /// Returns ROOT object representing a circle, that can be plotted in a canvas
   TArc* GetArc();
   
@@ -62,16 +65,18 @@ public:
   /// Returns an angle by which circle is rotated due to the shift of its origin
   inline double GetToffset(){return tShift;}
   
-  /// Returns phi angle for given point (x,y)
-  double GetPointAngle(double x, double y);
+  /// Returns phi angle of circle's point i
+  /// \param i Index of the circle's point
+  double GetPointAngle(uint i);
+  
 private:
   unique_ptr<Point> decayPoint;   ///< Decay point of the chargino
   unique_ptr<Point> center;       ///< Center of the circle (will be automatically shifted in the constructor)
   unique_ptr<Point> momentum;     ///< Pion's momentum vector
   
-  vector<shared_ptr<Point>> points;           ///< Points belonging to this circle
-  double radius;                  ///< Radius of the circle (calculated from the momentum)
-  double tShift;                  ///< Angle by which circle is rotated due to the shift of its origin
+  vector<shared_ptr<Point>> points; ///< Points belonging to this circle
+  double radius;                    ///< Radius of the circle (calculated from the momentum)
+  double tShift;                    ///< Angle by which circle is rotated due to the shift of its origin
   
   friend class CircleProcessor;
 };

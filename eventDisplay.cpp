@@ -16,7 +16,7 @@ string cutLevel = "after_L0/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 6;
+int iEvent = 10;
 
 // 6  (q+, vz+, pz-) OK
 // 10 (q+, vz+, pz-) OK - RECO

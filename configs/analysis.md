@@ -1,7 +1,7 @@
 **Analysis settings**
 
 ### Which level of cuts to apply:
-cuts_level: 1
+cuts_level: 0
 
 ### Analysis category ( 2-tracks | 3-layers | 4-layers ):
 analysis_category:  3-layers
@@ -14,14 +14,14 @@ save_events:  1
 
 ### turn on/off different backgrounds, signals and data samples
 do_QCD:         0
-do_Zmm:         0
+do_Zmm:         1
 do_tops:          0
 do_dibosons:   0
 do_Wmv:         0
 do_Zvv:           0
 
 do_300_3:       0
-do_300_10:     1
+do_300_10:     0
 do_300_30:     0
 do_500_10:     0
 do_500_20:     0

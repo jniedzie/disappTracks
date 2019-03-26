@@ -9,7 +9,8 @@
 Fitter::Fitter() :
 pointsProcessor(make_unique<PointsProcessor>()),
 helixProcessor(make_unique<HelixProcessor>()),
-circleProcessor(make_unique<CircleProcessor>())
+circleProcessor(make_unique<CircleProcessor>()),
+arcSetProcessor(make_unique<ArcSetProcessor>())
 {
   c1 = new TCanvas("c1","c1",2000,1000);
   c1->Divide(2,1);
@@ -49,7 +50,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
         auto chi2Function = [&](const double *par) {
           double f = 0;
           
-          auto circle = GetCircleFromFitterParams(par);
+          auto circle = circleProcessor->BuildCircleFromParams(par, vertex, track);
           
           f  = pow(circle->GetDistanceToPoint(points2D[i]),2);
           f += pow(circle->GetDistanceToPoint(points2D[j]),2);
@@ -64,7 +65,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
         if(fitter->FitFCN()) {
           auto result = fitter->Result();
           
-          auto circle = GetCircleFromFitterParams(result.GetParams());
+          auto circle = circleProcessor->BuildCircleFromParams(result.GetParams(), vertex, track);
           
           int nPointsOnCircle=0;
           for(Point p : points2D){
@@ -253,82 +254,7 @@ ROOT::Fit::Fitter* Fitter::GetCirclesFitter(int pxSign, int pySign)
   return fitter;
 }
 
-vector<vector<shared_ptr<Point>>> Fitter::BuildPointTriplets(const vector<shared_ptr<Point>> &inputPoints)
-{
-  int nPoints = (int)inputPoints.size();
-  vector<vector<shared_ptr<Point>>> pointTriplets;
-  
-  for(int i=0;i<nPoints;i++){
-    for(int j=i+1;j<nPoints;j++){
-      vector<shared_ptr<Point>> points = {make_shared<Point>(inf,inf,inf), inputPoints[i], inputPoints[j] };
-      pointTriplets.push_back(points);
-    }
-  }
-  return pointTriplets;
-}
-
-vector<vector<shared_ptr<Point>>> Fitter::BuildPointTriplets(const unique_ptr<ArcSet2D> &pionTrack,
-                                                             const vector<shared_ptr<Point>> &inputPoints)
-{
-  vector<vector<shared_ptr<Point>>> pointTriplets;
-  
-  double stripSensorHalfLength = stripModuleZlength/2.;
-  
-  unique_ptr<Circle> circle = pionTrack->GetLastCircle();
-  shared_ptr<Point> point1  = pionTrack->GetSecondToLastPoint();
-  shared_ptr<Point> point2  = pionTrack->GetLastPoint();
-  vector<shared_ptr<Point>> pionPoints = pionTrack->GetPoints();
-  
-  for(auto point : inputPoints){
-    bool isValidPoint = true;
-    
-    // make sure that it's not the same point as already in the pion track candidate
-    if(find(pionPoints.begin(), pionPoints.end(), point) != pionPoints.end()) continue; // FILTER
-    
-    // new point must be on the correct side of the previous arc in Z direction
-    if(fabs(point1->GetZ() - point2->GetZ()) > stripSensorHalfLength){
-      // we can check it only if two prevous hits are in different Z locations
-      
-      if(point1->GetZ() + stripSensorHalfLength < point2->GetZ() - stripSensorHalfLength  &&
-         point->GetZ() < (point2->GetZ() - stripSensorHalfLength)){
-        isValidPoint = false; // FILTER
-      }
-      
-      if(point1->GetZ() - stripSensorHalfLength > point2->GetZ() + stripSensorHalfLength  &&
-         point->GetZ() > (point2->GetZ() + stripSensorHalfLength)){
-        isValidPoint = false; // FILTER
-      }
-    }
-    
-    // it also has to be within the radius of the helix
-    double pointR = pointsProcessor->distanceXY(point, circle->GetCenter());
-    if(pointR > 1.1*circle->GetRadius()) isValidPoint = false; // FILTER
-    
-    if(isValidPoint){
-      vector<shared_ptr<Point>> points = {point1, point2, point};
-      pointTriplets.push_back(points);
-    }
-  }
-  return pointTriplets;
-}
-
-unique_ptr<Circle> Fitter::GetCircleFromFitterParams(const double *par)
-{
-  double L  = par[0];
-  double px = par[1];
-  double py = par[2];
-  
-  double x0 = L*cos(track->GetPhi())                          + 10*vertex->GetX();
-  double y0 = L*sin(track->GetPhi())                          + 10*vertex->GetY();
-  double z0 = L/sin(track->GetTheta())*cos(track->GetTheta()) + 10*vertex->GetZ();
-  
-  auto decayPoint  = make_unique<Point>(x0,y0,z0);
-  auto momentum    = make_unique<Point>(px,py,0);
-  
-  return make_unique<Circle>(decayPoint, momentum);
-}
-
-vector<unique_ptr<Circle>> Fitter::FitCirclesAndAdjustFirstPoint(vector<vector<shared_ptr<Point>>> &pointTriplets,
+vector<unique_ptr<Circle>> Fitter::FitCirclesAndAdjustFirstPoint(TripletsVector &pointTriplets,
                                                                  int pxSign, int pySign,
                                                                  double chi2threshold)
 {
@@ -341,7 +267,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesAndAdjustFirstPoint(vector<vector<s
     auto chi2Function = [&](const double *par) {
       double f = 0;
       
-      auto circle = GetCircleFromFitterParams(par);
+      auto circle = circleProcessor->BuildCircleFromParams(par, vertex, track);
       
       f  = pow(circle->GetDistanceToPoint(circle->GetDecayPoint()),2);
       f += pow(circle->GetDistanceToPoint(*p[1]),2);
@@ -358,7 +284,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesAndAdjustFirstPoint(vector<vector<s
       auto result = fitter->Result();
       
       if(result.MinFcnValue() > chi2threshold) continue; // FILTER
-      auto circle = GetCircleFromFitterParams(result.GetParams());
+      auto circle = circleProcessor->BuildCircleFromParams(result.GetParams(), vertex, track);
       
       p[0]->SetX(circle->GetDecayPoint()->GetX());
       p[0]->SetY(circle->GetDecayPoint()->GetY());
@@ -374,167 +300,6 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesAndAdjustFirstPoint(vector<vector<s
   return circles;
 }
 
-bool Fitter::IsValidSeed(const unique_ptr<Circle> &circle, vector<shared_ptr<Point>> pointTriplet)
-{
-  double phiVertex = circle->GetPointAngle(pointTriplet[0]->GetX(), pointTriplet[0]->GetY());
-  double phi1      = circle->GetPointAngle(pointTriplet[1]->GetX(), pointTriplet[1]->GetY());
-  double phi2      = circle->GetPointAngle(pointTriplet[2]->GetX(), pointTriplet[2]->GetY());
-  
-  // Reject cases where hits are on the both sides of the vertex point instead of forming a tracklet
-  if((phi1 < phiVertex && phi2 > phiVertex) ||
-     (phi2 < phiVertex && phi1 > phiVertex)){
-    return false; // FILTER
-  }
-  
-  double z0 = pointTriplet[0]->GetZ();
-  double z1 = pointTriplet[1]->GetZ();
-  double z2 = pointTriplet[2]->GetZ();
-  
-  // this is the range of where point 0 and point 1 can be located along Z axis
-  double z0min = z0 - stripModuleZlength/2.;
-  double z0max = z0 + stripModuleZlength/2.;
-  double z1min = z1 - stripModuleZlength/2.;
-  double z1max = z1 + stripModuleZlength/2.;
-  
-  // which determines range in the slope:
-  double slopeMin = (z1min - z0max)/phi1;
-  double slopeMax = (z1max - z0min)/phi1;
-  
-  // point 2 can be located somewhere between:
-  double z2min = z0max + slopeMin * phi2;
-  double z2max = z0min + slopeMax * phi2;
-  
-  if((z2 < z2min) ||
-     (z2 > z2max)){
-    // this condition kills correct seed... has to be re-thought
-//    return false; // FILTER
-  }
-  
-  return true;
-}
-
-range<double> Fitter::GetPhiRange(const unique_ptr<Circle> &circle,
-                                  const unique_ptr<ArcSet2D> &pionTrack)
-{
-  vector<shared_ptr<Point>> pointTriplet = circle->GetPoints();
-  
-  double phiVertex = circle->GetPointAngle(pointTriplet[0]->GetX(), pointTriplet[0]->GetY());
-  double phi1      = circle->GetPointAngle(pointTriplet[1]->GetX(), pointTriplet[1]->GetY());
-  double phi2      = circle->GetPointAngle(pointTriplet[2]->GetX(), pointTriplet[2]->GetY());
-  
-  bool clockwise = pionTrack->IsClockwise();
-  if(phi2 > phiVertex &&
-     phi2 > phi1){
-    pionTrack->IncreaseCycle();
-    
-    phi2 = phi2 + (clockwise ? -1 : 1) * pionTrack->GetCycle() * 2*TMath::Pi();
-  }
-  else if(phi2 > phiVertex &&
-          phi1 > phiVertex){
-    phi1 = phi1 + (clockwise ? -1 : 1) * pionTrack->GetCycle() * 2*TMath::Pi();
-    phi2 = phi2 + (clockwise ? -1 : 1) * pionTrack->GetCycle() * 2*TMath::Pi();
-  }
-  else{
-    phiVertex = phiVertex + (clockwise ? -1 : 1) * pionTrack->GetCycle() * 2*TMath::Pi();
-    phi1      = phi1 + (clockwise ? -1 : 1) * pionTrack->GetCycle() * 2*TMath::Pi();
-    phi2      = phi2 + (clockwise ? -1 : 1) * pionTrack->GetCycle() * 2*TMath::Pi();
-  }
-  
-  double phiMin = min(min(phi1, phi2), phiVertex)/TMath::Pi() * 180;
-  double phiMax = max(max(phi1, phi2), phiVertex)/TMath::Pi() * 180;
-  
-  return range<double>(phiMin, phiMax);
-}
-
-range<double> Fitter::GetSeedPhiRange(const unique_ptr<Circle> &circle,
-                                      vector<shared_ptr<Point>> pointTriplet,
-                                      bool &clockwise)
-{
-  double phiVertex = circle->GetPointAngle(pointTriplet[0]->GetX(), pointTriplet[0]->GetY());
-  double phi1      = circle->GetPointAngle(pointTriplet[1]->GetX(), pointTriplet[1]->GetY());
-  double phi2      = circle->GetPointAngle(pointTriplet[2]->GetX(), pointTriplet[2]->GetY());
-  
-  clockwise = true;
-//  if(phi1 < phiVertex)  clockwise = true;
-//  else                  clockwise = false;
-  
-  double phiMin = min(min(phi1, phi2), phiVertex)/TMath::Pi() * 180;
-  double phiMax = max(max(phi1, phi2), phiVertex)/TMath::Pi() * 180;
-  
-  return range<double>(phiMin, phiMax);
-}
-
-vector<unique_ptr<ArcSet2D>> Fitter::BuildArcSetsFromCircles(const vector<unique_ptr<Circle>> &circles,
-                                                             vector<vector<shared_ptr<Point>>> pointTriplets)
-{
-  vector<unique_ptr<ArcSet2D>> arcs;
-  int iter=0;
-  
-  for(auto &circle : circles){
-    
-    if(!IsValidSeed(circle, pointTriplets[iter])) continue;
-    
-    bool clockwise;
-    auto circleRange = GetSeedPhiRange(circle, pointTriplets[iter], clockwise);
-    
-    auto arcSet2D = make_unique<ArcSet2D>(clockwise);
-    arcSet2D->AddCircle(circle, circleRange);
-    arcSet2D->AddPoints(pointTriplets[iter]);
-    arcs.push_back(move(arcSet2D));
-    
-//    circle->Print();
-    
-    iter++;
-  }
-  
-  return arcs;
-}
-
-unique_ptr<Circle> Fitter::GetBestCircle(const vector<unique_ptr<Circle>> &newCircles,
-                                         const unique_ptr<Circle> &previousCircle)
-{
-  double bestRadiiDifference = inf;
-  unique_ptr<Circle> bestCircle = nullptr;
-  
-  double p_x = previousCircle->GetPoints()[2]->GetX();
-  double p_y = previousCircle->GetPoints()[2]->GetY();
-  double c1_x = previousCircle->GetCenter()->GetX();
-  double c1_y = previousCircle->GetCenter()->GetY();
-  
-  double r1_x = c1_x - p_x;
-  double r1_y = c1_y - p_y;
-  double r1_mod = sqrt(r1_x*r1_x + r1_y*r1_y);
-  
-  for(auto &testingCircle : newCircles){
-    // New track segment cannot have greater radius (within some tolerance)
-    if(testingCircle->GetRadius() > 1.1*previousCircle->GetRadius()) continue; // FILTER
-    
-    // The center of the new circle should be withing the previous circle
-    double centerDifference = pointsProcessor->distanceXY(previousCircle->GetCenter(), testingCircle->GetCenter());
-    if(centerDifference > 1.1*previousCircle->GetRadius()) continue; // FILTER
-  
-    // Here we calculate an angle between radius of the previous circle and radius of the testing circle
-    // looking from the last point of previous circle. For perfectly matching circles that would be zero
-    double r2_x = testingCircle->GetCenter()->GetX() - p_x;
-    double r2_y = testingCircle->GetCenter()->GetY() - p_y;
-    double r2_mod = sqrt(r2_x*r2_x + r2_y*r2_y);
-    double alpha = acos((r1_x*r2_x + r1_y*r2_y) / (r1_mod*r2_mod));
-    radiiAnglesHist->Fill(alpha);
-    
-    if(alpha > 0.05) continue; // FILTER
-    
-    // This circle is better than previous if it's radius is closer to the desired one
-    // TODO: This condition may not be the best one...
-    double radiiDifference = previousCircle->GetRadius() - testingCircle->GetRadius();
-    
-    if(radiiDifference < bestRadiiDifference){
-      bestRadiiDifference = radiiDifference;
-      bestCircle = make_unique<Circle>(testingCircle);
-    }
-  }
-  
-  return bestCircle;
-}
 
 unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
                                    const shared_ptr<Track> &_track,
@@ -544,46 +309,36 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
   track = _track;
   vertex = make_unique<Point>(_vertex);
   
-  cout<<"================================================================"<<endl;
-  cout<<"Fitting starts\n\n"<<endl;
-  cout<<"Initial number of points:"<<points.size()<<endl;
-  
   double minPointsSeparation = 3.0;
   double chi2threshold = 1E-5;
   
-  cout<<"min points separation:"<<minPointsSeparation<<endl;
-  cout<<"chi2 threshold:"<<chi2threshold<<endl;
-  
-  //----------------------------------------------------------------------------------------
-  
-  vector<shared_ptr<Point>> pointsInCycle = pointsProcessor->FilterNearbyPoints(points, minPointsSeparation);
-  cout<<"Points after cleanup:"<<pointsInCycle.size()<<endl;
+  // Get only points that are not too close to each other and plot them
+  vector<shared_ptr<Point>> filteredPoints = pointsProcessor->FilterNearbyPoints(points, minPointsSeparation);
+  cout<<"Points after cleanup:"<<filteredPoints.size()<<endl;
   
   TH2D *pointsHist = new TH2D("points","points",
                               300, -layerR[nLayers-1], layerR[nLayers-1],
                               300, -layerR[nLayers-1], layerR[nLayers-1]);
-//                              300, -2000, 2000,
-//                              300, -2000, 2000);
   
   pointsHist->Fill(0.0, 0.0, 5.0);
   
-  for(auto &p : pointsInCycle){
+  for(auto &p : filteredPoints){
     pointsHist->Fill(p->GetX(),p->GetY());
   }
   pointsHist->Draw("colz");
   
-
-  auto pointTriplets = BuildPointTriplets(pointsInCycle);
+  // Create all possible point triplets
+  auto pointTriplets = pointsProcessor->BuildPointTriplets(filteredPoints);
   cout<<"N valid point triplets:"<<pointTriplets.size()<<endl;
   
-  // add circles for all momentum directions
+  // Get circles matching those point triplets
   vector<unique_ptr<Circle>> circles;
   vector<unique_ptr<Circle>> circlesTmp;
   
   circlesTmp = FitCirclesAndAdjustFirstPoint(pointTriplets, 1, 1, chi2threshold);
-  circles.insert(circles.end(),
-                 make_move_iterator(circlesTmp.begin()),
-                 make_move_iterator(circlesTmp.end()));
+//  circles.insert(circles.end(),
+//                 make_move_iterator(circlesTmp.begin()),
+//                 make_move_iterator(circlesTmp.end()));
   
   circlesTmp = FitCirclesAndAdjustFirstPoint(pointTriplets,-1, 1, chi2threshold);
   circles.insert(circles.end(),
@@ -591,57 +346,65 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
                  make_move_iterator(circlesTmp.end()));
   
   circlesTmp = FitCirclesAndAdjustFirstPoint(pointTriplets, 1,-1, chi2threshold);
-  circles.insert(circles.end(),
-                 make_move_iterator(circlesTmp.begin()),
-                 make_move_iterator(circlesTmp.end()));
+//  circles.insert(circles.end(),
+//                 make_move_iterator(circlesTmp.begin()),
+//                 make_move_iterator(circlesTmp.end()));
   
   circlesTmp = FitCirclesAndAdjustFirstPoint(pointTriplets,-1,-1, chi2threshold);
-  circles.insert(circles.end(),
-                 make_move_iterator(circlesTmp.begin()),
-                 make_move_iterator(circlesTmp.end()));
+//  circles.insert(circles.end(),
+//                 make_move_iterator(circlesTmp.begin()),
+//                 make_move_iterator(circlesTmp.end()));
   
   
-  cout<<"N valid circles:"<<circles.size()<<endl;
-  
-  vector<unique_ptr<ArcSet2D>> potentialPionTracks = BuildArcSetsFromCircles(circles, pointTriplets);
+  // Build seeds from the circles (this will check that they make sense)
+  vector<unique_ptr<ArcSet2D>> potentialPionTracks = arcSetProcessor->BuildArcSetsFromCircles(circles);
   cout<<"N track seeds:"<<potentialPionTracks.size()<<endl;
   
+  potentialPionTracks.erase(potentialPionTracks.begin());
+  potentialPionTracks.erase(potentialPionTracks.begin()+1, potentialPionTracks.end());
+  
   // fit more segments staring from seeds
-  /*
+  vector<double> alphaVector;
+  
   for(auto &pionTrack : potentialPionTracks){
-    int iter=0;
-    TGraph *pionTrackPoints = new TGraph();
-    pionTrackPoints->SetMarkerStyle(25);
-    pionTrackPoints->SetMarkerSize(1.0);
-    pionTrackPoints->SetMarkerColor(kRed);
-    
     while(1){
       // Get potential triplets of new points
-      auto newPointTriplets = BuildPointTriplets(pionTrack, pointsInCycle);
+      auto newPointTriplets = arcSetProcessor->BuildTripletsCompatibleWithArcSet(pionTrack, filteredPoints);
       
       // Build a circle for each possible combination of points
-      vector<unique_ptr<Circle>> newCircles = GetCirclesForPoints(newPointTriplets, chi2threshold);
+      vector<unique_ptr<Circle>> newCircles = circleProcessor->BuildCirclesFromPoints(newPointTriplets);
       
-      unique_ptr<Circle> bestCircle = GetBestCircle(newCircles, pionTrack->GetLastCircle());
+      unique_ptr<Circle> bestCircle = circleProcessor->GetMostCompatibleCircle(newCircles, pionTrack->GetLastCircle(), alphaVector);
       
       if(!bestCircle) break;
       
-      pionTrackPoints->SetPoint(iter++,
-                                bestCircle->GetPoints()[2]->GetX(),
-                                bestCircle->GetPoints()[2]->GetY());
-      
       // Add best circle's arc and the last point (the new one) to the pion's track candidate
-      pionTrack->AddCircle(bestCircle, GetPhiRange(bestCircle, pionTrack));
-      
-      pionTrack->AddPoint(bestCircle->GetPoints()[2]);
+      pionTrack->AddCircle(bestCircle);
     }
-    
-    pionTrackPoints->Draw("P");
   }
-  */
+  
+  PlotRadiiAngles(alphaVector);
+  PlotSeeds(potentialPionTracks);
+  PlotTracks(potentialPionTracks);
+  
+  unique_ptr<ArcSet2D> bestPionTrack = arcSetProcessor->GetBestArcSet(potentialPionTracks);
+  
+  if(!bestPionTrack) return nullptr;
+  
+  auto helix = make_unique<Helix>(make_unique<Point>(bestPionTrack->GetOrigin()),
+                                  make_unique<Point>(bestPionTrack->GetCircle(0)->GetMomentum()),
+                                  track->GetCharge());
+  return helix;
+}
+
+
+void Fitter::PlotSeeds(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
+{
+  c1->cd(1);
+  
   for(auto &pionTrack : potentialPionTracks){
     // skip drawing of seed-only tracks
-//    if(pionTrack->GetNarcs() == 1) continue;
+    //    if(pionTrack->GetNarcs() == 1) continue;
     
     TGraph *seedPoints = new TGraph();
     seedPoints->SetPoint(0, pionTrack->GetPoint(0)->GetX(), pionTrack->GetPoint(0)->GetY());
@@ -658,7 +421,12 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
     seedArc->SetLineColor(kMagenta);
     seedArc->Draw("sameLonly");
   }
-  
+  c1->Update();
+}
+
+void Fitter::PlotTracks(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
+{
+  c1->cd(1);
   TGraph *graphDecay = new TGraph();
   graphDecay->SetPoint(0, track->GetDecayPoint()->GetX(), track->GetDecayPoint()->GetY());
   graphDecay->SetMarkerStyle(20);
@@ -682,26 +450,13 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
       singleArc->Draw("sameLonly");
     }
   }
-  
+  c1->Update();
+}
+
+void Fitter::PlotRadiiAngles(const vector<double> &alphaVector)
+{
+  for(double alpha : alphaVector) radiiAnglesHist->Fill(alpha);
   c1->cd(2);
   radiiAnglesHist->Draw();
-  
   c1->Update();
-  //---------------------
-  
-  unique_ptr<ArcSet2D> bestPionTrack = nullptr;
-  unsigned long maxNarcs = 0;
-  
-  for(auto &pionTrack : potentialPionTracks){
-    if(pionTrack->GetNarcs() > maxNarcs){
-      maxNarcs = pionTrack->GetNarcs();
-      bestPionTrack = make_unique<ArcSet2D>(pionTrack);
-    }
-  }
-  if(!bestPionTrack) return nullptr;
-  
-  auto helix = make_unique<Helix>(make_unique<Point>(bestPionTrack->GetOrigin()),
-                                  make_unique<Point>(bestPionTrack->GetCircle(0)->GetMomentum()),
-                                  track->GetCharge());
-  return helix;
 }

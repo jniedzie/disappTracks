@@ -11,6 +11,9 @@
 #include "Point.hpp"
 #include "ConfigManager.hpp"
 
+typedef vector<shared_ptr<Point>> PointsTriplet; ///< Vector containing three points
+typedef vector<PointsTriplet> TripletsVector;    ///< Vector of triplets of points
+
 /// PointsProcessor provides methods performing operations on Point objects
 class PointsProcessor {
 public:
@@ -46,6 +49,9 @@ public:
   /// \param minPointsSeparation Minimal allowed distance between two points
   vector<shared_ptr<Point>> FilterNearbyPoints(const vector<shared_ptr<Point>> &points,
                                                double minPointsSeparation);
+  
+  /// Creates all possible combinations of input points with a dummy first triplet point
+  TripletsVector BuildPointTriplets(const vector<shared_ptr<Point>> &points);
 };
 
 #endif /* PointsProcessor_hpp */

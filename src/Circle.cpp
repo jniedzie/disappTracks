@@ -77,10 +77,8 @@ TArc* Circle::GetArc()
   return new TArc(center->GetX(),center->GetY(),radius);
 }
 
-
-
-double Circle::GetPointAngle(double x, double y)
+double Circle::GetPointAngle(uint i)
 {
-  return TMath::Pi()/2. + atan2(-(x-center->GetX()),
-                                 (y- center->GetY()));
+  return TMath::Pi()/2. + atan2(-(points[i]->GetX() - center->GetX()),
+                                 (points[i]->GetY() - center->GetY()));
 }

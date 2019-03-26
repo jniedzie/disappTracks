@@ -148,7 +148,7 @@ const vector<string> dataTitle = {
 const vector<vector<string>> inFileNameBackground = {
   // QCD
   {
-//    "../data_andrea/MC-SR/QCD_HT100to200/",
+    "../data_andrea/MC-SR/QCD_HT100to200/",
     "../data_andrea/MC-SR/QCD_HT200to300/",
     "../data_andrea/MC-SR/QCD_HT300to500/",
     "../data_andrea/MC-SR/QCD_HT500to700/",
@@ -174,10 +174,10 @@ const vector<vector<string>> inFileNameBackground = {
   {
     "../data_andrea/MC-SR/TTHad/",
     "../data_andrea/MC-SR/TTLep/",
-//    "../data_andrea/MC-SR/TTSemi/",
+    "../data_andrea/MC-SR/TTSemi/",
     "../data_andrea/MC-SR/T_tch/",
     "../data_andrea/MC-SR/T_tWch/",
-//    "../data_andrea/MC-SR/TBar_tch/",
+    "../data_andrea/MC-SR/TBar_tch/",
     "../data_andrea/MC-SR/TBar_tWch/",
   },
   // VV

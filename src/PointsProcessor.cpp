@@ -72,7 +72,6 @@ double PointsProcessor::distance(shared_ptr<Point> p1, shared_ptr<Point> p2) con
 
 double PointsProcessor::distanceWithUncertainZ(shared_ptr<Point> p1, shared_ptr<Point> p2,  double zTolerance) const
 {
-  int shiftSign = 0;
   double zDifference = fabs(p1->z - p2->z);
   
   if(zDifference < zTolerance) zDifference = 0;
@@ -107,4 +106,18 @@ vector<shared_ptr<Point>> PointsProcessor::FilterNearbyPoints(const vector<share
     filteredPoints.push_back(make_shared<Point>(point));
   }
   return filteredPoints;
+}
+
+TripletsVector PointsProcessor::BuildPointTriplets(const vector<shared_ptr<Point>> &points)
+{
+  int nPoints = (int)points.size();
+  TripletsVector pointTriplets;
+  
+  for(int i=0;i<nPoints;i++){
+    for(int j=i+1;j<nPoints;j++){
+      PointsTriplet triplet = {make_shared<Point>(inf,inf,inf), points[i], points[j] };
+      pointTriplets.push_back(triplet);
+    }
+  }
+  return pointTriplets;
 }
