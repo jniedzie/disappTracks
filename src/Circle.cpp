@@ -77,20 +77,7 @@ TArc* Circle::GetArc()
   return new TArc(center->GetX(),center->GetY(),radius);
 }
 
-void Circle::RemoveSimilarCircles(vector<unique_ptr<Circle>> &circles)
-{
-  if(circles.size() == 0) return;
-  
-  sort(circles.begin(), circles.end(),
-       [](const auto &c1, const auto &c2) -> bool {return c1->GetRadius() < c2->GetRadius();});
-  
-  for(uint i=0; i<circles.size()-1; i++){
-    if(fabs(circles[i]->GetRadius() - circles[i+1]->GetRadius()) < config->circleThickness){
-      circles.erase(circles.begin()+i);
-      i--;
-    }
-  }
-}
+
 
 double Circle::GetPointAngle(double x, double y)
 {

@@ -39,7 +39,13 @@ public:
   
   /// Returns a vector filled with random points in the pixel barrel
   /// \param nPoints Number of points that will be generated
-  shared_ptr<vector<Point>> GetRandomPoints(int nPoints) const;  
+  shared_ptr<vector<Point>> GetRandomPoints(int nPoints) const;
+  
+  /// Returns a new vector containing points that are not closer to each other than given threshold
+  /// \param points Input points vector
+  /// \param minPointsSeparation Minimal allowed distance between two points
+  vector<shared_ptr<Point>> FilterNearbyPoints(const vector<shared_ptr<Point>> &points,
+                                               double minPointsSeparation);
 };
 
 #endif /* PointsProcessor_hpp */

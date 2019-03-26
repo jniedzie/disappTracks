@@ -62,8 +62,6 @@ public:
   /// Returns an angle by which circle is rotated due to the shift of its origin
   inline double GetToffset(){return tShift;}
   
-  static void RemoveSimilarCircles(vector<unique_ptr<Circle>> &circles);
-  
   /// Returns phi angle for given point (x,y)
   double GetPointAngle(double x, double y);
 private:
@@ -74,6 +72,8 @@ private:
   vector<shared_ptr<Point>> points;           ///< Points belonging to this circle
   double radius;                  ///< Radius of the circle (calculated from the momentum)
   double tShift;                  ///< Angle by which circle is rotated due to the shift of its origin
+  
+  friend class CircleProcessor;
 };
 
 #endif /* Circle_hpp */

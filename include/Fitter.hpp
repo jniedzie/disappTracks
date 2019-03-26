@@ -9,7 +9,7 @@
 
 #include "Helpers.hpp"
 #include "PointsProcessor.hpp"
-#include "Circle.hpp"
+#include "CircleProcessor.hpp"
 #include "ArcSet2D.hpp"
 #include "HelixProcessor.hpp"
 #include "ConfigManager.hpp"
@@ -40,7 +40,8 @@ public:
   
 private:
   unique_ptr<PointsProcessor> pointsProcessor;
-  unique_ptr<HelixProcessor> helixProcessor;
+  unique_ptr<HelixProcessor>  helixProcessor;
+  unique_ptr<CircleProcessor> circleProcessor;
   
   vector<shared_ptr<Point>> points;
   shared_ptr<Track> track;
@@ -72,17 +73,19 @@ private:
   /// Sets and fixes a value for a ROOT fitter's parameter
   void FixParameter(ROOT::Fit::Fitter *fitter, int i, string name, double val);
   
-  
-  vector<shared_ptr<Point>> GetPointsInCycle(double minPointsSeparation);
-  
+  /// Returns fitter that fits circle in terms of px, py and L, based on track parameters and settings in config
   ROOT::Fit::Fitter* GetCirclesFitter(int pxSign, int pySign);
   
+  /// Fits seeds to doublets of points and a track, setting first point of each triplet to the most
+  /// probable value. Trashes solutions that are above given chi2 threshold.
+  /// \param pointTriplets Input points - first one in each triplet doesn't matter, as it will be set by this method
+  /// \param pxSign px component direction
+  /// \param pySign py component direction
+  /// \param chi2threshold Max allowed chi2
   vector<unique_ptr<Circle>> FitCirclesAndAdjustFirstPoint(vector<vector<shared_ptr<Point>>> &pointTriplets,
                                                            int pxSign, int pySign,
                                                            double chi2threshold);
   
-  vector<unique_ptr<Circle>> GetCirclesForPoints(vector<vector<shared_ptr<Point>>> &pointTriplets,
-                                                         double chi2threshold);
   
   vector<vector<shared_ptr<Point>>> BuildPointTriplets(const vector<shared_ptr<Point>> &inputPoints);
   

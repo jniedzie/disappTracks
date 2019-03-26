@@ -90,3 +90,21 @@ double PointsProcessor::distanceXYsquared(Point p1, Point p2) const
 {
   return (p1.x-p2.x)*(p1.x-p2.x)+(p1.y-p2.y)*(p1.y-p2.y);
 }
+
+vector<shared_ptr<Point>> PointsProcessor::FilterNearbyPoints(const vector<shared_ptr<Point>> &points, double minPointsSeparation)
+{
+  vector<shared_ptr<Point>> filteredPoints;
+  
+  // remove points that are too close to each other
+  for(auto &point : points){
+    bool tooClose = false;
+    
+    for(auto otherPoint : filteredPoints){
+      if(distance(point, *otherPoint) < minPointsSeparation) tooClose = true;
+    }
+    if(tooClose) continue;
+    
+    filteredPoints.push_back(make_shared<Point>(point));
+  }
+  return filteredPoints;
+}
