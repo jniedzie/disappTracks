@@ -72,7 +72,7 @@ EOM
         --mc \
         --datatier GEN-SIM \
         --beamspot Realistic25ns13TeVEarly2017Collision \
-        --conditions auto:phase1_2017_realistic \
+        --conditions 94X_mc2017_realistic_v14 \
         --eventcontent RAWSIM \
         --era Run2_2017 \
         --python_filename scripts/chargino300GeV_ctau10cm_GEN-SIM_${iJob}.py \
@@ -131,13 +131,14 @@ EOM
         cmsDriver.py \
         --step DIGI,L1,DIGI2RAW,HLT \
         --datatier GEN-SIM-RAW \
-        --conditions auto:phase1_2017_realistic \
+        --conditions 94X_mc2017_realistic_v14 \
         --eventcontent RAWSIM \
         --era Run2_2017 \
         --filein file:$input_path/chargino300GeV_ctau10cm_GEN-SIM_${iJob}.root \
         --fileout file:generatedEvents/chargino300GeV_ctau10cm_GEN-SIM-RAW_${iJob}.root \
         --python_filename scripts/chargino300GeV_ctau10cm_GEN-SIM-RAW_${iJob}.py \
         --customise Configuration/DataProcessing/Utils.addMonitoring,SimG4Core/CustomPhysics/GenPlusSimParticles_cfi.customizeProduce,SimG4Core/CustomPhysics/GenPlusSimParticles_cfi.customizeKeep \
+        --customise_commands 'process.RAWSIMEventContent.outputCommands.extend(["keep *_trackingParticleRecoTrackAsssociation_*_*", "keep StripDigiSimLinkedmDetSetVector_simSiStripDigis_*_*"])' \
         -n -1 \
         --no_exec
 
