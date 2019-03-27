@@ -37,8 +37,7 @@ phiRange(_phiRange)
 {
   double pt = GetPtInMagField(radius, solenoidField);
   
-  tShift = atan2(center->GetY() - decayPoint->GetY(),
-                 center->GetX() - decayPoint->GetX());
+  tShift = TMath::Pi()/2. + GetPointAngle(make_shared<Point>(decayPoint));
   
   momentum = make_unique<Point>(pt * sin(tShift), pt * cos(tShift), 0.0);
 }
@@ -85,12 +84,12 @@ TArc* Circle::GetArc()
 
 double Circle::GetPointAngle(uint i)
 {
-  return TMath::Pi()/2. + atan2(-(points[i]->GetX() - center->GetX()),
+  return TMath::Pi()/2. - atan2( (points[i]->GetX() - center->GetX()),
                                  (points[i]->GetY() - center->GetY()));
 }
 
 double Circle::GetPointAngle(const shared_ptr<Point> &point)
 {
-  return TMath::Pi()/2. + atan2(- (point->GetX() - center->GetX()),
+  return TMath::Pi()/2. - atan2(  (point->GetX() - center->GetX()),
                                   (point->GetY() - center->GetY()));
 }

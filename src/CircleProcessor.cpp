@@ -246,6 +246,7 @@ unique_ptr<Circle> CircleProcessor::GetCircleFromTriplet(const PointsTriplet &tr
   
   auto circle = make_unique<Circle>(decayPoint, center, R);
   circle->SetPoints(triplet);
+  circle->SetPz(triplet[1]->GetZ() - triplet[0]->GetZ());
   
   return circle;
 }

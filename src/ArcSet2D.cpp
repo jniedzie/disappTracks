@@ -65,6 +65,7 @@ void ArcSet2D::AddCircle(const unique_ptr<Circle> &circle)
       
       iCycle++;
       phiEnd    -= iCycle * 2*TMath::Pi();
+      phiMiddle -= iCycle * 2*TMath::Pi();
     }
     else if(phiEnd > phiMiddle &&
             phiEnd < phiStart){

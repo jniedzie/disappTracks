@@ -94,10 +94,10 @@ private:
   void PlotRadiiAngles(const vector<double> &alphaVector);
   void PlotClusters(const vector<shared_ptr<Point>> &filteredPoints);
   
-  unique_ptr<TGraph> GetDecayGraph();
+  TGraph* GetDecayGraph();
   
   TCanvas *c1;
-  TH1D *radiiAnglesHist;
+  unique_ptr<TH1D> radiiAnglesHist;
 };
 
 #endif /* Fitter_hpp */

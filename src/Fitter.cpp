@@ -16,7 +16,7 @@ arcSetProcessor(make_unique<ArcSetProcessor>())
   c1->Divide(2,2);
   c1->cd(1);
   
-  radiiAnglesHist = new TH1D("radiiAnglesHist","radiiAnglesHist",100,-1,1);
+  radiiAnglesHist = make_unique<TH1D>("radiiAnglesHist","radiiAnglesHist",100,-1,1);
 }
 
 Fitter::~Fitter()
@@ -310,7 +310,7 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
   vertex = make_unique<Point>(_vertex);
   
   double minPointsSeparation = 10.0; // mm
-  double chi2threshold = 1E-6;
+//  double chi2threshold = 1E-6;
   
   // Get only points that are not too close to each other and plot them
   vector<shared_ptr<Point>> filteredPoints = pointsProcessor->FilterNearbyPoints(points, minPointsSeparation);
@@ -370,7 +370,7 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
   vector<unique_ptr<ArcSet2D>> potentialPionTracks = arcSetProcessor->BuildArcSetsFromCircles(circles);
   cout<<"N track seeds:"<<potentialPionTracks.size()<<endl;
   
-  int iTrack = 8;
+//  int iTrack = 0;
 //  potentialPionTracks.erase(potentialPionTracks.begin(), potentialPionTracks.begin()+iTrack);
 //  potentialPionTracks.erase(potentialPionTracks.begin()+1, potentialPionTracks.end());
   
@@ -448,7 +448,7 @@ void Fitter::PlotSeeds(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
   
   for(auto &pionTrack : potentialPionTracks){
     // skip drawing of seed-only tracks
-    if(pionTrack->GetNarcs() == 1) continue;
+//    if(pionTrack->GetNarcs() == 1) continue;
     
     TGraph *seedPoints = new TGraph();
     seedPoints->SetPoint(0, pionTrack->GetPoint(0)->GetX(), pionTrack->GetPoint(0)->GetY());
@@ -493,9 +493,9 @@ void Fitter::PlotTracks(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
   c1->Update();
 }
 
-unique_ptr<TGraph> Fitter::GetDecayGraph()
+TGraph* Fitter::GetDecayGraph()
 {
-  auto graphDecay = make_unique<TGraph>();
+  auto graphDecay = new TGraph();
   
   double minR = layerR[track->GetNtrackerLayers()-1];
   double maxR = layerR[track->GetNtrackerLayers()];

@@ -185,7 +185,7 @@ vector<shared_ptr<Point>> ArcSetProcessor::FindPossibleNextPoints(const unique_p
     
     // it also has to be within the radius of the helix
     double pointR = pointsProcessor->distanceXY(point, circle->GetCenter());
-    if(pointR > 1.1*circle->GetRadius()) isValidPoint = false; // FILTER
+    if(pointR > circle->GetRadius() + config->circleThickness) isValidPoint = false; // FILTER
     
     if(isValidPoint) possiblePoints.push_back(point);
   }
@@ -199,6 +199,8 @@ unique_ptr<ArcSet2D> ArcSetProcessor::GetBestArcSet(const vector<unique_ptr<ArcS
   double bestChi2 = inf;
   
   for(auto &arcSet : arcSets){
+    if(arcSet->GetNarcs() < 3) continue;
+    
 //    if(arcSet->GetNarcs() > maxNarcs){
 //      maxNarcs = arcSet->GetNarcs();
 //      bestArcSet = make_unique<ArcSet2D>(arcSet);
