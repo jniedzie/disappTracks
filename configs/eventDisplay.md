@@ -77,7 +77,7 @@ n_track_hits: 2
 helix_thickness:  10.0
 
 ### Determines how far points can be from circle to be assigned to it (in mm):
-circle_thickness: 10.0
+circle_thickness: 1.0
 
 ### Determines how far points can be from each other to be counted as the same z-line (in mm),
 ### when assigining circles (probably this needs to be greater than circle_thickness):

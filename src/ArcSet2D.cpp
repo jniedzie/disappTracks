@@ -63,6 +63,11 @@ void ArcSet2D::AddCircle(const unique_ptr<Circle> &circle)
     iCycle++;
     phiEnd    -= iCycle * 2*TMath::Pi();
   }
+  else if(phiEnd > phiMiddle &&
+          phiEnd < phiStart){
+    iCycle++;
+    phiEnd -= iCycle * 2*TMath::Pi();
+  }
   else if(phiEnd    > phiStart &&
           phiMiddle > phiStart){
     
@@ -104,4 +109,19 @@ vector<TArc*> ArcSet2D::GetArcs()
 double ArcSet2D::GetOriginPhi()
 {
   return circles[0]->GetPointAngle(0);
+}
+
+double ArcSet2D::GetRadiiSlopeChi2()
+{
+  auto graph = make_unique<TGraph>();
+  int iter=0;
+  
+  for(auto &circle : circles){
+    graph->SetPoint(iter, iter, circle->GetRadius());
+  }
+  TF1 *fun = new TF1("fun","[0]*x+[1]",0,graph->GetN());
+  graph->Fit(fun);
+  
+  
+  return fun->GetChisquare();
 }

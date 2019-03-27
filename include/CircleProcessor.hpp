@@ -23,6 +23,7 @@ public:
   ~CircleProcessor();
   
   /// Removes circles which radii are within circleThickness parameter in the config
+  /// If two circles are similar, the one with longer arc will be removed
   void RemoveSimilarCircles(vector<unique_ptr<Circle>> &circles);
   
   /// Takes a vector of triplets of points and returns a vector of circles matching these triplets

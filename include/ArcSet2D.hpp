@@ -57,6 +57,8 @@ public:
   
   vector<TArc*> GetArcs();
   
+  double GetRadiiSlopeChi2();
+  
 private:
   vector<unique_ptr<Circle>> circles;     ///< Segments of the track (first one is the seed)
   vector<shared_ptr<Point>> points;       ///< Points along the track

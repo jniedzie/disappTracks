@@ -138,11 +138,17 @@ TripletsVector ArcSetProcessor::BuildTripletsCompatibleWithArcSet(const unique_p
 unique_ptr<ArcSet2D> ArcSetProcessor::GetBestArcSet(const vector<unique_ptr<ArcSet2D>> &arcSets)
 {
   unique_ptr<ArcSet2D> bestArcSet = nullptr;
-  unsigned long maxNarcs = 0;
+  int maxNarcs = 0;
+  double bestChi2 = inf;
   
   for(auto &arcSet : arcSets){
-    if(arcSet->GetNarcs() > maxNarcs){
-      maxNarcs = arcSet->GetNarcs();
+//    if(arcSet->GetNarcs() > maxNarcs){
+//      maxNarcs = arcSet->GetNarcs();
+//      bestArcSet = make_unique<ArcSet2D>(arcSet);
+//    }
+    double chi2 = arcSet->GetRadiiSlopeChi2();
+    if(chi2 < bestChi2){
+      bestChi2 = chi2;
       bestArcSet = make_unique<ArcSet2D>(arcSet);
     }
   }

@@ -12,8 +12,8 @@ helixProcessor(make_unique<HelixProcessor>()),
 circleProcessor(make_unique<CircleProcessor>()),
 arcSetProcessor(make_unique<ArcSetProcessor>())
 {
-  c1 = new TCanvas("c1","c1",2000,1000);
-  c1->Divide(2,1);
+  c1 = new TCanvas("c1","c1",1500,1500);
+  c1->Divide(2,2);
   c1->cd(1);
   
   radiiAnglesHist = new TH1D("radiiAnglesHist","radiiAnglesHist",100,-1,1);
@@ -316,16 +316,7 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
   vector<shared_ptr<Point>> filteredPoints = pointsProcessor->FilterNearbyPoints(points, minPointsSeparation);
   cout<<"Points after cleanup:"<<filteredPoints.size()<<endl;
   
-  TH2D *pointsHist = new TH2D("points","points",
-                              300, -layerR[nLayers-1], layerR[nLayers-1],
-                              300, -layerR[nLayers-1], layerR[nLayers-1]);
-  
-  pointsHist->Fill(0.0, 0.0, 5.0);
-  
-  for(auto &p : filteredPoints){
-    pointsHist->Fill(p->GetX(),p->GetY());
-  }
-  pointsHist->Draw("colz");
+  PlotClusters(filteredPoints);
   
   // Create all possible point triplets
   auto pointTriplets = pointsProcessor->BuildPointTriplets(filteredPoints);
@@ -360,8 +351,9 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
   vector<unique_ptr<ArcSet2D>> potentialPionTracks = arcSetProcessor->BuildArcSetsFromCircles(circles);
   cout<<"N track seeds:"<<potentialPionTracks.size()<<endl;
   
-  potentialPionTracks.erase(potentialPionTracks.begin());
-  potentialPionTracks.erase(potentialPionTracks.begin()+1, potentialPionTracks.end());
+//  potentialPionTracks.erase(potentialPionTracks.begin());
+//  potentialPionTracks.erase(potentialPionTracks.begin(), potentialPionTracks.begin()+3);
+//  potentialPionTracks.erase(potentialPionTracks.begin()+1, potentialPionTracks.end());
   
   // fit more segments staring from seeds
   vector<double> alphaVector;
@@ -385,9 +377,11 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
   
   PlotRadiiAngles(alphaVector);
   PlotSeeds(potentialPionTracks);
-  PlotTracks(potentialPionTracks);
+//  PlotTracks(potentialPionTracks);
   
   unique_ptr<ArcSet2D> bestPionTrack = arcSetProcessor->GetBestArcSet(potentialPionTracks);
+  
+  PlotBestTrack(bestPionTrack);
   
   if(!bestPionTrack) return nullptr;
   
@@ -404,7 +398,7 @@ void Fitter::PlotSeeds(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
   
   for(auto &pionTrack : potentialPionTracks){
     // skip drawing of seed-only tracks
-    //    if(pionTrack->GetNarcs() == 1) continue;
+    if(pionTrack->GetNarcs() == 1) continue;
     
     TGraph *seedPoints = new TGraph();
     seedPoints->SetPoint(0, pionTrack->GetPoint(0)->GetX(), pionTrack->GetPoint(0)->GetY());
@@ -453,10 +447,41 @@ void Fitter::PlotTracks(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
   c1->Update();
 }
 
+void Fitter::PlotBestTrack(const unique_ptr<ArcSet2D> &pionTrack)
+{
+  c1->cd(3);
+  
+  for(auto singleArc : pionTrack->GetArcs()){
+    singleArc->SetFillColorAlpha(kWhite, 0.0);
+    singleArc->SetLineWidth(2.0);
+    singleArc->SetLineColor(kGreen);
+    singleArc->Draw("sameLonly");
+  }
+  c1->Update();
+}
+
 void Fitter::PlotRadiiAngles(const vector<double> &alphaVector)
 {
   for(double alpha : alphaVector) radiiAnglesHist->Fill(alpha);
   c1->cd(2);
   radiiAnglesHist->Draw();
   c1->Update();
+}
+
+void Fitter::PlotClusters(const vector<shared_ptr<Point>> &filteredPoints)
+{
+  c1->cd(1);
+  TH2D *pointsHist = new TH2D("points","points",
+                              300, -layerR[nLayers-1], layerR[nLayers-1],
+                              300, -layerR[nLayers-1], layerR[nLayers-1]);
+  
+  pointsHist->Fill(0.0, 0.0, 5.0);
+  
+  for(auto &p : filteredPoints){
+    pointsHist->Fill(p->GetX(),p->GetY());
+  }
+  c1->cd(1);
+  pointsHist->DrawCopy("colz");
+  c1->cd(3);
+  pointsHist->DrawCopy("colz");
 }

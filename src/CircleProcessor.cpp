@@ -26,7 +26,13 @@ void CircleProcessor::RemoveSimilarCircles(vector<unique_ptr<Circle>> &circles)
   
   for(uint i=0; i<circles.size()-1; i++){
     if(fabs(circles[i]->GetRadius() - circles[i+1]->GetRadius()) < config->circleThickness){
-      circles.erase(circles.begin()+i);
+      if((circles[i]->GetRange().GetMax()   - circles[i]->GetRange().GetMin()) >
+         (circles[i+1]->GetRange().GetMax() - circles[i+1]->GetRange().GetMin())){
+        circles.erase(circles.begin()+i);
+      }
+      else{
+        circles.erase(circles.begin()+i+1);
+      }
       i--;
     }
   }
@@ -103,22 +109,20 @@ unique_ptr<Circle> CircleProcessor::GetMostCompatibleCircle(const vector<unique_
   double r1_y = c1_y - p_y;
   double r1_mod = sqrt(r1_x*r1_x + r1_y*r1_y);
   
-  
-  
   for(auto &testingCircle : circles){
     // New track segment cannot have greater radius (within some tolerance)
-    if(testingCircle->GetRadius() > 1.1*theCircle->GetRadius()) continue; // FILTER
+    if(testingCircle->GetRadius() > 1.01*theCircle->GetRadius()) continue; // FILTER
   
     // make sure that the new circle doesn't go in an opposite direction
     if(testingCircle->GetRange().GetMin() > theCircle->GetRange().GetMin() ||
        testingCircle->GetRange().GetMax() > theCircle->GetRange().GetMin()){
-      continue;
+//      continue;
     }
     
     
     // The center of the new circle should be withing the previous circle
     double centerDifference = pointsProcessor->distanceXY(theCircle->GetCenter(), testingCircle->GetCenter());
-    if(centerDifference > 1.1*theCircle->GetRadius()) continue; // FILTER
+    if(centerDifference > theCircle->GetRadius()) continue; // FILTER
     
     // Here we calculate an angle between radius of the previous circle and radius of the testing circle
     // looking from the last point of previous circle. For perfectly matching circles that would be zero
