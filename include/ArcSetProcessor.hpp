@@ -30,7 +30,14 @@ public:
   TripletsVector BuildTripletsCompatibleWithArcSet(const unique_ptr<ArcSet2D> &arcSet,
                                                    const vector<shared_ptr<Point>> &points);
   
-  /// Finds the best (in terms of number of arcs) ArcSet among those provided
+  
+  /// Returns vector of points that potenially could extend an existing ArcSet2D track
+  /// \param arcSet Existing track for which candidate triplets should be found
+  /// \param points Vector of all points in space from which only those compatible will be selected
+  vector<shared_ptr<Point>> FindPossibleNextPoints(const unique_ptr<ArcSet2D> &arcSet,
+                                                   const vector<shared_ptr<Point>> &points);
+  
+  /// Finds the best arc set based on how close to linear the radii change from segment to segment is
   unique_ptr<ArcSet2D> GetBestArcSet(const vector<unique_ptr<ArcSet2D>> &arcSets);
   
 private:

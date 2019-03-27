@@ -49,6 +49,10 @@ public:
   /// Returns point at index i
   shared_ptr<Point> GetPoint(unsigned long i){return points[i];}
   
+  shared_ptr<Point> GetLastPoint(){return points[points.size()-1];}
+  
+  shared_ptr<Point> GetSecondToPoint(){return points[points.size()-2];}
+  
   /// Returns ROOT object representing a circle, that can be plotted in a canvas
   TArc* GetArc();
   
@@ -70,6 +74,9 @@ public:
   /// Returns phi angle of circle's point i
   /// \param i Index of the circle's point
   double GetPointAngle(uint i);
+  
+  /// Returns phi angle relative to this circles center of a given point
+  double GetPointAngle(const shared_ptr<Point> &point);
   
   inline range<double> GetRange(){return phiRange;}
   

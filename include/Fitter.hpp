@@ -89,9 +89,12 @@ private:
   
   void PlotSeeds(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks);
   void PlotTracks(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks);
+  void PlotGoodTracks(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks);
   void PlotBestTrack(const unique_ptr<ArcSet2D> &pionTrack);
   void PlotRadiiAngles(const vector<double> &alphaVector);
   void PlotClusters(const vector<shared_ptr<Point>> &filteredPoints);
+  
+  unique_ptr<TGraph> GetDecayGraph();
   
   TCanvas *c1;
   TH1D *radiiAnglesHist;

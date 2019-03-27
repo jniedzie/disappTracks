@@ -223,8 +223,8 @@ ROOT::Fit::Fitter* Fitter::GetCirclesFitter(int pxSign, int pySign)
   auto pxRange = range<double>(config->minPx, config->maxPx);
   auto pyRange = range<double>(config->minPy, config->maxPy);
   
-  double minL = layerR[track->GetLastBarrelLayer()];
-  double maxL = layerR[track->GetLastBarrelLayer()+1];
+  double maxR = layerR[track->GetNtrackerLayers()];
+  double minR = layerR[track->GetNtrackerLayers()-1];
   
   // Create fitter to fit circles to 2D distribution
   ROOT::Fit::Fitter *fitter = new ROOT::Fit::Fitter();
@@ -240,7 +240,7 @@ ROOT::Fit::Fitter* Fitter::GetCirclesFitter(int pxSign, int pySign)
   
   double helixThickness = config->helixThickness;
   
-  SetParameter(fitter, 0, "L", (maxL+minL)/2., minL-helixThickness, maxL+helixThickness);
+  SetParameter(fitter, 0, "L", (maxR+minR)/2., minR-helixThickness, maxR+helixThickness);
   SetParameter(fitter, 1, "px",
                pxSign*(pxRange.GetMax()-pxRange.GetMin())/2.,
                pxSign > 0 ? pxRange.GetMin() : -pxRange.GetMax(),
@@ -309,8 +309,8 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
   track = _track;
   vertex = make_unique<Point>(_vertex);
   
-  double minPointsSeparation = 3.0;
-  double chi2threshold = 1E-5;
+  double minPointsSeparation = 10.0; // mm
+  double chi2threshold = 1E-6;
   
   // Get only points that are not too close to each other and plot them
   vector<shared_ptr<Point>> filteredPoints = pointsProcessor->FilterNearbyPoints(points, minPointsSeparation);
@@ -326,47 +326,96 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
   vector<unique_ptr<Circle>> circles;
   vector<unique_ptr<Circle>> circlesTmp;
   
-  circlesTmp = FitCirclesAndAdjustFirstPoint(pointTriplets, 1, 1, chi2threshold);
+//  circlesTmp = FitCirclesAndAdjustFirstPoint(pointTriplets, 1, 1, chi2threshold);
 //  circles.insert(circles.end(),
 //                 make_move_iterator(circlesTmp.begin()),
 //                 make_move_iterator(circlesTmp.end()));
   
-  circlesTmp = FitCirclesAndAdjustFirstPoint(pointTriplets,-1, 1, chi2threshold);
-  circles.insert(circles.end(),
-                 make_move_iterator(circlesTmp.begin()),
-                 make_move_iterator(circlesTmp.end()));
-  
-  circlesTmp = FitCirclesAndAdjustFirstPoint(pointTriplets, 1,-1, chi2threshold);
+//  circlesTmp = FitCirclesAndAdjustFirstPoint(pointTriplets,-1, 1, chi2threshold);
+//  circles.insert(circles.end(),
+//                 make_move_iterator(circlesTmp.begin()),
+//                 make_move_iterator(circlesTmp.end()));
+//
+//  circlesTmp = FitCirclesAndAdjustFirstPoint(pointTriplets, 1,-1, chi2threshold);
 //  circles.insert(circles.end(),
 //                 make_move_iterator(circlesTmp.begin()),
 //                 make_move_iterator(circlesTmp.end()));
   
-  circlesTmp = FitCirclesAndAdjustFirstPoint(pointTriplets,-1,-1, chi2threshold);
+//  circlesTmp = FitCirclesAndAdjustFirstPoint(pointTriplets,-1,-1, chi2threshold);
 //  circles.insert(circles.end(),
 //                 make_move_iterator(circlesTmp.begin()),
 //                 make_move_iterator(circlesTmp.end()));
   
+  double minR = layerR[track->GetNtrackerLayers()-1];
+  double maxR = layerR[track->GetNtrackerLayers()];
+  
+  double decayXmin = minR*cos(track->GetPhi());
+  double decayYmin = minR*sin(track->GetPhi());
+  double decayZmin = minR/sin(track->GetTheta())*cos(track->GetTheta());
+  
+  double decayXmax = maxR*cos(track->GetPhi());
+  double decayYmax = maxR*sin(track->GetPhi());
+  double decayZmax = maxR/sin(track->GetTheta())*cos(track->GetTheta());
+  
+  auto originMin = make_shared<Point>(decayXmin, decayYmin, decayZmin);
+  auto originMax = make_shared<Point>(decayXmax, decayYmax, decayZmax);
+  
+  double minRadius = GetRadiusInMagField(config->minPx, config->minPy, solenoidField);
+  double maxRadius = GetRadiusInMagField(config->maxPx, config->maxPy, solenoidField);
+  
+  TripletPairsVector tripletPairs = pointsProcessor->BuildPointTripletPairs(filteredPoints, originMin, originMax);
+  circles = circleProcessor->BuildCirclesFromTripletPairs(tripletPairs, range<double>(minRadius, maxRadius));
   
   // Build seeds from the circles (this will check that they make sense)
   vector<unique_ptr<ArcSet2D>> potentialPionTracks = arcSetProcessor->BuildArcSetsFromCircles(circles);
   cout<<"N track seeds:"<<potentialPionTracks.size()<<endl;
   
-//  potentialPionTracks.erase(potentialPionTracks.begin());
-//  potentialPionTracks.erase(potentialPionTracks.begin(), potentialPionTracks.begin()+3);
+  int iTrack = 8;
+//  potentialPionTracks.erase(potentialPionTracks.begin(), potentialPionTracks.begin()+iTrack);
 //  potentialPionTracks.erase(potentialPionTracks.begin()+1, potentialPionTracks.end());
   
   // fit more segments staring from seeds
   vector<double> alphaVector;
-  
+  int iter=0;
   for(auto &pionTrack : potentialPionTracks){
     while(1){
+      iter++;
       // Get potential triplets of new points
-      auto newPointTriplets = arcSetProcessor->BuildTripletsCompatibleWithArcSet(pionTrack, filteredPoints);
+//      auto newPointTriplets = arcSetProcessor->BuildTripletsCompatibleWithArcSet(pionTrack, filteredPoints);
+      auto newPoints = arcSetProcessor->FindPossibleNextPoints(pionTrack, filteredPoints);
+      
+      vector<unique_ptr<Circle>> newCircles;
+      unique_ptr<Circle> bestCircle = nullptr;
+      
+      double maxRadiiDifference = 0.2;
+      
+      for(auto point : newPoints){
+        auto circle = circleProcessor->GetParallelCircle(pionTrack->GetLastCircle(), point);
+        
+//        if(circle->GetRadius() > 1.1*pionTrack->GetLastCircle()->GetRadius()) continue;
+        
+        double diff = (pionTrack->GetLastCircle()->GetRadius() - circle->GetRadius())/pionTrack->GetLastCircle()->GetRadius();
+        
+        if(diff < maxRadiiDifference){
+          newCircles.push_back(move(circle));
+        }
+      }
+      
+      double shortestArc = inf;
+      
+      for(auto &circle : newCircles){
+        double arcLength = circle->GetRange().GetMax() - circle->GetRange().GetMin();
+        
+        if(arcLength < shortestArc){
+          shortestArc = arcLength;
+          bestCircle = move(circle);
+        }
+      }
       
       // Build a circle for each possible combination of points
-      vector<unique_ptr<Circle>> newCircles = circleProcessor->BuildCirclesFromPoints(newPointTriplets);
+//      vector<unique_ptr<Circle>> newCircles = circleProcessor->BuildCirclesFromPoints(newPointTriplets);
       
-      unique_ptr<Circle> bestCircle = circleProcessor->GetMostCompatibleCircle(newCircles, pionTrack->GetLastCircle(), alphaVector);
+//      unique_ptr<Circle> bestCircle = circleProcessor->GetMostCompatibleCircle(newCircles, pionTrack->GetLastCircle(), alphaVector);
       
       if(!bestCircle) break;
       
@@ -375,9 +424,10 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
     }
   }
   
-  PlotRadiiAngles(alphaVector);
+//  PlotRadiiAngles(alphaVector);
   PlotSeeds(potentialPionTracks);
-//  PlotTracks(potentialPionTracks);
+  PlotTracks(potentialPionTracks);
+  PlotGoodTracks(potentialPionTracks);
   
   unique_ptr<ArcSet2D> bestPionTrack = arcSetProcessor->GetBestArcSet(potentialPionTracks);
   
@@ -421,11 +471,7 @@ void Fitter::PlotSeeds(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
 void Fitter::PlotTracks(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
 {
   c1->cd(1);
-  TGraph *graphDecay = new TGraph();
-  graphDecay->SetPoint(0, track->GetDecayPoint()->GetX(), track->GetDecayPoint()->GetY());
-  graphDecay->SetMarkerStyle(20);
-  graphDecay->SetMarkerSize(1.0);
-  graphDecay->SetMarkerColor(kRed);
+  auto graphDecay = GetDecayGraph();
   graphDecay->Draw("P");
   
   for(auto &pionTrack : potentialPionTracks){
@@ -447,9 +493,51 @@ void Fitter::PlotTracks(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
   c1->Update();
 }
 
+unique_ptr<TGraph> Fitter::GetDecayGraph()
+{
+  auto graphDecay = make_unique<TGraph>();
+  
+  double minR = layerR[track->GetNtrackerLayers()-1];
+  double maxR = layerR[track->GetNtrackerLayers()];
+  
+  graphDecay->SetPoint(0,
+                       minR*cos(track->GetPhi()) + vertex->GetX(),
+                       minR*sin(track->GetPhi()) + vertex->GetY());
+  
+  graphDecay->SetPoint(1,
+                       maxR*cos(track->GetPhi()) + vertex->GetX(),
+                       maxR*sin(track->GetPhi()) + vertex->GetY());
+  graphDecay->SetMarkerStyle(20);
+  graphDecay->SetMarkerSize(1.0);
+  graphDecay->SetMarkerColor(kRed);
+  
+  return graphDecay;
+}
+
+void Fitter::PlotGoodTracks(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
+{
+  c1->cd(2);
+  auto graphDecay = GetDecayGraph();
+  graphDecay->Draw("P");
+  
+  for(auto &pionTrack : potentialPionTracks){
+    if(pionTrack->GetCycle() < 1) continue;
+    
+    for(auto singleArc : pionTrack->GetArcs()){
+      singleArc->SetFillColorAlpha(kWhite, 0.0);
+      singleArc->SetLineWidth(1.0);
+      singleArc->SetLineColor(kBlue);
+      singleArc->Draw("sameLonly");
+    }
+  }
+  c1->Update();
+}
+
 void Fitter::PlotBestTrack(const unique_ptr<ArcSet2D> &pionTrack)
 {
   c1->cd(3);
+  auto graphDecay = GetDecayGraph();
+  graphDecay->Draw("P");
   
   for(auto singleArc : pionTrack->GetArcs()){
     singleArc->SetFillColorAlpha(kWhite, 0.0);
@@ -463,7 +551,7 @@ void Fitter::PlotBestTrack(const unique_ptr<ArcSet2D> &pionTrack)
 void Fitter::PlotRadiiAngles(const vector<double> &alphaVector)
 {
   for(double alpha : alphaVector) radiiAnglesHist->Fill(alpha);
-  c1->cd(2);
+  c1->cd(4);
   radiiAnglesHist->Draw();
   c1->Update();
 }
@@ -481,6 +569,8 @@ void Fitter::PlotClusters(const vector<shared_ptr<Point>> &filteredPoints)
     pointsHist->Fill(p->GetX(),p->GetY());
   }
   c1->cd(1);
+  pointsHist->DrawCopy("colz");
+  c1->cd(2);
   pointsHist->DrawCopy("colz");
   c1->cd(3);
   pointsHist->DrawCopy("colz");

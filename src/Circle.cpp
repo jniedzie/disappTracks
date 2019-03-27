@@ -88,3 +88,9 @@ double Circle::GetPointAngle(uint i)
   return TMath::Pi()/2. + atan2(-(points[i]->GetX() - center->GetX()),
                                  (points[i]->GetY() - center->GetY()));
 }
+
+double Circle::GetPointAngle(const shared_ptr<Point> &point)
+{
+  return TMath::Pi()/2. + atan2(- (point->GetX() - center->GetX()),
+                                  (point->GetY() - center->GetY()));
+}

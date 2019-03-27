@@ -53,43 +53,64 @@ void ArcSet2D::Print()
 void ArcSet2D::AddCircle(const unique_ptr<Circle> &circle)
 {
   // calculate phi range of this segment
-  double phiStart  = circle->GetPointAngle(0);
-  double phiMiddle = circle->GetPointAngle(1);
-  double phiEnd    = circle->GetPointAngle(2);
+  double phiMin=-inf, phiMax=inf;
   
-  if(phiEnd > phiStart &&
-     phiEnd > phiMiddle){
+  if(circle->GetNpoints() == 3){
+    double phiStart  = circle->GetPointAngle(0);
+    double phiMiddle = circle->GetPointAngle(1);
+    double phiEnd    = circle->GetPointAngle(2);
     
-    iCycle++;
-    phiEnd    -= iCycle * 2*TMath::Pi();
-  }
-  else if(phiEnd > phiMiddle &&
-          phiEnd < phiStart){
-    iCycle++;
-    phiEnd -= iCycle * 2*TMath::Pi();
-  }
-  else if(phiEnd    > phiStart &&
-          phiMiddle > phiStart){
+    if(phiEnd > phiStart &&
+       phiEnd > phiMiddle){
+      
+      iCycle++;
+      phiEnd    -= iCycle * 2*TMath::Pi();
+    }
+    else if(phiEnd > phiMiddle &&
+            phiEnd < phiStart){
+      iCycle++;
+      phiEnd -= iCycle * 2*TMath::Pi();
+    }
+    else if(phiEnd    > phiStart &&
+            phiMiddle > phiStart){
+      
+      phiMiddle -= iCycle * 2*TMath::Pi();
+      phiEnd    -= iCycle * 2*TMath::Pi();
+    }
+    else{
+      phiStart  -= iCycle * 2*TMath::Pi();
+      phiMiddle -= iCycle * 2*TMath::Pi();
+      phiEnd    -= iCycle * 2*TMath::Pi();
+    }
     
-    phiMiddle -= iCycle * 2*TMath::Pi();
-    phiEnd    -= iCycle * 2*TMath::Pi();
+    phiMin = min(min(phiMiddle, phiEnd), phiStart)/TMath::Pi() * 180;
+    phiMax = max(max(phiMiddle, phiEnd), phiStart)/TMath::Pi() * 180;
+    
   }
-  else{
-    phiStart  -= iCycle * 2*TMath::Pi();
-    phiMiddle -= iCycle * 2*TMath::Pi();
-    phiEnd    -= iCycle * 2*TMath::Pi();
+  else if(circle->GetNpoints() == 2){
+    double phiStart  = circle->GetPointAngle(0);
+    double phiEnd    = circle->GetPointAngle(1);
+    
+    if(phiEnd > phiStart){
+      iCycle++;
+      phiEnd    -= iCycle * 2*TMath::Pi();
+    }
+    else{
+      phiStart  -= iCycle * 2*TMath::Pi();
+      phiEnd    -= iCycle * 2*TMath::Pi();
+    }
+    
+    phiMin = min(phiEnd, phiStart)/TMath::Pi() * 180;
+    phiMax = max(phiEnd, phiStart)/TMath::Pi() * 180;
   }
-  
-  double phiMin = min(min(phiMiddle, phiEnd), phiStart)/TMath::Pi() * 180;
-  double phiMax = max(max(phiMiddle, phiEnd), phiStart)/TMath::Pi() * 180;
-  
   auto r = range<double>(phiMin, phiMax);
+  
   
   // add circle to the vector of segments
   circles.push_back(circleProcessor->CopyCircleAddingRange(circle, r));
 
   // add last point of the circle to the collection (first two should already be there)
-  points.push_back(circle->GetPoint(2));
+  points.push_back(circle->GetLastPoint());
 }
 
 vector<TArc*> ArcSet2D::GetArcs()

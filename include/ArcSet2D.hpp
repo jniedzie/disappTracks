@@ -55,6 +55,8 @@ public:
   
   inline unique_ptr<Circle> GetCircle(uint i){return make_unique<Circle>(circles[i]);}
   
+  inline vector<unique_ptr<Circle>>& GetCircles(){return circles;}
+  
   vector<TArc*> GetArcs();
   
   double GetRadiiSlopeChi2();

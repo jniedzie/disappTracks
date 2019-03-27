@@ -23,10 +23,8 @@ vector<unique_ptr<ArcSet2D>> ArcSetProcessor::BuildArcSetsFromCircles(const vect
   vector<unique_ptr<ArcSet2D>> arcs;
 
   for(auto &circle : circles){
-    
-    if(!IsValidSeed(circle)) continue;
-   
-    // re-order circle points is needed:
+
+    // re-order circle points if needed:
     double phi0 = circle->GetPointAngle(0);
     double phi1 = circle->GetPointAngle(1);
     double phi2 = circle->GetPointAngle(2);
@@ -38,6 +36,8 @@ vector<unique_ptr<ArcSet2D>> ArcSetProcessor::BuildArcSetsFromCircles(const vect
       circle->points[1] = circle->points[2];
       circle->points[2] = tmp;
     }
+    
+    if(!IsValidSeed(circle)) continue;
     
     auto arcSet2D = make_unique<ArcSet2D>();
     
@@ -135,10 +135,67 @@ TripletsVector ArcSetProcessor::BuildTripletsCompatibleWithArcSet(const unique_p
   return pointTriplets;
 }
 
+vector<shared_ptr<Point>> ArcSetProcessor::FindPossibleNextPoints(const unique_ptr<ArcSet2D> &arcSet,
+                                                                  const vector<shared_ptr<Point>> &points)
+{
+  vector<shared_ptr<Point>> possiblePoints;
+  
+  double stripSensorHalfLength = stripModuleZlength/2.;
+  
+  unique_ptr<Circle> circle            = arcSet->GetLastCircle();
+  shared_ptr<Point> point1             = arcSet->GetSecondToLastPoint();
+  shared_ptr<Point> point2             = arcSet->GetLastPoint();
+  vector<shared_ptr<Point>> pionPoints = arcSet->GetPoints();
+  
+  for(auto point : points){
+    bool isValidPoint = true;
+    
+    // make sure that it's not the same point as already in the pion track candidate
+    if(find(pionPoints.begin(), pionPoints.end(), point) != pionPoints.end()) continue; // FILTER
+    
+    // remove point that are very close to the already existing track (and were not associated with it in prevous iterations)
+    bool tooClose = false;
+    
+    for(auto &c : arcSet->GetCircles()){
+      if( c->GetPointAngle(point) > c->GetRange().GetMin() &&
+          c->GetPointAngle(point) < c->GetRange().GetMax()){
+         
+        if(c->GetDistanceToPoint(point) < config->circleThickness){
+          tooClose = true;
+          break;
+        }
+      }
+    }
+    if(tooClose) continue;
+    
+    // new point must be on the correct side of the previous arc in Z direction
+    if(fabs(point1->GetZ() - point2->GetZ()) > stripSensorHalfLength){
+      // we can check it only if two prevous hits are in different Z locations
+      
+      if(point1->GetZ() + stripSensorHalfLength < point2->GetZ() - stripSensorHalfLength  &&
+         point->GetZ() < (point2->GetZ() - stripSensorHalfLength)){
+        isValidPoint = false; // FILTER
+      }
+      
+      if(point1->GetZ() - stripSensorHalfLength > point2->GetZ() + stripSensorHalfLength  &&
+         point->GetZ() > (point2->GetZ() + stripSensorHalfLength)){
+        isValidPoint = false; // FILTER
+      }
+    }
+    
+    // it also has to be within the radius of the helix
+    double pointR = pointsProcessor->distanceXY(point, circle->GetCenter());
+    if(pointR > 1.1*circle->GetRadius()) isValidPoint = false; // FILTER
+    
+    if(isValidPoint) possiblePoints.push_back(point);
+  }
+  return possiblePoints;
+}
+
 unique_ptr<ArcSet2D> ArcSetProcessor::GetBestArcSet(const vector<unique_ptr<ArcSet2D>> &arcSets)
 {
   unique_ptr<ArcSet2D> bestArcSet = nullptr;
-  int maxNarcs = 0;
+//  int maxNarcs = 0;
   double bestChi2 = inf;
   
   for(auto &arcSet : arcSets){

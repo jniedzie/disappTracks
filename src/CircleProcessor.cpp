@@ -43,32 +43,48 @@ vector<unique_ptr<Circle>> CircleProcessor::BuildCirclesFromPoints(const Triplet
   vector<unique_ptr<Circle>> circles;
   
   for(auto &p : points){
-    double x1 = p[0]->GetX();
-    double y1 = p[0]->GetY();
-    double x2 = p[1]->GetX();
-    double y2 = p[1]->GetY();
-    double x3 = p[2]->GetX();
-    double y3 = p[2]->GetY();
-    
-    double x1_2 = x1*x1;
-    double y1_2 = y1*y1;
-    double x2_2 = x2*x2;
-    double y2_2 = y2*y2;
-    double x3_2 = x3*x3;
-    double y3_2 = y3*y3;
-    
-    // Calculate center and radius of circle passing through 3 specified points
-    double x0 = ((x1_2+y1_2)*(y2-y3)+(x2_2+y2_2)*(y3-y1)+(x3_2+y3_2)*(y1-y2))/(2*(x1*(y2-y3)-y1*(x2-x3)+x2*y3-x3*y2));
-    double y0 = ((x1_2+y1_2)*(x3-x2)+(x2_2+y2_2)*(x1-x3)+(x3_2+y3_2)*(x2-x1))/(2*(x1*(y2-y3)-y1*(x2-x3)+x2*y3-x3*y2));
-    double R  = sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
-    
-    auto center     = make_unique<Point>(x0, y0, 0.0);
-    auto decayPoint = make_unique<Point>(p[0]);
-    
-    auto circle = make_unique<Circle>(decayPoint, center, R);
-    circle->SetPoints(p);
-    
+    auto circle = GetCircleFromTriplet(p);
     circles.push_back(move(circle));
+  }
+  
+  return circles;
+}
+
+vector<unique_ptr<Circle>> CircleProcessor::BuildCirclesFromTripletPairs(const TripletPairsVector &triplets,
+                                                                         range<double> radiusRange)
+{
+  vector<unique_ptr<Circle>> circles;
+  
+  for(auto &p : triplets){
+    auto circleMin = GetCircleFromTriplet(p.first);
+    auto circleMax = GetCircleFromTriplet(p.second);
+    
+    // remove circles that are outside of the allowed range
+    if((circleMin->GetRadius() < radiusRange.GetMin()) ||
+       (circleMin->GetRadius() > radiusRange.GetMax())){
+      circleMin = nullptr;
+    }
+    if((circleMax->GetRadius() < radiusRange.GetMin()) ||
+       (circleMax->GetRadius() > radiusRange.GetMax())){
+      circleMax = nullptr;
+    }
+    
+    // if no circles survived, just skip this triplets pair
+    if(!circleMin && !circleMax) continue;
+    
+    // if only one survived, it's already the better one
+    if(!circleMin &&  circleMax){
+      circles.push_back(move(circleMax));
+      continue;
+    }
+    if( circleMin && !circleMax){
+      circles.push_back(move(circleMin));
+      continue;
+    }
+  
+    // then, if both survived, keep the one with bigger radius
+    if( circleMin->GetRadius() > circleMax->GetRadius() ) circles.push_back(move(circleMin));
+    else                                                  circles.push_back(move(circleMax));
   }
   
   return circles;
@@ -78,13 +94,13 @@ unique_ptr<Circle> CircleProcessor::BuildCircleFromParams(const double *par,
                                                           const unique_ptr<Point> &vertex,
                                                           const shared_ptr<Track> &track)
 {
-  double L  = par[0];
+  double R  = par[0];
   double px = par[1];
   double py = par[2];
   
-  double x0 = L*cos(track->GetPhi())                          + 10*vertex->GetX();
-  double y0 = L*sin(track->GetPhi())                          + 10*vertex->GetY();
-  double z0 = L/sin(track->GetTheta())*cos(track->GetTheta()) + 10*vertex->GetZ();
+  double x0 = R*cos(track->GetPhi())                          + 10*vertex->GetX();
+  double y0 = R*sin(track->GetPhi())                          + 10*vertex->GetY();
+  double z0 = R/sin(track->GetTheta())*cos(track->GetTheta()) + 10*vertex->GetZ();
   
   auto decayPoint  = make_unique<Point>(x0,y0,z0);
   auto momentum    = make_unique<Point>(px,py,0);
@@ -153,4 +169,83 @@ unique_ptr<Circle> CircleProcessor::CopyCircleAddingRange(const unique_ptr<Circl
   auto newCircle = make_unique<Circle>(circle);
   newCircle->phiRange = phiRange;
   return newCircle;
+}
+
+unique_ptr<Circle> CircleProcessor::GetParallelCircle(const unique_ptr<Circle> &circle,
+                                                      const shared_ptr<Point> &point)
+{
+  // Calculate circle center and radius
+  double p2_x = circle->GetLastPoint()->GetX();
+  double p2_y = circle->GetLastPoint()->GetY();
+  
+  double r1_x = circle->GetCenter()->GetX() - p2_x;
+  double r1_y = circle->GetCenter()->GetY() - p2_y;
+  
+  double delta_px = point->GetX() - p2_x;
+  double delta_py = point->GetY() - p2_y;
+  
+  double A = (delta_px*delta_px + delta_py*delta_py)/(2*delta_py);
+  double B = delta_px/delta_py;
+
+  double r2_x = A/(r1_y/r1_x + B);
+  double r2_y = A/(1 + r1_x/r1_y * B);
+  
+  double c2_x = r2_x + p2_x;
+  double c2_y = r2_y + p2_y;
+  
+  
+  auto newCircle = make_unique<Circle>(make_unique<Point>(point),
+                                       make_unique<Point>(c2_x, c2_y, point->GetZ()),
+                                       sqrt(r2_x*r2_x + r2_y*r2_y));
+  
+  vector<shared_ptr<Point>> circlePoints = {circle->GetLastPoint(), point };
+  newCircle->SetPoints(circlePoints);
+  
+  
+  // Calculate circle's range in phi
+  
+  double phiStart  = newCircle->GetPointAngle(0);
+  double phiEnd    = newCircle->GetPointAngle(1);
+  
+  if(phiEnd > phiStart) phiEnd -= 2*TMath::Pi();
+  
+  double phiMin = min(phiEnd, phiStart)/TMath::Pi() * 180;
+  double phiMax = max(phiEnd, phiStart)/TMath::Pi() * 180;
+  
+  auto r = range<double>(phiMin, phiMax);
+  
+  // add circle to the vector of segments
+  newCircle = CopyCircleAddingRange(newCircle, r);
+  
+  return newCircle;
+}
+
+unique_ptr<Circle> CircleProcessor::GetCircleFromTriplet(const PointsTriplet &triplet)
+{
+  double x1 = triplet[0]->GetX();
+  double y1 = triplet[0]->GetY();
+  double x2 = triplet[1]->GetX();
+  double y2 = triplet[1]->GetY();
+  double x3 = triplet[2]->GetX();
+  double y3 = triplet[2]->GetY();
+  
+  double x1_2 = x1*x1;
+  double y1_2 = y1*y1;
+  double x2_2 = x2*x2;
+  double y2_2 = y2*y2;
+  double x3_2 = x3*x3;
+  double y3_2 = y3*y3;
+  
+  // Calculate center and radius of circle passing through 3 specified points
+  double x0 = ((x1_2+y1_2)*(y2-y3)+(x2_2+y2_2)*(y3-y1)+(x3_2+y3_2)*(y1-y2))/(2*(x1*(y2-y3)-y1*(x2-x3)+x2*y3-x3*y2));
+  double y0 = ((x1_2+y1_2)*(x3-x2)+(x2_2+y2_2)*(x1-x3)+(x3_2+y3_2)*(x2-x1))/(2*(x1*(y2-y3)-y1*(x2-x3)+x2*y3-x3*y2));
+  double R  = sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
+  
+  auto center     = make_unique<Point>(x0, y0, 0.0);
+  auto decayPoint = make_unique<Point>(triplet[0]);
+  
+  auto circle = make_unique<Circle>(decayPoint, center, R);
+  circle->SetPoints(triplet);
+  
+  return circle;
 }

@@ -598,8 +598,8 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
       track->SetEventMetMass(event->GetMetMass());
       
       // Decay point is set only for random pion generation. It's not used in the fitter!!
-      double minR = layerR[track->GetLastBarrelLayer()];
-      double maxR = layerR[track->GetLastBarrelLayer()+1];
+      double minR = layerR[track->GetNtrackerLayers()-1];
+      double maxR = layerR[track->GetNtrackerLayers()];
       double decayR = (maxR+minR)/2.;
       
       track->SetDecayPoint(make_unique<Point>(decayR*cos(track->GetPhi())                         + 10*event->GetVertex()->GetX(),
