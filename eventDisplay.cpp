@@ -241,10 +241,10 @@ int main(int argc, char* argv[])
     auto pionClusters = event->GetPionClusters();
 
     // Turn this on to inject some noise
-//    for(int i=0;i<5;i++){
-//      int r = RandInt(0, allSimplePoints.size()-1);
-//      pionClusters.insert(pionClusters.end(),allSimplePoints[r]);
-//    }
+    for(int i=0;i<50;i++){
+      int r = RandInt(0, (int)allSimplePoints.size()-1);
+      pionClusters.insert(pionClusters.end(),allSimplePoints[r]);
+    }
     auto bestHelix = fitter->FitHelix(pionClusters, track, event->GetVertex());
     
 //    auto bestHelix = fitter->GetBestFittingHelix(allSimplePoints, track, event->GetVertex());

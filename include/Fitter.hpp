@@ -87,17 +87,24 @@ private:
                                                            int pxSign, int pySign,
                                                            double chi2threshold);
   
-  void PlotSeeds(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks);
-  void PlotTracks(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks);
-  void PlotGoodTracks(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks);
-  void PlotBestTrack(const unique_ptr<ArcSet2D> &pionTrack);
-  void PlotRadiiAngles(const vector<double> &alphaVector);
-  void PlotClusters(const vector<shared_ptr<Point>> &filteredPoints);
+  void PlotSeeds(       int iPad, const vector<unique_ptr<ArcSet2D>> &potentialPionTracks);
+  void PlotTracks(      int iPad, const vector<unique_ptr<ArcSet2D>> &potentialPionTracks);
+  void PlotGoodTracks(  int iPad, const vector<unique_ptr<ArcSet2D>> &potentialPionTracks);
+  void PlotRadiiChi2(   int iPad, const vector<unique_ptr<ArcSet2D>> &potentialPionTracks);
+  void PlotRadiiVsIter( int iPad, const vector<unique_ptr<ArcSet2D>> &potentialPionTracks);
+  
+  void PlotClusters(    int iPad, const vector<shared_ptr<Point>> &filteredPoints);
+  
+  void PlotBestTrack(   int iPad, const unique_ptr<ArcSet2D> &pionTrack);
+  void PlotRadiiAngles( int iPad, const vector<double> &alphaVector);
+  
+  
+  
+  
   
   TGraph* GetDecayGraph();
   
   TCanvas *c1;
-  unique_ptr<TH1D> radiiAnglesHist;
 };
 
 #endif /* Fitter_hpp */

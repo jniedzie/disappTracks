@@ -51,6 +51,7 @@ Point::Point(vector<Point> points)
 void Point::Print() const
 {
   cout<<"("<<x<<","<<y<<","<<z<<")";
+  cout<<"\tVector length: "<<sqrt(x*x+y*y+z*z);
 }
 
 double Point::GetVectorSlopeC() const

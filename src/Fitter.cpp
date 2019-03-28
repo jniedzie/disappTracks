@@ -14,9 +14,6 @@ arcSetProcessor(make_unique<ArcSetProcessor>())
 {
   c1 = new TCanvas("c1","c1",1500,1500);
   c1->Divide(2,2);
-  c1->cd(1);
-  
-  radiiAnglesHist = make_unique<TH1D>("radiiAnglesHist","radiiAnglesHist",100,-1,1);
 }
 
 Fitter::~Fitter()
@@ -316,8 +313,6 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
   vector<shared_ptr<Point>> filteredPoints = pointsProcessor->FilterNearbyPoints(points, minPointsSeparation);
   cout<<"Points after cleanup:"<<filteredPoints.size()<<endl;
   
-  PlotClusters(filteredPoints);
-  
   // Create all possible point triplets
   auto pointTriplets = pointsProcessor->BuildPointTriplets(filteredPoints);
   cout<<"N valid point triplets:"<<pointTriplets.size()<<endl;
@@ -387,7 +382,8 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
       vector<unique_ptr<Circle>> newCircles;
       unique_ptr<Circle> bestCircle = nullptr;
       
-      double maxRadiiDifference = 0.2;
+      double maxRadiiDecrease = 0.2; // max allowed relative decrease in radius
+      double maxRadiiIncrease = 0.2; // max allowed relative increase in radius
       
       for(auto point : newPoints){
         auto circle = circleProcessor->GetParallelCircle(pionTrack->GetLastCircle(), point);
@@ -396,7 +392,9 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
         
         double diff = (pionTrack->GetLastCircle()->GetRadius() - circle->GetRadius())/pionTrack->GetLastCircle()->GetRadius();
         
-        if(diff < maxRadiiDifference){
+        if((diff > 0 &&  diff < maxRadiiDecrease) ||  // radius decreased
+           (diff < 0 && -diff < maxRadiiIncrease)     // radius increased
+           ){
           newCircles.push_back(move(circle));
         }
       }
@@ -425,15 +423,22 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
   }
   
 //  PlotRadiiAngles(alphaVector);
-  PlotSeeds(potentialPionTracks);
-  PlotTracks(potentialPionTracks);
-  PlotGoodTracks(potentialPionTracks);
+//  PlotSeeds(potentialPionTracks);
+//  PlotTracks(potentialPionTracks);
+//  PlotGoodTracks(potentialPionTracks);
+  PlotRadiiChi2(2, potentialPionTracks);
   
   unique_ptr<ArcSet2D> bestPionTrack = arcSetProcessor->GetBestArcSet(potentialPionTracks);
   
-  PlotBestTrack(bestPionTrack);
+  PlotClusters(1, filteredPoints);
+  PlotBestTrack(1, bestPionTrack);
   
   if(!bestPionTrack) return nullptr;
+  
+  cout<<"------------------------------------------------"<<endl;
+  cout<<"The best track is:"<<endl;
+  bestPionTrack->Print();
+  cout<<"------------------------------------------------"<<endl;
   
   auto helix = make_unique<Helix>(make_unique<Point>(bestPionTrack->GetOrigin()),
                                   make_unique<Point>(bestPionTrack->GetCircle(0)->GetMomentum()),
@@ -442,9 +447,9 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
 }
 
 
-void Fitter::PlotSeeds(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
+void Fitter::PlotSeeds(int iPad, const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
 {
-  c1->cd(1);
+  c1->cd(iPad);
   
   for(auto &pionTrack : potentialPionTracks){
     // skip drawing of seed-only tracks
@@ -468,9 +473,9 @@ void Fitter::PlotSeeds(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
   c1->Update();
 }
 
-void Fitter::PlotTracks(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
+void Fitter::PlotTracks(int iPad, const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
 {
-  c1->cd(1);
+  c1->cd(iPad);
   auto graphDecay = GetDecayGraph();
   graphDecay->Draw("P");
   
@@ -493,6 +498,114 @@ void Fitter::PlotTracks(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
   c1->Update();
 }
 
+void Fitter::PlotGoodTracks(int iPad, const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
+{
+  c1->cd(iPad);
+  auto graphDecay = GetDecayGraph();
+  graphDecay->Draw("P");
+  
+  for(auto &pionTrack : potentialPionTracks){
+    if(pionTrack->GetCycle() < 1) continue;
+    
+    for(auto singleArc : pionTrack->GetArcs()){
+      singleArc->SetFillColorAlpha(kWhite, 0.0);
+      singleArc->SetLineWidth(1.0);
+      singleArc->SetLineColor(kBlue);
+      singleArc->Draw("sameLonly");
+    }
+  }
+  c1->Update();
+}
+
+void Fitter::PlotRadiiChi2(int iPad, const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
+{
+  c1->cd(iPad);
+  auto radiiChi2 = new TH1D("radiiChi2","radiiChi2",100,0,1E-12);
+  
+  for(auto &track : potentialPionTracks){
+    radiiChi2->Fill(track->GetRadiiSlopeChi2());
+  }
+  radiiChi2->Draw();
+  c1->Update();
+}
+
+void Fitter::PlotRadiiVsIter(int iPad, const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
+{
+  c1->cd(iPad);
+
+  vector<int> colors = { kRed, kBlue, kGreen, kMagenta, kCyan, kYellow, kOrange, kAzure };
+  int colorIter=0;
+  
+  auto dummyGraph = new TGraph();
+  dummyGraph->SetPoint(0,-1,0);
+  dummyGraph->SetPoint(1,10,0);
+  dummyGraph->SetPoint(2,0,0);
+  dummyGraph->SetPoint(3,0,800);
+  dummyGraph->Draw("AP");
+  
+  for(auto &track : potentialPionTracks){
+    auto graph = new TGraph();
+    int iter=0;
+    for(auto &circle : track->GetCircles()){
+      graph->SetPoint(iter, iter, circle->GetRadius());
+      iter++;
+    }
+    graph->SetMarkerSize(1.0);
+    graph->SetMarkerStyle(20);
+    graph->SetMarkerColor(colors[colorIter]);
+    graph->SetLineColor(colors[colorIter++]);
+    graph->Draw("PLsame");
+    
+    if(colorIter == colors.size()) colorIter=0;
+  }
+ 
+  c1->Update();
+}
+
+void Fitter::PlotBestTrack(int iPad, const unique_ptr<ArcSet2D> &pionTrack)
+{
+  c1->cd(iPad);
+  auto graphDecay = GetDecayGraph();
+  graphDecay->Draw("P");
+  
+  for(auto singleArc : pionTrack->GetArcs()){
+    singleArc->SetFillColorAlpha(kWhite, 0.0);
+    singleArc->SetLineWidth(2.0);
+    singleArc->SetLineColor(kGreen);
+    singleArc->Draw("sameLonly");
+  }
+  c1->Update();
+}
+
+void Fitter::PlotRadiiAngles(int iPad, const vector<double> &alphaVector)
+{
+  c1->cd(iPad);
+  
+  auto radiiAnglesHist = make_unique<TH1D>("radiiAnglesHist","radiiAnglesHist",100,-1,1);
+  for(double alpha : alphaVector) radiiAnglesHist->Fill(alpha);
+  radiiAnglesHist->Draw();
+  
+  c1->Update();
+}
+
+void Fitter::PlotClusters(int iPad, const vector<shared_ptr<Point>> &filteredPoints)
+{
+  c1->cd(iPad);
+  
+  TH2D *pointsHist = new TH2D("points","points",
+                              300, -layerR[nLayers-1], layerR[nLayers-1],
+                              300, -layerR[nLayers-1], layerR[nLayers-1]);
+  
+  pointsHist->Fill(0.0, 0.0, 5.0);
+  
+  for(auto &p : filteredPoints){
+    pointsHist->Fill(p->GetX(),p->GetY());
+  }
+  pointsHist->DrawCopy("colz");
+  
+  c1->Update();
+}
+
 TGraph* Fitter::GetDecayGraph()
 {
   auto graphDecay = new TGraph();
@@ -512,66 +625,4 @@ TGraph* Fitter::GetDecayGraph()
   graphDecay->SetMarkerColor(kRed);
   
   return graphDecay;
-}
-
-void Fitter::PlotGoodTracks(const vector<unique_ptr<ArcSet2D>> &potentialPionTracks)
-{
-  c1->cd(2);
-  auto graphDecay = GetDecayGraph();
-  graphDecay->Draw("P");
-  
-  for(auto &pionTrack : potentialPionTracks){
-    if(pionTrack->GetCycle() < 1) continue;
-    
-    for(auto singleArc : pionTrack->GetArcs()){
-      singleArc->SetFillColorAlpha(kWhite, 0.0);
-      singleArc->SetLineWidth(1.0);
-      singleArc->SetLineColor(kBlue);
-      singleArc->Draw("sameLonly");
-    }
-  }
-  c1->Update();
-}
-
-void Fitter::PlotBestTrack(const unique_ptr<ArcSet2D> &pionTrack)
-{
-  c1->cd(3);
-  auto graphDecay = GetDecayGraph();
-  graphDecay->Draw("P");
-  
-  for(auto singleArc : pionTrack->GetArcs()){
-    singleArc->SetFillColorAlpha(kWhite, 0.0);
-    singleArc->SetLineWidth(2.0);
-    singleArc->SetLineColor(kGreen);
-    singleArc->Draw("sameLonly");
-  }
-  c1->Update();
-}
-
-void Fitter::PlotRadiiAngles(const vector<double> &alphaVector)
-{
-  for(double alpha : alphaVector) radiiAnglesHist->Fill(alpha);
-  c1->cd(4);
-  radiiAnglesHist->Draw();
-  c1->Update();
-}
-
-void Fitter::PlotClusters(const vector<shared_ptr<Point>> &filteredPoints)
-{
-  c1->cd(1);
-  TH2D *pointsHist = new TH2D("points","points",
-                              300, -layerR[nLayers-1], layerR[nLayers-1],
-                              300, -layerR[nLayers-1], layerR[nLayers-1]);
-  
-  pointsHist->Fill(0.0, 0.0, 5.0);
-  
-  for(auto &p : filteredPoints){
-    pointsHist->Fill(p->GetX(),p->GetY());
-  }
-  c1->cd(1);
-  pointsHist->DrawCopy("colz");
-  c1->cd(2);
-  pointsHist->DrawCopy("colz");
-  c1->cd(3);
-  pointsHist->DrawCopy("colz");
 }

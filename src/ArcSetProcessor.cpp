@@ -195,21 +195,23 @@ vector<shared_ptr<Point>> ArcSetProcessor::FindPossibleNextPoints(const unique_p
 unique_ptr<ArcSet2D> ArcSetProcessor::GetBestArcSet(const vector<unique_ptr<ArcSet2D>> &arcSets)
 {
   unique_ptr<ArcSet2D> bestArcSet = nullptr;
-//  int maxNarcs = 0;
-  double bestChi2 = inf;
+  unsigned long maxNarcs = 0;
+//  double bestChi2 = inf;
   
   for(auto &arcSet : arcSets){
-    if(arcSet->GetNarcs() < 3) continue;
+    if(arcSet->GetNpoints() < 5) continue;
     
-//    if(arcSet->GetNarcs() > maxNarcs){
-//      maxNarcs = arcSet->GetNarcs();
-//      bestArcSet = make_unique<ArcSet2D>(arcSet);
-//    }
-    double chi2 = arcSet->GetRadiiSlopeChi2();
-    if(chi2 < bestChi2){
-      bestChi2 = chi2;
+    if(arcSet->GetNarcs() > maxNarcs){
+      maxNarcs = arcSet->GetNarcs();
       bestArcSet = make_unique<ArcSet2D>(arcSet);
     }
+//    double chi2 = arcSet->GetRadiiSlopeChi2();
+//    chi2 /= pow(arcSet->GetNarcs(), 2);
+//
+//    if(chi2 < bestChi2){
+//      bestChi2 = chi2;
+//      bestArcSet = make_unique<ArcSet2D>(arcSet);
+//    }
   }
   return bestArcSet;
 }

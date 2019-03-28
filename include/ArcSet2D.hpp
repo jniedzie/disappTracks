@@ -56,6 +56,9 @@ public:
   /// Returns first point of the track
   inline shared_ptr<Point> GetOrigin(){return points[0];}
   
+  /// Returns total number of points along the track
+  inline unsigned long GetNpoints(){return points.size();}
+  
   /// Returns all points along the track
   inline vector<shared_ptr<Point>> GetPoints(){return points;}
   

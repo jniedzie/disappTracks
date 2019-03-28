@@ -48,6 +48,7 @@ void ArcSet2D::Print()
   for(auto point : points){
     cout<<"\t";point->Print();cout<<endl;
   }
+  cout<<"Radii chi2:"<<GetRadiiSlopeChi2()<<endl;
 }
 
 void ArcSet2D::AddCircle(const unique_ptr<Circle> &circle)
