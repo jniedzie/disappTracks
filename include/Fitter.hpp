@@ -30,13 +30,13 @@ public:
   /// \trackPhi Phi angle of the track
   /// \drawCircles Optionally, graph with all candidate circles can be plotted
   unique_ptr<Helix> GetBestFittingHelix(const vector<shared_ptr<Point>> _points,
-                                        const shared_ptr<Track> _track,
-                                        const unique_ptr<Point> &_vertex,
+                                        const Track &_track,
+                                        const Point &_vertex,
                                         bool drawCircles=false);
   
   unique_ptr<Helix> FitHelix(const vector<shared_ptr<Point>> &_points,
-                             const shared_ptr<Track> &_track,
-                             const unique_ptr<Point> &_vertex);
+                             const Track &_track,
+                             const Point &_vertex);
   
 private:
   unique_ptr<PointsProcessor> pointsProcessor;
@@ -45,9 +45,8 @@ private:
   unique_ptr<ArcSetProcessor> arcSetProcessor;
   
   vector<shared_ptr<Point>> points;
-  shared_ptr<Track> track;
-  unique_ptr<Point> vertex;
-  
+  Track track;
+  Point vertex;
   
   /// Finds circles fitting points, matching all the other criteria specified in the config and for
   /// a specific signs of X and Y coordinates of the momentum and charge.

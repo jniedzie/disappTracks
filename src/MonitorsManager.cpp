@@ -96,12 +96,12 @@ void MonitorsManager::FillMonitors(const unique_ptr<Helix> &fittedHelix,
                                    const unique_ptr<Helix> &trueHelix,
                                    const shared_ptr<Track> &track)
 {
-  fractionMonitors["successVsX"].second->Fill(fabs(trueHelix->GetOrigin()->GetX()));
-  fractionMonitors["fullSuccessVsX"].second->Fill(fabs(trueHelix->GetOrigin()->GetX()));
-  fractionMonitors["successVsY"].second->Fill(fabs(trueHelix->GetOrigin()->GetY()));
-  fractionMonitors["fullSuccessVsY"].second->Fill(fabs(trueHelix->GetOrigin()->GetY()));
-  fractionMonitors["successVsZ"].second->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
-  fractionMonitors["fullSuccessVsZ"].second->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+  fractionMonitors["successVsX"].second->Fill(fabs(trueHelix->GetOrigin().GetX()));
+  fractionMonitors["fullSuccessVsX"].second->Fill(fabs(trueHelix->GetOrigin().GetX()));
+  fractionMonitors["successVsY"].second->Fill(fabs(trueHelix->GetOrigin().GetY()));
+  fractionMonitors["fullSuccessVsY"].second->Fill(fabs(trueHelix->GetOrigin().GetY()));
+  fractionMonitors["successVsZ"].second->Fill(fabs(trueHelix->GetOrigin().GetZ()));
+  fractionMonitors["fullSuccessVsZ"].second->Fill(fabs(trueHelix->GetOrigin().GetZ()));
   fractionMonitors["successVsPx"].second->Fill(fabs(trueHelix->GetMomentum()->GetX()));
   fractionMonitors["fullSuccessVsPx"].second->Fill(fabs(trueHelix->GetMomentum()->GetX()));
   fractionMonitors["successVsPy"].second->Fill(fabs(trueHelix->GetMomentum()->GetY()));
@@ -113,15 +113,15 @@ void MonitorsManager::FillMonitors(const unique_ptr<Helix> &fittedHelix,
   
   
   
-  if(sgn(trueHelix->GetOrigin()->GetZ()) == sgn(trueHelix->GetMomentum()->GetZ())){
-    fractionMonitors["successVsZsameSign"].second->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
-    fractionMonitors["fullSuccessVsZsameSign"].second->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+  if(sgn(trueHelix->GetOrigin().GetZ()) == sgn(trueHelix->GetMomentum()->GetZ())){
+    fractionMonitors["successVsZsameSign"].second->Fill(fabs(trueHelix->GetOrigin().GetZ()));
+    fractionMonitors["fullSuccessVsZsameSign"].second->Fill(fabs(trueHelix->GetOrigin().GetZ()));
     fractionMonitors["successVsEtaSameSign"].second->Fill(fabs(track->GetEta()));
     fractionMonitors["fullSuccessVsEtaSameSign"].second->Fill(fabs(track->GetEta()));
   }
   else{
-    fractionMonitors["successVsZoppositeSign"].second->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
-    fractionMonitors["fullSuccessVsZoppositeSign"].second->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+    fractionMonitors["successVsZoppositeSign"].second->Fill(fabs(trueHelix->GetOrigin().GetZ()));
+    fractionMonitors["fullSuccessVsZoppositeSign"].second->Fill(fabs(trueHelix->GetOrigin().GetZ()));
     fractionMonitors["successVsEtaOppositeSign"].second->Fill(fabs(track->GetEta()));
     fractionMonitors["fullSuccessVsEtaOppositeSign"].second->Fill(fabs(track->GetEta()));
   }
@@ -134,26 +134,26 @@ void MonitorsManager::FillMonitors(const unique_ptr<Helix> &fittedHelix,
   }
   
   // Here (full) success part starts:
-  fractionMonitors["successVsX"].first->Fill(fabs(trueHelix->GetOrigin()->GetX()));
-  fractionMonitors["successVsY"].first->Fill(fabs(trueHelix->GetOrigin()->GetY()));
-  fractionMonitors["successVsZ"].first->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+  fractionMonitors["successVsX"].first->Fill(fabs(trueHelix->GetOrigin().GetX()));
+  fractionMonitors["successVsY"].first->Fill(fabs(trueHelix->GetOrigin().GetY()));
+  fractionMonitors["successVsZ"].first->Fill(fabs(trueHelix->GetOrigin().GetZ()));
   fractionMonitors["successVsPx"].first->Fill(fabs(trueHelix->GetMomentum()->GetX()));
   fractionMonitors["successVsPy"].first->Fill(fabs(trueHelix->GetMomentum()->GetY()));
   fractionMonitors["successVsPz"].first->Fill(fabs(trueHelix->GetMomentum()->GetZ()));
   fractionMonitors["successVsEta"].first->Fill(fabs(track->GetEta()));
   
-  if(sgn(trueHelix->GetOrigin()->GetZ()) == sgn(trueHelix->GetMomentum()->GetZ())){
-    fractionMonitors["successVsZsameSign"].first->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+  if(sgn(trueHelix->GetOrigin().GetZ()) == sgn(trueHelix->GetMomentum()->GetZ())){
+    fractionMonitors["successVsZsameSign"].first->Fill(fabs(trueHelix->GetOrigin().GetZ()));
     fractionMonitors["successVsEtaSameSign"].first->Fill(fabs(track->GetEta()));
   }
   else{
-    fractionMonitors["successVsZoppositeSign"].first->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+    fractionMonitors["successVsZoppositeSign"].first->Fill(fabs(trueHelix->GetOrigin().GetZ()));
     fractionMonitors["successVsEtaOppositeSign"].first->Fill(fabs(track->GetEta()));
   }
   
-  monitors2D["xResponse"]->Fill(trueHelix->GetOrigin()->GetX(), fittedHelix->GetOrigin()->GetX());
-  monitors2D["yResponse"]->Fill(trueHelix->GetOrigin()->GetY(), fittedHelix->GetOrigin()->GetY());
-  monitors2D["zResponse"]->Fill(trueHelix->GetOrigin()->GetZ(), fittedHelix->GetOrigin()->GetZ());
+  monitors2D["xResponse"]->Fill(trueHelix->GetOrigin().GetX(), fittedHelix->GetOrigin().GetX());
+  monitors2D["yResponse"]->Fill(trueHelix->GetOrigin().GetY(), fittedHelix->GetOrigin().GetY());
+  monitors2D["zResponse"]->Fill(trueHelix->GetOrigin().GetZ(), fittedHelix->GetOrigin().GetZ());
   monitors2D["pxResponse"]->Fill(trueHelix->GetMomentum()->GetX(), fittedHelix->GetMomentum()->GetX());
   monitors2D["pyResponse"]->Fill(trueHelix->GetMomentum()->GetY(), fittedHelix->GetMomentum()->GetY());
   monitors2D["pzResponse"]->Fill(trueHelix->GetMomentum()->GetZ(), fittedHelix->GetMomentum()->GetZ());
@@ -168,20 +168,20 @@ void MonitorsManager::FillMonitors(const unique_ptr<Helix> &fittedHelix,
     for(int f : failureCodes) monitors1D["failReason"]->Fill(f);
   }
   else{ // full success case
-    fractionMonitors["fullSuccessVsX"].first->Fill(fabs(trueHelix->GetOrigin()->GetX()));
-    fractionMonitors["fullSuccessVsY"].first->Fill(fabs(trueHelix->GetOrigin()->GetY()));
-    fractionMonitors["fullSuccessVsZ"].first->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+    fractionMonitors["fullSuccessVsX"].first->Fill(fabs(trueHelix->GetOrigin().GetX()));
+    fractionMonitors["fullSuccessVsY"].first->Fill(fabs(trueHelix->GetOrigin().GetY()));
+    fractionMonitors["fullSuccessVsZ"].first->Fill(fabs(trueHelix->GetOrigin().GetZ()));
     fractionMonitors["fullSuccessVsPx"].first->Fill(fabs(trueHelix->GetMomentum()->GetX()));
     fractionMonitors["fullSuccessVsPy"].first->Fill(fabs(trueHelix->GetMomentum()->GetY()));
     fractionMonitors["fullSuccessVsPz"].first->Fill(fabs(trueHelix->GetMomentum()->GetZ()));
     fractionMonitors["fullSuccessVsEta"].first->Fill(fabs(track->GetEta()));
     
-    if(sgn(trueHelix->GetOrigin()->GetZ()) == sgn(trueHelix->GetMomentum()->GetZ())){
-      fractionMonitors["fullSuccessVsZsameSign"].first->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+    if(sgn(trueHelix->GetOrigin().GetZ()) == sgn(trueHelix->GetMomentum()->GetZ())){
+      fractionMonitors["fullSuccessVsZsameSign"].first->Fill(fabs(trueHelix->GetOrigin().GetZ()));
       fractionMonitors["fullSuccessVsEtaSameSign"].first->Fill(fabs(track->GetEta()));
     }
     else{
-      fractionMonitors["fullSuccessVsZoppositeSign"].first->Fill(fabs(trueHelix->GetOrigin()->GetZ()));
+      fractionMonitors["fullSuccessVsZoppositeSign"].first->Fill(fabs(trueHelix->GetOrigin().GetZ()));
       fractionMonitors["fullSuccessVsEtaOppositeSign"].first->Fill(fabs(track->GetEta()));
     }
   }

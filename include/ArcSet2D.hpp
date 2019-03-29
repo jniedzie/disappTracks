@@ -23,7 +23,6 @@ public:
   
   /// Copy constructors
   ArcSet2D(const ArcSet2D &a);
-  ArcSet2D(const unique_ptr<ArcSet2D> &a);
   
   /// Default destructor
   ~ArcSet2D();

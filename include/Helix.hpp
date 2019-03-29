@@ -20,7 +20,7 @@ public:
   /// \param _origin Helix origin point (e.g. chargino decay point)
   /// \param _momentum  Momentum of the particle that creates a helix
   /// \param _charge Charge of the particle (determines helix direction)
-  Helix(const unique_ptr<Point> &_origin,
+  Helix(const Point &_origin,
         const unique_ptr<Point> &_momentum,
         int _charge);
   
@@ -34,7 +34,7 @@ public:
   // Getters
   vector<shared_ptr<Point>>  GetPoints(){return points;}
   
-  inline unique_ptr<Point>  GetOrigin(){return make_unique<Point>(*origin);}
+  inline const Point&   GetOrigin(){return origin;}
   inline unique_ptr<Point>  GetMomentum(){return make_unique<Point>(*momentum);}
   inline double   GetRadius(){return radius;}
   inline double   GetSlope(){return slope;}
@@ -47,7 +47,7 @@ public:
   inline int      GetNpionPoints(){return nPionPoints;}
   inline int      GetNregularPoints(){return nRegularPoints;}
   
-  inline double   GetNcycles(){return sgn(momentum->GetZ())*((sgn(momentum->GetZ())*trackerZsize) - origin->GetZ())/(fabs(slope)*2*TMath::Pi());}
+  inline double   GetNcycles(){return sgn(momentum->GetZ())*((sgn(momentum->GetZ())*trackerZsize) - origin.GetZ())/(fabs(slope)*2*TMath::Pi());}
   
   /// Calculates average of the squared distances between points (hits) and the helix
   double GetChi2();
@@ -62,7 +62,7 @@ private:
   int nPionPoints = 0;    ///< Number of points along the helix that are true pion hits
   
   unique_ptr<Point> vertex;     ///< Center of the helix
-  unique_ptr<Point> origin;     ///< Center of the helix
+  Point origin;     ///< Center of the helix
   unique_ptr<Point> momentum;   ///< Pion's momentum vector
   double radius;                ///< Radius of the helix
   double slope;                 ///< Slope of the helix in Z direction

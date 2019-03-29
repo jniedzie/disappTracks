@@ -23,14 +23,6 @@ ArcSet2D::ArcSet2D(const ArcSet2D &a)
   iCycle = a.iCycle;
 }
 
-ArcSet2D::ArcSet2D(const unique_ptr<ArcSet2D> &a)
-{
-  a->circleProcessor = make_unique<CircleProcessor>();
-  for(auto &c : a->circles){circles.push_back(make_unique<Circle>(c));}
-  for(auto &p : a->points){points.push_back(make_shared<Point>(*p));}
-  iCycle = a->iCycle;
-}
-
 ArcSet2D::~ArcSet2D()
 {
   
@@ -126,6 +118,7 @@ vector<TArc*> ArcSet2D::GetArcs()
     
     arcs.push_back(arc);
   }
+  
   return arcs;
 }
 

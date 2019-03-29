@@ -179,9 +179,9 @@ int main(int argc, char* argv[])
 	if(injectPion){
 		// Draw decay point to make sure that it's correctly located
     vector<shared_ptr<Point>> decayPoint;
-    decayPoint.push_back(make_shared<Point>(track->GetDecayPoint()->GetX(),
-                                            track->GetDecayPoint()->GetY(),
-                                            track->GetDecayPoint()->GetZ()));
+    decayPoint.push_back(make_shared<Point>(track->GetDecayPoint().GetX(),
+                                            track->GetDecayPoint().GetY(),
+                                            track->GetDecayPoint().GetZ()));
 		
 		const map<string,any> decayPointOptions = {
 			{"title", "Decay Point"},
@@ -245,7 +245,7 @@ int main(int argc, char* argv[])
       int r = RandInt(0, (int)allSimplePoints.size()-1);
       pionClusters.insert(pionClusters.end(),allSimplePoints[r]);
     }
-    auto bestHelix = fitter->FitHelix(pionClusters, track, event->GetVertex());
+    auto bestHelix = fitter->FitHelix(pionClusters, *track, *event->GetVertex());
     
 //    auto bestHelix = fitter->GetBestFittingHelix(allSimplePoints, track, event->GetVertex());
 		

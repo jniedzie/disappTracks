@@ -19,6 +19,9 @@ public:
   /// Default constructor
   Track();
   
+  /// Copy constructor
+  Track(const Track &t);
+  
   /// Default destructor
   ~Track(){};
   
@@ -31,7 +34,7 @@ public:
   inline void SetEventMetPhi(double val){eventMetPhi = val;}
   inline void SetEventMetMass(double val){eventMetMass = val;}
   
-  inline void SetDecayPoint(unique_ptr<Point> val){decayPoint = move(val);}
+  inline void SetDecayPoint(const Point &val){decayPoint = val;}
   
   // Getters
   int GetLastBarrelLayer();
@@ -51,8 +54,8 @@ public:
   
   inline double  GetPt(){return pt;}
   inline double  GetEta(){return eta;}
-  inline double  GetTheta(){return 2*atan(exp(-eta));}
-  inline double  GetPhi(){return phi;}
+  inline double  GetTheta() const {return 2*atan(exp(-eta));}
+  inline double  GetPhi() const {return phi;}
   inline double  GetMass(){return mass;}
   
   inline double  GetCaloEmEnergy(){return caloEmEnergy;}
@@ -84,7 +87,7 @@ public:
   inline int GetNdetIDs(){return nDetIDs;}
   inline int GetNdedxClusters(){return nDedxClusters;}
   
-  inline unique_ptr<Point> GetDecayPoint(){return make_unique<Point>(*decayPoint);}
+  inline Point& GetDecayPoint(){return decayPoint;}
   
 private:
   vector<float> dedx;         ///< dE/dx in consecutive layers
@@ -134,7 +137,7 @@ private:
   /// Should be called after adding setting some of the track's properties
   void CalculateInternals();
   
-  unique_ptr<Point> decayPoint;
+  Point decayPoint;
   
   friend class TrackProcessor;
 };

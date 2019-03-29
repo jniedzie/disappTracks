@@ -38,7 +38,7 @@ eventMetPt(inf),
 eventMetEta(inf),
 eventMetPhi(inf),
 eventMetMass(inf),
-decayPoint(make_unique<Point>(0,0,0))
+decayPoint(Point(0,0,0))
 {
   for(int iLayer=0;iLayer<nLayers;iLayer++){
     dedx.push_back(0.0);
@@ -50,6 +50,50 @@ decayPoint(make_unique<Point>(0,0,0))
     ladder.push_back(-1);
   }
 };
+
+Track::Track(const Track &t) :
+  dedx(t.dedx),
+  subDetId(t.subDetId),
+  sizeX(t.sizeX),
+  sizeY(t.sizeY),
+  detType(t.detType),
+  layer(t.layer),
+  ladder(t.ladder),
+  pt(t.pt),
+  eta(t.eta),
+  phi(t.phi),
+  mass(t.mass),
+  caloEmEnergy(t.caloEmEnergy),
+  caloHadEnergy(t.caloHadEnergy),
+  relativeIsolation(t.relativeIsolation),
+  dxy(t.dxy),
+  dxyErr(t.dxyErr),
+  dz(t.dz),
+  dzErr(t.dzErr),
+  charge(t.charge),
+  pid(t.pid),
+  mcMatch(t.mcMatch),
+  nTrackerLayers(t.nTrackerLayers),
+  nPixelLayers(t.nPixelLayers),
+  nTrackerHits(t.nTrackerHits),
+  nPixelHits(t.nPixelHits),
+  nMissingInnerPixelHits(t.nMissingInnerPixelHits),
+  nMissingOuterPixelHits(t.nMissingOuterPixelHits),
+  nMissingInnerStripHits(t.nMissingInnerStripHits),
+  nMissingOuterStripHits(t.nMissingOuterStripHits),
+  nMissingInnerTrackerHits(t.nMissingInnerTrackerHits),
+  nMissingOuterTrackerHits(t.nMissingOuterTrackerHits),
+  nMissingMiddleTrackerHits(t.nMissingMiddleTrackerHits),
+  nDetIDs(t.nDetIDs),
+  nDedxClusters(t.nDedxClusters),
+  eventMetPt(t.eventMetPt),
+  eventMetEta(t.eventMetEta),
+  eventMetPhi(t.eventMetPhi),
+  eventMetMass(t.eventMetMass),
+  decayPoint(t.decayPoint)
+{
+
+}
 
 double Track::GetDedxInSubDet(int det)
 {

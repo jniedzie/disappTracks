@@ -602,9 +602,9 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
       double maxR = layerR[track->GetNtrackerLayers()];
       double decayR = (maxR+minR)/2.;
       
-      track->SetDecayPoint(make_unique<Point>(decayR*cos(track->GetPhi())                         + 10*event->GetVertex()->GetX(),
-                                              decayR*sin(track->GetPhi())                         + 10*event->GetVertex()->GetY(),
-                                              decayR/sin(track->GetTheta())*cos(track->GetTheta())+ 10*event->GetVertex()->GetZ())
+      track->SetDecayPoint(Point(decayR*cos(track->GetPhi()) + 10*event->GetVertex()->GetX(),
+                                 decayR*sin(track->GetPhi()) + 10*event->GetVertex()->GetY(),
+                                 decayR/sin(track->GetTheta())*cos(track->GetTheta()) + 10*event->GetVertex()->GetZ())
                            );
       
       event->AddTrack(track);

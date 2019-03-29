@@ -6,11 +6,11 @@
 
 #include "Helix.hpp"
 
-Helix::Helix(const unique_ptr<Point> &_origin,
+Helix::Helix(const Point &_origin,
              const unique_ptr<Point> &_momentum,
              int _charge) :
-vertex(make_unique<Point>(*_origin)),
-origin(make_unique<Point>(*_origin)),
+vertex(make_unique<Point>(_origin)),
+origin(_origin),
 momentum(make_unique<Point>(*_momentum)),
 charge(_charge),
 pointsProcessor(make_unique<PointsProcessor>())
@@ -27,8 +27,8 @@ pointsProcessor(make_unique<PointsProcessor>())
   v.SetX(scale * v.GetX());
   v.SetY(scale * v.GetY());
   
-  origin->SetX(origin->GetX() + v.GetX());
-  origin->SetY(origin->GetY() + v.GetY());
+  origin.SetX(origin.GetX() + v.GetX());
+  origin.SetY(origin.GetY() + v.GetY());
  
   if(momentum->GetZ() > 0){
     if(charge > 0) tShift = TMath::Pi() - atan2(-v.GetX(), v.GetY());
@@ -38,7 +38,7 @@ pointsProcessor(make_unique<PointsProcessor>())
     if(charge > 0) tShift = TMath::Pi() - atan2(-v.GetY(), v.GetX());
     if(charge < 0) tShift = TMath::Pi() - atan2(-v.GetX(), v.GetY());
   }
-  origin->SetZ(origin->GetZ() - fabs(tShift)*fabs(slope));
+  origin.SetZ(origin.GetZ() - fabs(tShift)*fabs(slope));
   
   tMax = GetNcycles()*2*TMath::Pi();
 }
@@ -46,7 +46,7 @@ pointsProcessor(make_unique<PointsProcessor>())
 void Helix::Print()
 {
   cout<<"\tVertex:("<<vertex->GetX()<<","<<vertex->GetY()<<","<<vertex->GetZ()<<")\n";
-  cout<<"\tOrigin:("<<origin->GetX()<<","<<origin->GetY()<<","<<origin->GetZ()<<")\n";
+  cout<<"\tOrigin:("<<origin.GetX()<<","<<origin.GetY()<<","<<origin.GetZ()<<")\n";
   cout<<"\tMomentum:("<<momentum->GetX()<<","<<momentum->GetY()<<","<<momentum->GetZ()<<")\n";
   cout<<"\tCharge: "<<charge<<"\tR:"<<radius<<"\tc:"<<slope<<"\n";
   cout<<"\tnPoints:"<<points.size()<<"\tnPionPoints:"<<nPionPoints<<"\tnRegularPoints:"<<nRegularPoints<<"\n";
@@ -83,13 +83,13 @@ Point Helix::GetClosestPoint(Point p)
 //     || (zSign < 0 && p.GetZ() > origin->GetZ())){
 //    return Point(origin->GetX(), origin->GetY(), origin->GetZ());
 //  }
-  double t = atan2((p.GetY()-origin->GetY()),(p.GetX()-origin->GetX()));
+  double t = atan2((p.GetY()-origin.GetY()),(p.GetX()-origin.GetX()));
   
   if(charge < 0) t = TMath::Pi()/2. - t;
   
-  double x = origin->GetX();
-  double y = origin->GetY();
-  double z = origin->GetZ() + slopeAbs*t;
+  double x = origin.GetX();
+  double y = origin.GetY();
+  double z = origin.GetZ() + slopeAbs*t;
   
   if(charge > 0){
     x += radius*cos(t);

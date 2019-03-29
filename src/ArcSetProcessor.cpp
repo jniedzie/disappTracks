@@ -25,6 +25,10 @@ vector<unique_ptr<ArcSet2D>> ArcSetProcessor::BuildArcSetsFromCircles(const vect
   for(auto &circle : circles){
 
     // re-order circle points if needed:
+    if(circle->GetNpoints() != 3){
+      cout<<"ERROR -- ArcSetProcessor::BuildArcSetsFromCircles: circle should have 3 points here!!"<<endl;
+      continue;
+    }
     double phi0 = circle->GetPointAngle(0);
     double phi1 = circle->GetPointAngle(1);
     double phi2 = circle->GetPointAngle(2);
@@ -124,7 +128,7 @@ TripletsVector ArcSetProcessor::BuildTripletsCompatibleWithArcSet(const unique_p
     }
     
     // it also has to be within the radius of the helix
-    double pointR = pointsProcessor->distanceXY(*point, *circle->GetCenter());
+    double pointR = pointsProcessor->distanceXY(*point, circle->GetCenter());
     if(pointR > 1.1*circle->GetRadius()) isValidPoint = false; // FILTER
     
     if(isValidPoint){
@@ -184,7 +188,7 @@ vector<shared_ptr<Point>> ArcSetProcessor::FindPossibleNextPoints(const unique_p
     }
     
     // it also has to be within the radius of the helix
-    double pointR = pointsProcessor->distanceXY(*point, *circle->GetCenter());
+    double pointR = pointsProcessor->distanceXY(*point, circle->GetCenter());
     if(pointR > circle->GetRadius() + config->circleThickness) isValidPoint = false; // FILTER
     
     if(isValidPoint) possiblePoints.push_back(point);
@@ -203,7 +207,7 @@ unique_ptr<ArcSet2D> ArcSetProcessor::GetBestArcSet(const vector<unique_ptr<ArcS
     
     if(arcSet->GetNarcs() > maxNarcs){
       maxNarcs = arcSet->GetNarcs();
-      bestArcSet = make_unique<ArcSet2D>(arcSet);
+      bestArcSet = make_unique<ArcSet2D>(*arcSet);
     }
 //    double chi2 = arcSet->GetRadiiSlopeChi2();
 //    chi2 /= pow(arcSet->GetNarcs(), 2);

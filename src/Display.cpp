@@ -71,9 +71,9 @@ void Display::DrawHelix(const unique_ptr<Helix> &helix, const map<string,any> op
   int zSign = sgn(helix->GetMomentum()->GetZ());
   
   auto fillPointForT = [&](double t){
-    double x = helix->GetOrigin()->GetX();
-    double y = helix->GetOrigin()->GetY();
-    double z = helix->GetOrigin()->GetZ() + fabs(helix->GetSlope())*t;
+    double x = helix->GetOrigin().GetX();
+    double y = helix->GetOrigin().GetY();
+    double z = helix->GetOrigin().GetZ() + fabs(helix->GetSlope())*t;
     
     if(helix->GetCharge()*zSign < 0){
       x += helix->GetRadius()*cos(t);

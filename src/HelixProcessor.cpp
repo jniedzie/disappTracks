@@ -34,9 +34,9 @@ vector<int> HelixProcessor::AreIdentical(const unique_ptr<Helix> &h1, const uniq
 {
   vector<int> reasons;
   
-  if(fabs(h1->GetOrigin()->GetX() - h2->GetOrigin()->GetX()) > config->toleranceX) reasons.push_back(1);
-  if(fabs(h1->GetOrigin()->GetY() - h2->GetOrigin()->GetY()) > config->toleranceY) reasons.push_back(2);
-  if(fabs(h1->GetOrigin()->GetZ() - h2->GetOrigin()->GetZ()) > config->toleranceZ) reasons.push_back(3);
+  if(fabs(h1->GetOrigin().GetX() - h2->GetOrigin().GetX()) > config->toleranceX) reasons.push_back(1);
+  if(fabs(h1->GetOrigin().GetY() - h2->GetOrigin().GetY()) > config->toleranceY) reasons.push_back(2);
+  if(fabs(h1->GetOrigin().GetZ() - h2->GetOrigin().GetZ()) > config->toleranceZ) reasons.push_back(3);
   if(fabs(h1->GetMomentum()->GetX() - h2->GetMomentum()->GetX()) > config->tolerancePx) reasons.push_back(4);
   if(fabs(h1->GetMomentum()->GetY() - h2->GetMomentum()->GetY()) > config->tolerancePy) reasons.push_back(5);
   if(fabs(h1->GetMomentum()->GetZ() - h2->GetMomentum()->GetZ()) > config->tolerancePz) reasons.push_back(6);
@@ -49,7 +49,7 @@ vector<shared_ptr<Point>> HelixProcessor::GetPointsHittingSilicon(const unique_p
 {
   // this method may reaquire updating after sign of the pion charge changed...
   vector<shared_ptr<Point>> points;
-  unique_ptr<Point> origin = make_unique<Point>(*(helix->origin));
+  unique_ptr<Point> origin = make_unique<Point>(helix->origin);
   
   double dh = sqrt(pow(origin->GetX(),2)+pow(origin->GetY(),2));
   double Rl, C, delta;
@@ -176,9 +176,9 @@ vector<shared_ptr<Helix>> HelixProcessor::GetHelicesFromTree()
   vector<shared_ptr<Helix>> helices = vector<shared_ptr<Helix>>();
   
   for(int iHelix=0;iHelix<nHelices;iHelix++){
-    auto origin   = make_unique<Point>(arrayValuesFloat["helix_x"][iHelix],
-                                       arrayValuesFloat["helix_y"][iHelix],
-                                       arrayValuesFloat["helix_z"][iHelix]);
+    auto origin   = Point(arrayValuesFloat["helix_x"][iHelix],
+                          arrayValuesFloat["helix_y"][iHelix],
+                          arrayValuesFloat["helix_z"][iHelix]);
     
     auto momentum = make_unique<Point>(arrayValuesFloat["helix_px"][iHelix],
                                        arrayValuesFloat["helix_py"][iHelix],
@@ -199,9 +199,9 @@ void HelixProcessor::SaveHelicesToTree(vector<shared_ptr<Helix>> helices)
   for(int iHelix=0;iHelix<nHelices;iHelix++){
     if(!helices[iHelix]) continue;
     
-    arrayValuesFloat["helix_x"][iHelix]    = helices[iHelix]->GetOrigin()->GetX();
-    arrayValuesFloat["helix_y"][iHelix]    = helices[iHelix]->GetOrigin()->GetY();
-    arrayValuesFloat["helix_z"][iHelix]    = helices[iHelix]->GetOrigin()->GetZ();
+    arrayValuesFloat["helix_x"][iHelix]    = helices[iHelix]->GetOrigin().GetX();
+    arrayValuesFloat["helix_y"][iHelix]    = helices[iHelix]->GetOrigin().GetY();
+    arrayValuesFloat["helix_z"][iHelix]    = helices[iHelix]->GetOrigin().GetZ();
     arrayValuesFloat["helix_px"][iHelix]   = helices[iHelix]->GetMomentum()->GetX();
     arrayValuesFloat["helix_py"][iHelix]   = helices[iHelix]->GetMomentum()->GetY();
     arrayValuesFloat["helix_pz"][iHelix]   = helices[iHelix]->GetMomentum()->GetZ();
@@ -254,14 +254,14 @@ double HelixProcessor::GetHelixToPointDistance(const unique_ptr<Helix> &helix, c
 {
   int zSign = sgn(helix->momentum->GetZ());
   
-  double t = TMath::Pi() - atan2(-(point->GetX() - helix->origin->GetX()),
-                                  (point->GetY() - helix->origin->GetY()) );
+  double t = TMath::Pi() - atan2(-(point->GetX() - helix->origin.GetX()),
+                                  (point->GetY() - helix->origin.GetY()) );
   
 //  if(helix->charge < 0) t = TMath::Pi()/2. - t;
   
-  double x = helix->origin->GetX();
-  double y = helix->origin->GetY();
-  double z = helix->origin->GetZ() + helix->slopeAbs*t;
+  double x = helix->origin.GetX();
+  double y = helix->origin.GetY();
+  double z = helix->origin.GetZ() + helix->slopeAbs*t;
   
   if(helix->charge * zSign < 0){
     x += helix->radius*cos(t);

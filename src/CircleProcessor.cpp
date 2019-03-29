@@ -91,18 +91,21 @@ vector<unique_ptr<Circle>> CircleProcessor::BuildCirclesFromTripletPairs(const T
 }
 
 unique_ptr<Circle> CircleProcessor::BuildCircleFromParams(const double *par,
-                                                          const unique_ptr<Point> &vertex,
-                                                          const shared_ptr<Track> &track)
+                                                          const Point &vertex,
+                                                          const Track &track)
 {
   double R  = par[0];
   double px = par[1];
   double py = par[2];
   
-  double x0 = R*cos(track->GetPhi())                          + 10*vertex->GetX();
-  double y0 = R*sin(track->GetPhi())                          + 10*vertex->GetY();
-  double z0 = R/sin(track->GetTheta())*cos(track->GetTheta()) + 10*vertex->GetZ();
+  double phi   = track.GetPhi();
+  double theta = track.GetTheta();
   
-  auto decayPoint  = make_unique<Point>(x0,y0,z0);
+  double x0 = R*cos(phi)              + 10*vertex.GetX();
+  double y0 = R*sin(phi)              + 10*vertex.GetY();
+  double z0 = R/sin(theta)*cos(theta) + 10*vertex.GetZ();
+  
+  auto decayPoint  = Point(x0,y0,z0);
   auto momentum    = make_unique<Point>(px,py,0);
   
   return make_unique<Circle>(decayPoint, momentum);
@@ -119,8 +122,8 @@ unique_ptr<Circle> CircleProcessor::GetMostCompatibleCircle(const vector<unique_
   // Calculate parameters of the circle
   double p_x  = theCircle->GetPoints()[2]->GetX();
   double p_y  = theCircle->GetPoints()[2]->GetY();
-  double c1_x = theCircle->GetCenter()->GetX();
-  double c1_y = theCircle->GetCenter()->GetY();
+  double c1_x = theCircle->GetCenter().GetX();
+  double c1_y = theCircle->GetCenter().GetY();
   double r1_x = c1_x - p_x;
   double r1_y = c1_y - p_y;
   double r1_mod = sqrt(r1_x*r1_x + r1_y*r1_y);
@@ -137,13 +140,13 @@ unique_ptr<Circle> CircleProcessor::GetMostCompatibleCircle(const vector<unique_
     
     
     // The center of the new circle should be withing the previous circle
-    double centerDifference = pointsProcessor->distanceXY(*theCircle->GetCenter(), *testingCircle->GetCenter());
+    double centerDifference = pointsProcessor->distanceXY(theCircle->GetCenter(), testingCircle->GetCenter());
     if(centerDifference > theCircle->GetRadius()) continue; // FILTER
     
     // Here we calculate an angle between radius of the previous circle and radius of the testing circle
     // looking from the last point of previous circle. For perfectly matching circles that would be zero
-    double r2_x   = testingCircle->GetCenter()->GetX() - p_x;
-    double r2_y   = testingCircle->GetCenter()->GetY() - p_y;
+    double r2_x   = testingCircle->GetCenter().GetX() - p_x;
+    double r2_y   = testingCircle->GetCenter().GetY() - p_y;
     double r2_mod = sqrt(r2_x*r2_x + r2_y*r2_y);
     double alpha  = acos((r1_x*r2_x + r1_y*r2_y) / (r1_mod*r2_mod));
     alphaVector.push_back(alpha);
@@ -178,8 +181,8 @@ unique_ptr<Circle> CircleProcessor::GetParallelCircle(const unique_ptr<Circle> &
   double p2_x = circle->GetLastPoint()->GetX();
   double p2_y = circle->GetLastPoint()->GetY();
   
-  double r1_x = circle->GetCenter()->GetX() - p2_x;
-  double r1_y = circle->GetCenter()->GetY() - p2_y;
+  double r1_x = circle->GetCenter().GetX() - p2_x;
+  double r1_y = circle->GetCenter().GetY() - p2_y;
   
   double delta_px = point->GetX() - p2_x;
   double delta_py = point->GetY() - p2_y;
@@ -194,7 +197,7 @@ unique_ptr<Circle> CircleProcessor::GetParallelCircle(const unique_ptr<Circle> &
   double c2_y = r2_y + p2_y;
   
   
-  auto newCircle = make_unique<Circle>(make_unique<Point>(*point),
+  auto newCircle = make_unique<Circle>(*point,
                                        make_unique<Point>(c2_x, c2_y, point->GetZ()),
                                        sqrt(r2_x*r2_x + r2_y*r2_y));
   
@@ -242,7 +245,7 @@ unique_ptr<Circle> CircleProcessor::GetCircleFromTriplet(const PointsTriplet &tr
   double R  = sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
   
   auto center     = make_unique<Point>(x0, y0, 0.0);
-  auto decayPoint = make_unique<Point>(*triplet[0]);
+  auto decayPoint = Point(*triplet[0]);
   
   auto circle = make_unique<Circle>(decayPoint, center, R);
   circle->SetPoints(triplet);

@@ -17,13 +17,13 @@ public:
   /// Constructor of the circle that will shift it according to the momentum vector and pion's charge
   /// \param _decayPoint Point to which the circle must be tangent
   /// \param _momentum Pion's momentum determining shift and rotation of the circle
-  Circle(const unique_ptr<Point> &_decayPoint,
+  Circle(const Point &_decayPoint,
          const unique_ptr<Point> &_momentum,
          const range<double> &_phiRange = range<double>(0, 2*TMath::Pi()));
   
   /// Constructor for the circle that takes its center, point where it begins and a radius
-  Circle(const unique_ptr<Point> &_decayPoint,
-         const unique_ptr<Point> &_center,
+  Circle(const Point &_decayPoint,
+         const Point &_center,
          double _radius,
          const range<double> &_phiRange = range<double>(0, 2*TMath::Pi()));
   
@@ -57,10 +57,10 @@ public:
   TArc* GetArc();
   
   /// Returns chargino's decay point
-  unique_ptr<Point> GetDecayPoint(){return make_unique<Point>(*decayPoint);}
+  const Point& GetDecayPoint(){return decayPoint;}
   
   /// Returns shifted center of the circle
-  unique_ptr<Point> GetCenter(){return make_unique<Point>(*center);}
+  const Point& GetCenter(){return center;}
   
   /// Returns pion's momentum
   unique_ptr<Point> GetMomentum(){return make_unique<Point>(*momentum);}
@@ -81,8 +81,8 @@ public:
   inline range<double> GetRange(){return phiRange;}
   
 private:
-  unique_ptr<Point> decayPoint;   ///< Decay point of the chargino
-  unique_ptr<Point> center;       ///< Center of the circle (will be automatically shifted in the constructor)
+  Point decayPoint;   ///< Decay point of the chargino
+  Point center;       ///< Center of the circle (will be automatically shifted in the constructor)
   unique_ptr<Point> momentum;     ///< Pion's momentum vector
   
   vector<shared_ptr<Point>> points; ///< Points belonging to this circle

@@ -10,7 +10,8 @@ Fitter::Fitter() :
 pointsProcessor(make_unique<PointsProcessor>()),
 helixProcessor(make_unique<HelixProcessor>()),
 circleProcessor(make_unique<CircleProcessor>()),
-arcSetProcessor(make_unique<ArcSetProcessor>())
+arcSetProcessor(make_unique<ArcSetProcessor>()),
+vertex(Point(0, 0, 0))
 {
   c1 = new TCanvas("c1","c1",1500,1500);
   c1->Divide(2,2);
@@ -82,13 +83,13 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
 }
 
 unique_ptr<Helix> Fitter::GetBestFittingHelix(vector<shared_ptr<Point>> _points,
-                                              const shared_ptr<Track> _track,
-                                              const unique_ptr<Point> &_vertex,
+                                              const Track &_track,
+                                              const Point &_vertex,
                                               bool drawCircles)
 {
   points = _points;
   track = _track;
-  vertex = make_unique<Point>(*_vertex);
+  vertex = _vertex;
   
   vector<unique_ptr<Circle>> circles = GetAllCirclesForPoints();
   
@@ -220,8 +221,8 @@ ROOT::Fit::Fitter* Fitter::GetCirclesFitter(int pxSign, int pySign)
   auto pxRange = range<double>(config->minPx, config->maxPx);
   auto pyRange = range<double>(config->minPy, config->maxPy);
   
-  double maxR = layerR[track->GetNtrackerLayers()];
-  double minR = layerR[track->GetNtrackerLayers()-1];
+  double maxR = layerR[track.GetNtrackerLayers()];
+  double minR = layerR[track.GetNtrackerLayers()-1];
   
   // Create fitter to fit circles to 2D distribution
   ROOT::Fit::Fitter *fitter = new ROOT::Fit::Fitter();
@@ -266,7 +267,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesAndAdjustFirstPoint(TripletsVector 
       
       auto circle = circleProcessor->BuildCircleFromParams(par, vertex, track);
       
-      f  = pow(circle->GetDistanceToPoint(*(circle->GetDecayPoint())),2);
+      f  = pow(circle->GetDistanceToPoint(circle->GetDecayPoint()),2);
       f += pow(circle->GetDistanceToPoint(*p[1]),2);
       f += pow(circle->GetDistanceToPoint(*p[2]),2);
       
@@ -283,9 +284,9 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesAndAdjustFirstPoint(TripletsVector 
       if(result.MinFcnValue() > chi2threshold) continue; // FILTER
       auto circle = circleProcessor->BuildCircleFromParams(result.GetParams(), vertex, track);
       
-      p[0]->SetX(circle->GetDecayPoint()->GetX());
-      p[0]->SetY(circle->GetDecayPoint()->GetY());
-      p[0]->SetZ(circle->GetDecayPoint()->GetZ());
+      p[0]->SetX(circle->GetDecayPoint().GetX());
+      p[0]->SetY(circle->GetDecayPoint().GetY());
+      p[0]->SetZ(circle->GetDecayPoint().GetZ());
       
       circle->SetPoints(p);
       circle->SetPz(p[1]->GetZ() - p[0]->GetZ());
@@ -299,12 +300,12 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesAndAdjustFirstPoint(TripletsVector 
 
 
 unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
-                                   const shared_ptr<Track> &_track,
-                                   const unique_ptr<Point> &_vertex)
+                                   const Track &_track,
+                                   const Point &_vertex)
 {
   points = _points;
   track = _track;
-  vertex = make_unique<Point>(*_vertex);
+  vertex = _vertex;
   
   double minPointsSeparation = 10.0; // mm
 //  double chi2threshold = 1E-6;
@@ -341,16 +342,16 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
 //                 make_move_iterator(circlesTmp.begin()),
 //                 make_move_iterator(circlesTmp.end()));
   
-  double minR = layerR[track->GetNtrackerLayers()-1];
-  double maxR = layerR[track->GetNtrackerLayers()];
+  double minR = layerR[track.GetNtrackerLayers()-1];
+  double maxR = layerR[track.GetNtrackerLayers()];
   
-  double decayXmin = minR*cos(track->GetPhi());
-  double decayYmin = minR*sin(track->GetPhi());
-  double decayZmin = minR/sin(track->GetTheta())*cos(track->GetTheta());
+  double decayXmin = minR*cos(track.GetPhi());
+  double decayYmin = minR*sin(track.GetPhi());
+  double decayZmin = minR/sin(track.GetTheta())*cos(track.GetTheta());
   
-  double decayXmax = maxR*cos(track->GetPhi());
-  double decayYmax = maxR*sin(track->GetPhi());
-  double decayZmax = maxR/sin(track->GetTheta())*cos(track->GetTheta());
+  double decayXmax = maxR*cos(track.GetPhi());
+  double decayYmax = maxR*sin(track.GetPhi());
+  double decayZmax = maxR/sin(track.GetTheta())*cos(track.GetTheta());
   
   auto originMin = make_shared<Point>(decayXmin, decayYmin, decayZmin);
   auto originMax = make_shared<Point>(decayXmax, decayYmax, decayZmax);
@@ -430,19 +431,19 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
   
   unique_ptr<ArcSet2D> bestPionTrack = arcSetProcessor->GetBestArcSet(potentialPionTracks);
   
+  if(!bestPionTrack) return nullptr;
+  
   PlotClusters(1, filteredPoints);
   PlotBestTrack(1, bestPionTrack);
-  
-  if(!bestPionTrack) return nullptr;
   
   cout<<"------------------------------------------------"<<endl;
   cout<<"The best track is:"<<endl;
   bestPionTrack->Print();
   cout<<"------------------------------------------------"<<endl;
   
-  auto helix = make_unique<Helix>(make_unique<Point>(*bestPionTrack->GetOrigin()),
+  auto helix = make_unique<Helix>(*bestPionTrack->GetOrigin(),
                                   make_unique<Point>(*bestPionTrack->GetCircle(0)->GetMomentum()),
-                                  track->GetCharge());
+                                  track.GetCharge());
   return helix;
 }
 
@@ -610,16 +611,16 @@ TGraph* Fitter::GetDecayGraph()
 {
   auto graphDecay = new TGraph();
   
-  double minR = layerR[track->GetNtrackerLayers()-1];
-  double maxR = layerR[track->GetNtrackerLayers()];
+  double minR = layerR[track.GetNtrackerLayers()-1];
+  double maxR = layerR[track.GetNtrackerLayers()];
   
   graphDecay->SetPoint(0,
-                       minR*cos(track->GetPhi()) + vertex->GetX(),
-                       minR*sin(track->GetPhi()) + vertex->GetY());
+                       minR*cos(track.GetPhi()) + 10*vertex.GetX(),
+                       minR*sin(track.GetPhi()) + 10*vertex.GetY());
   
   graphDecay->SetPoint(1,
-                       maxR*cos(track->GetPhi()) + vertex->GetX(),
-                       maxR*sin(track->GetPhi()) + vertex->GetY());
+                       maxR*cos(track.GetPhi()) + 10*vertex.GetX(),
+                       maxR*sin(track.GetPhi()) + 10*vertex.GetY());
   graphDecay->SetMarkerStyle(20);
   graphDecay->SetMarkerSize(1.0);
   graphDecay->SetMarkerColor(kRed);

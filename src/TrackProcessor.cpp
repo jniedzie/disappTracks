@@ -76,11 +76,11 @@ shared_ptr<Track> TrackProcessor::GetRandomTrack(int nLayers, double maxEta)
   double decayR = RandDouble(minR, maxR);
 	
   // This assumes vertex at 0,0,0!!
-  double decayX = decayR*cos(track->phi)        ;
-  double decayY = decayR*sin(track->phi)        ;
-  double decayZ = decayR/sin(theta)*cos(theta)  ;
+  double decayX = decayR*cos(track->phi);
+  double decayY = decayR*sin(track->phi);
+  double decayZ = decayR/sin(theta)*cos(theta);
   
-  track->decayPoint = make_unique<Point>(decayX, decayY, decayZ);
+  track->decayPoint = Point(decayX, decayY, decayZ);
   
   return track;
 }

@@ -41,8 +41,8 @@ public:
   /// \param vertex Primary vertex of the event
   /// \param track Track from which the circle originates
   unique_ptr<Circle> BuildCircleFromParams(const double *par,
-                                           const unique_ptr<Point> &vertex,
-                                           const shared_ptr<Track> &track);
+                                           const Point &vertex,
+                                           const Track &track);
   
   /// Finds a circle that's the most compatible with the given circle
   /// \param circles Vector of circles to scan
