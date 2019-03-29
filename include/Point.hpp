@@ -13,15 +13,13 @@ class Point
 {
 public:
   /// Default constructor taking XYZ coordinates and optionally a value in this point
-  Point(double _x, double _y, double _z, double _value=0, string _subDetName="");
+  Point(double _x, double _y, double _z, double _value=0, string _subDetName="",
+        double _errX=0, double _errY=0, double _errZ=0);
   
   /// Copy constructor
-  Point(const unique_ptr<Point> &p);
+  Point(const Point &p);
   
-  /// Copy constructor
-  Point(const shared_ptr<Point> &p);
-  
-  /// Constructs a point that is an average of provided vector of points
+  /// Constructs a point that is an average of provided vector of points (also errors are averaged)
   Point(vector<Point> points);
   
   /// Comparison operator (points are identical if x, y, z, value are identical within 0.000001 and
@@ -41,6 +39,9 @@ public:
   inline double GetX() const {return x;}
   inline double GetY() const {return y;}
   inline double GetZ() const {return z;}
+  inline double GetXerr() const {return errX;}
+  inline double GetYerr() const {return errY;}
+  inline double GetZerr() const {return errZ;}
   inline double GetValue() const {return value;}
   inline string GetSubDetName() const {return subDetName;}
   
@@ -50,9 +51,10 @@ public:
   inline void SetZ(double val){z = val;}
   inline void SetIsPionHit(bool val){isPionHit = val;}
 private:
-  double x,y,z; ///< XYZ coordinates of the point
-  double value; ///< Value at this point
-  string subDetName; ///< Can store name of the sub-detector
+  double x,y,z;             ///< XYZ coordinates of the point
+  double errX, errY, errZ;  ///< coordinates uncertainties
+  double value;             ///< Value at this point
+  string subDetName;        ///< Can store name of the sub-detector
   
   bool isPionHit; ///< Flag saying whether or not this point belongs to a true pion's helix
   

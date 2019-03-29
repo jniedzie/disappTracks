@@ -63,7 +63,7 @@ public:
   
   inline void SetWeight(double val){weight = val;}
   
-  inline void SetVertex(unique_ptr<Point> val){vertex = make_unique<Point>(val);}
+  inline void SetVertex(unique_ptr<Point> val){vertex = make_unique<Point>(*val);}
   inline void SetNvertices(int n){nVertices = n;}
   inline void SetNjet30(int n){nJet30 = n;}
   inline void SetNjet30a(int n){nJet30a = n;}
@@ -117,7 +117,7 @@ public:
     return n;
   }
   inline int GetNvertices(){return nVertices;}
-  inline unique_ptr<Point> GetVertex(){return make_unique<Point>(vertex);}
+  inline unique_ptr<Point> GetVertex(){return make_unique<Point>(*vertex);}
   inline int GetNjet30(){return nJet30;}
   inline int GetNjet30a(){return nJet30a;}
   inline int GetNlepton(){return nLepton;}

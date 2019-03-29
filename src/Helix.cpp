@@ -58,8 +58,8 @@ void Helix::SetPoints(const vector<shared_ptr<Point>> &_points)
   points.clear();
   
   for(auto &p : _points){
-    Point q = GetClosestPoint(p);
-    if(pointsProcessor->distance(p,q) < config->helixThickness){
+    Point q = GetClosestPoint(*p);
+    if(pointsProcessor->distance(*p,q) < config->helixThickness){
       if(p->IsPionHit()) nPionPoints++;
       points.push_back(p);
     }
@@ -70,7 +70,7 @@ double Helix::GetChi2()
 {
   double chi2 = 0;
   for(auto &p : points){
-    chi2 += pow(pointsProcessor->distance(p, GetClosestPoint(p)), 2);
+    chi2 += pow(pointsProcessor->distance(*p, GetClosestPoint(*p)), 2);
   }
   return chi2 / points.size();
 }

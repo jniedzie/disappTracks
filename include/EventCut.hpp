@@ -16,6 +16,9 @@ public:
   /// Default constructor
   EventCut();
   
+  /// Copy constructor
+  EventCut(const EventCut &c);
+  
   /// Default destructor
   ~EventCut();
   

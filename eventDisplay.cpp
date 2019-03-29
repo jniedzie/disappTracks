@@ -16,7 +16,7 @@ string cutLevel = "after_L0/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 10;
+int iEvent = 0;
 
 // 6  (q+, vz+, pz-) OK
 // 10 (q+, vz+, pz-) OK - RECO
@@ -161,8 +161,8 @@ int main(int argc, char* argv[])
   
   cout<<"Preparing hits, track and pion's helix"<<endl;
   
-  DrawHitsOrClusters(event, 0); // pions
-  DrawHitsOrClusters(event, 1); // charginos
+  DrawHitsOrClusters(event, 0); // pion sim hits
+  DrawHitsOrClusters(event, 1); // chargino sim hits
   DrawHitsOrClusters(event, 2); // tracker clusters
   DrawHitsOrClusters(event, 3); // pion rec clusters
   

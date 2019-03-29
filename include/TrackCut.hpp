@@ -16,6 +16,9 @@ public:
   /// Default constructor
   TrackCut();
   
+  /// Copy constructor
+  TrackCut(const TrackCut &c);
+  
   /// Default desctructor
   ~TrackCut();
   

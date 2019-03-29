@@ -16,6 +16,9 @@ public:
   /// Default constructor
   JetCut();
   
+  /// Copy constructor
+  JetCut(const JetCut &c);
+  
   /// Default desctructor
   ~JetCut();
   

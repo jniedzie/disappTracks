@@ -37,16 +37,16 @@ phiRange(_phiRange)
 {
   double pt = GetPtInMagField(radius, solenoidField);
   
-  tShift = TMath::Pi()/2. + GetPointAngle(make_shared<Point>(decayPoint));
+  tShift = TMath::Pi()/2. + GetPointAngle(make_shared<Point>(*decayPoint));
   
   momentum = make_unique<Point>(pt * sin(tShift), pt * cos(tShift), 0.0);
 }
 
 Circle::Circle(const unique_ptr<Circle> &c)
 {
-  decayPoint = make_unique<Point>(c->decayPoint);
-  center = make_unique<Point>(c->center);
-  momentum = make_unique<Point>(c->momentum);
+  decayPoint = make_unique<Point>(*c->decayPoint);
+  center     = make_unique<Point>(*c->center);
+  momentum   = make_unique<Point>(*c->momentum);
   
   for(auto p : c->points){ points.push_back(p);}
   radius   = c->radius;
@@ -73,7 +73,7 @@ void Circle::SetPoints(const vector<shared_ptr<Point>> &_points)
 {
   points.clear();
   for(auto &p : _points){
-    if(GetDistanceToPoint(p) < config->circleThickness) points.push_back(p);
+    if(GetDistanceToPoint(*p) < config->circleThickness) points.push_back(p);
   }
 }
 

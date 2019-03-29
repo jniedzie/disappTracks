@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
   // Level 0
   //---------------------------------------------------------------------------
 
-  if(config->performCutsLevel == 0){
+  
     auto eventCut_L0 = unique_ptr<EventCut>(new EventCut());
     auto trackCut_L0 = unique_ptr<TrackCut>(new TrackCut());
     auto jetCut_L0   = unique_ptr<JetCut>(new JetCut());
@@ -146,12 +146,13 @@ int main(int argc, char* argv[])
     eventCut_L0->SetLeadingJetChHEF(range<double>(0.1,inf));
 		
 		// Check number of objects after cuts
-		eventCut_L0->SetNtracks(range<int>(1, inf));
+		eventCut_L0->SetNtracks(range<int>(1,inf));
 		eventCut_L0->SetNjets(range<int>(1,inf));
 		eventCut_L0->SetNmuons(range<int>(0,0));
 		eventCut_L0->SetNtaus(range<int>(0,0));
 		eventCut_L0->SetNleptons(range<int>(0,0));
-		
+  
+  if(config->performCutsLevel == 0){
     ProcessCuts(events,eventCut_L0, trackCut_L0, jetCut_L0, leptonCut_L0);
   }
 	
@@ -159,48 +160,43 @@ int main(int argc, char* argv[])
   // Level 1
   //---------------------------------------------------------------------------
   if(config->performCutsLevel == 1){
-    auto eventCut_L2 = unique_ptr<EventCut>(new EventCut());
-    auto trackCut_L2 = unique_ptr<TrackCut>(new TrackCut());
-    auto jetCut_L2   = unique_ptr<JetCut>(new JetCut());
-    auto leptonCut_L2= unique_ptr<LeptonCut>(new LeptonCut());
+    auto eventCut_L1 = make_unique<EventCut>(*eventCut_L0);
+    auto trackCut_L1 = make_unique<TrackCut>(*trackCut_L0);
+    auto jetCut_L1   = make_unique<JetCut>(*jetCut_L0);
+    auto leptonCut_L1= make_unique<LeptonCut>(*leptonCut_L0);
     
-//    trackCut_L2->SetRequireMcMatch(true);
+//    trackCut_L1->SetRequireMcMatch(true);
     
     // pick category
     if(config->category == "2-tracks"){
-      eventCut_L2->SetNtracks(range<int>(2,2));
-      trackCut_L2->SetNmissingOuterTracker(range<int>(1, inf));
-      trackCut_L2->SetCaloEmEnergy(range<double>(0.0,8.0));
+      trackCut_L1->SetNmissingOuterTracker(range<int>(1, inf));
+      trackCut_L1->SetCaloEmEnergy(range<double>(0.0,8.0));
+      
+      eventCut_L1->SetNtracks(range<int>(2,2));
     }
     else if(config->category == "3-layers"){
-      trackCut_L2->SetNpixelLayers(range<int>(3, 3));
-      eventCut_L2->SetNtracks(range<int>(1,1));
+      trackCut_L1->SetNpixelLayers(range<int>(3, 3));
+      trackCut_L1->SetRelativeIsolation(range<double>(0,0.11));
+      trackCut_L1->SetNmissingOuterTracker(range<int>(3, inf));
+      trackCut_L1->SetCaloEmEnergy(range<double>(0.0,3.0));
+      trackCut_L1->SetDedxPerCluster(range<double>(2.0,inf));
+      trackCut_L1->SetTrackMetDeltaPhi(range<double>(-2.3,2.3));
       
-      trackCut_L2->SetRelativeIsolation(range<double>(0,0.11));
-      trackCut_L2->SetNmissingOuterTracker(range<int>(3, inf));
-      trackCut_L2->SetCaloEmEnergy(range<double>(0.0,3.0));
-      trackCut_L2->SetDedxPerCluster(range<double>(2.0,inf));
-      eventCut_L2->SetJetMetDeltaPhi(range<double>(0.7,inf));
-      trackCut_L2->SetTrackMetDeltaPhi(range<double>(-2.3,2.3));
+      eventCut_L1->SetNtracks(range<int>(1,1));
+      eventCut_L1->SetJetMetDeltaPhi(range<double>(0.7,inf));
     }
     else if(config->category == "4-layers"){
-      trackCut_L2->SetNpixelLayers(range<int>(4, 4));
-      eventCut_L2->SetNtracks(range<int>(1,1));
+      trackCut_L1->SetNpixelLayers(range<int>(4, 4));
       
-//      trackCut_L2->SetNmissingOuterTracker(range<int>(7, inf));
-      trackCut_L2->SetCaloEmEnergy(range<double>(0.0,0.4));
-      trackCut_L2->SetDedxPerCluster(range<double>(2.0,inf));
-//      trackCut_L2->SetPt(range<double>(100,inf));
-      trackCut_L2->SetTrackMetDeltaPhi(range<double>(-2.3,2.3));
+//      trackCut_L1->SetNmissingOuterTracker(range<int>(7, inf));
+      trackCut_L1->SetCaloEmEnergy(range<double>(0.0,0.4));
+      trackCut_L1->SetDedxPerCluster(range<double>(2.0,inf));
+//      trackCut_L1->SetPt(range<double>(100,inf));
+      trackCut_L1->SetTrackMetDeltaPhi(range<double>(-2.3,2.3));
+      
+      
+      eventCut_L1->SetNtracks(range<int>(1,1));
     }
-    
-    // + standard cuts to be applied after L2 selections
-    eventCut_L2->SetNjets(range<int>(1,inf));
-    eventCut_L2->SetLeadingJetPt(range<double>(100,inf));
-    eventCut_L2->SetLeadingJetEta(range<double>(-2.4,2.4));
-    eventCut_L2->SetLeadingJetNeHEF(range<double>(-inf,0.8));
-    eventCut_L2->SetLeadingJetChHEF(range<double>(0.1,inf));
-    
     
     if(config->scanMETbinning){
       gStyle->SetOptStat(0);
@@ -223,11 +219,11 @@ int main(int argc, char* argv[])
         auto events1 = shared_ptr<EventSet>(new EventSet(*events));
         auto events2 = shared_ptr<EventSet>(new EventSet(*events));
         
-        eventCut_L2->SetMetPt(range<double>(200,split));
-        ProcessCuts(events1, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2);
+        eventCut_L1->SetMetPt(range<double>(200,split));
+        ProcessCuts(events1, eventCut_L1, trackCut_L1, jetCut_L1, leptonCut_L1);
         
-        eventCut_L2->SetMetPt(range<double>(split,inf));
-        ProcessCuts(events2, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2);
+        eventCut_L1->SetMetPt(range<double>(split,inf));
+        ProcessCuts(events2, eventCut_L1, trackCut_L1, jetCut_L1, leptonCut_L1);
         
         vector<double> significances1 = events1->GetSignificance();
         vector<double> significances2 = events2->GetSignificance();
@@ -311,11 +307,11 @@ int main(int argc, char* argv[])
             }
           }
           
-          eventCut_L2->SetMetPt(range<double>(200,split));
-          ProcessCuts(events1, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2);
+          eventCut_L1->SetMetPt(range<double>(200,split));
+          ProcessCuts(events1, eventCut_L1, trackCut_L1, jetCut_L1, leptonCut_L1);
           
-          eventCut_L2->SetMetPt(range<double>(split,inf));
-          ProcessCuts(events2, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2);
+          eventCut_L1->SetMetPt(range<double>(split,inf));
+          ProcessCuts(events2, eventCut_L1, trackCut_L1, jetCut_L1, leptonCut_L1);
           
           vector<double> significances1 = events1->GetSignificance();
           vector<double> significances2 = events2->GetSignificance();
@@ -342,11 +338,11 @@ int main(int argc, char* argv[])
             auto events1 = shared_ptr<EventSet>(new EventSet(*events));
             auto events2 = shared_ptr<EventSet>(new EventSet(*events));
             
-            eventCut_L2->SetMetPt(range<double>(200,split));
-            ProcessCuts(events1, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2);
+            eventCut_L1->SetMetPt(range<double>(200,split));
+            ProcessCuts(events1, eventCut_L1, trackCut_L1, jetCut_L1, leptonCut_L1);
             
-            eventCut_L2->SetMetPt(range<double>(split,inf));
-            ProcessCuts(events2, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2);
+            eventCut_L1->SetMetPt(range<double>(split,inf));
+            ProcessCuts(events2, eventCut_L1, trackCut_L1, jetCut_L1, leptonCut_L1);
             
             vector<double> significances1 = events1->GetSignificance(true);
             vector<double> significances2 = events2->GetSignificance(true);
@@ -358,7 +354,7 @@ int main(int argc, char* argv[])
       }
       else{
         // for 2 tracks we don't have enough stats to do MET binning, just get a regular S/B
-        ProcessCuts(events, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2);
+        ProcessCuts(events, eventCut_L1, trackCut_L1, jetCut_L1, leptonCut_L1);
       }
     }
     else{
@@ -366,7 +362,7 @@ int main(int argc, char* argv[])
       if(config->category == "2-tracks") suffix = "2tracks";
       if(config->category == "3-layers") suffix = "3layers";
       if(config->category == "4-layers") suffix = "4layers";
-      ProcessCuts(events, eventCut_L2, trackCut_L2, jetCut_L2, leptonCut_L2, suffix);
+      ProcessCuts(events, eventCut_L1, trackCut_L1, jetCut_L1, leptonCut_L1, suffix);
     }
   }
   

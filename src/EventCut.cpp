@@ -37,6 +37,34 @@ requirePassAllFilters(false)
 
 }
 
+EventCut::EventCut(const EventCut &c)
+{
+  nTracks         = c.nTracks;
+  nJets           = c.nJets;
+  nLeptons        = c.nLeptons;
+  nMuons          = c.nMuons;
+  nTaus           = c.nTaus;
+  
+  metPt           = c.metPt;
+  metNoMuPt       = c.metNoMuPt;
+  jetMetDeltaPhi  = c.jetMetDeltaPhi;
+  
+  leadingJetPt    = c.leadingJetPt;
+  leadingJetEta   = c.leadingJetEta;
+  leadingJetChHEF = c.leadingJetChHEF;
+  leadingJetNeHEF = c.leadingJetNeHEF;
+  
+  metNoMuTrigger  = c.metNoMuTrigger;
+  muonsFromZ      = c.muonsFromZ;
+  metJetPhi       = c.metJetPhi;
+  metNoMuJetPhi   = c.metNoMuJetPhi;
+  muJetR0p4       = c.muJetR0p4;
+  muTrackR0p4     = c.muTrackR0p4;
+  highJet         = c.highJet;
+  tightMuon       = c.tightMuon;
+  twoOpositeMuons = c.twoOpositeMuons;
+}
+
 EventCut::~EventCut()
 {
   

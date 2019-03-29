@@ -14,6 +14,13 @@ requireTightID(false)
 
 }
 
+LeptonCut::LeptonCut(const LeptonCut &c)
+{
+  pt                = c.pt;
+  relativeIsolation = c.relativeIsolation;
+  requireTightID    = c.requireTightID;
+}
+
 LeptonCut::~LeptonCut()
 {
   

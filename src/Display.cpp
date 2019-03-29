@@ -16,17 +16,48 @@ Display::~Display()
   
 }
 
-void Display::DrawSimplePoints(const vector<shared_ptr<Point>> points, const map<string,any> options)
+void Display::DrawSimplePoints(const vector<shared_ptr<Point>> points, map<string,any> options)
 {
   TEvePointSetArray *simplePoints = PreparePointsEventDisplay(options);
+  auto stripClusters = new TEveElementList(any_cast<const char*>(options["title"]));
   
   for(auto &p : points){
-    simplePoints->Fill(scale*p->GetX(),scale*p->GetY(),scale*p->GetZ(), p->GetValue());
+    if(p->GetSubDetName() != "TOB" &&
+       p->GetSubDetName() != "TIB"){
+      simplePoints->Fill(scale*p->GetX(),scale*p->GetY(),scale*p->GetZ(), p->GetValue());
+    }
+    else{
+      AddStripCluster(stripClusters, p, options);
+    }
   }
   
   simplePoints->SetRnrSelf(kTRUE);
+  
   gEve->AddElement(simplePoints);
+  gEve->AddElement(stripClusters);
   gEve->Redraw3D();
+}
+
+void Display::AddStripCluster(TEveElementList *stripClusters,
+                              const shared_ptr<Point> &point,
+                              map<string,any> options)
+{
+  vector<int> a = {-1, 1, 1,-1,-1, 1, 1,-1};
+  vector<int> b = { 1, 1,-1,-1, 1, 1,-1,-1};
+  vector<int> c = { 1, 1, 1, 1,-1,-1,-1,-1};
+  
+  TEveBox *stripBox = new TEveBox("Strip");
+  for(int i=0;i<8;i++){
+    double x  = point->GetX() + a[i] * point->GetXerr();
+    double y  = point->GetY() + b[i] * point->GetYerr();
+    double z  = point->GetZ() + c[i] * point->GetZerr();
+    stripBox->SetVertex(i,scale*x,scale*y,scale*z);
+  }
+  
+  stripBox->SetMainColor(any_cast<EColor>(options["color"]));
+  stripBox->SetRnrSelf(true);
+  
+  stripClusters->AddElement(stripBox);
 }
 
 void Display::DrawHelix(const unique_ptr<Helix> &helix, const map<string,any> options)

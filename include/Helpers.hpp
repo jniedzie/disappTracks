@@ -188,10 +188,10 @@ const vector<vector<string>> inFileNameBackground = {
   },
   // W->μν + jets
   {
-//    "../data_andrea/MC-SR/WJets_HT100to200/",
+    "../data_andrea/MC-SR/WJets_HT100to200/",
     "../data_andrea/MC-SR/WJets_HT200to400/",
     "../data_andrea/MC-SR/WJets_HT400to600/",
-//    "../data_andrea/MC-SR/WJets_HT600to800/",
+    "../data_andrea/MC-SR/WJets_HT600to800/",
     "../data_andrea/MC-SR/WJets_HT800to1200/",
     "../data_andrea/MC-SR/WJets_HT1200to2500/",
     "../data_andrea/MC-SR/WJets_HT2500toInf/",
@@ -201,7 +201,7 @@ const vector<vector<string>> inFileNameBackground = {
     "../data_andrea/MC-SR/ZvvJets_HT100to200/",
     "../data_andrea/MC-SR/ZvvJets_HT200to400/",
     "../data_andrea/MC-SR/ZvvJets_HT400to600/",
-//    "../data_andrea/MC-SR/ZvvJets_HT600to800/",
+    "../data_andrea/MC-SR/ZvvJets_HT600to800/",
     "../data_andrea/MC-SR/ZvvJets_HT800to1200/",
     "../data_andrea/MC-SR/ZvvJets_HT1200to2500/",
     "../data_andrea/MC-SR/ZvvJets_HT2500toInf/",

@@ -88,7 +88,7 @@ unique_ptr<Helix> Fitter::GetBestFittingHelix(vector<shared_ptr<Point>> _points,
 {
   points = _points;
   track = _track;
-  vertex = make_unique<Point>(_vertex);
+  vertex = make_unique<Point>(*_vertex);
   
   vector<unique_ptr<Circle>> circles = GetAllCirclesForPoints();
   
@@ -266,7 +266,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesAndAdjustFirstPoint(TripletsVector 
       
       auto circle = circleProcessor->BuildCircleFromParams(par, vertex, track);
       
-      f  = pow(circle->GetDistanceToPoint(circle->GetDecayPoint()),2);
+      f  = pow(circle->GetDistanceToPoint(*(circle->GetDecayPoint())),2);
       f += pow(circle->GetDistanceToPoint(*p[1]),2);
       f += pow(circle->GetDistanceToPoint(*p[2]),2);
       
@@ -304,7 +304,7 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
 {
   points = _points;
   track = _track;
-  vertex = make_unique<Point>(_vertex);
+  vertex = make_unique<Point>(*_vertex);
   
   double minPointsSeparation = 10.0; // mm
 //  double chi2threshold = 1E-6;
@@ -440,8 +440,8 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
   bestPionTrack->Print();
   cout<<"------------------------------------------------"<<endl;
   
-  auto helix = make_unique<Helix>(make_unique<Point>(bestPionTrack->GetOrigin()),
-                                  make_unique<Point>(bestPionTrack->GetCircle(0)->GetMomentum()),
+  auto helix = make_unique<Helix>(make_unique<Point>(*bestPionTrack->GetOrigin()),
+                                  make_unique<Point>(*bestPionTrack->GetCircle(0)->GetMomentum()),
                                   track->GetCharge());
   return helix;
 }

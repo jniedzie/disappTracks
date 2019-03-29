@@ -24,7 +24,7 @@ Event::Event(const Event &e)
   
   SetWeight(e.weight);
   SetNvertices(e.nVertices);
-  vertex = make_unique<Point>(e.vertex);
+  vertex = make_unique<Point>(*e.vertex);
   SetNjet30(e.nJet30);
   SetNjet30a(e.nJet30a);
   SetNlepton(e.nLepton);
@@ -131,12 +131,18 @@ void Event::LoadAdditionalInfo()
   vector<double> *stripClusterX      = nullptr;
   vector<double> *stripClusterY      = nullptr;
   vector<double> *stripClusterZ      = nullptr;
+  vector<double> *stripClusterXerr   = nullptr;
+  vector<double> *stripClusterYerr   = nullptr;
+  vector<double> *stripClusterZerr   = nullptr;
   vector<double> *stripClusterCharge = nullptr;
   vector<int>    *stripClusterSubDet = nullptr;
   
   vector<double> *pionClusterX      = nullptr;
   vector<double> *pionClusterY      = nullptr;
   vector<double> *pionClusterZ      = nullptr;
+  vector<double> *pionClusterXerr   = nullptr;
+  vector<double> *pionClusterYerr   = nullptr;
+  vector<double> *pionClusterZerr   = nullptr;
   vector<double> *pionClusterCharge = nullptr;
   vector<int>    *pionClusterSubDet = nullptr;
   
@@ -175,12 +181,18 @@ void Event::LoadAdditionalInfo()
   tree->SetBranchAddress("stripCluster_x",&stripClusterX);
   tree->SetBranchAddress("stripCluster_y",&stripClusterY);
   tree->SetBranchAddress("stripCluster_z",&stripClusterZ);
+  tree->SetBranchAddress("stripCluster_ex",&stripClusterXerr);
+  tree->SetBranchAddress("stripCluster_ey",&stripClusterYerr);
+  tree->SetBranchAddress("stripCluster_ez",&stripClusterZerr);
   tree->SetBranchAddress("stripCluster_charge",&stripClusterCharge);
   tree->SetBranchAddress("stripCluster_subDet",&stripClusterSubDet);
   
   tree->SetBranchAddress("pionCluster_x",&pionClusterX);
   tree->SetBranchAddress("pionCluster_y",&pionClusterY);
   tree->SetBranchAddress("pionCluster_z",&pionClusterZ);
+  tree->SetBranchAddress("pionCluster_ex",&pionClusterXerr);
+  tree->SetBranchAddress("pionCluster_ey",&pionClusterYerr);
+  tree->SetBranchAddress("pionCluster_ez",&pionClusterZerr);
   tree->SetBranchAddress("pionCluster_charge",&pionClusterCharge);
   tree->SetBranchAddress("pionCluster_subDet",&pionClusterSubDet);
   
@@ -248,7 +260,10 @@ void Event::LoadAdditionalInfo()
                                                  10*stripClusterY->at(i),
                                                  10*stripClusterZ->at(i),
                                                  stripClusterCharge->at(i),
-                                                 subDetMap[stripClusterSubDet->at(i)]));
+                                                 subDetMap[stripClusterSubDet->at(i)],
+                                                 10*stripClusterXerr->at(i),
+                                                 10*stripClusterYerr->at(i),
+                                                 10*stripClusterZerr->at(i)));
     
     
   }
@@ -259,9 +274,9 @@ void Event::LoadAdditionalInfo()
                                               10*pionClusterY->at(i),
                                               10*pionClusterZ->at(i),
                                               pionClusterCharge->at(i),
-                                              subDetMap[pionClusterSubDet->at(i)]));
-    
+                                              subDetMap[pionClusterSubDet->at(i)],
+                                              10*pionClusterXerr->at(i),
+                                              10*pionClusterYerr->at(i),
+                                              10*pionClusterZerr->at(i)));
   }
-  
- 
 }

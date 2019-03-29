@@ -6,33 +6,31 @@
 
 #include "Point.hpp"
 
-Point::Point(double _x, double _y, double _z, double _value, string _subDetName) :
+Point::Point(double _x, double _y, double _z, double _value, string _subDetName,
+             double _errX, double _errY, double _errZ) :
 x(_x),
 y(_y),
 z(_z),
 value(_value),
 subDetName(_subDetName),
-isPionHit(false)
+isPionHit(false),
+errX(_errX),
+errY(_errY),
+errZ(_errZ)
 {
   
 }
 
-Point::Point(const unique_ptr<Point> &p)
+Point::Point(const Point &p)
 {
-  x = p->x;
-  y = p->y;
-  z = p->z;
-  value = p->value;
-  isPionHit = p->isPionHit;
-}
-
-Point::Point(const shared_ptr<Point> &p)
-{
-  x = p->x;
-  y = p->y;
-  z = p->z;
-  value = p->value;
-  isPionHit = p->isPionHit;
+  x = p.x;
+  y = p.y;
+  z = p.z;
+  value = p.value;
+  isPionHit = p.isPionHit;
+  errX = p.errX;
+  errY = p.errY;
+  errZ = p.errZ;
 }
 
 Point::Point(vector<Point> points)
@@ -42,10 +40,18 @@ Point::Point(vector<Point> points)
     x += p.GetX();
     y += p.GetY();
     z += p.GetZ();
+    
+    errX += p.GetXerr();
+    errY += p.GetYerr();
+    errZ += p.GetZerr();
+    
   }
   x /= points.size();
   y /= points.size();
   z /= points.size();
+  errX /= points.size();
+  errY /= points.size();
+  errZ /= points.size();
 }
 
 void Point::Print() const

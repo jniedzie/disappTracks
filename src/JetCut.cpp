@@ -17,6 +17,16 @@ trackDeltaR(range<double>())
 
 }
 
+JetCut::JetCut(const JetCut &c)
+{
+  pt                          = c.pt;
+  eta                         = c.eta;
+  etaForward                  = c.etaForward;
+  chargedHadronEnergyFraction = c.chargedHadronEnergyFraction;
+  neutralHadronEnergyFraction = c.neutralHadronEnergyFraction;
+  trackDeltaR                 = c.trackDeltaR;
+}
+
 JetCut::~JetCut()
 {
   

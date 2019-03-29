@@ -28,7 +28,7 @@ public:
   /// Visualizes vector of points
   /// \param points Points to be visualized
   /// \param options Map containing plotting options
-  void DrawSimplePoints(const vector<shared_ptr<Point>> points, const map<string,any> options);
+  void DrawSimplePoints(const vector<shared_ptr<Point>> points, map<string,any> options);
   
   /// Visualizes a helix
   /// \param helix Helix to be visualized
@@ -60,6 +60,8 @@ private:
   
   /// Draws MET box at given phi-theta coordinates
   void DrawMET(double metPhi, double metTheta);
+  
+  void AddStripCluster(TEveElementList *stripClusters, const shared_ptr<Point> &point, map<string,any> options);
 };
 
 #endif /* Display_hpp */

@@ -34,6 +34,29 @@ trackMetDeltaPhi(range<double>())
 
 }
 
+TrackCut::TrackCut(const TrackCut &c)
+{
+  pt = c.pt;
+  eta = c.eta;
+  caloEmEnergy = c.caloEmEnergy;
+  caloHadEnergy = c.caloHadEnergy;
+  relativeIsolation = c.relativeIsolation;
+  sameNpixelHitsLayers = c.sameNpixelHitsLayers;
+  sameNtrackerHitsLayers = c.sameNtrackerHitsLayers;
+  requireMcMatch = c.requireMcMatch;
+  nLayers = c.nLayers;
+  nPixelLayers = c.nPixelLayers;
+  nPixelHits = c.nPixelHits;
+  nMissingInnerPixel = c.nMissingInnerPixel;
+  nMissingOuterTracker = c.nMissingOuterTracker;
+  nMissingMiddleTracker = c.nMissingMiddleTracker;
+  dedxPerCluster = c.dedxPerCluster;
+  totalDeDx = c.totalDeDx;
+  nDetIDs = c.nDetIDs;
+  nDedxClusters = c.nDedxClusters;
+  trackMetDeltaPhi = c.trackMetDeltaPhi;
+}
+
 TrackCut::~TrackCut()
 {
   

@@ -16,9 +16,11 @@ public:
   /// Default constructor
   LeptonCut();
   
+  /// Copy constructor
+  LeptonCut(const LeptonCut &c);
+  
   /// Default constructor
   ~LeptonCut();
-  
   
   // setters
   inline void SetPt(range<double> val){pt=val;}

@@ -137,7 +137,7 @@ unique_ptr<Circle> CircleProcessor::GetMostCompatibleCircle(const vector<unique_
     
     
     // The center of the new circle should be withing the previous circle
-    double centerDifference = pointsProcessor->distanceXY(theCircle->GetCenter(), testingCircle->GetCenter());
+    double centerDifference = pointsProcessor->distanceXY(*theCircle->GetCenter(), *testingCircle->GetCenter());
     if(centerDifference > theCircle->GetRadius()) continue; // FILTER
     
     // Here we calculate an angle between radius of the previous circle and radius of the testing circle
@@ -194,7 +194,7 @@ unique_ptr<Circle> CircleProcessor::GetParallelCircle(const unique_ptr<Circle> &
   double c2_y = r2_y + p2_y;
   
   
-  auto newCircle = make_unique<Circle>(make_unique<Point>(point),
+  auto newCircle = make_unique<Circle>(make_unique<Point>(*point),
                                        make_unique<Point>(c2_x, c2_y, point->GetZ()),
                                        sqrt(r2_x*r2_x + r2_y*r2_y));
   
@@ -242,7 +242,7 @@ unique_ptr<Circle> CircleProcessor::GetCircleFromTriplet(const PointsTriplet &tr
   double R  = sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
   
   auto center     = make_unique<Point>(x0, y0, 0.0);
-  auto decayPoint = make_unique<Point>(triplet[0]);
+  auto decayPoint = make_unique<Point>(*triplet[0]);
   
   auto circle = make_unique<Circle>(decayPoint, center, R);
   circle->SetPoints(triplet);
