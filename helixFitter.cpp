@@ -54,7 +54,7 @@ void PerformTests(int &nSuccess, int &nFullSuccess)
     unique_ptr<Helix> pionHelix = helixProcessor->GetRandomPionHelix(track);
     if(config->injectPionHits) InjectPionPointsToCollectionOfPoints(pionHelix, pixelPoints);
     
-    unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(pixelPoints, track, make_unique<Point>(0,0,0));
+    unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(pixelPoints, *track, Point(0,0,0));
     monitorsManager->FillMonitors(bestHelix, pionHelix, track);
     
     auto successCode = monitorsManager->GetFittingStatus(bestHelix, pionHelix);

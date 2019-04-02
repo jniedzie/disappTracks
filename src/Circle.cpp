@@ -63,17 +63,19 @@ void Circle::Print()
 
 double Circle::GetDistanceToPoint(Point p)
 {
-  double t = atan2(p.GetY()-center.GetY(), p.GetX()-center.GetX());
-  double x = radius*cos(t) + center.GetX();
-  double y = radius*sin(t) + center.GetY();
-  return sqrt(pow(p.GetX()-x,2)+pow(p.GetY()-y,2));
+  return sqrt(pow(p.GetX()-center.GetX(),2)+pow(p.GetY()-center.GetY(),2)) - radius;
 }
 
 void Circle::SetPoints(const vector<shared_ptr<Point>> &_points)
 {
   points.clear();
   for(auto &p : _points){
-    if(GetDistanceToPoint(*p) < config->circleThickness) points.push_back(p);
+    if(GetDistanceToPoint(*p) < config->circleThickness){
+      points.push_back(p);
+    }
+    else{
+      cout<<"distance too high"<<endl;
+    }
   }
 }
 

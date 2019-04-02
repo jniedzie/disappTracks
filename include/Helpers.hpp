@@ -210,7 +210,7 @@ const vector<vector<string>> inFileNameBackground = {
 
 const vector<string> inFileNameSignal = {
   "../data_andrea/SIG-SR/Wino_M_300_cTau_3/",
-  /*"../data_andrea/SIG-SR/Wino_M_300_cTau_10/",*/"../pionSignal/",
+  "../data_andrea/SIG-SR/Wino_M_300_cTau_10/",/*"../pionSignal/",*/
   "../data_andrea/SIG-SR/Wino_M_300_cTau_30/",
   "../data_andrea/SIG-SR/Wino_M_500_cTau_10/",
   "../data_andrea/SIG-SR/Wino_M_500_cTau_20/",

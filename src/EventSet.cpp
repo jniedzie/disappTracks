@@ -408,17 +408,16 @@ void EventSet::DrawStandardPlots(string prefix)
   canvasTrack->Divide(4,3);
   
   hists["pt"]->Draw(canvasTrack,1);
-  hists["caloEm"]->Draw(canvasTrack,2);
-  hists["caloHad"]->Draw(canvasTrack,3);
-  hists["missingOuterTracker"]->Draw(canvasTrack,4);
-  hists["pixelHits"]->Draw(canvasTrack,5);
-  hists["trackerHits"]->Draw(canvasTrack,6);
-  hists["isolation"]->Draw(canvasTrack,7);
-  hists["trackMetDphi"]->Draw(canvasTrack,8);
-  hists["eta"]->Draw(canvasTrack,9);
-  hists["dedx"]->Draw(canvasTrack,10);
+  hists["dedx"]->Draw(canvasTrack,2);
+  hists["caloEm"]->Draw(canvasTrack,3);
+  hists["caloHad"]->Draw(canvasTrack,4);
+  hists["eta"]->Draw(canvasTrack,5);
+  hists["phi"]->Draw(canvasTrack,6);
+  hists["trackMetDphi"]->Draw(canvasTrack,7);
+  hists["trackerLayers"]->Draw(canvasTrack,8);
+  hists["dz"]->Draw(canvasTrack,9);
+  hists["isolation"]->Draw(canvasTrack,10);
   hists["absIsolation"]->Draw(canvasTrack,11);
-  hists["dz"]->Draw(canvasTrack,12);
   
   TCanvas *helixCanvas = new TCanvas((prefix+"Helix").c_str(),(prefix+"Helix").c_str(),2880,1800);
   helixCanvas->Divide(3,3);

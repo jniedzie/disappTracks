@@ -116,41 +116,41 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
 
   
-    auto eventCut_L0 = unique_ptr<EventCut>(new EventCut());
-    auto trackCut_L0 = unique_ptr<TrackCut>(new TrackCut());
-    auto jetCut_L0   = unique_ptr<JetCut>(new JetCut());
-    auto leptonCut_L0= unique_ptr<LeptonCut>(new LeptonCut());
-		
-		// Remove bad jets
-		jetCut_L0->SetChargedHadronEnergyFraction(range<double>(0.01,0.99));
-		jetCut_L0->SetNeutralHadronEnergyFraction(range<double>(0.01,0.99));
-		jetCut_L0->SetPt(range<double>(30.0, inf));
-		
-		// Remove bad tracks
-		trackCut_L0->SetNmissingInnerPixel(range<int>(0, 0));
-		trackCut_L0->SetNmissingMiddleTracker(range<int>(0, 0));
-		trackCut_L0->SetRelativeIsolation(range<double>(0.0, 0.5));
-		trackCut_L0->SetNlayers(range<int>(2, inf));
-		trackCut_L0->SetEta(range<double>(-2.1, 2.1));
-		
-		// Check MET properties
-    eventCut_L0->SetMetNoMuPt(range<double>(200,inf));
-    eventCut_L0->SetRequireMetNoMuTrigger(true);
-    eventCut_L0->SetRequirePassingAllFilters(true);
-		eventCut_L0->SetJetMetDeltaPhi(range<double>(0.5,inf));
-		
-		// Check leading jet properties
-    eventCut_L0->SetLeadingJetPt(range<double>(100,inf));
-    eventCut_L0->SetLeadingJetEta(range<double>(-2.4,2.4));
-    eventCut_L0->SetLeadingJetNeHEF(range<double>(-inf,0.8));
-    eventCut_L0->SetLeadingJetChHEF(range<double>(0.1,inf));
-		
-		// Check number of objects after cuts
-		eventCut_L0->SetNtracks(range<int>(1,inf));
-		eventCut_L0->SetNjets(range<int>(1,inf));
-		eventCut_L0->SetNmuons(range<int>(0,0));
-		eventCut_L0->SetNtaus(range<int>(0,0));
-		eventCut_L0->SetNleptons(range<int>(0,0));
+  auto eventCut_L0 = unique_ptr<EventCut>(new EventCut());
+  auto trackCut_L0 = unique_ptr<TrackCut>(new TrackCut());
+  auto jetCut_L0   = unique_ptr<JetCut>(new JetCut());
+  auto leptonCut_L0= unique_ptr<LeptonCut>(new LeptonCut());
+  
+  // Remove bad jets
+  jetCut_L0->SetChargedHadronEnergyFraction(range<double>(0.01,0.99));
+  jetCut_L0->SetNeutralHadronEnergyFraction(range<double>(0.01,0.99));
+  jetCut_L0->SetPt(range<double>(30.0, inf));
+  
+  // Remove bad tracks
+  trackCut_L0->SetNmissingInnerPixel(range<int>(0, 0));
+  trackCut_L0->SetNmissingMiddleTracker(range<int>(0, 0));
+  trackCut_L0->SetRelativeIsolation(range<double>(0.0, 0.5));
+  trackCut_L0->SetNlayers(range<int>(2, inf));
+  trackCut_L0->SetEta(range<double>(-2.1, 2.1));
+  
+  // Check MET properties
+  eventCut_L0->SetMetNoMuPt(range<double>(200,inf));
+  eventCut_L0->SetRequireMetNoMuTrigger(true);
+  eventCut_L0->SetRequirePassingAllFilters(true);
+  eventCut_L0->SetJetMetDeltaPhi(range<double>(0.5,inf));
+  
+  // Check leading jet properties
+  eventCut_L0->SetLeadingJetPt(range<double>(100,inf));
+  eventCut_L0->SetLeadingJetEta(range<double>(-2.4,2.4));
+  eventCut_L0->SetLeadingJetNeHEF(range<double>(-inf,0.8));
+  eventCut_L0->SetLeadingJetChHEF(range<double>(0.1,inf));
+  
+  // Check number of objects after cuts
+  eventCut_L0->SetNtracks(range<int>(1,inf));
+  eventCut_L0->SetNjets(range<int>(1,inf));
+  eventCut_L0->SetNmuons(range<int>(0,0));
+  eventCut_L0->SetNtaus(range<int>(0,0));
+  eventCut_L0->SetNleptons(range<int>(0,0));
   
   if(config->performCutsLevel == 0){
     ProcessCuts(events,eventCut_L0, trackCut_L0, jetCut_L0, leptonCut_L0);
@@ -169,10 +169,10 @@ int main(int argc, char* argv[])
     
     // pick category
     if(config->category == "2-tracks"){
-      trackCut_L1->SetNmissingOuterTracker(range<int>(1, inf));
-      trackCut_L1->SetCaloEmEnergy(range<double>(0.0,8.0));
-      
       eventCut_L1->SetNtracks(range<int>(2,2));
+      
+      trackCut_L1->SetCaloEmEnergy(range<double>(0.0,8.0));
+      trackCut_L1->SetNlayers(range<int>(2,10));
     }
     else if(config->category == "3-layers"){
       trackCut_L1->SetNpixelLayers(range<int>(3, 3));

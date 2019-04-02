@@ -34,7 +34,7 @@ void InjectPion(vector<shared_ptr<Point>> trackerPoints,
   double y = decayR*sin(phi);
   double z = decayR/sin(theta)*cos(theta);
   
-  track->SetDecayPoint(make_unique<Point>(x,y,z));
+  track->SetDecayPoint(Point(x,y,z));
   unique_ptr<Helix> pionHelix = helixProcessor->GetRandomPionHelix(track);
   pionHelix->Print();
   trackerPoints.insert(trackerPoints.end(),pionHelix->GetPoints().begin(), pionHelix->GetPoints().end());
@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
       
       if(config->injectPionHits) InjectPion(trackerPoints, track);
       
-      unique_ptr<Helix> fittedHelix = fitter->GetBestFittingHelix(trackerPoints, track, event->GetVertex());
+      unique_ptr<Helix> fittedHelix = fitter->GetBestFittingHelix(trackerPoints, *track, *event->GetVertex());
       if(fittedHelix){
         fittedHelix->Print();
         event->AddHelix(move(fittedHelix));

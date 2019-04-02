@@ -111,7 +111,7 @@ void Track::Print()
 {
   cout<<"PID:"<<pid<<"\trel iso:"<<relativeIsolation<<endl;
   cout<<"eta:"<<eta<<"\tphi:"<<phi<<"\tpT:"<<pt<<endl;
-  cout<<"Tracker layers:"<<GetLastBarrelLayer()+1<<endl;
+  cout<<"Tracker layers:"<<GetNtrackerLayers()<<endl;
   cout<<"Missing outer tracker hits:"<<nMissingOuterTrackerHits<<endl;
 }
 
@@ -131,13 +131,16 @@ void Track::CalculateInternals()
 
 int Track::GetLastBarrelLayer()
 {
-  int lastBarrelLayer = -1;
+  int lastBarrelLayer = -inf;
+  int shift = 0; // shift layer index for strips
   
   for(int iHit=0;iHit<GetNdEdxHits();iHit++){
     if(detType[iHit] == 2) continue; // Endcaps, we don't care
+    if(detType[iHit] == 0) shift = 4; // Strips, shift layer number by 4 pixel layers
+    if(detType[iHit] == 1) shift = 0; // Pixel, don't shift
     
-    if(layer[iHit] > lastBarrelLayer){
-      lastBarrelLayer = layer[iHit];
+    if(layer[iHit]+shift > lastBarrelLayer){
+      lastBarrelLayer = layer[iHit]+shift;
     }
   }
   
