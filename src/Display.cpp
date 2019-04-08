@@ -46,11 +46,21 @@ void Display::AddStripCluster(TEveElementList *stripClusters,
   vector<int> b = { 1, 1,-1,-1, 1, 1,-1,-1};
   vector<int> c = { 1, 1, 1, 1,-1,-1,-1,-1};
   
+  double errX = point->GetXerr();
+  double errY = point->GetYerr();
+  double errZ = point->GetZerr();
+  
+  double minSize = 5.0;
+  
+  if(errX < minSize) errX = minSize;
+  if(errY < minSize) errY = minSize;
+  if(errZ < minSize) errZ = minSize;
+  
   TEveBox *stripBox = new TEveBox("Strip");
   for(int i=0;i<8;i++){
-    double x  = point->GetX() + a[i] * point->GetXerr();
-    double y  = point->GetY() + b[i] * point->GetYerr();
-    double z  = point->GetZ() + c[i] * point->GetZerr();
+    double x  = point->GetX() + a[i] * errX;
+    double y  = point->GetY() + b[i] * errY;
+    double z  = point->GetZ() + c[i] * errZ;
     stripBox->SetVertex(i,scale*x,scale*y,scale*z);
   }
   
@@ -83,6 +93,40 @@ void Display::DrawHelix(const unique_ptr<Helix> &helix, const map<string,any> op
       x += helix->GetRadius()*sin(t);
       y += helix->GetRadius()*cos(t);
     }
+    helixPoints->Fill(scale*x,scale*y,scale*z, 0);
+  };
+  
+  if(zSign < 0) for(double t = tMin; t > -tMax; t -= tStep){fillPointForT(t);}
+  else          for(double t = tMin; t <  tMax; t += tStep){fillPointForT(t);}
+  
+  helixPoints->SetRnrSelf(kTRUE);
+  gEve->AddElement(helixPoints);
+  gEve->Redraw3D();
+}
+
+void Display::DrawShrinkingHelix(const unique_ptr<Helix> &helix, const map<string,any> options)
+{
+  TEvePointSetArray *helixPoints = PreparePointsEventDisplay(options);
+  
+  double tMin  = helix->GetTmin();
+  double tMax  = helix->GetTmax();
+  double tStep = helix->GetTstep();
+  
+  int zSign = sgn(helix->GetMomentum()->GetZ());
+  
+  auto fillPointForT = [&](double t){
+    double x =  helix->GetOrigin().GetX();
+    double y =  helix->GetOrigin().GetY();
+    double z =  helix->GetOrigin().GetZ() + helix->GetSlope(t)*t;
+    
+//    if(helix->GetCharge()*zSign < 0){
+      x += helix->GetRadius(t)*cos(t);
+      y += helix->GetRadius(t)*sin(t);
+//    }
+//    else{
+//      x += helix->GetRadius(t)*sin(t);
+//      y += helix->GetRadius(t)*cos(t);
+//    }
     helixPoints->Fill(scale*x,scale*y,scale*z, 0);
   };
   

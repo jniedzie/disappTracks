@@ -44,28 +44,75 @@ circleProcessor(make_unique<CircleProcessor>())
   tMax = GetNcycles()*2*TMath::Pi();
 }
 
-Helix::Helix(const Track &_track, const Point &p1, const Point &p2) :
-origin(Point(0,0,0)),
-momentum(make_unique<Point>(0,0,0)),
+Helix::Helix(const Helix &h) :
+Lmin(h.Lmin),
+Lmax(h.Lmax),
+bmin(h.bmin),
+bmax(h.bmax),
+s0min(h.s0min),
+s0max(h.s0max),
+amin(h.amin),
+amax(h.amax),
+R0(h.R0),
+//R0min(h.R0min),
+//R0max(h.R0max),
+iCycles(h.iCycles),
+points(h.points),
+tShift(h.tShift),
+tMax(h.tMax),
+tStep(h.tStep),
+nRegularPoints(h.nRegularPoints),
+nPionPoints(h.nPionPoints),
+vertex(make_unique<Point>(*h.vertex)),
+origin(h.origin),
+momentum(make_unique<Point>(*h.momentum)),
+track(h.track),
+radius(h.radius),
+slope(h.slope),
+slopeAbs(h.slopeAbs),
+charge(h.charge),
+pointsProcessor(make_unique<PointsProcessor>()),
 circleProcessor(make_unique<CircleProcessor>())
 {
-  int nLayers = _track.GetNtrackerLayers();
+
+}
+
+Helix::Helix(const Track &_track, const Point &p1, const Point &p2, const Point &_eventVertex) :
+origin(Point(0,0,0)),
+circleProcessor(make_unique<CircleProcessor>())
+{
+  track = _track;
+  
+  int nLayers = track.GetNtrackerLayers();
   
   Lmin = layerR[nLayers-1];
   Lmax = layerR[nLayers];
   
   // approximated position of the decay vertex
-  vertex = make_unique<Point>((Lmin-Lmax)/2 * cos(_track.GetPhi()),
-                              (Lmin-Lmax)/2 * sin(_track.GetPhi()),
-                              (Lmin-Lmax)/2 / tan(_track.GetTheta()));
+  vertex = make_unique<Point>((Lmin+Lmax)/2. * cos(track.GetPhi())    + 10*_eventVertex.GetX(),
+                              (Lmin+Lmax)/2. * sin(track.GetPhi())    + 10*_eventVertex.GetY(),
+                              (Lmin+Lmax)/2. / tan(track.GetTheta())  + 10*_eventVertex.GetZ());
   
-  PointsTriplet points = {make_shared<Point>(*vertex), make_shared<Point>(p1), make_shared<Point>(p2)};
+  points.push_back(make_shared<Point>(*vertex));
+  points.push_back(make_shared<Point>(p1));
+  points.push_back(make_shared<Point>(p2));
+  
   auto circle = circleProcessor->GetCircleFromTriplet(points);
   
   origin = circle->GetCenter();
   
-  double t1 = circle->GetPointAngle(make_shared<Point>(p1));
-  double t2 = circle->GetPointAngle(make_shared<Point>(p2));
+  
+  double t1 = atan2(p1.GetY() - origin.GetY(), p1.GetX() - origin.GetX());
+  double t2 = atan2(p2.GetY() - origin.GetY(), p2.GetX() - origin.GetX());
+  
+  // this only gives approximate direction of the momentum vector
+  momentum = make_unique<Point>(p1.GetX() - vertex->GetX(),
+                                p1.GetY() - vertex->GetY(),
+                                p1.GetZ() - vertex->GetZ());
+  
+  charge = _track.GetCharge();
+
+  tShift = atan2(vertex->GetY() - origin.GetY(), vertex->GetX() - origin.GetX());
   
   double b1 = (p2.GetZ()+p2.GetZerr() - Lmin/tan(_track.GetTheta())) / (t1*t2);
   double b2 = (p2.GetZ()-p2.GetZerr() - Lmin/tan(_track.GetTheta())) / (t1*t2);
@@ -74,6 +121,10 @@ circleProcessor(make_unique<CircleProcessor>())
   
   bmin = min(min(min(b1, b2), b3), b4);
   bmax = max(max(max(b1, b2), b3), b4);
+  
+  // slope cannot get larger with time:
+  if(bmax < 0) bmax = 0;
+  if(bmin < 0) bmin = 0;
   
   double s0_1 = (p1.GetZ()+p1.GetZerr() - (p2.GetZ()+p2.GetZerr()) + bmin*(t1*t1 - t2*t2)) / (t1 - t2);
   double s0_2 = (p1.GetZ()+p1.GetZerr() - (p2.GetZ()-p2.GetZerr()) + bmin*(t1*t1 - t2*t2)) / (t1 - t2);
@@ -89,16 +140,115 @@ circleProcessor(make_unique<CircleProcessor>())
   
   s0min = *min_element(s0.begin(), s0.end());
   s0max = *max_element(s0.begin(), s0.end());
+
+  // at the beginning, we cannot tell how much the radius will shrink and what are the limits
+  // in the initial radius value
+  // average should be zero/initial radius, but any value other than zero should improve those limits
+  amin = -100000;
+  amax =  100000;
   
-  amin = ((p1.GetX() - Lmin*cos(_track.GetPhi()))*(cos(t1)-cos(t2))) / (sin(t1)*cos(t2)*(t1-t2));
-  amax = ((p1.GetX() - Lmax*cos(_track.GetPhi()))*(cos(t1)-cos(t2))) / (sin(t1)*cos(t2)*(t1-t2));
+  R0 = circle->GetRadius();
   
-  if(amin > amax) swap(amin, amax);
+  origin.SetZ(origin.GetZ() - tShift*(s0min+s0max)/2.);
   
-  R0min = ((p1.GetX() - p2.GetX()) + amin*(t1*cos(t1)-t2*cos(t2))) / (cos(t1)-cos(t2));
-  R0max = ((p1.GetX() - p2.GetX()) + amax*(t1*cos(t1)-t2*cos(t2))) / (cos(t1)-cos(t2));
+  tMax = t2;
+  tStep = 0.01;
+  iCycles=0;
+}
+
+bool Helix::ExtendByPoint(const Point &point)
+{
+  // make sure that this point is not yet on the helix
+  for(auto &p : points){
+    if(*p==point) return false;
+  }
   
-  if(R0min > R0max) swap(R0min, R0max);
+  Point lastPoint = *points.back();
+  
+  double t0 = atan2(lastPoint.GetY() - origin.GetY(), lastPoint.GetX() - origin.GetX());
+  double t  = atan2(point.GetY() - origin.GetY(), point.GetX() - origin.GetX());
+  
+  t0  += iCycles * 2*TMath::Pi();
+  t   += iCycles * 2*TMath::Pi();
+  
+  if( t < t0){
+    iCycles++;
+    t += 2*TMath::Pi();
+  }
+  
+  double b1 = (point.GetZ()+point.GetZerr() - Lmin/tan(track.GetTheta())) / (t0*t);
+  double b2 = (point.GetZ()-point.GetZerr() - Lmin/tan(track.GetTheta())) / (t0*t);
+  double b3 = (point.GetZ()+point.GetZerr() - Lmax/tan(track.GetTheta())) / (t0*t);
+  double b4 = (point.GetZ()-point.GetZerr() - Lmax/tan(track.GetTheta())) / (t0*t);
+  
+  double bmin_new = min(min(min(b1, b2), b3), b4);
+  double bmax_new = max(max(max(b1, b2), b3), b4);
+  
+  // slope cannot get larger with time:
+  if(bmax_new < 0) bmax_new = 0;
+  if(bmin_new < 0) bmin_new = 0;
+  
+  // if new value of b is outside of the allowed range, don't use this point
+  if(bmax_new < bmin || bmin_new > bmax) return false;
+  
+  // if new point narrows down b range, update
+  if(bmax_new < bmax) bmax = bmax_new;
+  if(bmin_new > bmin) bmin = bmin_new;
+  
+  double s0_1 = (lastPoint.GetZ()+lastPoint.GetZerr() - (point.GetZ()+point.GetZerr()) + bmin*(t0*t0 - t*t)) / (t0 - t);
+  double s0_2 = (lastPoint.GetZ()+lastPoint.GetZerr() - (point.GetZ()-point.GetZerr()) + bmin*(t0*t0 - t*t)) / (t0 - t);
+  double s0_3 = (lastPoint.GetZ()-lastPoint.GetZerr() - (point.GetZ()+point.GetZerr()) + bmin*(t0*t0 - t*t)) / (t0 - t);
+  double s0_4 = (lastPoint.GetZ()-lastPoint.GetZerr() - (point.GetZ()-point.GetZerr()) + bmin*(t0*t0 - t*t)) / (t0 - t);
+  
+  double s0_5 = (lastPoint.GetZ()+lastPoint.GetZerr() - (point.GetZ()+point.GetZerr()) + bmax*(t0*t0 - t*t)) / (t0 - t);
+  double s0_6 = (lastPoint.GetZ()+lastPoint.GetZerr() - (point.GetZ()-point.GetZerr()) + bmax*(t0*t0 - t*t)) / (t0 - t);
+  double s0_7 = (lastPoint.GetZ()-lastPoint.GetZerr() - (point.GetZ()+point.GetZerr()) + bmax*(t0*t0 - t*t)) / (t0 - t);
+  double s0_8 = (lastPoint.GetZ()-lastPoint.GetZerr() - (point.GetZ()-point.GetZerr()) + bmax*(t0*t0 - t*t)) / (t0 - t);
+  
+  vector<double> s0 = { s0_1, s0_2, s0_3, s0_4, s0_5, s0_6, s0_7, s0_8 };
+  
+  double s0min_new = *min_element(s0.begin(), s0.end());
+  double s0max_new = *max_element(s0.begin(), s0.end());
+  
+  // if new value of s0 is outside of the allowed range, don't use this point
+  if(s0max_new < s0min || s0min_new > s0max) return false;
+  
+  // if new point narrows down s0 range, update
+  if(s0max_new < s0max) s0max = s0max_new;
+  if(s0min_new > s0min) s0min = s0min_new;
+  
+  double amin_new = ((lastPoint.GetX() - Lmin*cos(track.GetPhi()))*(cos(t0)-cos(t))) / (sin(t0)*cos(t)*(t0-t));
+  double amax_new = ((lastPoint.GetX() - Lmax*cos(track.GetPhi()))*(cos(t0)-cos(t))) / (sin(t0)*cos(t)*(t0-t));
+  
+  if(amin_new > amax_new) swap(amin_new, amax_new);
+  
+  // radius cannot get larger with time
+//  if(amax_new < 0) amax_new = 0;
+//  if(amin_new < 0) amin_new = 0;
+  
+  // if new value of a is outside of the allowed range, don't use this point
+  if(amax_new < amin || amin_new > amax) return false;
+  
+  // if new point narrows down a range, update
+  if(amax_new < amax) amax = amax_new;
+  if(amin_new > amin) amin = amin_new;
+  
+//  double R0min_new = ((lastPoint.GetX() - point.GetX()) + amin*(t0*cos(t0)-t*cos(t))) / (cos(t0)-cos(t));
+//  double R0max_new = ((lastPoint.GetX() - point.GetX()) + amax*(t0*cos(t0)-t*cos(t))) / (cos(t0)-cos(t));
+  
+//  if(R0min_new > R0max_new) swap(R0min_new, R0max_new);
+  
+//  if(R0max_new < R0min || R0min_new > R0max) return false;
+  
+  // if new point narrows down R0 range, update
+//  if(R0max_new < R0max) R0max = R0max_new;
+//  if(R0min_new > R0min) R0min = R0min_new;
+  
+  points.push_back(make_shared<Point>(point));
+  
+  tMax = t;
+  
+  return true;
 }
 
 void Helix::Print()
@@ -112,7 +262,9 @@ void Helix::Print()
   cout<<"\tb:"<<bmin<<" -- "<<bmax<<endl;
   cout<<"\ts0:"<<s0min<<" -- "<<s0max<<endl;
   cout<<"\ta:"<<amin<<" -- "<<amax<<endl;
-  cout<<"\tR:"<<R0min<<" -- "<<R0max<<endl;
+  cout<<"\tR0:"<<R0<<endl;
+//  cout<<"\tR:"<<R0min<<" -- "<<R0max<<endl;
+  cout<<"\tt min:"<<tShift<<"\tt max:"<<tMax<<endl;
 }
 
 void Helix::SetPoints(const vector<shared_ptr<Point>> &_points)

@@ -34,7 +34,7 @@ public:
                                         const Point &_vertex,
                                         bool drawCircles=false);
   
-  unique_ptr<Helix> FitHelix(const vector<shared_ptr<Point>> &_points,
+  vector<unique_ptr<Helix>> FitHelix(const vector<shared_ptr<Point>> &_points,
                              const Track &_track,
                              const Point &_vertex);
   

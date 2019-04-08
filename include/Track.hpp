@@ -68,7 +68,7 @@ public:
   inline double  GetDz(){return dz;}
   inline double  GetDzErr(){return dzErr;}
   
-  inline int     GetCharge(){return charge;}
+  inline int     GetCharge() const {return charge;}
   inline int     GetPid(){return pid;}
   inline int     GetMcMatch(){return mcMatch;}
   

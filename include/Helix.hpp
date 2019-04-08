@@ -25,6 +25,9 @@ public:
         const unique_ptr<Point> &_momentum,
         int _charge);
   
+  // Copy constructor
+  Helix(const Helix &h);
+  
   /// Prints basic information about the helix
   void Print();
   
@@ -58,13 +61,31 @@ public:
   // y = L sin(φ) + (R0 - at) sin(t)
   // z = L ctg(φ) + (s0 - bt) t
   
-  Helix(const Track &_track, const Point &p1, const Point &p2);
+  Helix(const Track &_track, const Point &p1, const Point &p2, const Point &_eventVertex);
+  double GetRadius(double t){
+//    double R0 = (R0max + R0min)/2.;
+    double a = (amin + amax)/2.;
+    a = 10;
+    return R0 - a*(t-tShift);
+  }
+  
+  double GetSlope(double t){
+    double s0 = (s0min + s0max)/2.;
+    double b = (bmin + bmax)/2.;
+      b = 10;
+    return (s0 - b*(t-tShift));
+  }
   
   double Lmin, Lmax;
   double bmin, bmax;
   double s0min, s0max;
   double amin, amax;
-  double R0min, R0max;
+  double R0;
+  int iCycles;
+  bool isFinished = false;
+  
+  unique_ptr<Point> GetVertex(){return make_unique<Point>(*vertex);}
+  bool ExtendByPoint(const Point &point);
   
 private:
   vector<shared_ptr<Point>> points;   ///< Vector of points laying on the helix (withing thickness)
@@ -78,6 +99,7 @@ private:
   unique_ptr<Point> vertex;     ///< Decay point (beginning) of the helix
   Point origin;                 ///< Center of the helix
   unique_ptr<Point> momentum;   ///< Pion's momentum vector
+  Track track;
   double radius;                ///< Radius of the helix
   double slope;                 ///< Slope of the helix in Z direction
   double slopeAbs;              ///< Absolute value of the slope (to speed up the calculation)

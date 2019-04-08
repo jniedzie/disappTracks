@@ -13,8 +13,8 @@ circleProcessor(make_unique<CircleProcessor>()),
 arcSetProcessor(make_unique<ArcSetProcessor>()),
 vertex(Point(0, 0, 0))
 {
-  c1 = new TCanvas("c1","c1",1500,1500);
-  c1->Divide(2,2);
+//  c1 = new TCanvas("c1","c1",1500,1500);
+//  c1->Divide(2,2);
 }
 
 Fitter::~Fitter()
@@ -299,7 +299,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesAndAdjustFirstPoint(TripletsVector 
 }
 
 
-unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
+vector<unique_ptr<Helix>> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
                                    const Track &_track,
                                    const Point &_vertex)
 {
@@ -314,13 +314,86 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
   vector<shared_ptr<Point>> filteredPoints = pointsProcessor->FilterNearbyPoints(points, minPointsSeparation);
   cout<<"Points after cleanup:"<<filteredPoints.size()<<endl;
   
-  // Create all possible point triplets
-  auto pointTriplets = pointsProcessor->BuildPointTriplets(filteredPoints);
-  cout<<"N valid point triplets:"<<pointTriplets.size()<<endl;
+  vector<PointsPair> pointPairs = pointsProcessor->BuildPointPairs(filteredPoints);
   
-  // Get circles matching those point triplets
-  vector<unique_ptr<Circle>> circles;
-  vector<unique_ptr<Circle>> circlesTmp;
+  vector<unique_ptr<Helix>> helices;
+  
+  int iter=0;
+  for(auto pointPair : pointPairs){
+//    if(iter > 10) break;
+    auto helix = make_unique<Helix>(track, *pointPair.first, *pointPair.second, vertex);
+    helices.push_back(move(helix));
+    
+    iter++;
+  }
+  /*
+  bool finished;
+  
+  do{
+    finished = true;
+    vector<unique_ptr<Helix>> helicesAfterExtending;
+    
+    // for all helices from previous step
+    for(auto &helix : helices){
+      
+      // that are not yet marked as finished
+      if(helix->isFinished) continue;
+      
+      vector<unique_ptr<Helix>> extendedHelices;
+      
+      // try to extend by all possible points
+      for(auto &point : filteredPoints){
+        
+        
+        auto helixCopy = make_unique<Helix>(*helix);
+        bool extended = helixCopy->ExtendByPoint(*point);
+        
+        if(extended){
+          if(helixCopy->R0 > GetRadiusInMagField(config->maxPx, config->maxPy, solenoidField) ||
+             helixCopy->R0 < GetRadiusInMagField(config->minPx, config->minPy, solenoidField)){
+            continue;
+          }
+          
+          cout<<"Before extension:"<<endl;  helix->Print();
+          cout<<"\nafter extension:"<<endl; helixCopy->Print(); cout<<endl;
+          
+          extendedHelices.push_back(move(helixCopy));
+        }
+      }
+      
+      // if it was possible to extend the helix
+      if(extendedHelices.size() != 0){
+        helicesAfterExtending.insert(helicesAfterExtending.end(),
+                            make_move_iterator(extendedHelices.begin()),
+                            make_move_iterator(extendedHelices.end()));
+        finished = false;
+      }
+      else{ // if helix could not be extended
+        helix->isFinished = true;
+        helicesAfterExtending.push_back(move(helix));
+      }
+    }
+    helices.clear();
+    iter=0;
+    for(auto &h : helicesAfterExtending){
+//      if(iter>10) break;
+      helices.push_back(move(h));
+      iter++;
+    }
+  }
+  while(!finished);
+  */
+  return helices;
+  
+  // Create all possible point triplets
+//  auto pointTriplets = pointsProcessor->BuildPointTriplets(filteredPoints);
+//  cout<<"N valid point triplets:"<<pointTriplets.size()<<endl;
+//
+//
+//
+//  // Get circles matching those point triplets
+//  vector<unique_ptr<Circle>> circles;
+//  vector<unique_ptr<Circle>> circlesTmp;
   
 //  circlesTmp = FitCirclesAndAdjustFirstPoint(pointTriplets, 1, 1, chi2threshold);
 //  circles.insert(circles.end(),
@@ -342,42 +415,28 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
 //                 make_move_iterator(circlesTmp.begin()),
 //                 make_move_iterator(circlesTmp.end()));
   
-  double minR = layerR[track.GetNtrackerLayers()-1];
-  double maxR = layerR[track.GetNtrackerLayers()];
-  
-  double decayXmin = minR*cos(track.GetPhi());
-  double decayYmin = minR*sin(track.GetPhi());
-  double decayZmin = minR/sin(track.GetTheta())*cos(track.GetTheta());
-  
-  double decayXmax = maxR*cos(track.GetPhi());
-  double decayYmax = maxR*sin(track.GetPhi());
-  double decayZmax = maxR/sin(track.GetTheta())*cos(track.GetTheta());
-  
-  auto originMin = make_shared<Point>(decayXmin, decayYmin, decayZmin);
-  auto originMax = make_shared<Point>(decayXmax, decayYmax, decayZmax);
-  
-  double minRadius = GetRadiusInMagField(config->minPx, config->minPy, solenoidField);
-  double maxRadius = GetRadiusInMagField(config->maxPx, config->maxPy, solenoidField);
+//  double minR = layerR[track.GetNtrackerLayers()-1];
+//  double maxR = layerR[track.GetNtrackerLayers()];
+//
+//  double decayXmin = minR*cos(track.GetPhi());
+//  double decayYmin = minR*sin(track.GetPhi());
+//  double decayZmin = minR/sin(track.GetTheta())*cos(track.GetTheta());
+//
+//  double decayXmax = maxR*cos(track.GetPhi());
+//  double decayYmax = maxR*sin(track.GetPhi());
+//  double decayZmax = maxR/sin(track.GetTheta())*cos(track.GetTheta());
+//
+//  auto originMin = make_shared<Point>(decayXmin, decayYmin, decayZmin);
+//  auto originMax = make_shared<Point>(decayXmax, decayYmax, decayZmax);
+//
+//  double minRadius = GetRadiusInMagField(config->minPx, config->minPy, solenoidField);
+//  double maxRadius = GetRadiusInMagField(config->maxPx, config->maxPy, solenoidField);
   
 //  TripletPairsVector tripletPairs = pointsProcessor->BuildPointTripletPairs(filteredPoints, originMin, originMax);
 //  circles = circleProcessor->BuildCirclesFromTripletPairs(tripletPairs, range<double>(minRadius, maxRadius));
   
-  vector<PointsPair> pointPairs = pointsProcessor->BuildPointPairs(filteredPoints);
-  
-  vector<shared_ptr<Helix>> helices;
-  
-  for(auto pointPair : pointPairs){
-    auto helix = make_shared<Helix>(track, *pointPair.first, *pointPair.second);
-    helices.push_back(helix);
-  }
-  
-  for(auto &helix : helices){
-    cout<<endl;
-    helix->Print();
-  }
-  
-  return nullptr;
-  
+
+  /*
   // Build seeds from the circles (this will check that they make sense)
   vector<unique_ptr<ArcSet2D>> potentialPionTracks = arcSetProcessor->BuildArcSetsFromCircles(circles);
   cout<<"N track seeds:"<<potentialPionTracks.size()<<endl;
@@ -461,6 +520,7 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
                                   make_unique<Point>(*bestPionTrack->GetCircle(0)->GetMomentum()),
                                   track.GetCharge());
   return helix;
+   */
 }
 
 

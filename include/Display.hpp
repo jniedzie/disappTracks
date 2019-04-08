@@ -35,6 +35,8 @@ public:
   /// \param options Map containing plotting options
   void DrawHelix(const unique_ptr<Helix> &helix, const map<string,any> options);
   
+  void DrawShrinkingHelix(const unique_ptr<Helix> &helix, const map<string,any> options);
+  
   /// Visualizes entire event
   /// \param event event to be visualized
   /// \param options Map containing plotting options

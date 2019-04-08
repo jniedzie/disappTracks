@@ -257,8 +257,8 @@ unique_ptr<Circle> CircleProcessor::CalcCircle(const Point &p1, const Point &p2,
   double radius;
   
   if (fabs(xDelta_a) <= 0.000000001 && fabs(yDelta_b) <= 0.000000001){
-    center_x = 0.5*(p2.GetX() + p3.GetX());
-    center_y = 0.5*(p1.GetY() + p2.GetY());
+    center_x = (p2.GetX() + p3.GetX())/2.;
+    center_y = (p1.GetY() + p2.GetY())/2.;
     center_z = p1.GetZ();
     
     Point center(center_x, center_y, center_z);

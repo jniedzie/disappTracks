@@ -31,6 +31,7 @@ Point::Point(const Point &p)
   errX = p.errX;
   errY = p.errY;
   errZ = p.errZ;
+  subDetName = p.subDetName;
 }
 
 Point::Point(vector<Point> points)

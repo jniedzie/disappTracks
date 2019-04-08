@@ -16,7 +16,7 @@ string cutLevel = "after_L0/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 0;
+int iEvent = 2;
 
 // 6  (q+, vz+, pz-) OK
 // 10 (q+, vz+, pz-) OK - RECO
@@ -241,24 +241,65 @@ int main(int argc, char* argv[])
     auto pionClusters = event->GetPionClusters();
 
     // Turn this on to inject some noise
-    for(int i=0;i<50;i++){
-      int r = RandInt(0, (int)allSimplePoints.size()-1);
-      pionClusters.insert(pionClusters.end(),allSimplePoints[r]);
-    }
-    auto bestHelix = fitter->FitHelix(pionClusters, *track, *event->GetVertex());
+//    for(int i=0;i<50;i++){
+//      int r = RandInt(0, (int)allSimplePoints.size()-1);
+//      pionClusters.insert(pionClusters.end(),allSimplePoints[r]);
+//    }
+    auto fittedHelices = fitter->FitHelix(pionClusters, *track, *event->GetVertex());
     
 //    auto bestHelix = fitter->GetBestFittingHelix(allSimplePoints, track, event->GetVertex());
 		
-		if(bestHelix){
-			map<string,any> bestHelixOptions = {
-				{"title", "Best helix"},
-				{"markerStyle", 20},
-				{"markerSize", 0.2},
-				{"color", kRed}
-			};
-			
-			display->DrawHelix(bestHelix, bestHelixOptions);
-			
+    map<string,any> bestHelixOptions = {
+      {"title", "Best helix"},
+      {"markerStyle", 20},
+      {"markerSize", 0.2},
+      {"color", kRed}
+    };
+    
+    map<string,any> helixVertexOptions = {
+      {"title", "Helix vertex"},
+      {"binsMin" , 0},
+      {"binsMax" , 100000},
+      {"markerStyle", 20},
+      {"markerSize", 2.0},
+      {"color", kYellow}
+    };
+    
+    
+    
+    for(int iHelix = 0;iHelix<fittedHelices.size();iHelix++){
+      if(iHelix != 1) continue;
+//      if(bestHelix[iHelix]->GetNpoints() < 5) continue;
+      
+      fittedHelices[iHelix]->Print();cout<<endl;
+      display->DrawShrinkingHelix(fittedHelices[iHelix], bestHelixOptions);
+      
+      helixVertexOptions["markerStyle"] = 20;
+      vector<shared_ptr<Point>> helixVertex = fittedHelices[iHelix]->GetPoints();
+      display->DrawSimplePoints(helixVertex, helixVertexOptions);
+      
+//      helixVertexOptions["markerStyle"] = 21;
+//      vector<shared_ptr<Point>> helixCenter = {make_shared<Point>(bestHelix[iHelix]->GetOrigin())};
+//      display->DrawSimplePoints(helixCenter, helixVertexOptions);
+    }
+    /*
+    iHelix = 1;
+    bestHelix[iHelix]->Print();cout<<endl;
+    display->DrawShrinkingHelix(bestHelix[iHelix], bestHelixOptions);
+    
+    helixVertexOptions["color"] = kGreen;
+    helixVertexOptions["markerStyle"] = 20;
+    
+    helixVertex = bestHelix[iHelix]->GetPoints();
+    display->DrawSimplePoints(helixVertex, helixVertexOptions);
+    
+    helixVertexOptions["markerStyle"] = 21;
+    helixCenter = {make_shared<Point>(bestHelix[iHelix]->GetOrigin())};
+    display->DrawSimplePoints(helixCenter, helixVertexOptions);
+    */
+    
+    
+      /*
 			map<string,any> fitPointsOptions = {
 				{"title", "Fit helix points"},
 				{"markerStyle", 20},
@@ -269,10 +310,8 @@ int main(int argc, char* argv[])
 			
 			cout<<"\n\nBest helix is:"<<endl;
 			bestHelix->Print();
-		}
-    else{
-      cout<<"\n\nCould not fit any helix..."<<endl;
-    }
+       */
+    
   }
 	
   /*
