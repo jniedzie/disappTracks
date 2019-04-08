@@ -258,7 +258,7 @@ vector<double> EventSet::GetSignificance(bool inData)
   if(inData){
     for(int iData=0;iData<kNdata;iData++){
       if(!config->runData[iData]){
-        results.push_back(inf);
+        results.push_back(-inf);
         continue;
       }
       results.push_back((weightedSize(xtracks::kData,iData)-nBackgroundTotal)/sqrt(weightedSize(xtracks::kData,iData)));
@@ -267,7 +267,7 @@ vector<double> EventSet::GetSignificance(bool inData)
   else{
     for(int iSig=0;iSig<kNsignals;iSig++){
       if(!config->runSignal[iSig]){
-        results.push_back(inf);
+        results.push_back(-inf);
         continue;
       }
       results.push_back(weightedSize(xtracks::kSignal,iSig)/sqrt(nBackgroundTotal+weightedSize(xtracks::kSignal,iSig)));

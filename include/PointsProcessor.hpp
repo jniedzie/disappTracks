@@ -12,6 +12,7 @@
 #include "ConfigManager.hpp"
 
 typedef vector<shared_ptr<Point>> PointsTriplet; ///< Vector containing three points
+typedef pair<shared_ptr<Point>, shared_ptr<Point>> PointsPair;
 typedef vector<PointsTriplet> TripletsVector;    ///< Vector of triplets of points
 typedef vector<pair<PointsTriplet, PointsTriplet>> TripletPairsVector; ///< Vector of pairs of point triplets
 
@@ -53,6 +54,9 @@ public:
   
   /// Creates all possible combinations of input points with a dummy first triplet point
   TripletsVector BuildPointTriplets(const vector<shared_ptr<Point>> &points);
+  
+  /// Creates all possible combinations of two input points
+  vector<PointsPair> BuildPointPairs(const vector<shared_ptr<Point>> &points);
   
   /// Creates a vector of pairs of point triples. In each pair first one starts with provided originMin
   /// point, the second one with the originMax. Second and third element of each pair are all possible

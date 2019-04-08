@@ -10,8 +10,9 @@
 #include "Helpers.hpp"
 #include "Point.hpp"
 #include "PointsProcessor.hpp"
-#include "Circle.hpp"
+#include "CircleProcessor.hpp"
 #include "ConfigManager.hpp"
+#include "Track.hpp"
 
 class Helix
 {
@@ -52,6 +53,19 @@ public:
   /// Calculates average of the squared distances between points (hits) and the helix
   double GetChi2();
   
+  // limit params
+  // x = L cos(φ) + (R0 - at) cos(t)
+  // y = L sin(φ) + (R0 - at) sin(t)
+  // z = L ctg(φ) + (s0 - bt) t
+  
+  Helix(const Track &_track, const Point &p1, const Point &p2);
+  
+  double Lmin, Lmax;
+  double bmin, bmax;
+  double s0min, s0max;
+  double amin, amax;
+  double R0min, R0max;
+  
 private:
   vector<shared_ptr<Point>> points;   ///< Vector of points laying on the helix (withing thickness)
   double tShift;          ///< Angle by which beginning of the helix is shifted due to the shift of its origin
@@ -61,8 +75,8 @@ private:
   int nRegularPoints = 0; ///< Number of points that are distributed regularly along Z axis
   int nPionPoints = 0;    ///< Number of points along the helix that are true pion hits
   
-  unique_ptr<Point> vertex;     ///< Center of the helix
-  Point origin;     ///< Center of the helix
+  unique_ptr<Point> vertex;     ///< Decay point (beginning) of the helix
+  Point origin;                 ///< Center of the helix
   unique_ptr<Point> momentum;   ///< Pion's momentum vector
   double radius;                ///< Radius of the helix
   double slope;                 ///< Slope of the helix in Z direction
@@ -72,6 +86,7 @@ private:
   Point GetClosestPoint(Point p);
   
   unique_ptr<PointsProcessor> pointsProcessor;
+  unique_ptr<CircleProcessor> circleProcessor;
   
   friend class HelixProcessor;
 };

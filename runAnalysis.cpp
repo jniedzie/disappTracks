@@ -170,32 +170,25 @@ int main(int argc, char* argv[])
     // pick category
     if(config->category == "2-tracks"){
       eventCut_L1->SetNtracks(range<int>(2,2));
-      
-      trackCut_L1->SetCaloEmEnergy(range<double>(0.0,8.0));
       trackCut_L1->SetNlayers(range<int>(2,10));
+      
+      trackCut_L1->SetCaloEmEnergy(range<double>(0.0,2.0));
     }
     else if(config->category == "3-layers"){
-      trackCut_L1->SetNpixelLayers(range<int>(3, 3));
-      trackCut_L1->SetRelativeIsolation(range<double>(0,0.11));
-      trackCut_L1->SetNmissingOuterTracker(range<int>(3, inf));
-      trackCut_L1->SetCaloEmEnergy(range<double>(0.0,3.0));
-      trackCut_L1->SetDedxPerCluster(range<double>(2.0,inf));
-      trackCut_L1->SetTrackMetDeltaPhi(range<double>(-2.3,2.3));
-      
       eventCut_L1->SetNtracks(range<int>(1,1));
-      eventCut_L1->SetJetMetDeltaPhi(range<double>(0.7,inf));
+      trackCut_L1->SetNlayers(range<int>(3, 3));
+      
+      trackCut_L1->SetCaloEmEnergy(range<double>(0.0,2.0));
+      trackCut_L1->SetTrackMetDeltaPhi(range<double>(-TMath::Pi()/2,TMath::Pi()/2));
+      trackCut_L1->SetDedxPerCluster(range<double>(3.0,inf));
     }
     else if(config->category == "4-layers"){
-      trackCut_L1->SetNpixelLayers(range<int>(4, 4));
-      
-//      trackCut_L1->SetNmissingOuterTracker(range<int>(7, inf));
-      trackCut_L1->SetCaloEmEnergy(range<double>(0.0,0.4));
-      trackCut_L1->SetDedxPerCluster(range<double>(2.0,inf));
-//      trackCut_L1->SetPt(range<double>(100,inf));
-      trackCut_L1->SetTrackMetDeltaPhi(range<double>(-2.3,2.3));
-      
-      
       eventCut_L1->SetNtracks(range<int>(1,1));
+      trackCut_L1->SetNlayers(range<int>(4, 4));
+      
+      trackCut_L1->SetCaloEmEnergy(range<double>(0.0,2.0));
+      trackCut_L1->SetTrackMetDeltaPhi(range<double>(-TMath::Pi()/2,TMath::Pi()/2));
+      trackCut_L1->SetDedxPerCluster(range<double>(3.0,inf));
     }
     
     if(config->scanMETbinning){
@@ -274,82 +267,38 @@ int main(int argc, char* argv[])
     }
     else if(config->doMETbinning){
       if(config->category != "2-tracks"){
+        
+        cout<<"Combined significances from MET bins:"<<endl;
+        
+        
+        int nMetBins = 10;
+        
+        vector<vector<double>> significances; // [metBin][iSig]
+        
+        for(int iMetBin=0; iMetBin<nMetBins; iMetBin++){
+          
+          double binMin = 200+iMetBin*100;
+          double binMax = 200+(iMetBin+1)*100;
+          eventCut_L1->SetMetPt(range<double>(binMin, binMax));
+          
+          auto eventsForMetBin = make_shared<EventSet>(*events);
+          ProcessCuts(eventsForMetBin, eventCut_L1, trackCut_L1, jetCut_L1, leptonCut_L1);
+          significances.push_back(eventsForMetBin->GetSignificance());
+        }
+
         for(int iSig=0;iSig<kNsignals;iSig++){
           if(!config->runSignal[iSig]) continue;
-          auto events1 = shared_ptr<EventSet>(new EventSet(*events));
-          auto events2 = shared_ptr<EventSet>(new EventSet(*events));
-          double split = -1;
           
-          if(config->category == "3-layers"){
-            if(iSig == kWino_M_300_cTau_3  || iSig == kWino_M_300_cTau_10 || iSig == kWino_M_300_cTau_30 ||
-               iSig == kWino_M_500_cTau_10 || iSig == kWino_M_500_cTau_20){
-              split = 380;
-            }
-            else if(iSig == kWino_M_650_cTau_10 || iSig == kWino_M_650_cTau_20 ||
-                    iSig == kWino_M_800_cTau_20){
-              split = 440;
-            }
-            else if(iSig == kWino_M_800_cTau_10  ||
-                    iSig == kWino_M_1000_cTau_10 || iSig == kWino_M_1000_cTau_20){
-              split = 580;
-            }
+          double combinedSignificance = 0;
+          
+          for(int iMetBin=0; iMetBin<nMetBins; iMetBin++){
+            if(significances[iMetBin][iSig] < 0 || !isnormal(significances[iMetBin][iSig])) continue;
+            
+            combinedSignificance += pow(significances[iMetBin][iSig],2);
           }
-          else if(config->category == "4-layers"){
-            if(iSig == kWino_M_300_cTau_3  || iSig == kWino_M_300_cTau_10 || iSig == kWino_M_300_cTau_30 ||
-               iSig == kWino_M_500_cTau_10 || iSig == kWino_M_500_cTau_20 ||
-               iSig == kWino_M_650_cTau_10 || iSig == kWino_M_650_cTau_20 ||
-               iSig == kWino_M_800_cTau_20){
-              split = 290;
-            }
-            else if(iSig == kWino_M_800_cTau_10  ||
-                    iSig == kWino_M_1000_cTau_10 || iSig == kWino_M_1000_cTau_20){
-              split = 440;
-            }
-          }
+          combinedSignificance = sqrt(combinedSignificance);
           
-          eventCut_L1->SetMetPt(range<double>(200,split));
-          ProcessCuts(events1, eventCut_L1, trackCut_L1, jetCut_L1, leptonCut_L1);
-          
-          eventCut_L1->SetMetPt(range<double>(split,inf));
-          ProcessCuts(events2, eventCut_L1, trackCut_L1, jetCut_L1, leptonCut_L1);
-          
-          vector<double> significances1 = events1->GetSignificance();
-          vector<double> significances2 = events2->GetSignificance();
-          
-          double combinedSignificance = sqrt(pow(significances1[iSig],2) + pow(significances2[iSig],2));
           cout<<signalTitle[iSig]<<"\t"<<combinedSignificance<<endl;
-        }
-        
-        for(int iData=0;iData<kNdata;iData++){
-          if(!config->runData[iData]) continue;
-          
-          vector<double> splits;
-          
-          if(config->category == "3-layers"){
-            splits = { 380, 440, 580};
-          }
-          else if(config->category == "4-layers"){
-            splits = { 290, 440 };
-          }
-          
-          cout<<dataTitle[iData]<<"\n";
-          
-          for(double split : splits){
-            auto events1 = shared_ptr<EventSet>(new EventSet(*events));
-            auto events2 = shared_ptr<EventSet>(new EventSet(*events));
-            
-            eventCut_L1->SetMetPt(range<double>(200,split));
-            ProcessCuts(events1, eventCut_L1, trackCut_L1, jetCut_L1, leptonCut_L1);
-            
-            eventCut_L1->SetMetPt(range<double>(split,inf));
-            ProcessCuts(events2, eventCut_L1, trackCut_L1, jetCut_L1, leptonCut_L1);
-            
-            vector<double> significances1 = events1->GetSignificance(true);
-            vector<double> significances2 = events2->GetSignificance(true);
-            
-            double combinedSignificance = sqrt(pow(significances1[iData],2) + pow(significances2[iData],2));
-            cout<<"split:"<<split<<"\t"<<combinedSignificance<<endl;
-          }
         }
       }
       else{

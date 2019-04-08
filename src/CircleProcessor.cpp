@@ -223,8 +223,87 @@ unique_ptr<Circle> CircleProcessor::GetParallelCircle(const unique_ptr<Circle> &
   return newCircle;
 }
 
+
+// Check the given point are perpendicular to x or y axis
+bool CircleProcessor::IsPerpendicular(const Point &p1, const Point &p2,const Point &p3)
+{
+  double yDelta_a = p2.GetY() - p1.GetY();
+  double xDelta_a = p2.GetX() - p1.GetX();
+  double yDelta_b = p3.GetY() - p2.GetY();
+  double xDelta_b = p3.GetX() - p2.GetX();
+  
+  if (fabs(xDelta_a) <= 0.000000001 && fabs(yDelta_b) <= 0.000000001) return false;
+  
+  if (fabs(yDelta_a) <= 0.0000001)        return true;
+  else if (fabs(yDelta_b) <= 0.0000001)   return true;
+  else if (fabs(xDelta_a)<= 0.000000001)  return true;
+  else if (fabs(xDelta_b)<= 0.000000001)  return true;
+  
+  return false ;
+}
+
+unique_ptr<Circle> CircleProcessor::CalcCircle(const Point &p1, const Point &p2, const Point &p3)
+{
+  double yDelta_a= p2.GetY() - p1.GetY();
+  double xDelta_a= p2.GetX() - p1.GetX();
+  double yDelta_b= p3.GetY() - p2.GetY();
+  double xDelta_b= p3.GetX() - p2.GetX();
+  
+  unique_ptr<Circle> circle = nullptr;
+  
+  double center_x;
+  double center_y;
+  double center_z;
+  double radius;
+  
+  if (fabs(xDelta_a) <= 0.000000001 && fabs(yDelta_b) <= 0.000000001){
+    center_x = 0.5*(p2.GetX() + p3.GetX());
+    center_y = 0.5*(p1.GetY() + p2.GetY());
+    center_z = p1.GetZ();
+    
+    Point center(center_x, center_y, center_z);
+    radius = pointsProcessor->distanceXY(center, p1);
+    
+    circle = make_unique<Circle>(p1, center, radius);
+    
+    return circle;
+  }
+  
+  double aSlope = yDelta_a/xDelta_a;
+  double bSlope = yDelta_b/xDelta_b;
+  if (fabs(aSlope-bSlope) <= 0.000000001) return circle;
+  
+  
+  center_x = (aSlope*bSlope*(p1.GetY() - p3.GetY()) + bSlope*(p1.GetX() + p2 .GetX()) -
+              aSlope*(p2.GetX()+p3.GetX()) )/(2* (bSlope-aSlope) );
+  
+  center_y  = -1*(center_x - (p1.GetX()+p2.GetX())/2)/aSlope +  (p1.GetY()+p2.GetY())/2;
+  center_z = p1.GetZ();
+  
+  Point center(center_x, center_y, center_z);
+  radius = pointsProcessor->distanceXY(center, p1);
+  circle = make_unique<Circle>(p1, center, radius);
+  
+  return circle;
+}
+
 unique_ptr<Circle> CircleProcessor::GetCircleFromTriplet(const PointsTriplet &triplet)
 {
+  Point p1 = *triplet[0];
+  Point p2 = *triplet[1];
+  Point p3 = *triplet[2];
+  
+  unique_ptr<Circle> circle;
+  
+  if (!IsPerpendicular(p1, p2, p3) )         circle = CalcCircle(p1, p2, p3);
+  else if (!IsPerpendicular(p1, p3, p2) )    circle = CalcCircle(p1, p3, p2);
+  else if (!IsPerpendicular(p2, p1, p3) )    circle = CalcCircle(p2, p1, p3);
+  else if (!IsPerpendicular(p2, p3, p1) )    circle = CalcCircle(p2, p3, p1);
+  else if (!IsPerpendicular(p3, p2, p1) )    circle = CalcCircle(p3, p2, p1);
+  else if (!IsPerpendicular(p3, p1, p2) )    circle = CalcCircle(p3, p1, p2);
+  
+  return circle;
+  /*
   double x1 = triplet[0]->GetX();
   double y1 = triplet[0]->GetY();
   double x2 = triplet[1]->GetX();
@@ -252,4 +331,5 @@ unique_ptr<Circle> CircleProcessor::GetCircleFromTriplet(const PointsTriplet &tr
   circle->SetPz(triplet[1]->GetZ() - triplet[0]->GetZ());
   
   return circle;
+   */
 }

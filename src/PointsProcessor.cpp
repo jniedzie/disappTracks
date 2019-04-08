@@ -122,6 +122,20 @@ TripletsVector PointsProcessor::BuildPointTriplets(const vector<shared_ptr<Point
   return pointTriplets;
 }
 
+vector<PointsPair> PointsProcessor::BuildPointPairs(const vector<shared_ptr<Point>> &points)
+{
+  int nPoints = (int)points.size();
+  vector<PointsPair> pointPairs;
+  
+  for(int i=0;i<nPoints;i++){
+    for(int j=i+1;j<nPoints;j++){
+      auto pointPair =  make_pair( points[i], points[j] );
+      pointPairs.push_back(pointPair);
+    }
+  }
+  return pointPairs;
+}
+
 TripletPairsVector PointsProcessor::BuildPointTripletPairs(const vector<shared_ptr<Point>> &points,
                                                        const shared_ptr<Point> &originMin,
                                                        const shared_ptr<Point> &originMax)

@@ -72,7 +72,7 @@ public:
   inline int     GetPid(){return pid;}
   inline int     GetMcMatch(){return mcMatch;}
   
-  inline int GetNtrackerLayers(){return nTrackerLayers;}
+  inline int GetNtrackerLayers() const {return nTrackerLayers;}
   inline int GetNpixelLayers(){return nPixelLayers;}
   inline int GetNtrackerHits(){return nTrackerHits;}
   inline int GetNpixelHits(){return nPixelHits;}

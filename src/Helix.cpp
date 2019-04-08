@@ -13,7 +13,8 @@ vertex(make_unique<Point>(_origin)),
 origin(_origin),
 momentum(make_unique<Point>(*_momentum)),
 charge(_charge),
-pointsProcessor(make_unique<PointsProcessor>())
+pointsProcessor(make_unique<PointsProcessor>()),
+circleProcessor(make_unique<CircleProcessor>())
 {
   radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
   slope = radius * charge * momentum->GetVectorSlopeC();
@@ -43,6 +44,63 @@ pointsProcessor(make_unique<PointsProcessor>())
   tMax = GetNcycles()*2*TMath::Pi();
 }
 
+Helix::Helix(const Track &_track, const Point &p1, const Point &p2) :
+origin(Point(0,0,0)),
+momentum(make_unique<Point>(0,0,0)),
+circleProcessor(make_unique<CircleProcessor>())
+{
+  int nLayers = _track.GetNtrackerLayers();
+  
+  Lmin = layerR[nLayers-1];
+  Lmax = layerR[nLayers];
+  
+  // approximated position of the decay vertex
+  vertex = make_unique<Point>((Lmin-Lmax)/2 * cos(_track.GetPhi()),
+                              (Lmin-Lmax)/2 * sin(_track.GetPhi()),
+                              (Lmin-Lmax)/2 / tan(_track.GetTheta()));
+  
+  PointsTriplet points = {make_shared<Point>(*vertex), make_shared<Point>(p1), make_shared<Point>(p2)};
+  auto circle = circleProcessor->GetCircleFromTriplet(points);
+  
+  origin = circle->GetCenter();
+  
+  double t1 = circle->GetPointAngle(make_shared<Point>(p1));
+  double t2 = circle->GetPointAngle(make_shared<Point>(p2));
+  
+  double b1 = (p2.GetZ()+p2.GetZerr() - Lmin/tan(_track.GetTheta())) / (t1*t2);
+  double b2 = (p2.GetZ()-p2.GetZerr() - Lmin/tan(_track.GetTheta())) / (t1*t2);
+  double b3 = (p2.GetZ()+p2.GetZerr() - Lmax/tan(_track.GetTheta())) / (t1*t2);
+  double b4 = (p2.GetZ()-p2.GetZerr() - Lmax/tan(_track.GetTheta())) / (t1*t2);
+  
+  bmin = min(min(min(b1, b2), b3), b4);
+  bmax = max(max(max(b1, b2), b3), b4);
+  
+  double s0_1 = (p1.GetZ()+p1.GetZerr() - (p2.GetZ()+p2.GetZerr()) + bmin*(t1*t1 - t2*t2)) / (t1 - t2);
+  double s0_2 = (p1.GetZ()+p1.GetZerr() - (p2.GetZ()-p2.GetZerr()) + bmin*(t1*t1 - t2*t2)) / (t1 - t2);
+  double s0_3 = (p1.GetZ()-p1.GetZerr() - (p2.GetZ()+p2.GetZerr()) + bmin*(t1*t1 - t2*t2)) / (t1 - t2);
+  double s0_4 = (p1.GetZ()-p1.GetZerr() - (p2.GetZ()-p2.GetZerr()) + bmin*(t1*t1 - t2*t2)) / (t1 - t2);
+  
+  double s0_5 = (p1.GetZ()+p1.GetZerr() - (p2.GetZ()+p2.GetZerr()) + bmax*(t1*t1 - t2*t2)) / (t1 - t2);
+  double s0_6 = (p1.GetZ()+p1.GetZerr() - (p2.GetZ()-p2.GetZerr()) + bmax*(t1*t1 - t2*t2)) / (t1 - t2);
+  double s0_7 = (p1.GetZ()-p1.GetZerr() - (p2.GetZ()+p2.GetZerr()) + bmax*(t1*t1 - t2*t2)) / (t1 - t2);
+  double s0_8 = (p1.GetZ()-p1.GetZerr() - (p2.GetZ()-p2.GetZerr()) + bmax*(t1*t1 - t2*t2)) / (t1 - t2);
+  
+  vector<double> s0 = { s0_1, s0_2, s0_3, s0_4, s0_5, s0_6, s0_7, s0_8 };
+  
+  s0min = *min_element(s0.begin(), s0.end());
+  s0max = *max_element(s0.begin(), s0.end());
+  
+  amin = ((p1.GetX() - Lmin*cos(_track.GetPhi()))*(cos(t1)-cos(t2))) / (sin(t1)*cos(t2)*(t1-t2));
+  amax = ((p1.GetX() - Lmax*cos(_track.GetPhi()))*(cos(t1)-cos(t2))) / (sin(t1)*cos(t2)*(t1-t2));
+  
+  if(amin > amax) swap(amin, amax);
+  
+  R0min = ((p1.GetX() - p2.GetX()) + amin*(t1*cos(t1)-t2*cos(t2))) / (cos(t1)-cos(t2));
+  R0max = ((p1.GetX() - p2.GetX()) + amax*(t1*cos(t1)-t2*cos(t2))) / (cos(t1)-cos(t2));
+  
+  if(R0min > R0max) swap(R0min, R0max);
+}
+
 void Helix::Print()
 {
   cout<<"\tVertex:("<<vertex->GetX()<<","<<vertex->GetY()<<","<<vertex->GetZ()<<")\n";
@@ -50,6 +108,11 @@ void Helix::Print()
   cout<<"\tMomentum:("<<momentum->GetX()<<","<<momentum->GetY()<<","<<momentum->GetZ()<<")\n";
   cout<<"\tCharge: "<<charge<<"\tR:"<<radius<<"\tc:"<<slope<<"\n";
   cout<<"\tnPoints:"<<points.size()<<"\tnPionPoints:"<<nPionPoints<<"\tnRegularPoints:"<<nRegularPoints<<"\n";
+  cout<<"\tL:"<<Lmin<<" -- "<<Lmax<<endl;
+  cout<<"\tb:"<<bmin<<" -- "<<bmax<<endl;
+  cout<<"\ts0:"<<s0min<<" -- "<<s0max<<endl;
+  cout<<"\ta:"<<amin<<" -- "<<amax<<endl;
+  cout<<"\tR:"<<R0min<<" -- "<<R0max<<endl;
 }
 
 void Helix::SetPoints(const vector<shared_ptr<Point>> &_points)

@@ -29,8 +29,8 @@ public:
   /// Takes a vector of triplets of points and returns a vector of circles matching these triplets
   vector<unique_ptr<Circle>> BuildCirclesFromPoints(const TripletsVector &points);
   
-  /// For each triplet pair builds circles that go through the triplet points and stores only the circle
-  /// with greater radius.
+  /// For each triplet pair builds circles that go through the triplet points and stores only
+  /// the circle with greater radius.
   /// \param radiusRange Circles that have radius outside of this range will be skipped
   vector<unique_ptr<Circle>> BuildCirclesFromTripletPairs(const TripletPairsVector &triplets,
                                                           range<double> radiusRange);
@@ -61,9 +61,12 @@ public:
   unique_ptr<Circle> GetParallelCircle(const unique_ptr<Circle> &circle,
                                        const shared_ptr<Point> &point);
   
-private:
   /// Returns a circle passing through all three points of the specified triplet
   unique_ptr<Circle>  GetCircleFromTriplet(const PointsTriplet &triplet);
+  
+private:
+  bool IsPerpendicular(const Point &p1, const Point &p2,const Point &p3);
+  unique_ptr<Circle> CalcCircle(const Point &p1, const Point &p2, const Point &p3);
   
   unique_ptr<PointsProcessor> pointsProcessor;
   

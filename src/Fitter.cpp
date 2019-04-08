@@ -359,8 +359,24 @@ unique_ptr<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
   double minRadius = GetRadiusInMagField(config->minPx, config->minPy, solenoidField);
   double maxRadius = GetRadiusInMagField(config->maxPx, config->maxPy, solenoidField);
   
-  TripletPairsVector tripletPairs = pointsProcessor->BuildPointTripletPairs(filteredPoints, originMin, originMax);
-  circles = circleProcessor->BuildCirclesFromTripletPairs(tripletPairs, range<double>(minRadius, maxRadius));
+//  TripletPairsVector tripletPairs = pointsProcessor->BuildPointTripletPairs(filteredPoints, originMin, originMax);
+//  circles = circleProcessor->BuildCirclesFromTripletPairs(tripletPairs, range<double>(minRadius, maxRadius));
+  
+  vector<PointsPair> pointPairs = pointsProcessor->BuildPointPairs(filteredPoints);
+  
+  vector<shared_ptr<Helix>> helices;
+  
+  for(auto pointPair : pointPairs){
+    auto helix = make_shared<Helix>(track, *pointPair.first, *pointPair.second);
+    helices.push_back(helix);
+  }
+  
+  for(auto &helix : helices){
+    cout<<endl;
+    helix->Print();
+  }
+  
+  return nullptr;
   
   // Build seeds from the circles (this will check that they make sense)
   vector<unique_ptr<ArcSet2D>> potentialPionTracks = arcSetProcessor->BuildArcSetsFromCircles(circles);
