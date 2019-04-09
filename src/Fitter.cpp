@@ -320,15 +320,15 @@ vector<unique_ptr<Helix>> Fitter::FitHelix(const vector<shared_ptr<Point>> &_poi
   
   int iter=0;
   for(auto pointPair : pointPairs){
-//    if(iter > 10) break;
+    if(iter > 0) break;
     auto helix = make_unique<Helix>(track, *pointPair.first, *pointPair.second, vertex);
     helices.push_back(move(helix));
     
     iter++;
   }
-  /*
-  bool finished;
   
+  bool finished;
+  int nSteps = 0;
   do{
     finished = true;
     vector<unique_ptr<Helix>> helicesAfterExtending;
@@ -349,10 +349,10 @@ vector<unique_ptr<Helix>> Fitter::FitHelix(const vector<shared_ptr<Point>> &_poi
         bool extended = helixCopy->ExtendByPoint(*point);
         
         if(extended){
-          if(helixCopy->R0 > GetRadiusInMagField(config->maxPx, config->maxPy, solenoidField) ||
-             helixCopy->R0 < GetRadiusInMagField(config->minPx, config->minPy, solenoidField)){
-            continue;
-          }
+//          if(helixCopy->R0 > GetRadiusInMagField(config->maxPx, config->maxPy, solenoidField) ||
+//             helixCopy->R0 < GetRadiusInMagField(config->minPx, config->minPy, solenoidField)){
+//            continue;
+//          }
           
           cout<<"Before extension:"<<endl;  helix->Print();
           cout<<"\nafter extension:"<<endl; helixCopy->Print(); cout<<endl;
@@ -380,9 +380,12 @@ vector<unique_ptr<Helix>> Fitter::FitHelix(const vector<shared_ptr<Point>> &_poi
       helices.push_back(move(h));
       iter++;
     }
+    if(nSteps == 0) finished = true;
+    
+    nSteps++;
   }
   while(!finished);
-  */
+  
   return helices;
   
   // Create all possible point triplets

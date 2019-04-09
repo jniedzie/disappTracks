@@ -86,6 +86,7 @@ public:
   unique_ptr<Point> GetVertex(){return make_unique<Point>(*vertex);}
   bool ExtendByPoint(const Point &point);
   void CalcAndUpdateSlopeVars(double z0, double t0, double z1, double t1, double z2, double t2);
+  pair<double, double> CalcSlopeVars(double z0, double t0, double z1, double t1, double z2, double t2);
   
 private:
   vector<shared_ptr<Point>> points;   ///< Vector of points laying on the helix (withing thickness)

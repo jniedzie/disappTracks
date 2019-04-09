@@ -269,7 +269,7 @@ int main(int argc, char* argv[])
     
     for(int iHelix = 0;iHelix<fittedHelices.size();iHelix++){
       // 4-7 are missing, check later
-//      if(iHelix != 4) continue;
+//      if(iHelix != 0) continue;
 //      if(bestHelix[iHelix]->GetNpoints() < 5) continue;
       
       fittedHelices[iHelix]->Print();cout<<endl;
