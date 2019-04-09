@@ -101,46 +101,39 @@ circleProcessor(make_unique<CircleProcessor>())
   
   origin = circle->GetCenter();
   
-  
+  double t0 = atan2(vertex->GetY() - origin.GetY(), vertex->GetX() - origin.GetX());
   double t1 = atan2(p1.GetY() - origin.GetY(), p1.GetX() - origin.GetX());
   double t2 = atan2(p2.GetY() - origin.GetY(), p2.GetX() - origin.GetX());
+  tShift = t0;
   
   // this only gives approximate direction of the momentum vector
   momentum = make_unique<Point>(p1.GetX() - vertex->GetX(),
                                 p1.GetY() - vertex->GetY(),
                                 p1.GetZ() - vertex->GetZ());
   
-  charge = _track.GetCharge();
+  charge = track.GetCharge();
 
-  tShift = atan2(vertex->GetY() - origin.GetY(), vertex->GetX() - origin.GetX());
+  double z0_min = Lmin/tan(track.GetTheta()) + 10*_eventVertex.GetZ();
+  double z0_max = Lmax/tan(track.GetTheta()) + 10*_eventVertex.GetZ();
   
-  double b1 = (p2.GetZ()+p2.GetZerr() - Lmin/tan(_track.GetTheta())) / (t1*t2);
-  double b2 = (p2.GetZ()-p2.GetZerr() - Lmin/tan(_track.GetTheta())) / (t1*t2);
-  double b3 = (p2.GetZ()+p2.GetZerr() - Lmax/tan(_track.GetTheta())) / (t1*t2);
-  double b4 = (p2.GetZ()-p2.GetZerr() - Lmax/tan(_track.GetTheta())) / (t1*t2);
+  double z1_min = p1.GetZ()-p1.GetZerr();
+  double z1_max = p1.GetZ()+p1.GetZerr();
   
-  bmin = min(min(min(b1, b2), b3), b4);
-  bmax = max(max(max(b1, b2), b3), b4);
+  double z2_min = p2.GetZ()-p2.GetZerr();
+  double z2_max = p2.GetZ()+p2.GetZerr();
   
-  // slope cannot get larger with time:
-  if(bmax < 0) bmax = 0;
-  if(bmin < 0) bmin = 0;
-  
-  double s0_1 = (p1.GetZ()+p1.GetZerr() - (p2.GetZ()+p2.GetZerr()) + bmin*(t1*t1 - t2*t2)) / (t1 - t2);
-  double s0_2 = (p1.GetZ()+p1.GetZerr() - (p2.GetZ()-p2.GetZerr()) + bmin*(t1*t1 - t2*t2)) / (t1 - t2);
-  double s0_3 = (p1.GetZ()-p1.GetZerr() - (p2.GetZ()+p2.GetZerr()) + bmin*(t1*t1 - t2*t2)) / (t1 - t2);
-  double s0_4 = (p1.GetZ()-p1.GetZerr() - (p2.GetZ()-p2.GetZerr()) + bmin*(t1*t1 - t2*t2)) / (t1 - t2);
-  
-  double s0_5 = (p1.GetZ()+p1.GetZerr() - (p2.GetZ()+p2.GetZerr()) + bmax*(t1*t1 - t2*t2)) / (t1 - t2);
-  double s0_6 = (p1.GetZ()+p1.GetZerr() - (p2.GetZ()-p2.GetZerr()) + bmax*(t1*t1 - t2*t2)) / (t1 - t2);
-  double s0_7 = (p1.GetZ()-p1.GetZerr() - (p2.GetZ()+p2.GetZerr()) + bmax*(t1*t1 - t2*t2)) / (t1 - t2);
-  double s0_8 = (p1.GetZ()-p1.GetZerr() - (p2.GetZ()-p2.GetZerr()) + bmax*(t1*t1 - t2*t2)) / (t1 - t2);
-  
-  vector<double> s0 = { s0_1, s0_2, s0_3, s0_4, s0_5, s0_6, s0_7, s0_8 };
-  
-  s0min = *min_element(s0.begin(), s0.end());
-  s0max = *max_element(s0.begin(), s0.end());
+  // calculate all possible pairs of b -- s0 values and find extreme ones:
+  CalcAndUpdateSlopeVars(z0_min, t0, z1_min, t1, z2_min, t2);
+  CalcAndUpdateSlopeVars(z0_max, t0, z1_min, t1, z2_min, t2);
+  CalcAndUpdateSlopeVars(z0_min, t0, z1_max, t1, z2_min, t2);
+  CalcAndUpdateSlopeVars(z0_min, t0, z1_min, t1, z2_max, t2);
+  CalcAndUpdateSlopeVars(z0_max, t0, z1_max, t1, z2_max, t2);
+  CalcAndUpdateSlopeVars(z0_min, t0, z1_max, t1, z2_max, t2);
+  CalcAndUpdateSlopeVars(z0_max, t0, z1_min, t1, z2_max, t2);
+  CalcAndUpdateSlopeVars(z0_max, t0, z1_max, t1, z2_min, t2);
 
+  origin.SetZ((z0_min+z0_max)/2. - GetSlope(t0)*t0);
+  
   // at the beginning, we cannot tell how much the radius will shrink and what are the limits
   // in the initial radius value
   // average should be zero/initial radius, but any value other than zero should improve those limits
@@ -149,11 +142,43 @@ circleProcessor(make_unique<CircleProcessor>())
   
   R0 = circle->GetRadius();
   
-  origin.SetZ(origin.GetZ() - tShift*(s0min+s0max)/2.);
+//  origin.SetZ(origin.GetZ() - tShift*(s0min+s0max)/2.);
+  
   
   tMax = t2;
-  tStep = 0.01;
+  tStep = 0.005;
   iCycles=0;
+}
+
+void Helix::CalcAndUpdateSlopeVars(double z0, double t0, double z1, double t1, double z2, double t2)
+{
+  cout<<"z0: "<<z0<<"\tt0: "<<t0<<endl;
+  cout<<"z1: "<<z1<<"\tt1: "<<t1<<endl;
+  cout<<"z2: "<<z2<<"\tt2: "<<t2<<endl;
+  
+//  double A = t1*t1-t2*t2+t2*t0-t1*t0;
+//  double b = ( z2 - z1 - (t2-t1)/(t0-t1)*(z0-z1) ) / (1-(t2-t1)/(t0-t1)*t1*t1/A);
+//  double s0 = ( A*b-z2+z1 ) / (t1-t2);
+
+//  double b  = ( z2 - z0 ) / (t1*t2);
+//  double s0 = ( (z1-z2) + b*(t1*t1-t2*t2) ) / (t1-t2);
+
+//  double b  = ( z1*(2*t1-t2)+z0*(t2-t1)-z2*t1 ) / ( t1*(t2*t2-2*t2*t0-2*t1*t1+2*t1*t0) );
+//  double s0 = ( b*(t2*t2-t2*t0-t1*t1+t1*t0)-(z1-z2) ) / ( t1-t2 );
+
+//  double b  = (z1-z2)/(t2*t2 - t0*t2 + t0*t1 - t1*t1);
+//  double s0 = (z0-z1)/(t0-t1) + t1*b;
+
+  double b_num = (z0-z2)*(t0-t1) - (z0-z1)*(t0-t2);
+  double b_den = (t2*t2-t0*t0)*(t0-t1) - (t1*t1-t0*t0)*(t0-t2);
+  double b = b_num/b_den;
+  double s0 = ( z0 - z1 - b*(t1*t1-t0*t0)) / (t0-t1);
+  
+  double testT = 2*TMath::Pi();
+  double val = s0 - b*testT;
+  
+  if(val < valmin){ valmin = val; s0min = s0; bmin = b; }
+  if(val > valmax){ valmax = val; s0max = s0; bmax = b; }
 }
 
 bool Helix::ExtendByPoint(const Point &point)

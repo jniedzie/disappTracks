@@ -47,7 +47,7 @@ public:
   inline double   GetTmin(){return tShift;}
   inline double   GetTmax(){return tMax;}
   inline double   GetTstep(){return tStep;}
-  inline uint     GetNpoints(){return points.size();}
+  inline uint     GetNpoints(){return (uint)points.size();}
   inline int      GetNpionPoints(){return nPionPoints;}
   inline int      GetNregularPoints(){return nRegularPoints;}
   
@@ -65,15 +65,13 @@ public:
   double GetRadius(double t){
 //    double R0 = (R0max + R0min)/2.;
     double a = (amin + amax)/2.;
-    a = 10;
-    return R0 - a*(t-tShift);
+    return R0 - a*(t);
   }
   
   double GetSlope(double t){
     double s0 = (s0min + s0max)/2.;
-    double b = (bmin + bmax)/2.;
-      b = 10;
-    return (s0 - b*(t-tShift));
+    double b  = (bmin + bmax)/2.;
+    return (s0 - b*(t));
   }
   
   double Lmin, Lmax;
@@ -83,9 +81,11 @@ public:
   double R0;
   int iCycles;
   bool isFinished = false;
+  double valmin=inf, valmax=-inf;
   
   unique_ptr<Point> GetVertex(){return make_unique<Point>(*vertex);}
   bool ExtendByPoint(const Point &point);
+  void CalcAndUpdateSlopeVars(double z0, double t0, double z1, double t1, double z2, double t2);
   
 private:
   vector<shared_ptr<Point>> points;   ///< Vector of points laying on the helix (withing thickness)
