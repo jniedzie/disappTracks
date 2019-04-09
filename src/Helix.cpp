@@ -142,9 +142,6 @@ circleProcessor(make_unique<CircleProcessor>())
   
   R0 = circle->GetRadius();
   
-//  origin.SetZ(origin.GetZ() - tShift*(s0min+s0max)/2.);
-  
-  
   tMax = t2;
   tStep = 0.005;
   iCycles=0;
@@ -152,23 +149,6 @@ circleProcessor(make_unique<CircleProcessor>())
 
 void Helix::CalcAndUpdateSlopeVars(double z0, double t0, double z1, double t1, double z2, double t2)
 {
-  cout<<"z0: "<<z0<<"\tt0: "<<t0<<endl;
-  cout<<"z1: "<<z1<<"\tt1: "<<t1<<endl;
-  cout<<"z2: "<<z2<<"\tt2: "<<t2<<endl;
-  
-//  double A = t1*t1-t2*t2+t2*t0-t1*t0;
-//  double b = ( z2 - z1 - (t2-t1)/(t0-t1)*(z0-z1) ) / (1-(t2-t1)/(t0-t1)*t1*t1/A);
-//  double s0 = ( A*b-z2+z1 ) / (t1-t2);
-
-//  double b  = ( z2 - z0 ) / (t1*t2);
-//  double s0 = ( (z1-z2) + b*(t1*t1-t2*t2) ) / (t1-t2);
-
-//  double b  = ( z1*(2*t1-t2)+z0*(t2-t1)-z2*t1 ) / ( t1*(t2*t2-2*t2*t0-2*t1*t1+2*t1*t0) );
-//  double s0 = ( b*(t2*t2-t2*t0-t1*t1+t1*t0)-(z1-z2) ) / ( t1-t2 );
-
-//  double b  = (z1-z2)/(t2*t2 - t0*t2 + t0*t1 - t1*t1);
-//  double s0 = (z0-z1)/(t0-t1) + t1*b;
-
   double b_num = (z0-z2)*(t0-t1) - (z0-z1)*(t0-t2);
   double b_den = (t2*t2-t0*t0)*(t0-t1) - (t1*t1-t0*t0)*(t0-t2);
   double b = b_num/b_den;
