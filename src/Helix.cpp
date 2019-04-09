@@ -102,8 +102,13 @@ circleProcessor(make_unique<CircleProcessor>())
   origin = circle->GetCenter();
   
   double t0 = atan2(vertex->GetY() - origin.GetY(), vertex->GetX() - origin.GetX());
+  
   double t1 = atan2(p1.GetY() - origin.GetY(), p1.GetX() - origin.GetX());
+  while(t1 < t0) t1 += 2*TMath::Pi();
+  
   double t2 = atan2(p2.GetY() - origin.GetY(), p2.GetX() - origin.GetX());
+  while(t2 < t1) t2 += 2*TMath::Pi();
+  
   tShift = t0;
   
   // this only gives approximate direction of the momentum vector
