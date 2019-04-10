@@ -53,9 +53,8 @@ s0min(h.s0min),
 s0max(h.s0max),
 amin(h.amin),
 amax(h.amax),
-R0(h.R0),
-//R0min(h.R0min),
-//R0max(h.R0max),
+R0min(h.R0min),
+R0max(h.R0max),
 iCycles(h.iCycles),
 points(h.points),
 tShift(h.tShift),
@@ -149,7 +148,8 @@ circleProcessor(make_unique<CircleProcessor>())
   amin = -100000;
   amax =  100000;
   
-  R0 = circle->GetRadius();
+  R0min = circle->GetRadius() - 100000;
+  R0max = circle->GetRadius() + 100000;
   
   tMax = t2;
   tStep = 0.01;
@@ -166,6 +166,16 @@ pair<double, double> Helix::CalcSlopeVars(double z0, double t0, double z1, doubl
   return make_pair(s0, b);
 }
 
+pair<double, double> Helix::CalcRadiiVars(double x0, double t0, double x1, double t1, double x2, double t2)
+{
+  double a_num = (x0-x2)*(cos(t0)-cos(t1)) - (x0-x1)*(cos(t0)-cos(t2));
+  double a_den = (cos(t0)-cos(t1))*(t2*cos(t2)-t0*cos(t0)) - (cos(t0)-cos(t2))*(t1*cos(t1)-t0*cos(t0));
+  double a = a_num/a_den;
+  double R0 = ( x0 - x1 - a*(t1*cos(t1)-t0*cos(t0))) / (cos(t0)-cos(t1));
+  
+  return make_pair(R0, a);
+}
+
 void Helix::CalcAndUpdateSlopeVars(double z0, double t0, double z1, double t1, double z2, double t2)
 {
   const auto &[s0, b] = CalcSlopeVars(z0, t0, z1, t1, z2, t2);
@@ -173,8 +183,8 @@ void Helix::CalcAndUpdateSlopeVars(double z0, double t0, double z1, double t1, d
   double testT = 2*TMath::Pi();
   double val = s0 - b*testT;
   
-  if(val < valmin){ valmin = val; s0min = s0; bmin = b; }
-  if(val > valmax){ valmax = val; s0max = s0; bmax = b; }
+  if(val < slope_valmin){ slope_valmin = val; s0min = s0; bmin = b; }
+  if(val > slope_valmax){ slope_valmax = val; s0max = s0; bmax = b; }
 }
 
 
@@ -256,36 +266,69 @@ bool Helix::ExtendByPoint(const Point &point)
   if(new_bmax < bmax) bmax = new_bmax;
   if(new_bmin > bmin) bmin = new_bmin;
   
+  // adjust position of the origin
   origin.SetZ((z0_min+z0_max)/2. - GetSlope(t0)*t0);
   
-/*
-  double amin_new = ((lastPoint.GetX() - Lmin*cos(track.GetPhi()))*(cos(t0)-cos(t))) / (sin(t0)*cos(t)*(t0-t));
-  double amax_new = ((lastPoint.GetX() - Lmax*cos(track.GetPhi()))*(cos(t0)-cos(t))) / (sin(t0)*cos(t)*(t0-t));
+
   
-  if(amin_new > amax_new) swap(amin_new, amax_new);
- 
-  // radius cannot get larger with time
-//  if(amax_new < 0) amax_new = 0;
-//  if(amin_new < 0) amin_new = 0;
   
-  // if new value of a is outside of the allowed range, don't use this point
-  if(amax_new < amin || amin_new > amax) return false;
+  // vertex
+  double x0_min = p0.GetX()-p0.GetXerr();
+  double x0_max = p0.GetX()-p0.GetXerr();
   
-  // if new point narrows down a range, update
-  if(amax_new < amax) amax = amax_new;
-  if(amin_new > amin) amin = amin_new;
+  // last point on the helix
+  double x1_min = p1.GetX()-p1.GetXerr();
+  double x1_max = p1.GetX()+p1.GetXerr();
   
-//  double R0min_new = ((lastPoint.GetX() - point.GetX()) + amin*(t0*cos(t0)-t*cos(t))) / (cos(t0)-cos(t));
-//  double R0max_new = ((lastPoint.GetX() - point.GetX()) + amax*(t0*cos(t0)-t*cos(t))) / (cos(t0)-cos(t));
+  // the new candidate point
+  double x2_min = p2.GetX()-p2.GetXerr();
+  double x2_max = p2.GetX()+p2.GetXerr();
   
-//  if(R0min_new > R0max_new) swap(R0min_new, R0max_new);
+  vector<pair<double, double>> R0_a;
   
-//  if(R0max_new < R0min || R0min_new > R0max) return false;
+  R0_a.push_back(CalcRadiiVars(x0_min, t0, x1_min, t1, x2_min, t2));
+  R0_a.push_back(CalcRadiiVars(x0_max, t0, x1_min, t1, x2_min, t2));
+  R0_a.push_back(CalcRadiiVars(x0_min, t0, x1_max, t1, x2_min, t2));
+  R0_a.push_back(CalcRadiiVars(x0_min, t0, x1_min, t1, x2_max, t2));
+  R0_a.push_back(CalcRadiiVars(x0_max, t0, x1_max, t1, x2_max, t2));
+  R0_a.push_back(CalcRadiiVars(x0_min, t0, x1_max, t1, x2_max, t2));
+  R0_a.push_back(CalcRadiiVars(x0_max, t0, x1_min, t1, x2_max, t2));
+  R0_a.push_back(CalcRadiiVars(x0_max, t0, x1_max, t1, x2_min, t2));
   
-  // if new point narrows down R0 range, update
-//  if(R0max_new < R0max) R0max = R0max_new;
-//  if(R0min_new > R0min) R0min = R0min_new;
-  */
+  double new_R0min = inf;
+  double new_R0max = -inf;
+  
+  double new_amin = inf;
+  double new_amax = -inf;
+  
+  double new_radius_valmin = inf;
+  double new_radius_valmax = -inf;
+  
+  testT = 2*TMath::Pi();
+  
+  for(auto &[R0, a] : R0_a){
+    double val = R0 - a*testT;
+    
+    if(val < new_radius_valmin){ new_radius_valmin = val; new_R0min = R0; new_amin = a; }
+    if(val > new_radius_valmax){ new_radius_valmax = val; new_R0max = R0; new_amax = a; }
+  }
+  
+  if(new_R0min > new_R0max) swap(new_R0min, new_R0max);
+  if(new_amin > new_amax) swap(new_amin, new_amax);
+  
+  // if there's no overlap between new limits and the current ones:
+  if(new_R0max < R0min || new_R0min > R0max ||
+     new_amax < amin || new_amin > amax
+     ){
+    return false;
+  }
+  
+  if(new_R0max < R0max) R0max = new_R0max;
+  if(new_R0min > R0min) R0min = new_R0min;
+  
+  if(new_amax < amax) amax = new_amax;
+  if(new_amin > amin) amin = new_amin;
+  
   points.push_back(make_shared<Point>(point));
 
   return true;
@@ -302,8 +345,7 @@ void Helix::Print()
   cout<<"\tb:"<<bmin<<" -- "<<bmax<<endl;
   cout<<"\ts0:"<<s0min<<" -- "<<s0max<<endl;
   cout<<"\ta:"<<amin<<" -- "<<amax<<endl;
-  cout<<"\tR0:"<<R0<<endl;
-//  cout<<"\tR:"<<R0min<<" -- "<<R0max<<endl;
+  cout<<"\tR:"<<R0min<<" -- "<<R0max<<endl;
   cout<<"\tt min:"<<tShift<<"\tt max:"<<tMax<<endl;
 }
 

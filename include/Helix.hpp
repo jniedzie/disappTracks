@@ -63,9 +63,9 @@ public:
   
   Helix(const Track &_track, const Point &p1, const Point &p2, const Point &_eventVertex);
   double GetRadius(double t){
-//    double R0 = (R0max + R0min)/2.;
+    double R0 = (R0max + R0min)/2.;
     double a = (amin + amax)/2.;
-    return R0 - a*(t);
+    return (R0 - a*(t));
   }
   
   double GetSlope(double t){
@@ -78,15 +78,18 @@ public:
   double bmin, bmax;
   double s0min, s0max;
   double amin, amax;
-  double R0;
+  double R0min, R0max;
   int iCycles;
   bool isFinished = false;
-  double valmin=inf, valmax=-inf;
+  double slope_valmin=inf, slope_valmax=-inf;
+  double radius_valmin=inf, radius_valmax=-inf;
   
   unique_ptr<Point> GetVertex(){return make_unique<Point>(*vertex);}
   bool ExtendByPoint(const Point &point);
   void CalcAndUpdateSlopeVars(double z0, double t0, double z1, double t1, double z2, double t2);
   pair<double, double> CalcSlopeVars(double z0, double t0, double z1, double t1, double z2, double t2);
+  
+  pair<double, double> CalcRadiiVars(double x0, double t0, double x1, double t1, double x2, double t2);
   
 private:
   vector<shared_ptr<Point>> points;   ///< Vector of points laying on the helix (withing thickness)
