@@ -268,8 +268,6 @@ int main(int argc, char* argv[])
     auto id = fittedHelices[0]->seedID;
     
     for(int iHelix = 0;iHelix<fittedHelices.size();iHelix++){
-      // 4-7 are missing, check later
-      
 //      if(fittedHelices[iHelix]->seedID != id) continue;
       
 //      if(iHelix != 0) continue;
