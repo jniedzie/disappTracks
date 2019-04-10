@@ -271,7 +271,7 @@ int main(int argc, char* argv[])
 //      if(fittedHelices[iHelix]->seedID != id) continue;
       
 //      if(iHelix != 0) continue;
-      if(fittedHelices[iHelix]->GetNpoints() < 5) continue;
+//      if(fittedHelices[iHelix]->GetNpoints() < 5) continue;
       
 //      fittedHelices[iHelix]->Print();cout<<endl;
       bestHelixOptions["title"] = ("Helix "+to_string(fittedHelices[iHelix]->uniqueID)).c_str();

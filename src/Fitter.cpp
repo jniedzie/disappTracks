@@ -320,8 +320,21 @@ vector<unique_ptr<Helix>> Fitter::FitHelix(const vector<shared_ptr<Point>> &_poi
   
   int iter=0;
   for(auto pointPair : pointPairs){
-    if(iter > 0) break;
+//    if(iter > 0) break;
     auto helix = make_unique<Helix>(track, *pointPair.first, *pointPair.second, vertex);
+    
+    // check that the radius of a new track candidate is within allowed limits
+    if(helix->R0min > GetRadiusInMagField(config->maxPx, config->maxPy, solenoidField) ||
+       helix->R0max < GetRadiusInMagField(config->minPx, config->minPy, solenoidField)){
+      continue;
+    }
+    
+    // check that the range of a and b parameters allowed the pion not to gain momentum with time
+    if(helix->amax < 0 ||
+       helix->bmin > 0){
+      continue;
+    }
+    
     helices.push_back(move(helix));
     
     iter++;
