@@ -74,7 +74,7 @@ n_track_hits: 2
 **Fitter parameters**
 
 ### Determines how far points can be from helix to be assigned to it (in mm):
-helix_thickness:  10.0
+helix_thickness:  0.0
 
 ### Determines how far points can be from circle to be assigned to it (in mm):
 circle_thickness: 20.0

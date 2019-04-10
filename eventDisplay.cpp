@@ -265,15 +265,20 @@ int main(int argc, char* argv[])
       {"color", kYellow}
     };
     
-    
+    auto id = fittedHelices[0]->seedID;
     
     for(int iHelix = 0;iHelix<fittedHelices.size();iHelix++){
       // 4-7 are missing, check later
-//      if(iHelix != 0) continue;
-//      if(bestHelix[iHelix]->GetNpoints() < 5) continue;
       
-      fittedHelices[iHelix]->Print();cout<<endl;
+//      if(fittedHelices[iHelix]->seedID != id) continue;
+      
+//      if(iHelix != 0) continue;
+      if(fittedHelices[iHelix]->GetNpoints() < 5) continue;
+      
+//      fittedHelices[iHelix]->Print();cout<<endl;
+      bestHelixOptions["title"] = ("Helix "+to_string(fittedHelices[iHelix]->uniqueID)).c_str();
       display->DrawShrinkingHelix(fittedHelices[iHelix], bestHelixOptions);
+      
       
       helixVertexOptions["markerStyle"] = 20;
       vector<shared_ptr<Point>> helixVertex = fittedHelices[iHelix]->GetPoints();

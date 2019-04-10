@@ -83,12 +83,15 @@ public:
   bool isFinished = false;
   double slope_valmin=inf, slope_valmax=-inf;
   double radius_valmin=inf, radius_valmax=-inf;
+  uint64_t seedID;
+  uint64_t uniqueID;
   
   unique_ptr<Point> GetVertex(){return make_unique<Point>(*vertex);}
   bool ExtendByPoint(const Point &point);
   void CalcAndUpdateSlopeVars(double z0, double t0, double z1, double t1, double z2, double t2);
   pair<double, double> CalcSlopeVars(double z0, double t0, double z1, double t1, double z2, double t2);
   
+  void CalcAndUpdateRadiiVars(double x0, double t0, double x1, double t1, double x2, double t2);
   pair<double, double> CalcRadiiVars(double x0, double t0, double x1, double t1, double x2, double t2);
   
 private:

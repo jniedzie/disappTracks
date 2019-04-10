@@ -327,8 +327,11 @@ vector<unique_ptr<Helix>> Fitter::FitHelix(const vector<shared_ptr<Point>> &_poi
     iter++;
   }
   
+  auto seedID = helices[0]->seedID;
   bool finished;
   int nSteps = 0;
+  int uniqueID=4872737680;
+  
   do{
     finished = true;
     vector<unique_ptr<Helix>> helicesAfterExtending;
@@ -337,52 +340,63 @@ vector<unique_ptr<Helix>> Fitter::FitHelix(const vector<shared_ptr<Point>> &_poi
     for(auto &helix : helices){
       
       // that are not yet marked as finished
-      if(helix->isFinished) continue;
-      
-      vector<unique_ptr<Helix>> extendedHelices;
-      
-      // try to extend by all possible points
-      for(auto &point : filteredPoints){
+      if(helix->isFinished){
+        helicesAfterExtending.push_back(move(helix));
+      }
+      else{
+        vector<unique_ptr<Helix>> extendedHelices;
         
-        
-        auto helixCopy = make_unique<Helix>(*helix);
-        bool extended = helixCopy->ExtendByPoint(*point);
-        
-        if(extended){
-//          if(helixCopy->R0 > GetRadiusInMagField(config->maxPx, config->maxPy, solenoidField) ||
-//             helixCopy->R0 < GetRadiusInMagField(config->minPx, config->minPy, solenoidField)){
-//            continue;
-//          }
+        // try to extend by all possible points
+        for(auto &point : filteredPoints){
           
-          cout<<"Before extension:"<<endl;  helix->Print();
-          cout<<"\nafter extension:"<<endl; helixCopy->Print(); cout<<endl;
+          auto helixCopy = make_unique<Helix>(*helix);
+          bool extended = helixCopy->ExtendByPoint(*point);
           
-          extendedHelices.push_back(move(helixCopy));
+          if(extended){
+            
+            // check that the radius of a new track candidate is within allowed limits
+            if(helixCopy->R0min > GetRadiusInMagField(config->maxPx, config->maxPy, solenoidField) ||
+               helixCopy->R0max < GetRadiusInMagField(config->minPx, config->minPy, solenoidField)){
+              continue;
+            }
+            
+            // check that the range of a and b parameters allowed the pion not to gain momentum with time
+            if(helixCopy->amax < 0 ||
+               helixCopy->bmin > 0){
+              continue;
+            }
+            
+            if(helix->seedID == seedID){
+              cout<<"After extension:"<<endl; helixCopy->Print(); cout<<endl;
+            }
+            
+            helixCopy->uniqueID = uniqueID;
+            uniqueID++;
+            extendedHelices.push_back(move(helixCopy));
+          }
+        }
+        // if it was possible to extend the helix
+        if(extendedHelices.size() != 0){
+          helicesAfterExtending.insert(helicesAfterExtending.end(),
+                                       make_move_iterator(extendedHelices.begin()),
+                                       make_move_iterator(extendedHelices.end()));
+          finished = false;
+        }
+        else{ // if helix could not be extended
+          if(helix->seedID == seedID){
+            cout<<"Could not further extend the helix"<<endl;
+          }
+          helix->isFinished = true;
+          helicesAfterExtending.push_back(move(helix)); // is this needed?
         }
       }
       
-      // if it was possible to extend the helix
-      if(extendedHelices.size() != 0){
-        helicesAfterExtending.insert(helicesAfterExtending.end(),
-                            make_move_iterator(extendedHelices.begin()),
-                            make_move_iterator(extendedHelices.end()));
-        finished = false;
-      }
-      else{ // if helix could not be extended
-        helix->isFinished = true;
-        helicesAfterExtending.push_back(move(helix));
-      }
     }
     helices.clear();
-    iter=0;
-    for(auto &h : helicesAfterExtending){
-//      if(iter>10) break;
-      helices.push_back(move(h));
-      iter++;
-    }
-    if(nSteps == 0) finished = true;
     
-    nSteps++;
+    for(auto &h : helicesAfterExtending){
+      helices.push_back(move(h));
+    }
   }
   while(!finished);
   
