@@ -1,6 +1,7 @@
 #include "EventSet.hpp"
 #include "Helpers.hpp"
 #include "ConfigManager.hpp"
+#include "CutsManager.hpp"
 
 #include <TApplication.h>
 
@@ -18,71 +19,34 @@ int main(int argc, char* argv[])
   // All events with initial cuts only
   config = make_unique<ConfigManager>(configPath);
   auto events = make_shared<EventSet>();
-  events->LoadEventsFromFiles("");
   
-  auto eventCut  = make_unique<EventCut>();
-  auto trackCut  = make_unique<TrackCut>();
-  auto jetCut    = make_unique<JetCut>();
-  auto leptonCut = make_unique<LeptonCut>();
+  string inputPrefix;
+  if(config->performCutsLevel == 0)       inputPrefix = "after_L0/";
+  else if(config->performCutsLevel == 1)  inputPrefix = "after_L1/";
+  else{
+    cout<<"ERROR -- unknown cuts level: "<<config->performCutsLevel<<endl;
+    exit(0);
+  }
   
-  SetupDefaultCuts(eventCut, trackCut, jetCut, leptonCut);
+  events->LoadEventsFromFiles(inputPrefix);
   
-  // choose category:
-  eventCut->SetNtracks(range<int>(2,2));
-//  events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+  CutsManager cutsManager;
   
-  cout<<"\n\nBefore cuts:"<<endl;
-  events->PrintYields();
-
-  // on top of default cuts, apply:
-//  trackCut->SetNlayers(range<int>(0,10));
-//  events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+  EventCut eventCut;
+  TrackCut trackCut;
+  JetCut jetCut;
+  LeptonCut leptonCut;
   
-//  cout<<"\n\nAfter cuts:"<<endl;
-//  events->PrintYields();
+  cutsManager.GetCuts(eventCut, trackCut, jetCut, leptonCut);
+  
+  events->ApplyCuts(make_unique<EventCut>(eventCut),
+                    make_unique<TrackCut>(trackCut),
+                    make_unique<JetCut>(jetCut),
+                    make_unique<LeptonCut>(leptonCut));
   
   if(config->drawStandardPlots) events->DrawStandardPlots();
   if(config->drawPerLayerPlots) events->DrawPerLayerPlots();
  
   theApp->Run();
   return 0;
-}
-
-
-
-void SetupDefaultCuts(unique_ptr<EventCut>  &eventCut,
-                      unique_ptr<TrackCut>  &trackCut,
-                      unique_ptr<JetCut>    &jetCut,
-                      unique_ptr<LeptonCut> &leptonCut)
-{
-  // Remove bad jets
-  jetCut->SetChargedHadronEnergyFraction(range<double>(0.01,0.99));
-  jetCut->SetNeutralHadronEnergyFraction(range<double>(0.01,0.99));
-  jetCut->SetPt(range<double>(30.0, inf));
-  
-  // Remove bad tracks
-  trackCut->SetNmissingInnerPixel(range<int>(0, 0));
-  trackCut->SetNmissingMiddleTracker(range<int>(0, 0));
-  trackCut->SetRelativeIsolation(range<double>(0.0, 0.5));
-  trackCut->SetNlayers(range<int>(2, inf));
-  trackCut->SetEta(range<double>(-2.1, 2.1));
-  
-  // Check MET properties
-  eventCut->SetMetNoMuPt(range<double>(200,inf));
-  eventCut->SetRequireMetNoMuTrigger(true);
-  eventCut->SetRequirePassingAllFilters(true);
-  eventCut->SetJetMetDeltaPhi(range<double>(0.5,inf));
-  
-  // Check leading jet properties
-  eventCut->SetLeadingJetPt(range<double>(100,inf));
-  eventCut->SetLeadingJetEta(range<double>(-2.4,2.4));
-  eventCut->SetLeadingJetNeHEF(range<double>(-inf,0.8));
-  eventCut->SetLeadingJetChHEF(range<double>(0.1,inf));
-  
-  // Check number of objects after cuts
-  eventCut->SetNtracks(range<int>(1,inf));
-  eventCut->SetNjets(range<int>(1,inf));
-  eventCut->SetNmuons(range<int>(0,0));
-  eventCut->SetNtaus(range<int>(0,0));
-  eventCut->SetNleptons(range<int>(0,0));
 }

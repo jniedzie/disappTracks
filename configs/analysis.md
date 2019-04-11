@@ -1,7 +1,7 @@
 **Analysis settings**
 
 ### Which level of cuts to apply:
-cuts_level: 1
+cuts_level: 0
 
 ### Analysis category ( 2-tracks | 3-layers | 4-layers ):
 analysis_category:  2-tracks
@@ -56,8 +56,8 @@ show_legends: 0
 **Other analysis options**
 
 ### Limit number of events loaded (-1 means load all available)
-max_N_events_background:  -1
-max_N_events_signal:  -1
+max_N_events_background:  1000
+max_N_events_signal:  1000
 max_N_events_data:  -1
 
 ### Luminosity (in fb^-1) [2015: 3.81, 2016: 37.76, 2017: 41.37, 2018: 63.97, total Run 2: 146.91]:

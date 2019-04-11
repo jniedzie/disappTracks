@@ -302,9 +302,6 @@ bool Helix::ExtendByPoint(const Point &point)
   if(new_bmax < bmax) bmax = new_bmax;
   if(new_bmin > bmin) bmin = new_bmin;
   
-  // adjust position of the origin
-  origin.SetZ((z0_min+z0_max)/2. - GetSlope(t0)*t0);
-  
   // vertex
   double x0_min = p0.GetX()-p0.GetXerr() - config->helixThickness;
   double x0_max = p0.GetX()+p0.GetXerr() + config->helixThickness;
@@ -361,6 +358,14 @@ bool Helix::ExtendByPoint(const Point &point)
   
   if(new_amax < amax) amax = new_amax;
   if(new_amin > amin) amin = new_amin;
+  
+  // adjust position of the origin
+  double y0_min = p0.GetY()-p0.GetYerr() - config->helixThickness;
+  double y0_max = p0.GetY()+p0.GetYerr() + config->helixThickness;
+  
+  origin.SetX((x0_min+x0_max)/2. - GetRadius(t0)*cos(t0));
+  origin.SetY((y0_min+y0_max)/2. - GetRadius(t0)*sin(t0));
+  origin.SetZ((z0_min+z0_max)/2. - GetSlope(t0)*t0);
   
   points.push_back(make_shared<Point>(point));
 
