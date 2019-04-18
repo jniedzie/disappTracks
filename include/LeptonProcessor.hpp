@@ -22,8 +22,7 @@ public:
   /// Check if lepton passes selection criteria
   /// \param lepton Lepton to which cuts should be applied
   /// \param cut Lepton selection criteria to be checked
-  bool IsPassingCut(const shared_ptr<Lepton> lepton,
-                    const unique_ptr<LeptonCut> &cut);
+  bool IsPassingCut(const shared_ptr<Lepton> lepton, const LeptonCut &cut);
   
   /// Link class variables to branches of a specified tree
   /// \param tree Tree from which Lepton parameters will be read

@@ -56,6 +56,7 @@ private:
   range<double> jetMetDeltaPhi;     ///< allowed angle between jet and MET
   range<double> jetMuonDeltaPhi;    ///< allowed angle between jet and muon
   range<double> trackMuonDeltaPhi;  ///< allowed angle between track and muon
+  range<double> jetTrackDeltaR;     ///< allowed angle between track and muon
   
   range<double> leadingJetPt;     ///< allowed pt of the leading jet
   range<double> leadingJetEta;    ///< allowed pseudorapidity of the leading jet

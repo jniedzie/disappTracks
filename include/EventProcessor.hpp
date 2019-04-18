@@ -23,10 +23,10 @@ public:
   void ApplyTrackCut(shared_ptr<Event> event, const TrackCut &cut);
   
   /// Removes jets that don't pass the cut from the jets collection
-  void ApplyJetCut(shared_ptr<Event> event, const unique_ptr<JetCut> &cut);
+  void ApplyJetCut(shared_ptr<Event> event, const JetCut &cut);
   
   /// Removes leptons that don't pass the cut from the leptons collection
-  void ApplyLeptonCut(shared_ptr<Event> event, const unique_ptr<LeptonCut> &cut);
+  void ApplyLeptonCut(shared_ptr<Event> event, const LeptonCut &cut);
   
   /// Check if event passes a cut
   bool IsPassingCut(const shared_ptr<Event> event, const EventCut &cut);

@@ -29,17 +29,16 @@ JetProcessor::~JetProcessor()
   
 }
 
-bool JetProcessor::IsPassingCut(const shared_ptr<Jet> jet,
-                                const unique_ptr<JetCut> &cut)
+bool JetProcessor::IsPassingCut(const shared_ptr<Jet> jet, const JetCut &cut)
 {
   // check jet's kinematical properties
-  if(cut->GetPt().IsOutside(jet->pt))  return false;
-  if(!jet->isForward && cut->GetEta().IsOutside(jet->eta))  return false;
-  if( jet->isForward && cut->GetEtaForward().IsOutside(jet->eta)) return false;
+  if(cut.pt.IsOutside(jet->pt))  return false;
+  if(!jet->isForward && cut.eta.IsOutside(jet->eta))  return false;
+  if( jet->isForward && cut.etaForward.IsOutside(jet->eta)) return false;
   
   // check hadron energy fractions
-  if(cut->GetChargedHadronEnergyFraction().IsOutside(jet->chHEF)) return false;
-  if(cut->GetNeutralHadronEnergyFraction().IsOutside(jet->neHEF)) return false;
+  if(cut.ChHEF.IsOutside(jet->chHEF)) return false;
+  if(cut.NeHEF.IsOutside(jet->neHEF)) return false;
   
   return true;
 }

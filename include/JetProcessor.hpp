@@ -22,8 +22,7 @@ public:
   /// Check if jet passes selection criteria
   /// \param jet Jet to which cuts should be applied
   /// \param cut Jet selection criteria to be checked
-  bool IsPassingCut(const shared_ptr<Jet> jet,
-                    const unique_ptr<JetCut> &cut);
+  bool IsPassingCut(const shared_ptr<Jet> jet, const JetCut &cut);
   
   /// Link class variables to branches of a specified tree
   /// \param tree Tree from which jet parameters will be read

@@ -26,17 +26,16 @@ LeptonProcessor::~LeptonProcessor()
   
 }
 
-bool LeptonProcessor::IsPassingCut(const shared_ptr<Lepton> lepton,
-                                   const unique_ptr<LeptonCut> &cut)
+bool LeptonProcessor::IsPassingCut(const shared_ptr<Lepton> lepton, const LeptonCut &cut)
 {
   // check pt
-  if(cut->GetPt().IsOutside(lepton->pt)) return false;
+  if(cut.pt.IsOutside(lepton->pt)) return false;
   
   // check isolation
-  if(cut->GetRelativeIsolation().IsOutside(lepton->relativeIsolation)) return false;
+  if(cut.relativeIsolation.IsOutside(lepton->relativeIsolation)) return false;
   
   // check tight id requirement
-  if(cut->RequiresTightID() && !lepton->tightID) return false;
+  if(cut.requiresTightID && !lepton->tightID) return false;
   
   return true;
 }

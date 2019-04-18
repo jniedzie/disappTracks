@@ -56,8 +56,10 @@ public:
   /// \param trackCut   Cuts to be applied to tracks
   /// \param jetCut     Cuts to be applied to jets
   /// \param leptonCut  Cuts to be applied to leptons
-  void ApplyCuts(const EventCut &eventCut,const TrackCut &trackCut,
-                 const unique_ptr<JetCut> &jetCut,const unique_ptr<LeptonCut> &leptonCut);
+  void ApplyCuts(const EventCut   &eventCut,
+                 const TrackCut   &trackCut,
+                 const JetCut     &jetCut,
+                 const LeptonCut  &leptonCut);
   
   void DrawStandardPlots(string prefix="");
   void DrawPerLayerPlots();

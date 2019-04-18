@@ -71,38 +71,15 @@ void EventProcessor::ApplyTrackCut(shared_ptr<Event> event, const TrackCut &cut)
   }
 }
 
-void EventProcessor::ApplyJetCut(shared_ptr<Event> event, const unique_ptr<JetCut> &cut)
+void EventProcessor::ApplyJetCut(shared_ptr<Event> event, const JetCut &cut)
 {
   for(auto jet = event->jets.begin(); jet != event->jets.end();){
-    
-    if(!jetProcessor->IsPassingCut(*jet,cut)){
-      jet = event->jets.erase(jet);
-    }
-    else{
-      // check separation with all tracks in the event
-      bool overlapsWithTrack = false;
-      double minTrackDeltaR = cut->GetTrackDeltaR().GetMin();
-      
-      if(minTrackDeltaR > 0){
-        for(auto track : event->tracks){
-          double deltaR_2 =   pow(track->GetPhi() - (*jet)->GetPhi(),2)
-                            + pow(track->GetEta() - (*jet)->GetEta(),2);
-          
-          if(deltaR_2 < (minTrackDeltaR*minTrackDeltaR)){
-            overlapsWithTrack = true;
-            break;
-          }
-        }
-      }
-      
-      if(overlapsWithTrack) jet = event->jets.erase(jet);
-      else                  jet++;
-    }
+    if(!jetProcessor->IsPassingCut(*jet,cut)) jet = event->jets.erase(jet);
+    else                                      jet++;
   }
-  
 }
 
-void EventProcessor::ApplyLeptonCut(shared_ptr<Event> event, const unique_ptr<LeptonCut> &cut)
+void EventProcessor::ApplyLeptonCut(shared_ptr<Event> event, const LeptonCut &cut)
 {
   for(auto lepton = event->leptons.begin(); lepton != event->leptons.end();){
     if(!leptonProcessor->IsPassingCut(*lepton, cut))  lepton = event->leptons.erase(lepton);
@@ -177,7 +154,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
     
     bool atLeastOneTightMuon = false;
     for(auto muon : muons){
-      if(leptonProcessor->IsPassingCut(muon, make_unique<LeptonCut>(tightMuonCut))) atLeastOneTightMuon = true;
+      if(leptonProcessor->IsPassingCut(muon, tightMuonCut)) atLeastOneTightMuon = true;
     }
     if(!atLeastOneTightMuon){
       cutReasons[7]++;

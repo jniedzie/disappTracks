@@ -20,10 +20,7 @@ void ProcessCuts(shared_ptr<EventSet> events,
                  const LeptonCut  &leptonCut,
                  string suffix = "")
 {
-  events->ApplyCuts(eventCut,
-                    trackCut,
-                    make_unique<JetCut>(jetCut),
-                    make_unique<LeptonCut>(leptonCut));
+  events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
   if(config.printYields){
     cout<<"\n\nYields after level "<<config.performCutsLevel<<" cuts"<<endl;
