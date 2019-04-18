@@ -19,36 +19,36 @@ vector<tuple<double,double>> GetDifferencesForCriticalValues(shared_ptr<EventSet
   auto eventsC = shared_ptr<EventSet>(new EventSet(*events));
   auto eventsD = shared_ptr<EventSet>(new EventSet(*events));
 
-  auto eventCut = unique_ptr<EventCut>(new EventCut());
+  auto eventCut = EventCut();
   auto trackCut = unique_ptr<TrackCut>(new TrackCut());
   auto jetCut   = unique_ptr<JetCut>(new JetCut());
   auto leptonCut= unique_ptr<LeptonCut>(new LeptonCut());
   
   // + standard cuts to be applied after L2 selections
-  eventCut->SetNtracks(range<int>(1,1));
-  eventCut->SetNjets(range<int>(1,inf));
-  eventCut->SetLeadingJetPt(range<double>(100,inf));
-  eventCut->SetLeadingJetEta(range<double>(-2.4,2.4));
-  eventCut->SetLeadingJetNeHEF(range<double>(-inf,0.8));
-  eventCut->SetLeadingJetChHEF(range<double>(0.1,inf));
+  eventCut.SetNtracks(range<int>(1,1));
+  eventCut.SetNjets(range<int>(1,inf));
+  eventCut.SetLeadingJetPt(range<double>(100,inf));
+  eventCut.SetLeadingJetEta(range<double>(-2.4,2.4));
+  eventCut.SetLeadingJetNeHEF(range<double>(-inf,0.8));
+  eventCut.SetLeadingJetChHEF(range<double>(0.1,inf));
 
   // A: B + S
-  eventCut->SetMetPt(range<double>(criticalMet,inf));           // select Background
+  eventCut.SetMetPt(range<double>(criticalMet,inf));           // select Background
   trackCut->SetDedxPerCluster(range<double>(critialDedx,inf));  // select Signal
   eventsA->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
 
   // B: B + B
-  eventCut->SetMetPt(range<double>(criticalMet,inf));           // select Background
+  eventCut.SetMetPt(range<double>(criticalMet,inf));           // select Background
   trackCut->SetDedxPerCluster(range<double>(0,critialDedx));    // select Background
   eventsB->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
 
   // C: S + S
-  eventCut->SetMetPt(range<double>(0.0,criticalMet));           // select Signal
+  eventCut.SetMetPt(range<double>(0.0,criticalMet));           // select Signal
   trackCut->SetDedxPerCluster(range<double>(critialDedx,inf));  // select Signal
   eventsC->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
 
   // D: S + B
-  eventCut->SetMetPt(range<double>(criticalMet,inf));           // select Signal
+  eventCut.SetMetPt(range<double>(criticalMet,inf));           // select Signal
   trackCut->SetDedxPerCluster(range<double>(0,critialDedx));    // select Background
   eventsD->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
 
@@ -74,26 +74,26 @@ double GetFraction(shared_ptr<EventSet> &events, double criticalMet, double crit
   auto eventsC = shared_ptr<EventSet>(new EventSet(*events));
   auto eventsD = shared_ptr<EventSet>(new EventSet(*events));
   
-  auto eventCut = unique_ptr<EventCut>(new EventCut());
+  EventCut eventCut;
   auto trackCut = unique_ptr<TrackCut>(new TrackCut());
   auto jetCut   = unique_ptr<JetCut>(new JetCut());
   auto leptonCut= unique_ptr<LeptonCut>(new LeptonCut());
   
   // + standard cuts to be applied after L2 selections
-  eventCut->SetNtracks(range<int>(1,1));
-  eventCut->SetNjets(range<int>(1,inf));
-  eventCut->SetLeadingJetPt(range<double>(100,inf));
-  eventCut->SetLeadingJetEta(range<double>(-2.4,2.4));
-  eventCut->SetLeadingJetNeHEF(range<double>(-inf,0.8));
-  eventCut->SetLeadingJetChHEF(range<double>(0.1,inf));
+  eventCut.SetNtracks(range<int>(1,1));
+  eventCut.SetNjets(range<int>(1,inf));
+  eventCut.SetLeadingJetPt(range<double>(100,inf));
+  eventCut.SetLeadingJetEta(range<double>(-2.4,2.4));
+  eventCut.SetLeadingJetNeHEF(range<double>(-inf,0.8));
+  eventCut.SetLeadingJetChHEF(range<double>(0.1,inf));
   
   // A: B + S
-  eventCut->SetMetPt(range<double>(criticalMet,inf));           // select Background
+  eventCut.SetMetPt(range<double>(criticalMet,inf));           // select Background
   trackCut->SetDedxPerCluster(range<double>(critialDedx,critialDedx+stepX));  // select Signal
   eventsA->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
   // B: B + B
-  eventCut->SetMetPt(range<double>(0,criticalMet));           // select Background
+  eventCut.SetMetPt(range<double>(0,criticalMet));           // select Background
   trackCut->SetDedxPerCluster(range<double>(critialDedx, critialDedx+stepX));    // select Background
   eventsB->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
@@ -169,14 +169,14 @@ int main(int argc, char* argv[])
 //  met_vs_dedx->GetXaxis()->SetTitle("MET p_{T} (GeV)");
 //  met_vs_dedx->Draw("colz");
   
-  auto eventCut = unique_ptr<EventCut>(new EventCut());
+  auto eventCut = EventCut();
   auto trackCut = unique_ptr<TrackCut>(new TrackCut());
   auto jetCut   = unique_ptr<JetCut>(new JetCut());
   auto leptonCut= unique_ptr<LeptonCut>(new LeptonCut());
   
   // pick category
   trackCut->SetNpixelLayers(range<int>(3,3));
-  eventCut->SetNtracks(range<int>(1,1));
+  eventCut.SetNtracks(range<int>(1,1));
   
   // other L2 cuts
 //  trackCut->SetCaloEmEnergy(range<double>(0.0,0.4));
@@ -185,16 +185,16 @@ int main(int argc, char* argv[])
   
 //  trackCut->SetCaloEmEnergy(range<double>(0.0,3.0));
 //  trackCut->SetDedxPerCluster(range<double>(2.0,inf));
-//  eventCut->SetJetMetDeltaPhi(range<double>(0.7,inf));
+//  eventCut.SetJetMetDeltaPhi(range<double>(0.7,inf));
 //  trackCut->SetTrackMetDeltaPhi(range<double>(-2.3,2.3));
   
   
   // + standard cuts to be applied after L2 selections
-  eventCut->SetNjets(range<int>(1,inf));
-  eventCut->SetLeadingJetPt(range<double>(100,inf));
-  eventCut->SetLeadingJetEta(range<double>(-2.4,2.4));
-  eventCut->SetLeadingJetNeHEF(range<double>(-inf,0.8));
-  eventCut->SetLeadingJetChHEF(range<double>(0.1,inf));
+  eventCut.SetNjets(range<int>(1,inf));
+  eventCut.SetLeadingJetPt(range<double>(100,inf));
+  eventCut.SetLeadingJetEta(range<double>(-2.4,2.4));
+  eventCut.SetLeadingJetNeHEF(range<double>(-inf,0.8));
+  eventCut.SetLeadingJetChHEF(range<double>(0.1,inf));
   
   events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   events->DrawStandardPlots();

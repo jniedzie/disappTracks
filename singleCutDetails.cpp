@@ -16,24 +16,24 @@ int main(int argc, char* argv[])
 {
   TApplication *theApp = new TApplication("App", &argc, argv);
   
-  config = ConfigManager(configPath);
+  ConfigManager config(configPath);
   
   // All events with initial cuts only
   shared_ptr<EventSet> events;
   events->LoadEventsFromFiles("after_L1/");
   
-  auto eventCut = unique_ptr<EventCut>(new EventCut());
+  auto eventCut = EventCut();
   auto trackCut = unique_ptr<TrackCut>(new TrackCut());
   auto jetCut   = unique_ptr<JetCut>(new JetCut());
   auto leptonCut= unique_ptr<LeptonCut>(new LeptonCut());
   
   // + standard cuts to be applied after L2 selections
-  eventCut->SetNtracks(range<int>(1, inf));
-  eventCut->SetNjets(range<int>(1,inf));
-  eventCut->SetLeadingJetPt(range<double>(100,inf));
-  eventCut->SetLeadingJetEta(range<double>(-2.4,2.4));
-  eventCut->SetLeadingJetNeHEF(range<double>(-inf,0.8));
-  eventCut->SetLeadingJetChHEF(range<double>(0.1,inf));
+  eventCut.SetNtracks(range<int>(1, inf));
+  eventCut.SetNjets(range<int>(1,inf));
+  eventCut.SetLeadingJetPt(range<double>(100,inf));
+  eventCut.SetLeadingJetEta(range<double>(-2.4,2.4));
+  eventCut.SetLeadingJetNeHEF(range<double>(-inf,0.8));
+  eventCut.SetLeadingJetChHEF(range<double>(0.1,inf));
   
   TGraph *sb[kNsignals];
   
@@ -51,8 +51,8 @@ int main(int argc, char* argv[])
     cout<<"cut:"<<cut<<endl;
     
 //    trackCut->SetMinDedxPerCluster(cut);
-//    eventCut->SetMinMetPt(cut);
-//    eventCut->SetMinJetMetPhi(cut);
+//    eventCut.SetMinMetPt(cut);
+//    eventCut.SetMinJetMetPhi(cut);
 //    trackCut->SetMaxEmCalo(cut);
 //    trackCut->SetMaxHadCalo(cut);
 //    trackCut->SetNmissingOuterTracker(cut,inf);

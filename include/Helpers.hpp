@@ -522,15 +522,15 @@ public:
     }
   }
   
-  inline T GetMin(){return min;}
-  inline T GetMax(){return max;}
+  inline T GetMin() const {return min;}
+  inline T GetMax() const {return max;}
   
-  inline bool IsInside(T val){
+  inline bool IsInside(T val) const {
     if(val >= min && val <= max) return true;
     else return false;
   }
   
-  inline bool IsOutside(T val){
+  inline bool IsOutside(T val) const {
     if(val < min || val > max) return true;
     else return false;
   }

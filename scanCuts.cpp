@@ -20,22 +20,22 @@ int main()
   shared_ptr<EventSet> events = shared_ptr<EventSet>(new EventSet());
   events->LoadEventsFromFiles("after_L1/");
   
-  auto eventCut = unique_ptr<EventCut>(new EventCut());
+  auto eventCut = EventCut();
   auto trackCut = unique_ptr<TrackCut>(new TrackCut());
   auto jetCut   = unique_ptr<JetCut>(new JetCut());
   auto leptonCut= unique_ptr<LeptonCut>(new LeptonCut());
   
-  eventCut->SetJetMetDeltaPhi(range<double>(0.5,inf));
+  eventCut.SetJetMetDeltaPhi(range<double>(0.5,inf));
   
   trackCut->SetNpixelLayers(range<int>(4,4));
-  eventCut->SetNtracks(range<int>(1,1));
+  eventCut.SetNtracks(range<int>(1,1));
   
   // + standard cuts to be applied after L2 selections
-  eventCut->SetNjets(range<int>(1,inf));
-  eventCut->SetLeadingJetPt(range<double>(100,inf));
-  eventCut->SetLeadingJetEta(range<double>(-2.4,2.4));
-  eventCut->SetLeadingJetNeHEF(range<double>(-inf,0.8));
-  eventCut->SetLeadingJetChHEF(range<double>(0.1,inf));
+  eventCut.SetNjets(range<int>(1,inf));
+  eventCut.SetLeadingJetPt(range<double>(100,inf));
+  eventCut.SetLeadingJetEta(range<double>(-2.4,2.4));
+  eventCut.SetLeadingJetNeHEF(range<double>(-inf,0.8));
+  eventCut.SetLeadingJetChHEF(range<double>(0.1,inf));
   
   events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
@@ -73,7 +73,7 @@ int main()
             trackCut->SetPt(range<double>(trackPtCut,inf));
             trackCut->SetTrackMetDeltaPhi(range<double>(-trackMetPhiCut,trackMetPhiCut));
             trackCut->SetRelativeIsolation(range<double>(0,relIsoCut));
-//            eventCut->SetMetPt(range<double>(230,inf));
+//            eventCut.SetMetPt(range<double>(230,inf));
             
             eventsAfterCuts->ApplyCuts(eventCut, trackCut, jetCut, nullptr);
             

@@ -20,7 +20,7 @@ void ProcessCuts(shared_ptr<EventSet> events,
                  const LeptonCut  &leptonCut,
                  string suffix = "")
 {
-  events->ApplyCuts(make_unique<EventCut>(eventCut),
+  events->ApplyCuts(eventCut,
                     make_unique<TrackCut>(trackCut),
                     make_unique<JetCut>(jetCut),
                     make_unique<LeptonCut>(leptonCut));

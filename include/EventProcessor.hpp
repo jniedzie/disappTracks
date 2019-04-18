@@ -29,7 +29,7 @@ public:
   void ApplyLeptonCut(shared_ptr<Event> event, const unique_ptr<LeptonCut> &cut);
   
   /// Check if event passes a cut
-  bool IsPassingCut(const shared_ptr<Event> event, const unique_ptr<EventCut> &cut);
+  bool IsPassingCut(const shared_ptr<Event> event, const EventCut &cut);
   
   /// Link class variables to branches of a specified tree
   /// \param tree Tree from which event parameters will be read

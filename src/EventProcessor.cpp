@@ -111,16 +111,16 @@ void EventProcessor::ApplyLeptonCut(shared_ptr<Event> event, const unique_ptr<Le
 }
 
 
-bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const unique_ptr<EventCut> &cut)
+bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut &cut)
 {
   // check the trigger
-  if(cut->RequiresMetNoMuTrigger() && !event->metNoMuTrigger){
+  if(cut.metNoMuTrigger && !event->metNoMuTrigger){
     cutReasons[0]++;
     return false;
   }
   
   // check MET filters
-  if(cut->GetRequiresPassingAllFilters()){
+  if(cut.requirePassAllFilters){
     if(   !event->flag_goodVertices
        || !event->flag_badPFmuon
        || !event->flag_HBHEnoise
@@ -136,11 +136,11 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const unique_pt
   }
   
   // check number of objects
-  if(cut->GetNleptons().IsOutside(event->GetNleptons())){
+  if(cut.nLeptons.IsOutside(event->GetNleptons())){
     cutReasons[2]++;
     return false;
   }
-  if(cut->GetNtaus().IsOutside(event->nTau)){
+  if(cut.nTaus.IsOutside(event->nTau)){
     cutReasons[3]++;
     return false;
   }
@@ -151,13 +151,13 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const unique_pt
   }
   
   // check number of muons
-  if(cut->GetNmuons().IsOutside((int)muons.size())){
+  if(cut.nMuons.IsOutside((int)muons.size())){
     cutReasons[4]++;
     return false;
   }
   
   // make sure they have an opposite sign
-  if(cut->RequiresTwoOppositeMuons()){
+  if(cut.twoOpositeMuons){
     if(muons.size() != 2){
       cutReasons[5]++;
       return false;
@@ -169,15 +169,15 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const unique_pt
   }
   
   // apply tight muon cuts (tightID flag, pt > 20 GeV, isolation < 0.15
-  if(cut->RequiresTightMuon()){
-    unique_ptr<LeptonCut> tightMuonCut = unique_ptr<LeptonCut>(new LeptonCut());
-    tightMuonCut->SetRelativeIsolation(range<double>(-inf,0.15));
-    tightMuonCut->SetRequireTightID(true);
-    tightMuonCut->SetPt(range<double>(20.0,inf));
+  if(cut.tightMuon){
+    auto tightMuonCut = LeptonCut();
+    tightMuonCut.SetRelativeIsolation(range<double>(-inf,0.15));
+    tightMuonCut.SetRequireTightID(true);
+    tightMuonCut.SetPt(range<double>(20.0,inf));
     
     bool atLeastOneTightMuon = false;
     for(auto muon : muons){
-      if(leptonProcessor->IsPassingCut(muon, tightMuonCut)) atLeastOneTightMuon = true;
+      if(leptonProcessor->IsPassingCut(muon, make_unique<LeptonCut>(tightMuonCut))) atLeastOneTightMuon = true;
     }
     if(!atLeastOneTightMuon){
       cutReasons[7]++;
@@ -186,7 +186,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const unique_pt
   }
   
   // check that invariant mass of muons is close to Z mass
-  if(cut->RequiresMuonsFromZ()){
+  if(cut.muonsFromZ){
     TLorentzVector muon1vector, muon2vector, muonVectorSum;
     
     if(muons.size() != 2){
@@ -208,17 +208,17 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const unique_pt
     }
   }
   
-  if(cut->GetMetPt().IsOutside(event->metPt)){
+  if(cut.metPt.IsOutside(event->metPt)){
     cutReasons[10]++;
     return false;
   }
-  if(cut->GetMetNoMuPt().IsOutside(event->metNoMuPt)){
+  if(cut.metNoMuPt.IsOutside(event->metNoMuPt)){
     cutReasons[11]++;
     return false;
   }
   
   // Remove jets that are too close to muons (they will be permanently removed from the event)
-  if(cut->RequiresMuJetR0p4()){
+  if(cut.muJetR0p4){
     vector<TLorentzVector> muonVectors;
     
     for(auto m : muons){
@@ -246,7 +246,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const unique_pt
   }
   
   // Remove tracks that are too close to muons (they will be permanently removed from the event)
-  if(cut->RequiresMuTrackR0p4()){
+  if(cut.muTrackR0p4){
     vector<TLorentzVector> muonVectors;
     
     for(auto m : muons){
@@ -272,11 +272,11 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const unique_pt
   }
   
   // check number of tracks and jets after removing those that are too close to muons
-  if(cut->GetNjets().IsOutside(event->GetNcentralJets())){
+  if(cut.nJets.IsOutside(event->GetNcentralJets())){
    cutReasons[12]++;
     return false;
   }
-  if(cut->GetNtracks().IsOutside(event->GetNtracks())){
+  if(cut.nTracks.IsOutside(event->GetNtracks())){
     cutReasons[13]++;
     return false;
   }
@@ -292,34 +292,34 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const unique_pt
       }
   }
   
-  if(cut->GetLeadingJetPt().IsOutside(leadingJet->GetPt())        ||
-     cut->GetLeadingJetEta().IsOutside(leadingJet->GetEta())      ||
-     cut->GetLeadingJetChHEF().IsOutside(leadingJet->GetChHEF())  ||
-     cut->GetLeadingJetNeHEF().IsOutside(leadingJet->GetNeHEF())){
+  if(cut.leadingJetPt.IsOutside(leadingJet->GetPt())        ||
+     cut.leadingJetEta.IsOutside(leadingJet->GetEta())      ||
+     cut.leadingJetChHEF.IsOutside(leadingJet->GetChHEF())  ||
+     cut.leadingJetNeHEF.IsOutside(leadingJet->GetNeHEF())){
     leadingJet = nullptr;
   }
   
   // check properties of the highest pt jet
-  if(cut->RequiresHighJet() && !leadingJet){
+  if(cut.highJet && !leadingJet){
     cutReasons[14]++;
     return false;
   }
 
-  if(cut->GetJetMetDeltaPhi().GetMin() > 0.0){
+  if(cut.jetMetDeltaPhi.GetMin() > 0.0){
     TLorentzVector metVector, jetVector;
 //    metVector.SetPtEtaPhiM(event->metPt, event->metEta, event->metPhi, event->metMass);
     metVector.SetPtEtaPhiM(event->metNoMuPt, event->metNoMuEta, event->metNoMuPhi, event->metNoMuMass);
     
     for(auto j : event->jets){
       jetVector.SetPtEtaPhiM(j->GetPt(), j->GetEta(), j->GetPhi(), j->GetMass());
-      if(cut->GetJetMetDeltaPhi().IsOutside(fabs(metVector.DeltaPhi(jetVector)) )){
+      if(cut.jetMetDeltaPhi.IsOutside(fabs(metVector.DeltaPhi(jetVector)) )){
         cutReasons[15]++;
         return false;
       }
     }
   }
   
-  if(cut->RequiresMetNoMuJetPhi0p5()){
+  if(cut.metJetPhi){
     TLorentzVector metVector, jetVector;
     metVector.SetPtEtaPhiM(event->metNoMuPt, event->metNoMuEta, event->metNoMuPhi, event->metNoMuMass);
     

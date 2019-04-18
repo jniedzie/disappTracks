@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
   
   cutsManager.GetCuts(eventCut, trackCut, jetCut, leptonCut);
   
-  events->ApplyCuts(make_unique<EventCut>(eventCut),
+  events->ApplyCuts(eventCut,
                     make_unique<TrackCut>(trackCut),
                     make_unique<JetCut>(jetCut),
                     make_unique<LeptonCut>(leptonCut));

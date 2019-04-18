@@ -68,17 +68,17 @@ public:
   inline range<double> GetLeadingJetChHEF(){return leadingJetChHEF;}
   inline range<double> GetLeadingJetNeHEF(){return leadingJetNeHEF;}
   
-  inline bool   RequiresMetNoMuTrigger(){return metNoMuTrigger;}
-  inline bool   RequiresMuonsFromZ(){return muonsFromZ;}
-  inline bool   RequiresMetJetPhi0p5(){return metJetPhi;}
-  inline bool   RequiresMetNoMuJetPhi0p5(){return metNoMuJetPhi;}
-  inline bool   RequiresMuJetR0p4(){return muJetR0p4;}
-  inline bool   RequiresMuTrackR0p4(){return muTrackR0p4;}
-  inline bool   RequiresHighJet(){return highJet;}
-  inline bool   RequiresTightMuon(){return tightMuon;}
-  inline bool   RequiresTwoOppositeMuons(){return twoOpositeMuons;}
+  inline bool RequiresMetNoMuTrigger() const {return metNoMuTrigger;}
+  inline bool RequiresMuonsFromZ() const {return muonsFromZ;}
+  inline bool RequiresMetJetPhi0p5() const {return metJetPhi;}
+  inline bool RequiresMetNoMuJetPhi0p5() const {return metNoMuJetPhi;}
+  inline bool RequiresMuJetR0p4() const {return muJetR0p4;}
+  inline bool RequiresMuTrackR0p4() const {return muTrackR0p4;}
+  inline bool RequiresHighJet() const {return highJet;}
+  inline bool RequiresTightMuon() const {return tightMuon;}
+  inline bool RequiresTwoOppositeMuons() const {return twoOpositeMuons;}
  
-  inline bool   GetRequiresPassingAllFilters(){return requirePassAllFilters;}
+  inline bool GetRequiresPassingAllFilters(){return requirePassAllFilters;}
   
 private:
   range<int> nTracks;         ///< allowed number of tracks
@@ -107,6 +107,8 @@ private:
   bool twoOpositeMuons; ///< should require exactly two muons with opposite signs
   
   bool requirePassAllFilters; ///< should event pass all filters
+  
+  friend class EventProcessor;
 };
 
 #endif /* EventCut_hpp */
