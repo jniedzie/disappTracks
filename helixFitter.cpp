@@ -1,8 +1,6 @@
-//
 //  helixFitter.cpp
 //
 //  Created by Jeremi Niedziela on 17/12/2018.
-//
 
 #include "Helpers.hpp"
 #include "HelixProcessor.hpp"
@@ -20,10 +18,10 @@ int verbosityLevel = 2;
 
 string configPath = "configs/helixFitter.md";
 
-void InjectPionPointsToCollectionOfPoints(const unique_ptr<Helix> &pionHelix,
+void InjectPionPointsToCollectionOfPoints(const Helix &pionHelix,
                                           vector<shared_ptr<Point>> pixelPoints)
 {
-  vector<shared_ptr<Point>> pionPoints = pionHelix->GetPoints();
+  vector<shared_ptr<Point>> pionPoints = pionHelix.GetPoints();
   pixelPoints.insert(pixelPoints.end(),pionPoints.begin(), pionPoints.end());
 }
 
@@ -31,7 +29,6 @@ void PerformTests(int &nSuccess, int &nFullSuccess)
 {
   int nTests = config.nTests;
   auto fitter = make_unique<Fitter>();
-  auto trackProcessor = make_unique<TrackProcessor>();
   
   for(int i=0;i<nTests;i++){
     if(verbosityLevel >= 2){
@@ -39,7 +36,7 @@ void PerformTests(int &nSuccess, int &nFullSuccess)
       cout<<"Test iter:"<<i<<endl;
     }
     
-    shared_ptr<Track> track = trackProcessor->GetRandomTrack(config.nTrackHits, config.maxEta);
+    shared_ptr<Track> track = trackProcessor.GetRandomTrack(config.nTrackHits, config.maxEta);
     
     vector<shared_ptr<Point>> pixelPoints = pointsProcessor.GetRandomPoints(config.nNoiseHits);
 //    unique_ptr<Event> event = make_unique<Event>();
@@ -48,13 +45,14 @@ void PerformTests(int &nSuccess, int &nFullSuccess)
 //    event->SetEventNumber(245000232);
 //    shared_ptr<vector<Point>> pixelPoints = event->GetTrackerHits();
     
-    unique_ptr<Helix> pionHelix = helixProcessor.GetRandomPionHelix(track);
+    Helix pionHelix;
+    helixProcessor.GetRandomPionHelix(track, pionHelix);
     if(config.injectPionHits) InjectPionPointsToCollectionOfPoints(pionHelix, pixelPoints);
     
     unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(pixelPoints, *track, Point(0,0,0));
     monitorsManager.FillMonitors(bestHelix, pionHelix, track);
     
-    auto successCode = monitorsManager.GetFittingStatus(bestHelix, pionHelix);
+    auto successCode = monitorsManager.GetFittingStatus(*bestHelix, pionHelix);
     
     if(successCode == MonitorsManager::kFail)         continue;
     if(successCode == MonitorsManager::kSuccess)      nSuccess++;
@@ -64,15 +62,15 @@ void PerformTests(int &nSuccess, int &nFullSuccess)
     }
       
     if(verbosityLevel >= 2){
-      cout<<"Pion helix:"; pionHelix->Print();
+      cout<<"Pion helix:"; pionHelix.Print();
       cout<<"Fitted helix:"; bestHelix->Print();
       
-      if(bestHelix->GetCharge() != pionHelix->GetCharge()){
+      if(bestHelix->GetCharge() != pionHelix.GetCharge()){
         cout<<"\n\nwrong charge\n\n"<<endl;
         cout<<"best charge:"<<bestHelix->GetCharge()<<endl;
-        cout<<"true charge:"<<pionHelix->GetCharge()<<endl;
+        cout<<"true charge:"<<pionHelix.GetCharge()<<endl;
         cout<<"best t shift:"<<bestHelix->GetTmin()<<endl;
-        cout<<"true t shift:"<<pionHelix->GetTmin()<<endl;
+        cout<<"true t shift:"<<pionHelix.GetTmin()<<endl;
       }
     }
   }

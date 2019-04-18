@@ -13,11 +13,6 @@
 
 string configPath = "configs/analysis.md";
 
-void InitProcessors()
-{
-//  eventProcessor = EventProcessor();
-}
-
 void ProcessCuts(EventSet &events,
                  const EventCut   &eventCut,
                  const TrackCut   &trackCut,
@@ -104,8 +99,6 @@ int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
   
-  // All events with initial cuts only
-  InitProcessors();
   config = ConfigManager(configPath);
   EventSet events;
   

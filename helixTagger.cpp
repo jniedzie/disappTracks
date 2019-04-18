@@ -33,9 +33,10 @@ void InjectPion(vector<shared_ptr<Point>> trackerPoints,
   double z = decayR/sin(theta)*cos(theta);
   
   track->SetDecayPoint(Point(x,y,z));
-  unique_ptr<Helix> pionHelix = helixProcessor.GetRandomPionHelix(track);
-  pionHelix->Print();
-  trackerPoints.insert(trackerPoints.end(),pionHelix->GetPoints().begin(), pionHelix->GetPoints().end());
+  Helix pionHelix;
+  helixProcessor.GetRandomPionHelix(track, pionHelix);
+  pionHelix.Print();
+  trackerPoints.insert(trackerPoints.end(),pionHelix.GetPoints().begin(), pionHelix.GetPoints().end());
 }
 
 int main(int argc, char* argv[])

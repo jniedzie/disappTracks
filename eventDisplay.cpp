@@ -123,8 +123,7 @@ shared_ptr<Event> GetEvent()
 	jetCut.SetChargedHadronEnergyFraction(range<double>(0.01,0.99));
 	jetCut.SetNeutralHadronEnergyFraction(range<double>(0.01,0.99));
 	
-	auto eventProcessor = make_unique<EventProcessor>();
-	eventProcessor->ApplyJetCut(event, jetCut);
+  eventProcessor.ApplyJetCut(event, jetCut);
 	
   event->LoadAdditionalInfo();
   
@@ -137,8 +136,6 @@ int main(int argc, char* argv[])
   // create event display
   config = ConfigManager(configPath);
   display = new Display();
-  auto helixProcessor = make_unique<HelixProcessor>();
-  auto trackProcessor = make_unique<TrackProcessor>();
 	
 	auto event = GetEvent();
 	shared_ptr<Track> track = event->GetTrack(0);
@@ -193,15 +190,16 @@ int main(int argc, char* argv[])
 		display->DrawSimplePoints(decayPoint, decayPointOptions);
 		
 		// Draw true pion helix
-		auto pionHelix = helixProcessor->GetRandomPionHelix(track);
+    Helix pionHelix;
+    helixProcessor.GetRandomPionHelix(track, pionHelix);
 		display->DrawHelix(pionHelix,trueHelixOptions);
 		cout<<"\n\nInjected pion helix:"<<endl;
-		pionHelix->Print();
+		pionHelix.Print();
 		
 		// Calculate and draw points along the helix that hit the silicon
-		auto pionPoints = helixProcessor->GetPointsHittingSilicon(pionHelix);
+    auto pionPoints = helixProcessor.GetPointsHittingSilicon(pionHelix);
 		for(auto &p : pionPoints){p->SetIsPionHit(true);}
-		pionHelix->SetPoints(pionPoints);
+		pionHelix.SetPoints(pionPoints);
 		
 		const map<string,any> pionPointsOptions = {
 			{"title", "Pion points"},
@@ -216,18 +214,19 @@ int main(int argc, char* argv[])
 		allSimplePoints.insert(allSimplePoints.end(), pionPoints.begin(), pionPoints.end());
 	}
 	else{
-		const vector<unique_ptr<Helix>> &truePionHelices = event->GetGenPionHelices();
+    vector<Helix> truePionHelices;
+    event->GetGenPionHelices(truePionHelices);
 		
 		for(auto &helix : truePionHelices){
 			display->DrawHelix(helix,trueHelixOptions);
-			helix->SetPoints(allSimplePoints);
-			auto helixPoints = helix->GetPoints();
+			helix.SetPoints(allSimplePoints);
+			auto helixPoints = helix.GetPoints();
 			filteredPointsOptions["title"] = "true helix points";
 			filteredPointsOptions["color"] = kRed;
 			display->DrawSimplePoints(helixPoints, filteredPointsOptions);
 			
 			cout<<"\n\nTrue pion helix:"<<endl;
-			helix->Print();
+			helix.Print();
 		}
 	}
 	
@@ -275,7 +274,7 @@ int main(int argc, char* argv[])
       
 //      fittedHelices[iHelix]->Print();cout<<endl;
       bestHelixOptions["title"] = ("Helix "+to_string(fittedHelices[iHelix]->uniqueID)).c_str();
-      display->DrawShrinkingHelix(fittedHelices[iHelix], bestHelixOptions);
+      display->DrawShrinkingHelix(*fittedHelices[iHelix], bestHelixOptions);
       
       
       helixVertexOptions["markerStyle"] = 20;

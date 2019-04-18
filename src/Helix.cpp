@@ -6,6 +6,12 @@
 
 #include "Helix.hpp"
 
+Helix::Helix() :
+origin(0,0,0)
+{
+  
+}
+
 Helix::Helix(const Point &_origin,
              const unique_ptr<Point> &_momentum,
              int _charge) :
@@ -76,6 +82,44 @@ slopeAbs(h.slopeAbs),
 charge(h.charge)
 {
   uniqueID = reinterpret_cast<uint64_t>(this);
+}
+
+Helix Helix::operator=(const Helix &h)
+{
+  Helix result(h.origin, h.momentum, h.charge);
+  
+  result.uniqueID = reinterpret_cast<uint64_t>(this);
+  
+  result.Lmin = h.Lmin;
+  result.Lmax = h.Lmax;
+  result.bmin = h.bmin;
+  result.bmax = h.bmax;
+  result.s0min = h.s0min;
+  result.s0max = h.s0max;
+  result.amin = h.amin;
+  result.amax = h.amax;
+  result.R0min = h.R0min;
+  result.R0max = h.R0max;
+  result.iCycles = h.iCycles;
+  result.isFinished = h.isFinished;
+  result.slope_valmin = h.slope_valmin;
+  result.slope_valmax = h.slope_valmax;
+  result.radius_valmin = h.radius_valmin;
+  result.radius_valmax = h.radius_valmax;
+  result.seedID = h.seedID;
+  result.points = h.points;
+  result.tShift = h.tShift;
+  result.tMax = h.tMax;
+  result.tStep = h.tStep;
+  result.nRegularPoints = h.nRegularPoints;
+  result.nPionPoints = h.nPionPoints;
+  result.vertex = make_unique<Point>(*h.vertex);
+  result.track = h.track;
+  result.radius = h.radius;
+  result.slope = h.slope;
+  result.slopeAbs = h.slopeAbs;
+  
+  return result;
 }
 
 Helix::Helix(const Track &_track, const Point &p1, const Point &p2, const Point &_eventVertex) :
@@ -398,7 +442,7 @@ void Helix::SetPoints(const vector<shared_ptr<Point>> &_points)
   }
 }
 
-double Helix::GetChi2()
+double Helix::GetChi2() const
 {
   double chi2 = 0;
   for(auto &p : points){
@@ -407,7 +451,7 @@ double Helix::GetChi2()
   return chi2 / points.size();
 }
 
-Point Helix::GetClosestPoint(Point p)
+Point Helix::GetClosestPoint(const Point &p) const
 {
   int zSign = sgn(momentum->GetZ());
   

@@ -209,15 +209,10 @@ void Event::LoadAdditionalInfo()
 
   for(uint i=0;i<pionVx->size();i++){
     // change units from cm to mm and from GeV to MeV
-    auto helix = make_unique<Helix>(Point(10*pionVx->at(i),
-                                          10*pionVy->at(i),
-                                          10*pionVz->at(i)),
-                                    make_unique<Point>(1000*pionPx->at(i),
-                                                       1000*pionPy->at(i),
-                                                       1000*pionPz->at(i)),
-                                    1*pionCharge->at(i));
-    
-    genPionHelices.push_back(move(helix));
+    genPionHelices.emplace(genPionHelices.end(),
+                           Helix(Point(10*pionVx->at(i), 10*pionVy->at(i), 10*pionVz->at(i)),
+                                 make_unique<Point>(1000*pionPx->at(i), 1000*pionPy->at(i), 1000*pionPz->at(i)),
+                                 1*pionCharge->at(i)));
   }
   
   for(uint i=0;i<pionSimHitsX->size();i++){

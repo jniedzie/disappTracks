@@ -70,28 +70,28 @@ void Display::AddStripCluster(TEveElementList *stripClusters,
   stripClusters->AddElement(stripBox);
 }
 
-void Display::DrawHelix(const unique_ptr<Helix> &helix, const map<string,any> options)
+void Display::DrawHelix(const Helix &helix, const map<string,any> options)
 {
   TEvePointSetArray *helixPoints = PreparePointsEventDisplay(options);
   
-  double tMin  = helix->GetTmin();
-  double tMax  = helix->GetTmax();
-  double tStep = helix->GetTstep();
+  double tMin  = helix.GetTmin();
+  double tMax  = helix.GetTmax();
+  double tStep = helix.GetTstep();
   
-  int zSign = sgn(helix->GetMomentum()->GetZ());
+  int zSign = sgn(helix.GetMomentum()->GetZ());
   
   auto fillPointForT = [&](double t){
-    double x = helix->GetOrigin().GetX();
-    double y = helix->GetOrigin().GetY();
-    double z = helix->GetOrigin().GetZ() + fabs(helix->GetSlope())*t;
+    double x = helix.GetOrigin().GetX();
+    double y = helix.GetOrigin().GetY();
+    double z = helix.GetOrigin().GetZ() + fabs(helix.GetSlope())*t;
     
-    if(helix->GetCharge()*zSign < 0){
-      x += helix->GetRadius()*cos(t);
-      y += helix->GetRadius()*sin(t);
+    if(helix.GetCharge()*zSign < 0){
+      x += helix.GetRadius()*cos(t);
+      y += helix.GetRadius()*sin(t);
     }
     else{
-      x += helix->GetRadius()*sin(t);
-      y += helix->GetRadius()*cos(t);
+      x += helix.GetRadius()*sin(t);
+      y += helix.GetRadius()*cos(t);
     }
     helixPoints->Fill(scale*x,scale*y,scale*z, 0);
   };
@@ -104,24 +104,24 @@ void Display::DrawHelix(const unique_ptr<Helix> &helix, const map<string,any> op
   gEve->Redraw3D();
 }
 
-void Display::DrawShrinkingHelix(const unique_ptr<Helix> &helix, const map<string,any> options)
+void Display::DrawShrinkingHelix(const Helix &helix, const map<string,any> options)
 {
   TEvePointSetArray *helixPoints = PreparePointsEventDisplay(options);
   
-  double tMin  = helix->GetTmin();
-  double tMax  = helix->GetTmax();
-  double tStep = helix->GetTstep();
+  double tMin  = helix.GetTmin();
+  double tMax  = helix.GetTmax();
+  double tStep = helix.GetTstep();
   
-//  int zSign = sgn(helix->GetMomentum()->GetZ());
+//  int zSign = sgn(helix.GetMomentum()->GetZ());
   
   auto fillPointForT = [&](double t){
-    double x =  helix->GetOrigin().GetX();
-    double y =  helix->GetOrigin().GetY();
-    double z =  helix->GetOrigin().GetZ() + helix->GetSlope(t)*t;
+    double x =  helix.GetOrigin().GetX();
+    double y =  helix.GetOrigin().GetY();
+    double z =  helix.GetOrigin().GetZ() + helix.GetSlope(t)*t;
     
-//    if(helix->GetCharge()*zSign < 0){
-      x += helix->GetRadius(t)*cos(t);
-      y += helix->GetRadius(t)*sin(t);
+//    if(helix.GetCharge()*zSign < 0){
+      x += helix.GetRadius(t)*cos(t);
+      y += helix.GetRadius(t)*sin(t);
 //    }
 //    else{
 //      x += helix->GetRadius(t)*sin(t);

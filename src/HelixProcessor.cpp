@@ -30,26 +30,26 @@ HelixProcessor::~HelixProcessor()
   
 }
 
-vector<int> HelixProcessor::AreIdentical(const unique_ptr<Helix> &h1, const unique_ptr<Helix> &h2)
+vector<int> HelixProcessor::AreIdentical(const Helix &h1, const Helix &h2)
 {
   vector<int> reasons;
   
-  if(fabs(h1->GetOrigin().GetX() - h2->GetOrigin().GetX()) > config.toleranceX) reasons.push_back(1);
-  if(fabs(h1->GetOrigin().GetY() - h2->GetOrigin().GetY()) > config.toleranceY) reasons.push_back(2);
-  if(fabs(h1->GetOrigin().GetZ() - h2->GetOrigin().GetZ()) > config.toleranceZ) reasons.push_back(3);
-  if(fabs(h1->GetMomentum()->GetX() - h2->GetMomentum()->GetX()) > config.tolerancePx) reasons.push_back(4);
-  if(fabs(h1->GetMomentum()->GetY() - h2->GetMomentum()->GetY()) > config.tolerancePy) reasons.push_back(5);
-  if(fabs(h1->GetMomentum()->GetZ() - h2->GetMomentum()->GetZ()) > config.tolerancePz) reasons.push_back(6);
-  if(h1->GetCharge() != h2->GetCharge()) reasons.push_back(7);
+  if(fabs(h1.GetOrigin().GetX() - h2.GetOrigin().GetX()) > config.toleranceX) reasons.push_back(1);
+  if(fabs(h1.GetOrigin().GetY() - h2.GetOrigin().GetY()) > config.toleranceY) reasons.push_back(2);
+  if(fabs(h1.GetOrigin().GetZ() - h2.GetOrigin().GetZ()) > config.toleranceZ) reasons.push_back(3);
+  if(fabs(h1.GetMomentum()->GetX() - h2.GetMomentum()->GetX()) > config.tolerancePx) reasons.push_back(4);
+  if(fabs(h1.GetMomentum()->GetY() - h2.GetMomentum()->GetY()) > config.tolerancePy) reasons.push_back(5);
+  if(fabs(h1.GetMomentum()->GetZ() - h2.GetMomentum()->GetZ()) > config.tolerancePz) reasons.push_back(6);
+  if(h1.GetCharge() != h2.GetCharge()) reasons.push_back(7);
   
   return reasons;
 }
 
-vector<shared_ptr<Point>> HelixProcessor::GetPointsHittingSilicon(const unique_ptr<Helix> &helix)
+vector<shared_ptr<Point>> HelixProcessor::GetPointsHittingSilicon(const Helix &helix)
 {
   // this method may reaquire updating after sign of the pion charge changed...
   vector<shared_ptr<Point>> points;
-  unique_ptr<Point> origin = make_unique<Point>(helix->origin);
+  unique_ptr<Point> origin = make_unique<Point>(helix.origin);
   
   double dh = sqrt(pow(origin->GetX(),2)+pow(origin->GetY(),2));
   double Rl, C, delta;
@@ -57,7 +57,7 @@ vector<shared_ptr<Point>> HelixProcessor::GetPointsHittingSilicon(const unique_p
   
   for(int iLayer=0;iLayer<config.nTrackerLayers;iLayer++){
     Rl = layerR[iLayer];
-    C = (Rl*Rl+dh*dh-helix->radius*helix->radius)/2.;
+    C = (Rl*Rl+dh*dh-helix.radius*helix.radius)/2.;
     
     delta = 4*origin->GetY()*origin->GetY()*C*C-4*dh*dh*(C*C-Rl*Rl*origin->GetX()*origin->GetX());
     if(delta < 0) continue;
@@ -71,15 +71,15 @@ vector<shared_ptr<Point>> HelixProcessor::GetPointsHittingSilicon(const unique_p
     t1 = atan2((y1-origin->GetY()),(x1-origin->GetX()));
     t2 = atan2(y2-origin->GetY(),x2-origin->GetX());
     
-    if(helix->charge < 0){
+    if(helix.charge < 0){
       t1 = TMath::Pi()/2. - t1;
       t2 = TMath::Pi()/2. - t2;
     }
     
-    double nCycles = fabs(helix->GetNcycles());
-    int signZ = sgn(helix->momentum->GetZ());
-    double tShift = helix->tShift;
-    double slopeAbs = helix->slopeAbs;
+    double nCycles = fabs(helix.GetNcycles());
+    int signZ = sgn(helix.momentum->GetZ());
+    double tShift = helix.tShift;
+    double slopeAbs = helix.slopeAbs;
     
     for(double n=0;n<nCycles;n+=1){
       if(n>0
@@ -155,21 +155,18 @@ void HelixProcessor::CalculateNregularPoints(unique_ptr<Helix> &helix, int limit
    */
 }
 
-unique_ptr<Helix> HelixProcessor::GetRandomPionHelix(const shared_ptr<Track> &track)
+void HelixProcessor::GetRandomPionHelix(const shared_ptr<Track> &track, Helix &pionHelix)
 {
   unique_ptr<Point> pionVector = make_unique<Point>(RandSign()*RandDouble(config.minPx, config.maxPx),
                                                     RandSign()*RandDouble(config.minPy, config.maxPy),
                                                     RandSign()*RandDouble(config.minPz, config.maxPz));
   int pionCharge = RandSign();
   
-  unique_ptr<Helix> pionHelix = make_unique<Helix>(track->GetDecayPoint(), pionVector, pionCharge);
+  pionHelix = Helix(track->GetDecayPoint(), pionVector, pionCharge);
   vector<shared_ptr<Point>> pionPoints = GetPointsHittingSilicon(pionHelix);
   for(auto &p : pionPoints){p->SetIsPionHit(true);}
-  pionHelix->SetPoints(pionPoints);
-  
-  return pionHelix;
+  pionHelix.SetPoints(pionPoints);
 }
-
 
 vector<shared_ptr<Helix>> HelixProcessor::GetHelicesFromTree()
 {

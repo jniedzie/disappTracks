@@ -43,7 +43,7 @@ public:
   inline vector<shared_ptr<Point>> GetPionClusters(){return pionClusters;}
   
   /// Returns helices of generated pion(s)
-  inline const vector<unique_ptr<Helix>>& GetGenPionHelices(){return genPionHelices;}
+  inline void GetGenPionHelices(vector<Helix> &helices) const {helices = genPionHelices;}
   
   /// Returns vector of pion(s) sim hits
   inline vector<shared_ptr<Point>> GetPionSimHits(){return pionSimHits;}
@@ -214,7 +214,7 @@ private:
   
   vector<shared_ptr<Point>> pionSimHits;  ///< Sim hits associated with generated pion(s) coming from chargino decay vertex
   vector<shared_ptr<Point>> charginoSimHits; ///< Sim hits associated with generated chargino(s)
-  vector<unique_ptr<Helix>> genPionHelices; ///< Helix representing gen-level pion(s)
+  vector<Helix> genPionHelices; ///< Helix representing gen-level pion(s)
   
   friend class EventProcessor;
 };

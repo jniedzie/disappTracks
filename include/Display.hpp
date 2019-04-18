@@ -33,9 +33,9 @@ public:
   /// Visualizes a helix
   /// \param helix Helix to be visualized
   /// \param options Map containing plotting options
-  void DrawHelix(const unique_ptr<Helix> &helix, const map<string,any> options);
+  void DrawHelix(const Helix &helix, const map<string,any> options);
   
-  void DrawShrinkingHelix(const unique_ptr<Helix> &helix, const map<string,any> options);
+  void DrawShrinkingHelix(const Helix &helix, const map<string,any> options);
   
   /// Visualizes entire event
   /// \param event event to be visualized
