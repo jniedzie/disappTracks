@@ -117,11 +117,11 @@ shared_ptr<Event> GetEvent()
 		exit(0);
 	}
 	
-	auto jetCut = make_unique<JetCut>();
+  JetCut jetCut;
 	
-	jetCut->SetPt(range<double>(30.0, inf));
-	jetCut->SetChargedHadronEnergyFraction(range<double>(0.01,0.99));
-	jetCut->SetNeutralHadronEnergyFraction(range<double>(0.01,0.99));
+	jetCut.SetPt(range<double>(30.0, inf));
+	jetCut.SetChargedHadronEnergyFraction(range<double>(0.01,0.99));
+	jetCut.SetNeutralHadronEnergyFraction(range<double>(0.01,0.99));
 	
 	auto eventProcessor = make_unique<EventProcessor>();
 	eventProcessor->ApplyJetCut(event, jetCut);

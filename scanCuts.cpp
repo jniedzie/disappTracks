@@ -22,8 +22,8 @@ int main()
   
   EventCut eventCut;
   TrackCut trackCut;
-  auto jetCut   = unique_ptr<JetCut>(new JetCut());
-  auto leptonCut= unique_ptr<LeptonCut>(new LeptonCut());
+  JetCut jetCut;
+  LeptonCut leptonCut;
   
   eventCut.SetJetMetDeltaPhi(range<double>(0.5,inf));
   
@@ -75,7 +75,7 @@ int main()
             trackCut.SetRelativeIsolation(range<double>(0,relIsoCut));
 //            eventCut.SetMetPt(range<double>(230,inf));
             
-            eventsAfterCuts->ApplyCuts(eventCut, trackCut, jetCut, nullptr);
+            eventsAfterCuts->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
             
             double nBackgroundTotal=0;
             for(int iBck=0;iBck<kNbackgrounds;iBck++){

@@ -87,11 +87,11 @@ int main(int argc, char* argv[])
   trackCut.SetPt(range<double>(50,inf));
   trackCut.SetEta(range<double>(-2.1, 2.1));
 
-  auto jetCut = unique_ptr<JetCut>(new JetCut());
-  jetCut->SetPt(range<double>(30,inf));
-  jetCut->SetEtaForward(range<double>(-4.7, 4.7));
+  JetCut jetCut;
+  jetCut.SetPt(range<double>(30,inf));
+  jetCut.SetEtaForward(range<double>(-4.7, 4.7));
   
-  auto leptonCut = unique_ptr<LeptonCut>(new LeptonCut());
+  LeptonCut leptonCut;
   
   eventsZmm->ApplyCuts(eventCutZmm, trackCut, jetCut, leptonCut);
   eventsWmv->ApplyCuts(eventCutWmv, trackCut, jetCut, leptonCut);

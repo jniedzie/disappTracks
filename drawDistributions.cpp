@@ -33,11 +33,7 @@ int main(int argc, char* argv[])
   LeptonCut leptonCut;
   
   cutsManager.GetCuts(eventCut, trackCut, jetCut, leptonCut);
-  
-  events->ApplyCuts(eventCut,
-                    trackCut,
-                    make_unique<JetCut>(jetCut),
-                    make_unique<LeptonCut>(leptonCut));
+  events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
   if(config.drawStandardPlots) events->DrawStandardPlots();
   if(config.drawPerLayerPlots) events->DrawPerLayerPlots();

@@ -21,8 +21,8 @@ vector<tuple<double,double>> GetDifferencesForCriticalValues(shared_ptr<EventSet
 
   EventCut eventCut;
   TrackCut trackCut;
-  auto jetCut   = unique_ptr<JetCut>(new JetCut());
-  auto leptonCut= unique_ptr<LeptonCut>(new LeptonCut());
+  JetCut jetCut;
+  LeptonCut leptonCut;
   
   // + standard cuts to be applied after L2 selections
   eventCut.SetNtracks(range<int>(1,1));
@@ -76,8 +76,8 @@ double GetFraction(shared_ptr<EventSet> &events, double criticalMet, double crit
   
   EventCut eventCut;
   TrackCut trackCut;
-  auto jetCut   = unique_ptr<JetCut>(new JetCut());
-  auto leptonCut= unique_ptr<LeptonCut>(new LeptonCut());
+  JetCut jetCut;
+  LeptonCut leptonCut;
   
   // + standard cuts to be applied after L2 selections
   eventCut.SetNtracks(range<int>(1,1));
@@ -171,8 +171,8 @@ int main(int argc, char* argv[])
   
   EventCut eventCut;
   TrackCut trackCut;
-  auto jetCut   = unique_ptr<JetCut>(new JetCut());
-  auto leptonCut= unique_ptr<LeptonCut>(new LeptonCut());
+  JetCut jetCut;
+  LeptonCut leptonCut;
   
   // pick category
   trackCut.SetNpixelLayers(range<int>(3,3));
