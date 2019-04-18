@@ -51,12 +51,11 @@ int main(int argc, char* argv[])
   eventCutZmm.SetLeadingJetEta(range<double>(-2.4,2.4));
   eventCutZmm.SetLeadingJetNeHEF(range<double>(-inf,0.8));
   eventCutZmm.SetLeadingJetChHEF(range<double>(0.1,inf));
-  eventCutZmm.SetRequireHighJet(true);
   eventCutZmm.SetMetNoMuPt(range<double>(200,inf));
-  eventCutZmm.SetRequireMetNoMuJetPhi0p5(true);
+  eventCutZmm.SetJetMetDeltaPhi(range<double>(0.5,inf));
   eventCutZmm.SetRequireMuonsFromZ(true);
-  eventCutZmm.SetRequireMuJetR0p4(true);
-  eventCutZmm.SetRequireMuTrackR0p4(true);
+  eventCutZmm.SetJetMuonDeltaPhi(range<double>(0.4, inf));
+  eventCutZmm.SetTrackMuonDeltaPhi(range<double>(0.4, inf));
   eventCutZmm.SetRequireTwoOppositeMuons(true);
   eventCutZmm.SetRequireTightMuon(true);
   
@@ -67,11 +66,10 @@ int main(int argc, char* argv[])
   eventCutWmv.SetLeadingJetEta(range<double>(-2.4,2.4));
   eventCutWmv.SetLeadingJetNeHEF(range<double>(-inf,0.8));
   eventCutWmv.SetLeadingJetChHEF(range<double>(0.1,inf));
-  eventCutWmv.SetRequireHighJet(true);
   eventCutWmv.SetMetNoMuPt(range<double>(200,inf));
-  eventCutWmv.SetRequireMetNoMuJetPhi0p5(true);
-  eventCutWmv.SetRequireMuJetR0p4(true);
-  eventCutWmv.SetRequireMuTrackR0p4(true);
+  eventCutWmv.SetJetMetDeltaPhi(range<double>(0.5,inf));
+  eventCutWmv.SetJetMuonDeltaPhi(range<double>(0.4, inf));
+  eventCutWmv.SetTrackMuonDeltaPhi(range<double>(0.4, inf));
   eventCutWmv.SetRequireTightMuon(true);
   
   eventCutZvv.SetNtracks(range<int>(1,inf));
@@ -81,9 +79,8 @@ int main(int argc, char* argv[])
   eventCutZvv.SetLeadingJetEta(range<double>(-2.4,2.4));
   eventCutZvv.SetLeadingJetNeHEF(range<double>(-inf,0.8));
   eventCutZvv.SetLeadingJetChHEF(range<double>(0.1,inf));
-  eventCutZvv.SetRequireHighJet(true);
   eventCutZvv.SetMetPt(range<double>(200,inf));
-  eventCutZvv.SetRequireMetJetPhi0p5(true);
+  eventCutZvv.SetJetMetDeltaPhi(range<double>(0.5,inf));
   eventCutZvv.SetNleptons(range<int>(0,0));
   
   auto trackCut = unique_ptr<TrackCut>(new TrackCut());

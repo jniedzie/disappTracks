@@ -114,13 +114,13 @@ void EventProcessor::ApplyLeptonCut(shared_ptr<Event> event, const unique_ptr<Le
 bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut &cut)
 {
   // check the trigger
-  if(cut.metNoMuTrigger && !event->metNoMuTrigger){
+  if(cut.requiresMetNoMuTrigger && !event->metNoMuTrigger){
     cutReasons[0]++;
     return false;
   }
   
   // check MET filters
-  if(cut.requirePassAllFilters){
+  if(cut.requiresPassingAllFilters){
     if(   !event->flag_goodVertices
        || !event->flag_badPFmuon
        || !event->flag_HBHEnoise
@@ -157,7 +157,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
   }
   
   // make sure they have an opposite sign
-  if(cut.twoOpositeMuons){
+  if(cut.requiresTwoOpositeMuons){
     if(muons.size() != 2){
       cutReasons[5]++;
       return false;
@@ -169,7 +169,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
   }
   
   // apply tight muon cuts (tightID flag, pt > 20 GeV, isolation < 0.15
-  if(cut.tightMuon){
+  if(cut.requiresTightMuon){
     auto tightMuonCut = LeptonCut();
     tightMuonCut.SetRelativeIsolation(range<double>(-inf,0.15));
     tightMuonCut.SetRequireTightID(true);
@@ -186,7 +186,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
   }
   
   // check that invariant mass of muons is close to Z mass
-  if(cut.muonsFromZ){
+  if(cut.requiresMuonsFromZ){
     TLorentzVector muon1vector, muon2vector, muonVectorSum;
     
     if(muons.size() != 2){
@@ -217,13 +217,13 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
     return false;
   }
   
-  // Remove jets that are too close to muons (they will be permanently removed from the event)
-  if(cut.muJetR0p4){
+  // Check if jets are not too close to muons
+  if(cut.jetMuonDeltaPhi.GetMin() > 0.0){
     vector<TLorentzVector> muonVectors;
-    
+    double muonMass = 0.1057;
     for(auto m : muons){
       TLorentzVector mv;
-      mv.SetPtEtaPhiM(m->GetPt(),m->GetEta(),m->GetPhi(), 0.1057);
+      mv.SetPtEtaPhiM(m->GetPt(),m->GetEta(),m->GetPhi(), muonMass);
       muonVectors.push_back(mv);
     }
     
@@ -235,23 +235,22 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
         jetVector.SetPtEtaPhiM(j->GetPt(), j->GetEta(), j->GetPhi(), j->GetMass());
         
         for(auto muonVector : muonVectors){
-          if(jetVector.DeltaR(muonVector) < 0.4){
-            event->jets.erase(event->jets.begin()+iJet);
-            iJet--;
-            break;
+          if(cut.jetMuonDeltaPhi.IsOutside(fabs(jetVector.DeltaR(muonVector)))){
+            return false;
           }
         }
       }
     }
   }
   
-  // Remove tracks that are too close to muons (they will be permanently removed from the event)
-  if(cut.muTrackR0p4){
+  // Check if iso tracks are not too close to muons
+  if(cut.trackMuonDeltaPhi.GetMin() > 0.0){
     vector<TLorentzVector> muonVectors;
     
     for(auto m : muons){
       TLorentzVector mv;
-      mv.SetPtEtaPhiM(m->GetPt(),m->GetEta(),m->GetPhi(), 0.1057);
+      double muonMass = 0.1057;
+      mv.SetPtEtaPhiM(m->GetPt(),m->GetEta(),m->GetPhi(), muonMass);
       muonVectors.push_back(mv);
     }
     
@@ -262,10 +261,8 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
       trackVector.SetPtEtaPhiM(t->GetPt(), t->GetEta(), t->GetPhi(), t->GetMass());
       
       for(auto muonVector : muonVectors){
-        if(trackVector.DeltaR(muonVector) < 0.4){
-          event->tracks.erase(event->tracks.begin()+iTrack);
-          iTrack--;
-          break;
+        if(cut.trackMuonDeltaPhi.IsOutside(fabs(trackVector.DeltaR(muonVector)))){
+          return false;
         }
       }
     }
@@ -299,8 +296,8 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
     leadingJet = nullptr;
   }
   
-  // check properties of the highest pt jet
-  if(cut.highJet && !leadingJet){
+  // check if there is a leading jet in the event
+  if(!leadingJet){
     cutReasons[14]++;
     return false;
   }
@@ -319,18 +316,6 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
     }
   }
   
-  if(cut.metJetPhi){
-    TLorentzVector metVector, jetVector;
-    metVector.SetPtEtaPhiM(event->metNoMuPt, event->metNoMuEta, event->metNoMuPhi, event->metNoMuMass);
-    
-    for(auto j : event->jets){
-      jetVector.SetPtEtaPhiM(j->GetPt(), j->GetEta(), j->GetPhi(), j->GetMass());
-      if(fabs(metVector.DeltaPhi(jetVector)) < 0.5){
-        cutReasons[16]++;
-        return false;
-      }
-    }
-  }
   survivingEvents.push_back(event);
   return true;
 }

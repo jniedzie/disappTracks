@@ -49,7 +49,6 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
   // Check number of objects after cuts
   eventCut.SetNtracks(range<int>(1,inf));
   eventCut.SetNjets(range<int>(1,inf));
-  eventCut.SetRequireHighJet(true);
 //  eventCut.SetNmuons(range<int>(0,0));
   eventCut.SetNtaus(range<int>(0,0));
   eventCut.SetNleptons(range<int>(0,0));
