@@ -67,7 +67,7 @@ EventSet::~EventSet()
   
 }
 
-void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setIter)
+void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setIter) const
 {
   TFile outFile(fileName.c_str(),"RECREATE");
   outFile.cd();
@@ -171,7 +171,7 @@ void EventSet::LoadEventsFromFiles(xtracks::EDataType dataType, int setIter, str
   }
 }
 
-void EventSet::SaveEventsToFiles(string prefix)
+void EventSet::SaveEventsToFiles(string prefix) const
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!config.runSignal[iSig]) continue;
@@ -197,7 +197,7 @@ void EventSet::SaveEventsToFiles(string prefix)
   }
 }
 
-void EventSet::PrintYields()
+void EventSet::PrintYields() const
 {
   double nBackgroundTotal=0;
   int nBackgroundTotalRaw=0;
@@ -244,7 +244,7 @@ void EventSet::PrintYields()
   }
 }
 
-vector<double> EventSet::GetSignificance(bool inData)
+vector<double> EventSet::GetSignificance(bool inData) const
 {
   double nBackgroundTotal=0;
   
@@ -363,7 +363,7 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
   }
 }
 
-void EventSet::DrawStandardPlots(string prefix)
+void EventSet::DrawStandardPlots(string prefix) const
 {
   // Create standard per event, per track and per jet plots
   map<string, HistSet*> hists;
@@ -486,7 +486,7 @@ void EventSet::DrawStandardPlots(string prefix)
   canvasHelix->SaveAs((outPath+"canvas_helices.pdf").c_str());
 }
 
-void EventSet::DrawPerLayerPlots()
+void EventSet::DrawPerLayerPlots() const
 {
   HistSet *dedxPerLayer = new HistSet(kDedx);
   dedxPerLayer->FillFromEvents(make_shared<EventSet>(*this));
@@ -502,7 +502,7 @@ void EventSet::DrawPerLayerPlots()
 }
 
 
-int EventSet::size(xtracks::EDataType dataType, int setIter)
+int EventSet::size(xtracks::EDataType dataType, int setIter) const
 {
   if(dataType == xtracks::kSignal){
     return (int)eventsSignal[(ESignal)setIter].size();
@@ -519,7 +519,7 @@ int EventSet::size(xtracks::EDataType dataType, int setIter)
   return 1;
 }
 
-double EventSet::weightedSize(xtracks::EDataType dataType, int setIter)
+double EventSet::weightedSize(xtracks::EDataType dataType, int setIter) const
 {
   double sum=0;
   
@@ -539,7 +539,7 @@ double EventSet::weightedSize(xtracks::EDataType dataType, int setIter)
   return sum;
 }
 
-shared_ptr<Event> EventSet::At(xtracks::EDataType dataType, int setIter, int index)
+shared_ptr<Event> EventSet::At(xtracks::EDataType dataType, int setIter, int index) const
 {
   if(dataType == xtracks::kSignal){
     return eventsSignal[(ESignal)setIter][index];
@@ -555,7 +555,8 @@ shared_ptr<Event> EventSet::At(xtracks::EDataType dataType, int setIter, int ind
   }
 }
 
-shared_ptr<Event> EventSet::GetEvent(xtracks::EDataType dataType, uint run, uint lumi, unsigned long long eventNumber)
+shared_ptr<Event> EventSet::GetEvent(xtracks::EDataType dataType,
+                                     uint run, uint lumi, unsigned long long eventNumber) const
 {
   if(dataType == xtracks::kSignal){
     for(auto events : eventsSignal){

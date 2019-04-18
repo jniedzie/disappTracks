@@ -44,12 +44,12 @@ public:
   
   /// Saves signal, background and data events in the ROOT files, according to settings in the config.
   /// \param prefix If specified, prefix will be appended at the end of the path, before "tree.root"
-  void SaveEventsToFiles(string prefix="after_L/");
+  void SaveEventsToFiles(string prefix="after_L/") const;
   
   /// Prints yields of signal, background and data events, as well as S/sqrt(S+B) ratio.
-  void PrintYields();
+  void PrintYields() const;
   
-  vector<double> GetSignificance(bool inData=false);
+  vector<double> GetSignificance(bool inData=false) const;
   
   /// Applies cuts in this order: track, jet, lepton, event to three sets of events: signal, background and data.
   /// \param eventCut   Cuts to be applied to events
@@ -61,26 +61,26 @@ public:
                  const JetCut     &jetCut,
                  const LeptonCut  &leptonCut);
   
-  void DrawStandardPlots(string prefix="");
-  void DrawPerLayerPlots();
+  void DrawStandardPlots(string prefix="") const;
+  void DrawPerLayerPlots() const;
   
   /// Returns number of events in this collection
   /// \param dataType Specifies which data type should be taken into concideration: signal, background or data
   /// \param setIter Specifies which set for given dataType to look at (e.g. kZmumuJets for Z->mumu)
-  int size(xtracks::EDataType dataType, int setIter);
+  int size(xtracks::EDataType dataType, int setIter) const;
   
   /// Returns weighted size of a collection (including luminosity, cross section and generator weights.
   /// \param dataType Specifies which data type should be taken into concideration: signal, background or data
   /// \param setIter Specifies which set for given dataType to look at (e.g. kZmumuJets for Z->mumu)
-  double weightedSize(xtracks::EDataType dataType, int setIter);
+  double weightedSize(xtracks::EDataType dataType, int setIter) const;
   
   /// Returns the event with given index
   /// \param dataType Specifies from which data type: signal, background or data the events should be taken
   /// \param setIter Specifies which set for given dataType to look at (e.g. kZmumuJets for Z->mumu)
-  shared_ptr<Event> At(xtracks::EDataType dataType, int setIter, int index);
+  shared_ptr<Event> At(xtracks::EDataType dataType, int setIter, int index) const;
   
   /// Tries to find an event by run:lumi:event
-  shared_ptr<Event> GetEvent(xtracks::EDataType dataType, uint run, uint lumi, unsigned long long event);
+  shared_ptr<Event> GetEvent(xtracks::EDataType dataType, uint run, uint lumi, unsigned long long event) const;
   
 private:
   /// Default constructor. Loads events from ROOT tree
@@ -105,7 +105,7 @@ private:
   /// \param setIter Data set type (i.a. for correct cross section assignment). Will be casted to ESignal, EBackground or EData, depending on dataType parameter provided
   void AddEventsFromFile(string fileName, xtracks::EDataType dataType=xtracks::kBackground, int maxNevents=-1, int setIter=-1);
  
-  void SaveToTree(string fileName, xtracks::EDataType type, int setIter);
+  void SaveToTree(string fileName, xtracks::EDataType type, int setIter) const;
   
   unique_ptr<TrackProcessor>  trackProcessor;
   unique_ptr<JetProcessor>    jetProcessor;

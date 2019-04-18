@@ -13,37 +13,34 @@
 
 string configPath = "configs/analysis.md";
 
-void ProcessCuts(shared_ptr<EventSet> events,
+void ProcessCuts(EventSet &events,
                  const EventCut   &eventCut,
                  const TrackCut   &trackCut,
                  const JetCut     &jetCut,
                  const LeptonCut  &leptonCut,
                  string suffix = "")
 {
-  events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+  events.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
   if(config.printYields){
     cout<<"\n\nYields after level "<<config.performCutsLevel<<" cuts"<<endl;
-    events->PrintYields();
+    events.PrintYields();
   }
   if(config.saveEvents){
     string prefix = "after_L"+to_string(config.performCutsLevel);
     prefix = prefix + "/" + suffix + "/";
     if(config.performCutsLevel==10) prefix = "adish_cuts";
-    events->SaveEventsToFiles(prefix);
+    events.SaveEventsToFiles(prefix);
   }
-  if(config.drawStandardPlots){
-    events->DrawStandardPlots();
-  }
-  if(config.drawPerLayerPlots){
-    events->DrawPerLayerPlots();
-  }
+  if(config.drawStandardPlots)  events.DrawStandardPlots();
+  if(config.drawPerLayerPlots)  events.DrawPerLayerPlots();
+  
   if(config.printBackgroundDetails){
     for(int iBck=0;iBck<kNbackgrounds;iBck++){
       if(!config.runBackground[iBck]) continue;
       cout<<"Background events in "<<backgroundTitle[iBck]<<":"<<endl;
-      for(int iEvent=0;iEvent<events->size(xtracks::kBackground,iBck);iEvent++){
-        events->At(xtracks::kBackground,iBck,iEvent)->Print();
+      for(int iEvent=0;iEvent<events.size(xtracks::kBackground,iBck);iEvent++){
+        events.At(xtracks::kBackground,iBck,iEvent)->Print();
       }
     }
   }
@@ -51,8 +48,8 @@ void ProcessCuts(shared_ptr<EventSet> events,
     for(int iData=0;iData<kNdata;iData++){
       if(!config.runData[iData]) continue;
       cout<<"Data events in "<<dataTitle[iData]<<":"<<endl;
-      for(int iEvent=0;iEvent<events->size(xtracks::kData,iData);iEvent++){
-        events->At(xtracks::kData,iData,iEvent)->Print();
+      for(int iEvent=0;iEvent<events.size(xtracks::kData,iData);iEvent++){
+        events.At(xtracks::kData,iData,iEvent)->Print();
       }
     }
   }
@@ -60,8 +57,8 @@ void ProcessCuts(shared_ptr<EventSet> events,
     for(int iSig=0;iSig<kNsignals;iSig++){
       if(!config.runSignal[iSig]) continue;
       cout<<"Signal events in "<<signalTitle[iSig]<<":"<<endl;
-      for(int iEvent=0;iEvent<events->size(xtracks::kSignal,iSig);iEvent++){
-        events->At(xtracks::kSignal,iSig,iEvent)->Print();
+      for(int iEvent=0;iEvent<events.size(xtracks::kSignal,iSig);iEvent++){
+        events.At(xtracks::kSignal,iSig,iEvent)->Print();
       }
     }
   }
@@ -71,11 +68,11 @@ void ProcessCuts(shared_ptr<EventSet> events,
   
   for(int iData=0;iData<kNdata;iData++){
     if(!config.runData[iData]) continue;
-    cout<<"Data events surviving cuts in "<<dataTitle[iData]<<":"<<events->size(xtracks::kData,iData)<<endl;
-    for(int iEvent=0;iEvent<events->size(xtracks::kData,iData);iEvent++){
-      int runNumber = events->At(xtracks::kData,iData,iEvent)->GetRunNumber();
-      int lumiSection = events->At(xtracks::kData,iData,iEvent)->GetLumiSection();
-      long long int eventNumber = events->At(xtracks::kData,iData,iEvent)->GetEventNumber();
+    cout<<"Data events surviving cuts in "<<dataTitle[iData]<<":"<<events.size(xtracks::kData,iData)<<endl;
+    for(int iEvent=0;iEvent<events.size(xtracks::kData,iData);iEvent++){
+      int runNumber = events.At(xtracks::kData,iData,iEvent)->GetRunNumber();
+      int lumiSection = events.At(xtracks::kData,iData,iEvent)->GetLumiSection();
+      long long int eventNumber = events.At(xtracks::kData,iData,iEvent)->GetEventNumber();
       dataSurvivingFile<<runNumber<<":"<<lumiSection<<":"<<eventNumber<<"\n";
     }
   }
@@ -86,11 +83,11 @@ void ProcessCuts(shared_ptr<EventSet> events,
   
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!config.runSignal[iSig]) continue;
-    cout<<"Signal events surviving cuts in "<<signalTitle[iSig]<<":"<<events->size(xtracks::kSignal,iSig)<<endl;
-    for(int iEvent=0;iEvent<events->size(xtracks::kSignal,iSig);iEvent++){
-      int runNumber = events->At(xtracks::kSignal,iSig,iEvent)->GetRunNumber();
-      int lumiSection = events->At(xtracks::kSignal,iSig,iEvent)->GetLumiSection();
-      long long int eventNumber = events->At(xtracks::kSignal,iSig,iEvent)->GetEventNumber();
+    cout<<"Signal events surviving cuts in "<<signalTitle[iSig]<<":"<<events.size(xtracks::kSignal,iSig)<<endl;
+    for(int iEvent=0;iEvent<events.size(xtracks::kSignal,iSig);iEvent++){
+      int runNumber = events.At(xtracks::kSignal,iSig,iEvent)->GetRunNumber();
+      int lumiSection = events.At(xtracks::kSignal,iSig,iEvent)->GetLumiSection();
+      long long int eventNumber = events.At(xtracks::kSignal,iSig,iEvent)->GetEventNumber();
       signalSurvivingFile<<runNumber<<":"<<lumiSection<<":"<<eventNumber<<"\n";
     }
   }
@@ -100,19 +97,19 @@ void ProcessCuts(shared_ptr<EventSet> events,
 
 int main(int argc, char* argv[])
 {
-  TApplication *theApp = new TApplication("App", &argc, argv);
+  TApplication theApp("App", &argc, argv);
   
   // All events with initial cuts only
   config = ConfigManager(configPath);
-  shared_ptr<EventSet> events = shared_ptr<EventSet>(new EventSet);
+  EventSet events;
   
   string initPrefix = "after_L"+to_string(config.performCutsLevel-1)+"/";
   if(config.performCutsLevel==0 || config.performCutsLevel==10) initPrefix = "";
   if(config.performCutsLevel==20) initPrefix = "afterHelixTagging/";
   
-  events->LoadEventsFromFiles(initPrefix);
+  events.LoadEventsFromFiles(initPrefix);
   cout<<"\n\nInitial yields"<<endl;
-  events->PrintYields();
+  events.PrintYields();
   
   CutsManager cutsManager;
   
@@ -139,21 +136,21 @@ int main(int argc, char* argv[])
       TCanvas *c1 = new TCanvas("significance","significance",800,500);
       c1->cd();
       
-      TH1D *hists[kNsignals];
+      TH1D hists[kNsignals];
       
       
       double min = 201, max = 1001, step = 20;
       int nBins = (max-min)/step + 1;
       
       for(int iSig=0;iSig<kNsignals;iSig++){
-        hists[iSig] = new TH1D(signalTitle[iSig].c_str(),signalTitle[iSig].c_str(),nBins,min,max);
+        hists[iSig] = TH1D(signalTitle[iSig].c_str(),signalTitle[iSig].c_str(),nBins,min,max);
       }
       
       for(int i=0;i<nBins;i++){
         double split = min+i*step;
         cout<<"\n\nSplit:"<<split<<"\n";
-        auto events1 = shared_ptr<EventSet>(new EventSet(*events));
-        auto events2 = shared_ptr<EventSet>(new EventSet(*events));
+        EventSet events1(events);
+        EventSet events2(events);
         
         eventCut.SetMetPt(range<double>(200,split));
         ProcessCuts(events1, eventCut, trackCut, jetCut, leptonCut);
@@ -161,49 +158,49 @@ int main(int argc, char* argv[])
         eventCut.SetMetPt(range<double>(split,inf));
         ProcessCuts(events2, eventCut, trackCut, jetCut, leptonCut);
         
-        vector<double> significances1 = events1->GetSignificance();
-        vector<double> significances2 = events2->GetSignificance();
+        vector<double> significances1 = events1.GetSignificance();
+        vector<double> significances2 = events2.GetSignificance();
         
         for(int iSig=0;iSig<kNsignals;iSig++){
           if(!config.runSignal[iSig]) continue;
           
           double combinedSignificance = sqrt(pow(significances1[iSig],2) + pow(significances2[iSig],2));
           cout<<signalTitle[iSig]<<"\t"<<((isnormal(combinedSignificance) && combinedSignificance < 1000) ? combinedSignificance : 0.0)<<endl;
-          hists[iSig]->SetBinContent(i+1, (isnormal(combinedSignificance) && combinedSignificance < 1000) ? combinedSignificance : 0.0);
+          hists[iSig].SetBinContent(i+1, (isnormal(combinedSignificance) && combinedSignificance < 1000) ? combinedSignificance : 0.0);
         }
       }
       
       bool first = true;
       for(int iSig=0;iSig<kNsignals;iSig++){
         if(!config.runSignal[iSig]) continue;
-        hists[iSig]->SetMarkerSize(2.0);
+        hists[iSig].SetMarkerSize(2.0);
         
-        hists[iSig]->SetLineColor(SignalColor((ESignal)iSig));
-        hists[iSig]->SetMarkerStyle(signalMarkers[iSig]);
-        hists[iSig]->SetMarkerColor(SignalColor((ESignal)iSig));
+        hists[iSig].SetLineColor(SignalColor((ESignal)iSig));
+        hists[iSig].SetMarkerStyle(signalMarkers[iSig]);
+        hists[iSig].SetMarkerColor(SignalColor((ESignal)iSig));
         
         
         double mean = 0;
         double minY = inf;
         
-        for(int i=0;i<hists[iSig]->GetNbinsX();i++){
-          mean += hists[iSig]->GetBinContent(i+1);
-          if(hists[iSig]->GetBinContent(i+1) < minY) minY = hists[iSig]->GetBinContent(i+1);
+        for(int i=0;i<hists[iSig].GetNbinsX();i++){
+          mean += hists[iSig].GetBinContent(i+1);
+          if(hists[iSig].GetBinContent(i+1) < minY) minY = hists[iSig].GetBinContent(i+1);
         }
         mean /= nBins;
         
-        for(int i=0;i<hists[iSig]->GetNbinsX();i++){
-          hists[iSig]->SetBinContent(i+1,hists[iSig]->GetBinContent(i+1)-minY);
+        for(int i=0;i<hists[iSig].GetNbinsX();i++){
+          hists[iSig].SetBinContent(i+1,hists[iSig].GetBinContent(i+1)-minY);
         }
-        hists[iSig]->Scale(1/hists[iSig]->Integral());
-        hists[iSig]->Sumw2(false);
+        hists[iSig].Scale(1/hists[iSig].Integral());
+        hists[iSig].Sumw2(false);
         if(first){
           
-          hists[iSig]->Draw("PL");
+          hists[iSig].Draw("PL");
           first = false;
         }
         else{
-          hists[iSig]->Draw("samePL");
+          hists[iSig].Draw("samePL");
         }
       }
       c1->Update();
@@ -224,9 +221,9 @@ int main(int argc, char* argv[])
           double binMax = 200+(iMetBin+1)*100;
           eventCut.SetMetPt(range<double>(binMin, binMax));
           
-          auto eventsForMetBin = make_shared<EventSet>(*events);
+          EventSet eventsForMetBin(events);
           ProcessCuts(eventsForMetBin, eventCut, trackCut, jetCut, leptonCut);
-          significances.push_back(eventsForMetBin->GetSignificance());
+          significances.push_back(eventsForMetBin.GetSignificance());
         }
 
         for(int iSig=0;iSig<kNsignals;iSig++){
@@ -261,11 +258,9 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   // Draw plots after helix tagging
   //---------------------------------------------------------------------------
-  if(config.performCutsLevel == 20){
-    events->DrawStandardPlots();
-  }
+  if(config.performCutsLevel == 20) events.DrawStandardPlots();
   
-  if(config.drawStandardPlots || config.drawPerLayerPlots || config.scanMETbinning)  theApp->Run();
+  if(config.drawStandardPlots || config.drawPerLayerPlots || config.scanMETbinning)  theApp.Run();
   return 0;
 }
 
