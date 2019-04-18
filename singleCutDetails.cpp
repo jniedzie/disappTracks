@@ -19,8 +19,8 @@ int main(int argc, char* argv[])
   ConfigManager config(configPath);
   
   // All events with initial cuts only
-  shared_ptr<EventSet> events;
-  events->LoadEventsFromFiles("after_L1/");
+  EventSet events;
+  events.LoadEventsFromFiles("after_L1/");
   
   EventCut eventCut;
   TrackCut trackCut;
@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
   int iPoint=0;
   double cutMin=0, cutMax=20, cutStep=1;
 
-  shared_ptr<EventSet> eventsAfterCuts;
+  EventSet eventsAfterCuts;
   
   for(double cut=cutMin;cut<cutMax; cut += cutStep){
     cout<<"cut:"<<cut<<endl;
@@ -58,18 +58,18 @@ int main(int argc, char* argv[])
 //    trackCut->SetNmissingOuterTracker(cut,inf);
     
     eventsAfterCuts = events;
-    events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+    events.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
     
     double nBackgroundTotal=0;
     for(int iBck=0;iBck<kNbackgrounds;iBck++){
       if(!config.runBackground[iBck]) continue;
-      nBackgroundTotal += eventsAfterCuts->weightedSize(xtracks::kBackground,iBck);
+      nBackgroundTotal += eventsAfterCuts.weightedSize(xtracks::kBackground,iBck);
     }
     nBackgroundTotal = sqrt(nBackgroundTotal);
     
     for(int iSig=0;iSig<kNsignals;iSig++){
       if(!config.runSignal[iSig]) continue;
-      double val = eventsAfterCuts->weightedSize(xtracks::kSignal,iSig)/nBackgroundTotal;
+      double val = eventsAfterCuts.weightedSize(xtracks::kSignal,iSig)/nBackgroundTotal;
       sb[iSig]->SetPoint(iPoint,cut,val);
     }
     iPoint++;

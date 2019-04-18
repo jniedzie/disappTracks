@@ -29,6 +29,9 @@ public:
   /// Copy constructor. Copies all events in the collection.
   EventSet(const EventSet &event);
   
+  /// Assignment operator. Copies all events in the collection.
+  EventSet operator=(const EventSet &event);
+  
   /// Default destructor
   ~EventSet();
   
@@ -83,16 +86,22 @@ public:
   shared_ptr<Event> GetEvent(xtracks::EDataType dataType, uint run, uint lumi, unsigned long long event) const;
   
 private:
+  vector<vector<shared_ptr<Event>>> eventsSignal;     ///< Vector of signal events - [ESignal][iEvent]
+  vector<vector<shared_ptr<Event>>> eventsBackground; ///< Vector of backgrnd events - [EBackkground][iEvent]
+  vector<vector<shared_ptr<Event>>> eventsData;       ///< Vector of data events - [EData][iEvent]
+  
+  unique_ptr<TrackProcessor>  trackProcessor;
+  unique_ptr<JetProcessor>    jetProcessor;
+  unique_ptr<HelixProcessor>  helixProcessor;
+  unique_ptr<EventProcessor>  eventProcessor;
+  unique_ptr<LeptonProcessor> leptonProcessor;
+  
   /// Default constructor. Loads events from ROOT tree
   /// \param fileName Path to the ROOT file with ntuples from which events will be loaded
   /// \param dataType Event weigth will be calculated differently background, signal and data
   /// \param maxNevents Load just maxNevents from file and then stop
   /// \param iSig Signal type for correct cross section assignment
   EventSet(string fileName, xtracks::EDataType dataType=xtracks::kBackground, int maxNevents=-1, ESignal iSig=kNsignals);
-  
-  vector<vector<shared_ptr<Event>>> eventsSignal;     ///< Vector of signal events - [ESignal][iEvent]
-  vector<vector<shared_ptr<Event>>> eventsBackground; ///< Vector of backgrnd events - [EBackkground][iEvent]
-  vector<vector<shared_ptr<Event>>> eventsData;       ///< Vector of data events - [EData][iEvent]
   
   /// Adds event to the collection of events
   /// \param event Event object to be added to the collection
@@ -106,12 +115,6 @@ private:
   void AddEventsFromFile(string fileName, xtracks::EDataType dataType=xtracks::kBackground, int maxNevents=-1, int setIter=-1);
  
   void SaveToTree(string fileName, xtracks::EDataType type, int setIter) const;
-  
-  unique_ptr<TrackProcessor>  trackProcessor;
-  unique_ptr<JetProcessor>    jetProcessor;
-  unique_ptr<HelixProcessor>  helixProcessor;
-  unique_ptr<EventProcessor>  eventProcessor;
-  unique_ptr<LeptonProcessor> leptonProcessor;
 };
 
 

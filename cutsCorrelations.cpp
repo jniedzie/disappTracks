@@ -11,13 +11,13 @@
 #include "Helpers.hpp"
 #include "ConfigManager.hpp"
 
-vector<tuple<double,double>> GetDifferencesForCriticalValues(shared_ptr<EventSet> &events,
-                                               double criticalMet = 500, double critialDedx = 3.5)
+vector<tuple<double,double>> GetDifferencesForCriticalValues(const EventSet &events,
+                                                             double criticalMet = 500, double critialDedx = 3.5)
 {
-  auto eventsA = make_shared<EventSet>(*events);
-  auto eventsB = make_shared<EventSet>(*events);
-  auto eventsC = make_shared<EventSet>(*events);
-  auto eventsD = make_shared<EventSet>(*events);
+  EventSet eventsA(events);
+  EventSet eventsB(events);
+  EventSet eventsC(events);
+  EventSet eventsD(events);
 
   EventCut eventCut;
   TrackCut trackCut;
@@ -35,22 +35,22 @@ vector<tuple<double,double>> GetDifferencesForCriticalValues(shared_ptr<EventSet
   // A: B + S
   eventCut.SetMetPt(range<double>(criticalMet,inf));           // select Background
   trackCut.SetDedxPerCluster(range<double>(critialDedx,inf));  // select Signal
-  eventsA->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+  eventsA.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
 
   // B: B + B
   eventCut.SetMetPt(range<double>(criticalMet,inf));           // select Background
   trackCut.SetDedxPerCluster(range<double>(0,critialDedx));    // select Background
-  eventsB->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+  eventsB.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
 
   // C: S + S
   eventCut.SetMetPt(range<double>(0.0,criticalMet));           // select Signal
   trackCut.SetDedxPerCluster(range<double>(critialDedx,inf));  // select Signal
-  eventsC->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+  eventsC.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
 
   // D: S + B
   eventCut.SetMetPt(range<double>(criticalMet,inf));           // select Signal
   trackCut.SetDedxPerCluster(range<double>(0,critialDedx));    // select Background
-  eventsD->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+  eventsD.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
 
   vector<tuple<double,double>> results;
   
@@ -59,20 +59,20 @@ vector<tuple<double,double>> GetDifferencesForCriticalValues(shared_ptr<EventSet
       results.push_back(make_tuple(inf,inf));
       continue;
     }
-    double expectedBck = eventsC->weightedSize(xtracks::kBackground, iBck);
-    double predictedBck = eventsA->weightedSize(xtracks::kBackground, iBck)/eventsB->weightedSize(xtracks::kBackground, iBck)*eventsD->weightedSize(xtracks::kBackground, iBck);
+    double expectedBck = eventsC.weightedSize(xtracks::kBackground, iBck);
+    double predictedBck = eventsA.weightedSize(xtracks::kBackground, iBck)/eventsB.weightedSize(xtracks::kBackground, iBck)*eventsD.weightedSize(xtracks::kBackground, iBck);
     
     results.push_back(make_tuple(expectedBck,predictedBck));
     }
   return results;
 }
 
-double GetFraction(shared_ptr<EventSet> &events, double criticalMet, double critialDedx, double stepX)
+double GetFraction(const EventSet &events, double criticalMet, double critialDedx, double stepX)
 {
-  auto eventsA = shared_ptr<EventSet>(new EventSet(*events));
-  auto eventsB = shared_ptr<EventSet>(new EventSet(*events));
-  auto eventsC = shared_ptr<EventSet>(new EventSet(*events));
-  auto eventsD = shared_ptr<EventSet>(new EventSet(*events));
+  EventSet eventsA(events);
+  EventSet eventsB(events);
+  EventSet eventsC(events);
+  EventSet eventsD(events);
   
   EventCut eventCut;
   TrackCut trackCut;
@@ -90,12 +90,12 @@ double GetFraction(shared_ptr<EventSet> &events, double criticalMet, double crit
   // A: B + S
   eventCut.SetMetPt(range<double>(criticalMet,inf));           // select Background
   trackCut.SetDedxPerCluster(range<double>(critialDedx,critialDedx+stepX));  // select Signal
-  eventsA->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+  eventsA.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
   // B: B + B
   eventCut.SetMetPt(range<double>(0,criticalMet));           // select Background
   trackCut.SetDedxPerCluster(range<double>(critialDedx, critialDedx+stepX));    // select Background
-  eventsB->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+  eventsB.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
   int nBackgroundA = 0;
   int nBackgroundB = 0;
@@ -103,8 +103,8 @@ double GetFraction(shared_ptr<EventSet> &events, double criticalMet, double crit
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     if(!config.runBackground[iBck]) continue;
     
-    nBackgroundA += eventsA->weightedSize(xtracks::kBackground, iBck);
-    nBackgroundB += eventsB->weightedSize(xtracks::kBackground, iBck);
+    nBackgroundA += eventsA.weightedSize(xtracks::kBackground, iBck);
+    nBackgroundB += eventsB.weightedSize(xtracks::kBackground, iBck);
   }
   
   return nBackgroundA/(double)nBackgroundB;
@@ -117,8 +117,8 @@ int main(int argc, char* argv[])
   config = ConfigManager("configs/analysis.md");
   
   // All events with initial cuts only
-  shared_ptr<EventSet> events = shared_ptr<EventSet>(new EventSet());
-  events->LoadEventsFromFiles("after_L0/");
+  EventSet events;
+  events.LoadEventsFromFiles("after_L0/");
   
   TCanvas *c1 = new TCanvas("c1","c1",1000,1000);
   c1->Divide(2,2);
@@ -128,8 +128,8 @@ int main(int argc, char* argv[])
   TH2D *trackPt_vs_missing = new TH2D("trackPt_vs_missing","trackPt_vs_missing",100,0,1000,20,0,20);
   TH2D *deltaJetTrack_vs_missing = new TH2D("deltaJetTrack_vs_missing","deltaJetTrack_vs_missing",20,0,2,20,0,20);
   
-  for(int iEvent=0;iEvent<events->size(xtracks::kBackground, kQCD);iEvent++){
-    auto event = events->At(xtracks::kBackground, kQCD, iEvent);
+  for(int iEvent=0;iEvent<events.size(xtracks::kBackground, kQCD);iEvent++){
+    auto event = events.At(xtracks::kBackground, kQCD, iEvent);
     
     for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
       auto track = event->GetTrack(iTrack);
@@ -196,8 +196,8 @@ int main(int argc, char* argv[])
   eventCut.SetLeadingJetNeHEF(range<double>(-inf,0.8));
   eventCut.SetLeadingJetChHEF(range<double>(0.1,inf));
   
-  events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
-  events->DrawStandardPlots();
+  events.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+  events.DrawStandardPlots();
   
   /*
   vector<tuple<double,double>> results = GetDifferencesForCriticalValues(events, 0.15, 4.0);

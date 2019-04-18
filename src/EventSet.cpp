@@ -62,6 +62,37 @@ leptonProcessor(make_unique<LeptonProcessor>())
   }
 }
 
+EventSet EventSet::operator=(const EventSet &e)
+{
+  EventSet result;
+  
+  trackProcessor  = make_unique<TrackProcessor>();
+  jetProcessor    = make_unique<JetProcessor>();
+  helixProcessor  = make_unique<HelixProcessor>();
+  eventProcessor  = make_unique<EventProcessor>();
+  leptonProcessor = make_unique<LeptonProcessor>();
+  
+  for(int iSig=0;iSig<kNsignals;iSig++){
+    result.eventsSignal.push_back(vector<shared_ptr<Event>>());
+    for(auto &event : e.eventsSignal[iSig]){
+      result.eventsSignal[iSig].push_back(make_shared<Event>(*event));
+    }
+  }
+  for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    result.eventsBackground.push_back(vector<shared_ptr<Event>>());
+    for(auto &event : e.eventsBackground[iBck]){
+      result.eventsBackground[iBck].push_back(make_shared<Event>(*event));
+    }
+  }
+  for(int iData=0;iData<kNdata;iData++){
+    result.eventsData.push_back(vector<shared_ptr<Event>>());
+    for(auto &event : e.eventsData[iData]){
+      result.eventsData[iData].push_back(make_shared<Event>(*event));
+    }
+  }
+  return result;
+}
+
 EventSet::~EventSet()
 {
   

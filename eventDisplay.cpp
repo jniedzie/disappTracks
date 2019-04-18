@@ -105,12 +105,12 @@ void DrawHitsOrClusters(const shared_ptr<Event> event, int pointsType)
 
 shared_ptr<Event> GetEvent()
 {
-	events = make_shared<EventSet>();
+  EventSet events;
 	//  events->LoadEventsFromFiles("/");
-	events->LoadEventsFromFiles(cutLevel);
+	events.LoadEventsFromFiles(cutLevel);
 	
-//  auto event = events->GetEvent(dataType, searchRun, searchLumi, searchEvent);
-	auto event = events->At(dataType, setIter, iEvent);
+//  auto event = events.GetEvent(dataType, searchRun, searchLumi, searchEvent);
+	auto event = events.At(dataType, setIter, iEvent);
 	
 	if(!event){
 		cout<<"eventDisplay -- event not found"<<endl;

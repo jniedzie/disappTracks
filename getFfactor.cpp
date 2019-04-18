@@ -12,14 +12,14 @@ int main(int argc, char* argv[])
   TApplication theApp("App", &argc, argv);
   
   // Load W->μν, Z->νν and Z->μμ events
-  shared_ptr<EventSet> eventsZmm = shared_ptr<EventSet>(new EventSet);
-  eventsZmm->LoadEventsFromFiles(xtracks::kBackground,kZmumuJets);
+  EventSet eventsZmm;
+  eventsZmm.LoadEventsFromFiles(xtracks::kBackground, kZmumuJets);
   
-  shared_ptr<EventSet> eventsWmv = shared_ptr<EventSet>(new EventSet);
-  eventsWmv->LoadEventsFromFiles(xtracks::kBackground,kWmunuJets);
+  EventSet eventsWmv;
+  eventsWmv.LoadEventsFromFiles(xtracks::kBackground, kWmunuJets);
   
-  shared_ptr<EventSet> eventsZvv = shared_ptr<EventSet>(new EventSet);
-  eventsZvv->LoadEventsFromFiles(xtracks::kBackground,kZnunuJets);
+  EventSet eventsZvv;
+  eventsZvv.LoadEventsFromFiles(xtracks::kBackground, kZnunuJets);
   
   // Prepare histograms
   const int nBins = 11;
@@ -40,10 +40,7 @@ int main(int argc, char* argv[])
   // Define event, track and jet cuts
   //---------------------------------------------------------------------------
   
-  auto eventCutZmm = EventCut();
-  auto eventCutWmv = EventCut();
-  auto eventCutZvv = EventCut();
-  
+  EventCut eventCutZmm;
   eventCutZmm.SetNtracks(range<int>(1,inf));
   eventCutZmm.SetRequireMetNoMuTrigger(true);
   eventCutZmm.SetNtaus(range<int>(0,0));
@@ -59,6 +56,7 @@ int main(int argc, char* argv[])
   eventCutZmm.SetRequireTwoOppositeMuons(true);
   eventCutZmm.SetRequireTightMuon(true);
   
+  EventCut eventCutWmv;
   eventCutWmv.SetNtracks(range<int>(1,inf));
   eventCutWmv.SetRequireMetNoMuTrigger(true);
   eventCutWmv.SetNtaus(range<int>(0,0));
@@ -72,6 +70,7 @@ int main(int argc, char* argv[])
   eventCutWmv.SetTrackMuonDeltaPhi(range<double>(0.4, inf));
   eventCutWmv.SetRequireTightMuon(true);
   
+  EventCut eventCutZvv;
   eventCutZvv.SetNtracks(range<int>(1,inf));
   eventCutZvv.SetRequireMetNoMuTrigger(true);
   eventCutZvv.SetNtaus(range<int>(0,0));
@@ -93,22 +92,22 @@ int main(int argc, char* argv[])
   
   LeptonCut leptonCut;
   
-  eventsZmm->ApplyCuts(eventCutZmm, trackCut, jetCut, leptonCut);
-  eventsWmv->ApplyCuts(eventCutWmv, trackCut, jetCut, leptonCut);
-  eventsZvv->ApplyCuts(eventCutZvv, trackCut, jetCut, leptonCut);
+  eventsZmm.ApplyCuts(eventCutZmm, trackCut, jetCut, leptonCut);
+  eventsWmv.ApplyCuts(eventCutWmv, trackCut, jetCut, leptonCut);
+  eventsZvv.ApplyCuts(eventCutZvv, trackCut, jetCut, leptonCut);
   
-  for(int iEvent=0;iEvent<eventsZmm->size(xtracks::kBackground,kZmumuJets);iEvent++){
-    shared_ptr<Event> event = eventsZmm->At(xtracks::kBackground,kZmumuJets,iEvent);
+  for(int iEvent=0;iEvent<eventsZmm.size(xtracks::kBackground,kZmumuJets);iEvent++){
+    shared_ptr<Event> event = eventsZmm.At(xtracks::kBackground,kZmumuJets,iEvent);
     nEventsZmm->Fill(event->GetMetNoMuPt(), event->GetWeight());
   }
   
-  for(int iEvent=0;iEvent<eventsWmv->size(xtracks::kBackground,kWmunuJets);iEvent++){
-    shared_ptr<Event> event = eventsWmv->At(xtracks::kBackground,kWmunuJets,iEvent);
+  for(int iEvent=0;iEvent<eventsWmv.size(xtracks::kBackground,kWmunuJets);iEvent++){
+    shared_ptr<Event> event = eventsWmv.At(xtracks::kBackground,kWmunuJets,iEvent);
     nEventsWmv->Fill(event->GetMetNoMuPt(), event->GetWeight());
   }
   
-  for(int iEvent=0;iEvent<eventsZvv->size(xtracks::kBackground,kZnunuJets);iEvent++){
-    shared_ptr<Event> event = eventsZvv->At(xtracks::kBackground,kZnunuJets,iEvent);
+  for(int iEvent=0;iEvent<eventsZvv.size(xtracks::kBackground,kZnunuJets);iEvent++){
+    shared_ptr<Event> event = eventsZvv.At(xtracks::kBackground,kZnunuJets,iEvent);
     nEventsZvv->Fill(event->GetMetNoMuPt(), event->GetWeight());
   }
   

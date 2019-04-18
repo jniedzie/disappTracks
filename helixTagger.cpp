@@ -47,17 +47,17 @@ int main(int argc, char* argv[])
   auto fitter          = make_unique<Fitter>();
   helixProcessor       = make_unique<HelixProcessor>();
   
-  auto events = make_shared<EventSet>();
-  events->LoadEventsFromFiles("after_L1/");
+  EventSet events;
+  events.LoadEventsFromFiles("after_L1/");
   
   cout<<"helixTagger -- events loaded"<<endl;
   
-  for(int iEvent=0; iEvent<events->size(xtracks::kSignal, kWino_M_300_cTau_10); iEvent++){
+  for(int iEvent=0; iEvent<events.size(xtracks::kSignal, kWino_M_300_cTau_10); iEvent++){
     cout<<"\n\n=================================================================\n"<<endl;
     cout<<"helixTagger -- processing event "<<iEvent<<endl;
   
-//    auto event = events->GetEvent(xtracks::kData, searchRun, searchLumi, searchEvent);
-    auto event = events->At(xtracks::kSignal, kWino_M_300_cTau_10, iEvent);
+//    auto event = events.GetEvent(xtracks::kData, searchRun, searchLumi, searchEvent);
+    auto event = events.At(xtracks::kSignal, kWino_M_300_cTau_10, iEvent);
     
 //    shared_ptr<vector<Point>> trackerPoints = event->GetTrackerHits();
     vector<shared_ptr<Point>> trackerPoints = pointsProcessor->GetRandomPoints(config.nNoiseHits);
@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
   }
   
   cout<<"helixTagger -- saving events"<<endl;
-  events->SaveEventsToFiles("afterHelixTagging/");
+  events.SaveEventsToFiles("afterHelixTagging/");
   cout<<"helixTagger -- finished"<<endl;
   return 0;
 }

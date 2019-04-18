@@ -17,8 +17,8 @@ int main()
 {
   // All events with initial cuts only
   config = ConfigManager(configPath);
-  shared_ptr<EventSet> events = shared_ptr<EventSet>(new EventSet());
-  events->LoadEventsFromFiles("after_L1/");
+  EventSet events;
+  events.LoadEventsFromFiles("after_L1/");
   
   EventCut eventCut;
   TrackCut trackCut;
@@ -37,7 +37,7 @@ int main()
   eventCut.SetLeadingJetNeHEF(range<double>(-inf,0.8));
   eventCut.SetLeadingJetChHEF(range<double>(0.1,inf));
   
-  events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+  events.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
   map<string,ForRange> ranges;
   
@@ -49,7 +49,7 @@ int main()
   
   double bestSb[kNsignals] = {0};
   
-  shared_ptr<EventSet> eventsAfterCuts;
+  EventSet eventsAfterCuts;
   map<string,double> bestResults[kNsignals];
   
 //  double sb_sum_best = 0;
@@ -61,7 +61,7 @@ int main()
           
           // we can make a copy of the original events here, as in the next loop cuts will become tighter and tighter,
           // so events rejected in i-th iteration would be also rejected in (i+1)-th iteration
-          eventsAfterCuts = shared_ptr<EventSet>(new EventSet(*events));
+          eventsAfterCuts = EventSet(events);
           
           for(double relIsoCut=ranges["relIso"].max;relIsoCut>ranges["relIso"].min; relIsoCut -= ranges["relIso"].step){
             cout<<"dE/dx:"<<dedxCut<<"\tmissing outer:"<<missingCut<<"\tn track pt:"<<trackPtCut<<"\treliso:"<<relIsoCut<<endl;
@@ -75,17 +75,17 @@ int main()
             trackCut.SetRelativeIsolation(range<double>(0,relIsoCut));
 //            eventCut.SetMetPt(range<double>(230,inf));
             
-            eventsAfterCuts->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+            eventsAfterCuts.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
             
             double nBackgroundTotal=0;
             for(int iBck=0;iBck<kNbackgrounds;iBck++){
               if(!config.runBackground[iBck]) continue;
-              nBackgroundTotal += eventsAfterCuts->weightedSize(xtracks::kBackground, iBck);
+              nBackgroundTotal += eventsAfterCuts.weightedSize(xtracks::kBackground, iBck);
             }
 
             for(int iSig=0;iSig<kNsignals;iSig++){
               if(!config.runSignal[iSig]) continue;
-              double sb = eventsAfterCuts->weightedSize(xtracks::kSignal,iSig)/sqrt(nBackgroundTotal+eventsAfterCuts->weightedSize(xtracks::kSignal,iSig));
+              double sb = eventsAfterCuts.weightedSize(xtracks::kSignal,iSig)/sqrt(nBackgroundTotal+eventsAfterCuts.weightedSize(xtracks::kSignal,iSig));
               
               if(sb > bestSb[iSig]){
                 bestSb[iSig] = sb;

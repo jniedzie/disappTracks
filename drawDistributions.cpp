@@ -9,11 +9,11 @@ string configPath = "configs/analysis.md";
 
 int main(int argc, char* argv[])
 {
-  TApplication *theApp = new TApplication("App", &argc, argv);
+  TApplication theApp("App", &argc, argv);
   
   // All events with initial cuts only
   config = ConfigManager(configPath);
-  auto events = make_shared<EventSet>();
+  EventSet events;
   
   string inputPrefix;
   if(config.performCutsLevel == 0)       inputPrefix = "after_L0/";
@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
     exit(0);
   }
   
-  events->LoadEventsFromFiles(inputPrefix);
+  events.LoadEventsFromFiles(inputPrefix);
   
   CutsManager cutsManager;
   
@@ -33,11 +33,11 @@ int main(int argc, char* argv[])
   LeptonCut leptonCut;
   
   cutsManager.GetCuts(eventCut, trackCut, jetCut, leptonCut);
-  events->ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+  events.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
-  if(config.drawStandardPlots) events->DrawStandardPlots();
-  if(config.drawPerLayerPlots) events->DrawPerLayerPlots();
+  if(config.drawStandardPlots) events.DrawStandardPlots();
+  if(config.drawPerLayerPlots) events.DrawPerLayerPlots();
  
-  theApp->Run();
+  theApp.Run();
   return 0;
 }
