@@ -7,6 +7,11 @@
 #ifndef Helpers_h
 #define Helpers_h
 
+#pragma clang diagnostic push // save the current state
+#pragma clang diagnostic ignored "-Wdocumentation" // turn ROOT's warnings
+#pragma clang diagnostic ignored "-Wconversion"
+
+// include ROOT headers
 #include <TFile.h>
 #include <TTree.h>
 #include <TTreeReader.h>
@@ -44,6 +49,8 @@
 #include <TEnv.h>
 #include <TTreeReaderArray.h>
 #include <TLorentzVector.h>
+
+#pragma clang diagnostic pop // restores the saved state for diagnostics
 
 #include <vector>
 #include <iostream>

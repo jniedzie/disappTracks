@@ -342,8 +342,7 @@ vector<unique_ptr<Helix>> Fitter::FitHelix(const vector<shared_ptr<Point>> &_poi
   
   auto seedID = helices[0]->seedID;
   bool finished;
-  int nSteps = 0;
-  int uniqueID=4872737680;
+  long uniqueID=4872737680;
   
   do{
     finished = true;

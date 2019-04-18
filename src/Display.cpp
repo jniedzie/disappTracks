@@ -112,7 +112,7 @@ void Display::DrawShrinkingHelix(const unique_ptr<Helix> &helix, const map<strin
   double tMax  = helix->GetTmax();
   double tStep = helix->GetTstep();
   
-  int zSign = sgn(helix->GetMomentum()->GetZ());
+//  int zSign = sgn(helix->GetMomentum()->GetZ());
   
   auto fillPointForT = [&](double t){
     double x =  helix->GetOrigin().GetX();
