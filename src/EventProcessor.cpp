@@ -63,7 +63,7 @@ EventProcessor::~EventProcessor()
   
 }
 
-void EventProcessor::ApplyTrackCut(shared_ptr<Event> event, const unique_ptr<TrackCut> &cut)
+void EventProcessor::ApplyTrackCut(shared_ptr<Event> event, const TrackCut &cut)
 {
   for(auto track = event->tracks.begin(); track != event->tracks.end();){
     if(!trackProcessor->IsPassingCut(*track,cut)) track = event->tracks.erase(track);

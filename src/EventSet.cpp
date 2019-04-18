@@ -276,7 +276,7 @@ vector<double> EventSet::GetSignificance(bool inData)
   return results;
 }
 
-void EventSet::ApplyCuts(const EventCut &eventCut,const unique_ptr<TrackCut> &trackCut,
+void EventSet::ApplyCuts(const EventCut &eventCut,const TrackCut &trackCut,
                          const unique_ptr<JetCut> &jetCut,const unique_ptr<LeptonCut> &leptonCut)
 {
   for(int iSig=0;iSig<kNsignals;iSig++){

@@ -21,7 +21,7 @@ void ProcessCuts(shared_ptr<EventSet> events,
                  string suffix = "")
 {
   events->ApplyCuts(eventCut,
-                    make_unique<TrackCut>(trackCut),
+                    trackCut,
                     make_unique<JetCut>(jetCut),
                     make_unique<LeptonCut>(leptonCut));
   

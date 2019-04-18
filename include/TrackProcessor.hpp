@@ -28,7 +28,7 @@ public:
   /// \param track Tracks to which cuts should be applied
   /// \param cut Tracks selection criteria to be checked
   bool IsPassingCut(const shared_ptr<Track> track,
-                    const unique_ptr<TrackCut> &cut);
+                    const TrackCut &cut);
   
   /// Link class variables to branches of a specified tree
   /// \param tree Tree from which track parameters will be read

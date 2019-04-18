@@ -20,14 +20,14 @@ int main()
   shared_ptr<EventSet> events = shared_ptr<EventSet>(new EventSet());
   events->LoadEventsFromFiles("after_L1/");
   
-  auto eventCut = EventCut();
-  auto trackCut = unique_ptr<TrackCut>(new TrackCut());
+  EventCut eventCut;
+  TrackCut trackCut;
   auto jetCut   = unique_ptr<JetCut>(new JetCut());
   auto leptonCut= unique_ptr<LeptonCut>(new LeptonCut());
   
   eventCut.SetJetMetDeltaPhi(range<double>(0.5,inf));
   
-  trackCut->SetNpixelLayers(range<int>(4,4));
+  trackCut.SetNpixelLayers(range<int>(4,4));
   eventCut.SetNtracks(range<int>(1,1));
   
   // + standard cuts to be applied after L2 selections
@@ -66,13 +66,13 @@ int main()
           for(double relIsoCut=ranges["relIso"].max;relIsoCut>ranges["relIso"].min; relIsoCut -= ranges["relIso"].step){
             cout<<"dE/dx:"<<dedxCut<<"\tmissing outer:"<<missingCut<<"\tn track pt:"<<trackPtCut<<"\treliso:"<<relIsoCut<<endl;
             
-            trackCut->SetDedxPerCluster(range<double>(dedxCut,inf));
-//            trackCut->SetCaloEmEnergy(range<double>(0.0,caloEmCut));
-//            trackCut->SetCaloHadEnergy(range<double>(0.0,caloHadCut));
-            trackCut->SetNmissingOuterTracker(range<int>(missingCut,inf));
-            trackCut->SetPt(range<double>(trackPtCut,inf));
-            trackCut->SetTrackMetDeltaPhi(range<double>(-trackMetPhiCut,trackMetPhiCut));
-            trackCut->SetRelativeIsolation(range<double>(0,relIsoCut));
+            trackCut.SetDedxPerCluster(range<double>(dedxCut,inf));
+//            trackCut.SetCaloEmEnergy(range<double>(0.0,caloEmCut));
+//            trackCut.SetCaloHadEnergy(range<double>(0.0,caloHadCut));
+            trackCut.SetNmissingOuterTracker(range<int>(missingCut,inf));
+            trackCut.SetPt(range<double>(trackPtCut,inf));
+            trackCut.SetTrackMetDeltaPhi(range<double>(-trackMetPhiCut,trackMetPhiCut));
+            trackCut.SetRelativeIsolation(range<double>(0,relIsoCut));
 //            eventCut.SetMetPt(range<double>(230,inf));
             
             eventsAfterCuts->ApplyCuts(eventCut, trackCut, jetCut, nullptr);

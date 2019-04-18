@@ -7,11 +7,6 @@
 
 string configPath = "configs/analysis.md";
 
-void SetupDefaultCuts(unique_ptr<EventCut>  &eventCut,
-                      unique_ptr<TrackCut>  &trackCut,
-                      unique_ptr<JetCut>    &jetCut,
-                      unique_ptr<LeptonCut> &leptonCut);
-
 int main(int argc, char* argv[])
 {
   TApplication *theApp = new TApplication("App", &argc, argv);
@@ -40,7 +35,7 @@ int main(int argc, char* argv[])
   cutsManager.GetCuts(eventCut, trackCut, jetCut, leptonCut);
   
   events->ApplyCuts(eventCut,
-                    make_unique<TrackCut>(trackCut),
+                    trackCut,
                     make_unique<JetCut>(jetCut),
                     make_unique<LeptonCut>(leptonCut));
   

@@ -22,8 +22,8 @@ int main(int argc, char* argv[])
   shared_ptr<EventSet> events;
   events->LoadEventsFromFiles("after_L1/");
   
-  auto eventCut = EventCut();
-  auto trackCut = unique_ptr<TrackCut>(new TrackCut());
+  EventCut eventCut;
+  TrackCut trackCut;
   auto jetCut   = unique_ptr<JetCut>(new JetCut());
   auto leptonCut= unique_ptr<LeptonCut>(new LeptonCut());
   

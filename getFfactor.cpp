@@ -83,9 +83,9 @@ int main(int argc, char* argv[])
   eventCutZvv.SetJetMetDeltaPhi(range<double>(0.5,inf));
   eventCutZvv.SetNleptons(range<int>(0,0));
   
-  auto trackCut = unique_ptr<TrackCut>(new TrackCut());
-  trackCut->SetPt(range<double>(50,inf));
-  trackCut->SetEta(range<double>(-2.1, 2.1));
+  TrackCut trackCut;
+  trackCut.SetPt(range<double>(50,inf));
+  trackCut.SetEta(range<double>(-2.1, 2.1));
 
   auto jetCut = unique_ptr<JetCut>(new JetCut());
   jetCut->SetPt(range<double>(30,inf));
