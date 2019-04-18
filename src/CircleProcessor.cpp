@@ -25,7 +25,7 @@ void CircleProcessor::RemoveSimilarCircles(vector<unique_ptr<Circle>> &circles)
        [](const auto &c1, const auto &c2) -> bool {return c1->GetRadius() < c2->GetRadius();});
   
   for(uint i=0; i<circles.size()-1; i++){
-    if(fabs(circles[i]->GetRadius() - circles[i+1]->GetRadius()) < config->circleThickness){
+    if(fabs(circles[i]->GetRadius() - circles[i+1]->GetRadius()) < config.circleThickness){
       if((circles[i]->GetRange().GetMax()   - circles[i]->GetRange().GetMin()) >
          (circles[i+1]->GetRange().GetMax() - circles[i+1]->GetRange().GetMin())){
         circles.erase(circles.begin()+i);

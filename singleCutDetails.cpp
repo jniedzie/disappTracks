@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
 {
   TApplication *theApp = new TApplication("App", &argc, argv);
   
-  config = make_unique<ConfigManager>(configPath);
+  config = ConfigManager(configPath);
   
   // All events with initial cuts only
   shared_ptr<EventSet> events;
@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
   TGraph *sb[kNsignals];
   
   for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!config->runSignal[iSig]) continue;
+    if(!config.runSignal[iSig]) continue;
     sb[iSig] = new TGraph();
   }
   
@@ -62,13 +62,13 @@ int main(int argc, char* argv[])
     
     double nBackgroundTotal=0;
     for(int iBck=0;iBck<kNbackgrounds;iBck++){
-      if(!config->runBackground[iBck]) continue;
+      if(!config.runBackground[iBck]) continue;
       nBackgroundTotal += eventsAfterCuts->weightedSize(xtracks::kBackground,iBck);
     }
     nBackgroundTotal = sqrt(nBackgroundTotal);
     
     for(int iSig=0;iSig<kNsignals;iSig++){
-      if(!config->runSignal[iSig]) continue;
+      if(!config.runSignal[iSig]) continue;
       double val = eventsAfterCuts->weightedSize(xtracks::kSignal,iSig)/nBackgroundTotal;
       sb[iSig]->SetPoint(iPoint,cut,val);
     }
@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
   
   bool first=true;
   for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!config->runSignal[iSig]) continue;
+    if(!config.runSignal[iSig]) continue;
     
     sb[iSig]->SetMarkerStyle(signalMarkers[iSig]);
     sb[iSig]->SetMarkerSize(1.0);

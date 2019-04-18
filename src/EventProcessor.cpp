@@ -345,7 +345,7 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   
   auto event = make_shared<Event>();
   
-  double lumi = config->totalLuminosity * 1000.; // transform from fb^-1 to pb^-1
+  double lumi = config.totalLuminosity * 1000.; // transform from fb^-1 to pb^-1
   double weight = lumi * singleValuesFloat["genWeight"] / singleValuesFloat["wgtsum"];
   
   //    static map<string,set<double>> wgts;

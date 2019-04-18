@@ -42,7 +42,7 @@ void InjectPion(vector<shared_ptr<Point>> trackerPoints,
 
 int main(int argc, char* argv[])
 {
-  config = make_unique<ConfigManager>(configPath);
+  config = ConfigManager(configPath);
   auto pointsProcessor = make_unique<PointsProcessor>();
   auto fitter          = make_unique<Fitter>();
   helixProcessor       = make_unique<HelixProcessor>();
@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
     auto event = events->At(xtracks::kSignal, kWino_M_300_cTau_10, iEvent);
     
 //    shared_ptr<vector<Point>> trackerPoints = event->GetTrackerHits();
-    vector<shared_ptr<Point>> trackerPoints = pointsProcessor->GetRandomPoints(config->nNoiseHits);
+    vector<shared_ptr<Point>> trackerPoints = pointsProcessor->GetRandomPoints(config.nNoiseHits);
     
     if(trackerPoints.size()==0){
       cout<<"helixTagger -- no tracker hits for event "<<iEvent<<endl;
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
       cout<<"helixTagger -- fitting helix for track:"<<iTrack<<endl;
       auto track = event->GetTrack(iTrack);
       
-      if(config->injectPionHits) InjectPion(trackerPoints, track);
+      if(config.injectPionHits) InjectPion(trackerPoints, track);
       
       unique_ptr<Helix> fittedHelix = fitter->GetBestFittingHelix(trackerPoints, *track, *event->GetVertex());
       if(fittedHelix){

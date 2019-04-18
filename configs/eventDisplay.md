@@ -5,12 +5,12 @@ show_geometry_strip:  0
 show_geometry_ecal:  0
 show_geometry_hcal:  0
 
-draw_tracker_clusters:      0
-draw_met:                         0
-draw_jets:                          0
+draw_tracker_clusters:      1
+draw_met:                         1
+draw_jets:                          1
 draw_pion_simhits:           1
 draw_pion_clusters:          1
-draw_chargino_simhits:    0
+draw_chargino_simhits:    1
 
 **Input options**
 

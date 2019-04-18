@@ -164,7 +164,7 @@ vector<shared_ptr<Point>> ArcSetProcessor::FindPossibleNextPoints(const unique_p
       if( c->GetPointAngle(point) > c->GetRange().GetMin() &&
           c->GetPointAngle(point) < c->GetRange().GetMax()){
          
-        if(c->GetDistanceToPoint(*point) < config->circleThickness){
+        if(c->GetDistanceToPoint(*point) < config.circleThickness){
           tooClose = true;
           break;
         }
@@ -189,7 +189,7 @@ vector<shared_ptr<Point>> ArcSetProcessor::FindPossibleNextPoints(const unique_p
     
     // it also has to be within the radius of the helix
     double pointR = pointsProcessor->distanceXY(*point, circle->GetCenter());
-    if(pointR > circle->GetRadius() + config->circleThickness) isValidPoint = false; // FILTER
+    if(pointR > circle->GetRadius() + config.circleThickness) isValidPoint = false; // FILTER
     
     if(isValidPoint) possiblePoints.push_back(point);
   }

@@ -146,7 +146,7 @@ void Display::DrawEvent(const shared_ptr<Event> &event, const map<string,any> op
 //  gSystem->ProcessEvents();
 	
   
-  if(config->drawJets){
+  if(config.drawJets){
     for(int iJet=0;iJet<event->GetNjets();iJet++){
       shared_ptr<Jet> jet = event->GetJet(iJet);
       TEveJetCone *jetCone = new TEveJetCone();
@@ -184,14 +184,14 @@ void Display::DrawEvent(const shared_ptr<Event> &event, const map<string,any> op
   gEve->Redraw3D();
   
   // MET
-  if(config->drawMET){
+  if(config.drawMET){
     double metPhi = event->GetMetPhi();
     double metTheta = 2*atan(exp(-event->GetMetEta()));
     DrawMET(metPhi, metTheta);
   }
     
   // Geometry:
-  if(config->showGeometryPixel){
+  if(config.showGeometryPixel){
     for(int i=0;i<4;i++){
       TGeoTube *pixelTube = new TGeoTube(scale*layerR[i]-0.2,scale*layerR[i]+0.2, scale*pixelBarrelZsize);
       TEveGeoShape *pixel = new TEveGeoShape (Form("Pixel tracker %i",i),Form("Pixel tracker %i",i));
@@ -203,7 +203,7 @@ void Display::DrawEvent(const shared_ptr<Event> &event, const map<string,any> op
     }
   }
   
-  if(config->showGeometryStrip){
+  if(config.showGeometryStrip){
     TGeoTube *trackerTube = new TGeoTube(scale*layerR[4],scale*layerR[nLayers-1],scale*2800);
     TEveGeoShape *tracker = new TEveGeoShape ("Tracker","Tracker");
     tracker->SetShape(trackerTube);
@@ -213,7 +213,7 @@ void Display::DrawEvent(const shared_ptr<Event> &event, const map<string,any> op
     gEve->AddElement(tracker);
   }
   
-  if(config->showGeometryEcal){
+  if(config.showGeometryEcal){
     TGeoTube *emCalTube = new TGeoTube(scale*1100,scale*1800,scale*3700);
     TEveGeoShape *emCal = new TEveGeoShape ("EM calo","EM calo");
     emCal->SetShape(emCalTube);
@@ -223,7 +223,7 @@ void Display::DrawEvent(const shared_ptr<Event> &event, const map<string,any> op
     gEve->AddElement(emCal);
   }
   
-  if(config->showGeometryHcal){
+  if(config.showGeometryHcal){
     TGeoTube *hadCalTube = new TGeoTube(scale*1800,scale*2900,scale*5500);
     TEveGeoShape *hadCal = new TEveGeoShape ("Had calo","Had calo");
     hadCal->SetShape(hadCalTube);

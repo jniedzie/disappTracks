@@ -20,14 +20,14 @@ helixProcessor(make_unique<HelixProcessor>())
   double maxX = 250;
   double maxY = 250;
   double maxZ = 250;
-  double maxEta = config->maxEta;
+  double maxEta = config.maxEta;
   
-  double minPx = config->minPx;
-  double minPy = config->minPy;
-  double minPz = config->minPz;
-  double maxPx = config->maxPx;
-  double maxPy = config->maxPy;
-  double maxPz = config->maxPz;
+  double minPx = config.minPx;
+  double minPy = config.minPy;
+  double minPz = config.minPz;
+  double maxPx = config.maxPx;
+  double maxPy = config.maxPy;
+  double maxPz = config.maxPz;
   
   const vector<tuple<const char*,int,double,double,int,double,double>> monitors2Dparams = {
     {"xResponse",     500, -maxX,  maxX,  500, -maxX,  maxX},
@@ -201,7 +201,7 @@ void MonitorsManager::PlotAndSaveMonitors()
   // Regular 1D and 2D monitors
   TCanvas *c1 = new TCanvas("Monitors","Monitors",2880,1800);
   c1->Divide(4,4);
-  TFile *outFile = new TFile(config->outputPath,"recreate");
+  TFile *outFile = new TFile(config.outputPath,"recreate");
   outFile->cd();
   
   int i=1;

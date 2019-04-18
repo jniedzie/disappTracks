@@ -130,14 +130,14 @@ circleProcessor(make_unique<CircleProcessor>())
   
   charge = track.GetCharge();
   
-  double z0_min = vertex->GetZ()-vertex->GetZerr() - config->helixThickness;
-  double z0_max = vertex->GetZ()+vertex->GetZerr() + config->helixThickness;
+  double z0_min = vertex->GetZ()-vertex->GetZerr() - config.helixThickness;
+  double z0_max = vertex->GetZ()+vertex->GetZerr() + config.helixThickness;
   
-  double z1_min = p1.GetZ()-p1.GetZerr() - config->helixThickness;
-  double z1_max = p1.GetZ()+p1.GetZerr() + config->helixThickness;
+  double z1_min = p1.GetZ()-p1.GetZerr() - config.helixThickness;
+  double z1_max = p1.GetZ()+p1.GetZerr() + config.helixThickness;
   
-  double z2_min = p2.GetZ()-p2.GetZerr() - config->helixThickness;
-  double z2_max = p2.GetZ()+p2.GetZerr() + config->helixThickness;
+  double z2_min = p2.GetZ()-p2.GetZerr() - config.helixThickness;
+  double z2_max = p2.GetZ()+p2.GetZerr() + config.helixThickness;
   
   // calculate all possible pairs of b -- s0 values and find extreme ones:
   CalcAndUpdateSlopeVars(z0_min, t0, z1_min, t1, z2_min, t2);
@@ -155,14 +155,14 @@ circleProcessor(make_unique<CircleProcessor>())
   
   origin.SetZ((z0_min+z0_max)/2. - GetSlope(t0)*t0);
   
-  double x0_min = vertex->GetX() - vertex->GetXerr() - config->helixThickness;
-  double x0_max = vertex->GetX() + vertex->GetXerr() + config->helixThickness;
+  double x0_min = vertex->GetX() - vertex->GetXerr() - config.helixThickness;
+  double x0_max = vertex->GetX() + vertex->GetXerr() + config.helixThickness;
   
-  double x1_min = p1.GetX()-p1.GetXerr()-config->helixThickness;
-  double x1_max = p1.GetX()+p1.GetXerr()+config->helixThickness;
+  double x1_min = p1.GetX()-p1.GetXerr()-config.helixThickness;
+  double x1_max = p1.GetX()+p1.GetXerr()+config.helixThickness;
   
-  double x2_min = p2.GetX()-p2.GetXerr()-config->helixThickness;
-  double x2_max = p2.GetX()+p2.GetXerr()+config->helixThickness;
+  double x2_min = p2.GetX()-p2.GetXerr()-config.helixThickness;
+  double x2_max = p2.GetX()+p2.GetXerr()+config.helixThickness;
   
   CalcAndUpdateRadiiVars(x0_min, t0, x1_min, t1, x2_min, t2);
   CalcAndUpdateRadiiVars(x0_max, t0, x1_min, t1, x2_min, t2);
@@ -246,16 +246,16 @@ bool Helix::ExtendByPoint(const Point &point)
   tMax = t2;
 
   // vertex
-  double z0_min = p0.GetZ()-p0.GetZerr() - config->helixThickness;
-  double z0_max = p0.GetZ()+p0.GetZerr() + config->helixThickness;
+  double z0_min = p0.GetZ()-p0.GetZerr() - config.helixThickness;
+  double z0_max = p0.GetZ()+p0.GetZerr() + config.helixThickness;
   
   // last point on the helix
-  double z1_min = p1.GetZ()-p1.GetZerr() - config->helixThickness;
-  double z1_max = p1.GetZ()+p1.GetZerr() + config->helixThickness;
+  double z1_min = p1.GetZ()-p1.GetZerr() - config.helixThickness;
+  double z1_max = p1.GetZ()+p1.GetZerr() + config.helixThickness;
   
   // the new candidate point
-  double z2_min = p2.GetZ()-p2.GetZerr() - config->helixThickness;
-  double z2_max = p2.GetZ()+p2.GetZerr() + config->helixThickness;
+  double z2_min = p2.GetZ()-p2.GetZerr() - config.helixThickness;
+  double z2_max = p2.GetZ()+p2.GetZerr() + config.helixThickness;
   
   vector<pair<double, double>> s0_b;
   
@@ -303,16 +303,16 @@ bool Helix::ExtendByPoint(const Point &point)
   if(new_bmin > bmin) bmin = new_bmin;
   
   // vertex
-  double x0_min = p0.GetX()-p0.GetXerr() - config->helixThickness;
-  double x0_max = p0.GetX()+p0.GetXerr() + config->helixThickness;
+  double x0_min = p0.GetX()-p0.GetXerr() - config.helixThickness;
+  double x0_max = p0.GetX()+p0.GetXerr() + config.helixThickness;
   
   // last point on the helix
-  double x1_min = p1.GetX()-p1.GetXerr() - config->helixThickness;
-  double x1_max = p1.GetX()+p1.GetXerr() + config->helixThickness;
+  double x1_min = p1.GetX()-p1.GetXerr() - config.helixThickness;
+  double x1_max = p1.GetX()+p1.GetXerr() + config.helixThickness;
   
   // the new candidate point
-  double x2_min = p2.GetX()-p2.GetXerr() - config->helixThickness;
-  double x2_max = p2.GetX()+p2.GetXerr() + config->helixThickness;
+  double x2_min = p2.GetX()-p2.GetXerr() - config.helixThickness;
+  double x2_max = p2.GetX()+p2.GetXerr() + config.helixThickness;
   
   vector<pair<double, double>> R0_a;
   
@@ -360,8 +360,8 @@ bool Helix::ExtendByPoint(const Point &point)
   if(new_amin > amin) amin = new_amin;
   
   // adjust position of the origin
-  double y0_min = p0.GetY()-p0.GetYerr() - config->helixThickness;
-  double y0_max = p0.GetY()+p0.GetYerr() + config->helixThickness;
+  double y0_min = p0.GetY()-p0.GetYerr() - config.helixThickness;
+  double y0_max = p0.GetY()+p0.GetYerr() + config.helixThickness;
   
   origin.SetX((x0_min+x0_max)/2. - GetRadius(t0)*cos(t0));
   origin.SetY((y0_min+y0_max)/2. - GetRadius(t0)*sin(t0));
@@ -396,7 +396,7 @@ void Helix::SetPoints(const vector<shared_ptr<Point>> &_points)
   
   for(auto &p : _points){
     Point q = GetClosestPoint(*p);
-    if(pointsProcessor->distance(*p,q) < config->helixThickness){
+    if(pointsProcessor->distance(*p,q) < config.helixThickness){
       if(p->IsPionHit()) nPionPoints++;
       points.push_back(p);
     }

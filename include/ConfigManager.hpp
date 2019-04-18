@@ -10,7 +10,7 @@
 #include "Helpers.hpp"
 
 struct ConfigManager;
-extern unique_ptr<ConfigManager> config;
+extern ConfigManager config;
 
 /// Wrapper on a config file that provides access to options from the code.
 /// Reads a config file in markdown format. For all options that are not specified in the config
@@ -111,7 +111,7 @@ struct ConfigManager {
   bool drawCharginoSimHits;
   
 private:
-  unique_ptr<TEnv> config;
+  unique_ptr<TEnv> configFile;
 };
 
 #endif /* FitterConfig_hpp */

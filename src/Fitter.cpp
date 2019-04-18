@@ -26,10 +26,10 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
 {
   // Prepare 2D projections in XY
   vector<Point> points2D;
-  vector<vector<Point>> pointsByLine = pointsProcessor->SplitPointsIntoLines(points, config->linesToleranceForCircles);
+  vector<vector<Point>> pointsByLine = pointsProcessor->SplitPointsIntoLines(points, config.linesToleranceForCircles);
   
   for(vector<Point> line : pointsByLine){
-    if((int)line.size() >= config->minNpointsAlongZ){
+    if((int)line.size() >= config.minNpointsAlongZ){
       points2D.push_back(Point(line));
     }
   }
@@ -40,7 +40,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
   vector<unique_ptr<Circle>> circles;
   
   int nPoints = (int)points2D.size();
-  double circleThickness = config->circleThickness;
+  double circleThickness = config.circleThickness;
   for(int i=0;i<nPoints;i++){
     for(int j=i+1;j<nPoints;j++){
       for(int k=j+1;k<nPoints;k++){
@@ -121,8 +121,8 @@ unique_ptr<Helix> Fitter::GetBestFittingHelix(vector<shared_ptr<Point>> _points,
   int maxNregularPoints = 0;
   double maxFractionRegularPoints = 0;
   
-  double minPz = config->minPz;
-  double maxPz = config->maxPz;
+  double minPz = config.minPz;
+  double maxPz = config.maxPz;
   
   for(auto &circle : circles){
     vector<shared_ptr<Point>> points = circle->GetPoints();
@@ -143,8 +143,8 @@ unique_ptr<Helix> Fitter::GetBestFittingHelix(vector<shared_ptr<Point>> _points,
       }
     };
     
-    for(double pz =  maxPz; pz >=  minPz ; pz-=config->stepPz){ testHelix(pz); }
-    for(double pz = -maxPz; pz <= -minPz ; pz+=config->stepPz){ testHelix(pz); }
+    for(double pz =  maxPz; pz >=  minPz ; pz-=config.stepPz){ testHelix(pz); }
+    for(double pz = -maxPz; pz <= -minPz ; pz+=config.stepPz){ testHelix(pz); }
   }
   
   return bestHelix;
@@ -218,8 +218,8 @@ void Fitter::FixParameter(ROOT::Fit::Fitter *fitter, int i, string name, double 
 
 ROOT::Fit::Fitter* Fitter::GetCirclesFitter(int pxSign, int pySign)
 {
-  auto pxRange = range<double>(config->minPx, config->maxPx);
-  auto pyRange = range<double>(config->minPy, config->maxPy);
+  auto pxRange = range<double>(config.minPx, config.maxPx);
+  auto pyRange = range<double>(config.minPy, config.maxPy);
   
   double maxR = layerR[track.GetNtrackerLayers()];
   double minR = layerR[track.GetNtrackerLayers()-1];
@@ -236,7 +236,7 @@ ROOT::Fit::Fitter* Fitter::GetCirclesFitter(int pxSign, int pySign)
   double pStart[nPar];
   fitter->SetFCN(fitFunction, pStart);
   
-  double helixThickness = config->helixThickness;
+  double helixThickness = config.helixThickness;
   
   SetParameter(fitter, 0, "L", (maxR+minR)/2., minR-helixThickness, maxR+helixThickness);
   SetParameter(fitter, 1, "px",
@@ -324,8 +324,8 @@ vector<unique_ptr<Helix>> Fitter::FitHelix(const vector<shared_ptr<Point>> &_poi
     auto helix = make_unique<Helix>(track, *pointPair.first, *pointPair.second, vertex);
     
     // check that the radius of a new track candidate is within allowed limits
-    if(helix->R0min > GetRadiusInMagField(config->maxPx, config->maxPy, solenoidField) ||
-       helix->R0max < GetRadiusInMagField(config->minPx, config->minPy, solenoidField)){
+    if(helix->R0min > GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField) ||
+       helix->R0max < GetRadiusInMagField(config.minPx, config.minPy, solenoidField)){
       continue;
     }
     
@@ -367,8 +367,8 @@ vector<unique_ptr<Helix>> Fitter::FitHelix(const vector<shared_ptr<Point>> &_poi
           if(extended){
             
             // check that the radius of a new track candidate is within allowed limits
-            if(helixCopy->R0min > GetRadiusInMagField(config->maxPx, config->maxPy, solenoidField) ||
-               helixCopy->R0max < GetRadiusInMagField(config->minPx, config->minPy, solenoidField)){
+            if(helixCopy->R0min > GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField) ||
+               helixCopy->R0max < GetRadiusInMagField(config.minPx, config.minPy, solenoidField)){
               continue;
             }
             
@@ -458,8 +458,8 @@ vector<unique_ptr<Helix>> Fitter::FitHelix(const vector<shared_ptr<Point>> &_poi
 //  auto originMin = make_shared<Point>(decayXmin, decayYmin, decayZmin);
 //  auto originMax = make_shared<Point>(decayXmax, decayYmax, decayZmax);
 //
-//  double minRadius = GetRadiusInMagField(config->minPx, config->minPy, solenoidField);
-//  double maxRadius = GetRadiusInMagField(config->maxPx, config->maxPy, solenoidField);
+//  double minRadius = GetRadiusInMagField(config.minPx, config.minPy, solenoidField);
+//  double maxRadius = GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField);
   
 //  TripletPairsVector tripletPairs = pointsProcessor->BuildPointTripletPairs(filteredPoints, originMin, originMax);
 //  circles = circleProcessor->BuildCirclesFromTripletPairs(tripletPairs, range<double>(minRadius, maxRadius));

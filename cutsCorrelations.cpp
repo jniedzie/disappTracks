@@ -55,7 +55,7 @@ vector<tuple<double,double>> GetDifferencesForCriticalValues(shared_ptr<EventSet
   vector<tuple<double,double>> results;
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    if(!config->runBackground[iBck]){
+    if(!config.runBackground[iBck]){
       results.push_back(make_tuple(inf,inf));
       continue;
     }
@@ -101,7 +101,7 @@ double GetFraction(shared_ptr<EventSet> &events, double criticalMet, double crit
   int nBackgroundB = 0;
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
-    if(!config->runBackground[iBck]) continue;
+    if(!config.runBackground[iBck]) continue;
     
     nBackgroundA += eventsA->weightedSize(xtracks::kBackground, iBck);
     nBackgroundB += eventsB->weightedSize(xtracks::kBackground, iBck);
@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
 {
   TApplication *theApp = new TApplication("App", &argc, argv);
   
-  config = make_unique<ConfigManager>("configs/analysis.md");
+  config = ConfigManager("configs/analysis.md");
   
   // All events with initial cuts only
   shared_ptr<EventSet> events = shared_ptr<EventSet>(new EventSet());

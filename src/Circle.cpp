@@ -70,7 +70,7 @@ void Circle::SetPoints(const vector<shared_ptr<Point>> &_points)
 {
   points.clear();
   for(auto &p : _points){
-    if(GetDistanceToPoint(*p) < config->circleThickness){
+    if(GetDistanceToPoint(*p) < config.circleThickness){
       points.push_back(p);
     }
     else{

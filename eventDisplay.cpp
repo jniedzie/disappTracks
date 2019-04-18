@@ -31,7 +31,7 @@ int iEvent = 2;
 // 23 (q+, vz+, pz+) OK
 
 bool injectPion = false;
-bool fitHelix = true;
+bool fitHelix = false;
 
 Display *display;
 shared_ptr<EventSet> events;
@@ -57,28 +57,28 @@ void DrawHitsOrClusters(const shared_ptr<Event> event, int pointsType)
   string typeName;
   
   if(pointsType == 0){
-    if(!config->drawPionSimHits) return;
+    if(!config.drawPionSimHits) return;
     
     hitsOrClusters = event->GetPionSimHits();
     drawingOptions["color"] = kCyan;
     typeName = "Pions hits ";
   }
   else if(pointsType == 1){
-    if(!config->drawCharginoSimHits) return;
+    if(!config.drawCharginoSimHits) return;
     
     hitsOrClusters = event->GetCharginoSimHits();
     drawingOptions["color"] = kMagenta;
     typeName = "Charginos hits ";
   }
   else if(pointsType == 2){
-    if(!config->drawTrackerClusters) return;
+    if(!config.drawTrackerClusters) return;
     
     hitsOrClusters = event->GetTrackerClusters();
     drawingOptions["color"] = kYellow;
     typeName = "Tracker clusters ";
   }
   else if(pointsType == 3){
-    if(!config->drawPionClusters) return;
+    if(!config.drawPionClusters) return;
     
     hitsOrClusters = event->GetPionClusters();
     drawingOptions["color"] = kBlue;
@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
   // create event display
-  config = make_unique<ConfigManager>(configPath);
+  config = ConfigManager(configPath);
   display = new Display();
   auto helixProcessor = make_unique<HelixProcessor>();
   auto trackProcessor = make_unique<TrackProcessor>();

@@ -16,7 +16,7 @@ struct ForRange {
 int main()
 {
   // All events with initial cuts only
-  config = make_unique<ConfigManager>(configPath);
+  config = ConfigManager(configPath);
   shared_ptr<EventSet> events = shared_ptr<EventSet>(new EventSet());
   events->LoadEventsFromFiles("after_L1/");
   
@@ -79,12 +79,12 @@ int main()
             
             double nBackgroundTotal=0;
             for(int iBck=0;iBck<kNbackgrounds;iBck++){
-              if(!config->runBackground[iBck]) continue;
+              if(!config.runBackground[iBck]) continue;
               nBackgroundTotal += eventsAfterCuts->weightedSize(xtracks::kBackground, iBck);
             }
 
             for(int iSig=0;iSig<kNsignals;iSig++){
-              if(!config->runSignal[iSig]) continue;
+              if(!config.runSignal[iSig]) continue;
               double sb = eventsAfterCuts->weightedSize(xtracks::kSignal,iSig)/sqrt(nBackgroundTotal+eventsAfterCuts->weightedSize(xtracks::kSignal,iSig));
               
               if(sb > bestSb[iSig]){
@@ -103,7 +103,7 @@ int main()
   }
   
   for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!config->runSignal[iSig]) continue;
+    if(!config.runSignal[iSig]) continue;
     cout<<"Best result for "<<signalTitle[iSig]<<":"<<bestSb[iSig]<<endl;
     for(auto const& [title, val] : bestResults[iSig]){
       cout<<title<<":"<<val<<endl;

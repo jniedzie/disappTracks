@@ -32,7 +32,7 @@ void InjectPionPointsToCollectionOfPoints(const unique_ptr<Helix> &pionHelix,
 
 void PerformTests(int &nSuccess, int &nFullSuccess)
 {
-  int nTests = config->nTests;
+  int nTests = config.nTests;
   auto fitter = make_unique<Fitter>();
   auto trackProcessor = make_unique<TrackProcessor>();
   
@@ -42,9 +42,9 @@ void PerformTests(int &nSuccess, int &nFullSuccess)
       cout<<"Test iter:"<<i<<endl;
     }
     
-    shared_ptr<Track> track = trackProcessor->GetRandomTrack(config->nTrackHits, config->maxEta);
+    shared_ptr<Track> track = trackProcessor->GetRandomTrack(config.nTrackHits, config.maxEta);
     
-    vector<shared_ptr<Point>> pixelPoints = pointsProcessor->GetRandomPoints(config->nNoiseHits);
+    vector<shared_ptr<Point>> pixelPoints = pointsProcessor->GetRandomPoints(config.nNoiseHits);
 //    unique_ptr<Event> event = make_unique<Event>();
 //    event->SetRunNumber(297100);
 //    event->SetLumiSection(136);
@@ -52,7 +52,7 @@ void PerformTests(int &nSuccess, int &nFullSuccess)
 //    shared_ptr<vector<Point>> pixelPoints = event->GetTrackerHits();
     
     unique_ptr<Helix> pionHelix = helixProcessor->GetRandomPionHelix(track);
-    if(config->injectPionHits) InjectPionPointsToCollectionOfPoints(pionHelix, pixelPoints);
+    if(config.injectPionHits) InjectPionPointsToCollectionOfPoints(pionHelix, pixelPoints);
     
     unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(pixelPoints, *track, Point(0,0,0));
     monitorsManager->FillMonitors(bestHelix, pionHelix, track);
@@ -98,9 +98,9 @@ void ScanParameter()
   
   for(double param=paramMin;param<paramMax;param+=paramStep){
     cout<<"param:"<<param<<endl;
-    config->nNoiseHits = param;
+    config.nNoiseHits = param;
     
-    int nTests = config->nTests;
+    int nTests = config.nTests;
     int nFullSuccess = 0;
     int nSuccess = 0;
     PerformTests(nSuccess, nFullSuccess);
@@ -124,14 +124,14 @@ void ScanParameter()
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
-  config          = make_unique<ConfigManager>(configPath);
+  config          = ConfigManager(configPath);
   pointsProcessor = make_unique<PointsProcessor>();
   helixProcessor  = make_unique<HelixProcessor>();
   monitorsManager = make_unique<MonitorsManager>();
   
   auto startTime = now();
   
-  int nTests = config->nTests;
+  int nTests = config.nTests;
   int nSuccess, nFullSuccess;
   nFullSuccess = nSuccess = 0;
   PerformTests(nSuccess, nFullSuccess);
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
   monitorsManager->PlotAndSaveMonitors();
   
 //  ScanParameter();
-  config->Print();
+  config.Print();
   
   double timeElapsed = duration(startTime, now());
   cout<<"Average time per event:"<<timeElapsed/nTests<<" seconds"<<endl;

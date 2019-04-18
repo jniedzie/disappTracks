@@ -54,19 +54,19 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
   eventCut.SetNtaus(range<int>(0,0));
   eventCut.SetNleptons(range<int>(0,0));
   
-  if(config->performCutsLevel == 0) return;
+  if(config.performCutsLevel == 0) return;
   
   //----------------------------------------------------------------------------
   // Level 1 cuts
   //----------------------------------------------------------------------------
  
-  if(config->category == "2-tracks"){
+  if(config.category == "2-tracks"){
     eventCut.SetNtracks(range<int>(2,2));
     trackCut.SetNlayers(range<int>(2,10));
     
     trackCut.SetCaloEmEnergy(range<double>(0.0,2.0));
   }
-  else if(config->category == "3-layers"){
+  else if(config.category == "3-layers"){
     eventCut.SetNtracks(range<int>(1,1));
     trackCut.SetNlayers(range<int>(3, 3));
     
@@ -74,7 +74,7 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
     trackCut.SetTrackMetDeltaPhi(range<double>(-TMath::Pi()/2,TMath::Pi()/2));
     trackCut.SetDedxPerCluster(range<double>(3.0,inf));
   }
-  else if(config->category == "4-layers"){
+  else if(config.category == "4-layers"){
     eventCut.SetNtracks(range<int>(1,1));
     trackCut.SetNlayers(range<int>(4, 4));
     
@@ -83,7 +83,7 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
     trackCut.SetDedxPerCluster(range<double>(3.0,inf));
   }
   
-  if(config->performCutsLevel == 1) return;
+  if(config.performCutsLevel == 1) return;
   
   //
   
