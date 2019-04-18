@@ -1,10 +1,10 @@
-//
 //  LeptonProcessor.cpp
 //
 //  Created by Jeremi Niedziela on 31/01/2019.
-//
 
 #include "LeptonProcessor.hpp"
+
+LeptonProcessor leptonProcessor = LeptonProcessor();
 
 LeptonProcessor::LeptonProcessor()
 {

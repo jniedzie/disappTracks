@@ -1,8 +1,6 @@
-//
 //  Track.cpp
 //
 //  Created by Jeremi Niedziela on 16/07/2018.
-//
 
 #include "Track.hpp"
 

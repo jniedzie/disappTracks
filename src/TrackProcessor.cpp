@@ -1,10 +1,10 @@
-//
 //  TrackProcessor.cpp
 //
 //  Created by Jeremi Niedziela on 30/01/2019.
-//
 
 #include "TrackProcessor.hpp"
+
+TrackProcessor trackProcessor = TrackProcessor();
 
 TrackProcessor::TrackProcessor()
 {

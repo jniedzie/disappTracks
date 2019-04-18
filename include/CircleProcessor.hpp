@@ -1,8 +1,6 @@
-//
 //  CircleProcessor.hpp
 //
 //  Created by Jeremi Niedziela on 26/03/2019.
-//
 
 #ifndef CircleProcessor_hpp
 #define CircleProcessor_hpp
@@ -12,6 +10,8 @@
 #include "Track.hpp"
 #include "PointsProcessor.hpp"
 
+class CircleProcessor;
+extern CircleProcessor circleProcessor;
 
 class CircleProcessor {
 public:
@@ -65,11 +65,10 @@ public:
   unique_ptr<Circle>  GetCircleFromTriplet(const PointsTriplet &triplet);
   
 private:
+  
   bool IsPerpendicular(const Point &p1, const Point &p2,const Point &p3);
   unique_ptr<Circle> CalcCircle(const Point &p1, const Point &p2, const Point &p3);
-  
-  unique_ptr<PointsProcessor> pointsProcessor;
-  
+
 };
 
 #endif /* CircleProcessor_hpp */

@@ -1,8 +1,6 @@
-//
 //  PointsProcessor.hpp
 //
 //  Created by Jeremi Niedziela on 16/01/2019.
-//
 
 #ifndef PointsProcessor_hpp
 #define PointsProcessor_hpp
@@ -15,6 +13,9 @@ typedef vector<shared_ptr<Point>> PointsTriplet; ///< Vector containing three po
 typedef pair<shared_ptr<Point>, shared_ptr<Point>> PointsPair;
 typedef vector<PointsTriplet> TripletsVector;    ///< Vector of triplets of points
 typedef vector<pair<PointsTriplet, PointsTriplet>> TripletPairsVector; ///< Vector of pairs of point triplets
+
+class PointsProcessor;
+extern PointsProcessor pointsProcessor;
 
 /// PointsProcessor provides methods performing operations on Point objects
 class PointsProcessor {

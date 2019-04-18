@@ -13,6 +13,9 @@
 #include "PointsProcessor.hpp"
 #include "Track.hpp"
 
+class HelixProcessor;
+extern HelixProcessor helixProcessor;
+
 class HelixProcessor {
 public:
   /// Default contrustor
@@ -67,7 +70,6 @@ private:
   vector<string> arrayNamesFloat;     ///< Names or float per-track variables
   vector<string> arrayNamesInt;       ///< Names or int per-track variables
   
-  unique_ptr<PointsProcessor> pointsProcessor;
 };
 
 #endif /* HelixProcessor_hpp */

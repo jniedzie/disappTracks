@@ -12,6 +12,9 @@
 #include "PointsProcessor.hpp"
 #include "CircleProcessor.hpp"
 
+class ArcSetProcessor;
+extern ArcSetProcessor arcSetProcessor;
+
 class ArcSetProcessor {
 public:
   /// Default constructor
@@ -41,8 +44,6 @@ public:
   unique_ptr<ArcSet2D> GetBestArcSet(const vector<unique_ptr<ArcSet2D>> &arcSets);
   
 private:
-  unique_ptr<PointsProcessor> pointsProcessor;
-  unique_ptr<CircleProcessor> circleProcessor;
   
   bool IsValidSeed(const unique_ptr<Circle> &circle);
 };

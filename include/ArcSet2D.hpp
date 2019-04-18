@@ -91,8 +91,6 @@ private:
   
   int iCycle; ///< Current number of spiral's cycles
   
-  unique_ptr<CircleProcessor> circleProcessor;
-  
   friend class ArcSetProcessor;
 };
 

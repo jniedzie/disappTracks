@@ -6,9 +6,9 @@
 
 #include "HelixProcessor.hpp"
 
+HelixProcessor helixProcessor = HelixProcessor();
 
-HelixProcessor::HelixProcessor() :
-pointsProcessor(make_unique<PointsProcessor>())
+HelixProcessor::HelixProcessor()
 {
   arrayNamesFloat = {
     "helix_x",
@@ -105,7 +105,7 @@ vector<shared_ptr<Point>> HelixProcessor::GetPointsHittingSilicon(const unique_p
 
 void HelixProcessor::CalculateNregularPoints(unique_ptr<Helix> &helix, int limit)
 {
-  vector<vector<Point>> pointsByLine = pointsProcessor->SplitPointsIntoLines(helix->points,
+  vector<vector<Point>> pointsByLine = pointsProcessor.SplitPointsIntoLines(helix->points,
                                                                              config.linesToleranceForRegularity);
   vector<double> possibleDistances;
   set<double> possibleDistancesSet;
@@ -122,7 +122,7 @@ void HelixProcessor::CalculateNregularPoints(unique_ptr<Helix> &helix, int limit
   
   for(auto line2 : pointsByLine){
     for(int i=0;i<(int)line2.size();i++){
-      if(std::abs(pointsProcessor->distance(line2[0], line2[i])-i*testingDistance) < zRegularityTolerance)  nPointsForDistance++;
+      if(std::abs(pointsProcessor.distance(line2[0], line2[i])-i*testingDistance) < zRegularityTolerance)  nPointsForDistance++;
     }
   }
   helix->nRegularPoints = nPointsForDistance;
@@ -277,7 +277,7 @@ double HelixProcessor::GetHelixToPointDistance(const unique_ptr<Helix> &helix, c
   
   double stripModuleLength = 200;
   
-  return pointsProcessor->distanceWithUncertainZ(make_shared<Point>(x,y,z), point, stripModuleLength);
+  return pointsProcessor.distanceWithUncertainZ(make_shared<Point>(x,y,z), point, stripModuleLength);
 }
 
 double HelixProcessor::GetChi2toPoints(const unique_ptr<Helix> &helix, const vector<shared_ptr<Point>> &points)

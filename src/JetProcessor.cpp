@@ -1,10 +1,10 @@
-//
 //  JetProcessor.cpp
 //
 //  Created by Jeremi Niedziela on 31/01/2019.
-//
 
 #include "JetProcessor.hpp"
+
+JetProcessor jetProcessor = JetProcessor();
 
 JetProcessor::JetProcessor()
 {

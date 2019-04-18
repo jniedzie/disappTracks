@@ -1,14 +1,15 @@
-//
 //  JetProcessor.hpp
 //
 //  Created by Jeremi Niedziela on 31/01/2019.
-//
 
 #ifndef JetProcessor_hpp
 #define JetProcessor_hpp
 
 #include "Helpers.hpp"
 #include "Jet.hpp"
+
+class JetProcessor;
+extern JetProcessor jetProcessor;
 
 /// Class description
 class JetProcessor {

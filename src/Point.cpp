@@ -1,8 +1,6 @@
-//
 //  Point.cpp
 //
 //  Created by Jeremi Niedziela on 18/12/2018.
-//
 
 #include "Point.hpp"
 

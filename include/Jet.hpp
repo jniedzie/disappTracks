@@ -1,8 +1,6 @@
-//
 //  Jet.hpp
 //
 //  Created by Jeremi Niedziela on 17/07/2018.
-//
 
 #ifndef Jet_hpp
 #define Jet_hpp

@@ -1,8 +1,6 @@
-//
 //  Track.hpp
 //
 //  Created by Jeremi Niedziela on 16/07/2018.
-//
 
 #ifndef Track_hpp
 #define Track_hpp

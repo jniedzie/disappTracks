@@ -1,15 +1,12 @@
-//
 //  EventProcessor.cpp
 //
 //  Created by Jeremi Niedziela on 30/01/2019.
-//
 
 #include "EventProcessor.hpp"
 
-EventProcessor::EventProcessor() :
-trackProcessor(make_unique<TrackProcessor>()),
-jetProcessor(make_unique<JetProcessor>()),
-leptonProcessor(make_unique<LeptonProcessor>())
+EventProcessor eventProcessor = EventProcessor();
+
+EventProcessor::EventProcessor()
 {
   singleNamesUint = {
     "run",
@@ -66,24 +63,24 @@ EventProcessor::~EventProcessor()
 void EventProcessor::ApplyTrackCut(shared_ptr<Event> event, const TrackCut &cut)
 {
   for(auto track = event->tracks.begin(); track != event->tracks.end();){
-    if(!trackProcessor->IsPassingCut(*track,cut)) track = event->tracks.erase(track);
-    else                                          track++;
+    if(!trackProcessor.IsPassingCut(*track,cut)) track = event->tracks.erase(track);
+    else                                         track++;
   }
 }
 
 void EventProcessor::ApplyJetCut(shared_ptr<Event> event, const JetCut &cut)
 {
   for(auto jet = event->jets.begin(); jet != event->jets.end();){
-    if(!jetProcessor->IsPassingCut(*jet,cut)) jet = event->jets.erase(jet);
-    else                                      jet++;
+    if(!jetProcessor.IsPassingCut(*jet,cut)) jet = event->jets.erase(jet);
+    else                                     jet++;
   }
 }
 
 void EventProcessor::ApplyLeptonCut(shared_ptr<Event> event, const LeptonCut &cut)
 {
   for(auto lepton = event->leptons.begin(); lepton != event->leptons.end();){
-    if(!leptonProcessor->IsPassingCut(*lepton, cut))  lepton = event->leptons.erase(lepton);
-    else                                              lepton++;
+    if(!leptonProcessor.IsPassingCut(*lepton, cut))  lepton = event->leptons.erase(lepton);
+    else                                             lepton++;
   }
 }
 
@@ -154,7 +151,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
     
     bool atLeastOneTightMuon = false;
     for(auto muon : muons){
-      if(leptonProcessor->IsPassingCut(muon, tightMuonCut)) atLeastOneTightMuon = true;
+      if(leptonProcessor.IsPassingCut(muon, tightMuonCut)) atLeastOneTightMuon = true;
     }
     if(!atLeastOneTightMuon){
       cutReasons[7]++;

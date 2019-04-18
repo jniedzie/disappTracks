@@ -1,8 +1,6 @@
-//
 //  MonitorsManager.hpp
 //
 //  Created by Jeremi Niedziela on 18/01/2019.
-//
 
 #ifndef MonitorsManager_hpp
 #define MonitorsManager_hpp
@@ -11,6 +9,9 @@
 #include "HelixProcessor.hpp"
 #include "Track.hpp"
 #include "ConfigManager.hpp"
+
+class MonitorsManager;
+extern MonitorsManager monitorsManager;
 
 /// Creates, populates, plots and saves hisograms monitoring fitting performance.
 class MonitorsManager {
@@ -41,8 +42,7 @@ public:
   EFitStatus GetFittingStatus(const unique_ptr<Helix> &fittedHelix, const unique_ptr<Helix> &trueHelix);
   
 private:
-  unique_ptr<HelixProcessor> helixProcessor;
-  
+
   map<string, TH1D*> monitors1D;                     ///< 1D Monitors
   map<string, TH2D*> monitors2D;                     ///< 2D Monitors
   map<string, pair<TH1D*, TH1D*>> fractionMonitors;  ///< Monitors that contain numerator and denominator

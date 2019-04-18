@@ -12,9 +12,7 @@ Helix::Helix(const Point &_origin,
 vertex(make_unique<Point>(_origin)),
 origin(_origin),
 momentum(make_unique<Point>(*_momentum)),
-charge(_charge),
-pointsProcessor(make_unique<PointsProcessor>()),
-circleProcessor(make_unique<CircleProcessor>())
+charge(_charge)
 {
   radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
   slope = radius * charge * momentum->GetVectorSlopeC();
@@ -75,16 +73,13 @@ track(h.track),
 radius(h.radius),
 slope(h.slope),
 slopeAbs(h.slopeAbs),
-charge(h.charge),
-pointsProcessor(make_unique<PointsProcessor>()),
-circleProcessor(make_unique<CircleProcessor>())
+charge(h.charge)
 {
   uniqueID = reinterpret_cast<uint64_t>(this);
 }
 
 Helix::Helix(const Track &_track, const Point &p1, const Point &p2, const Point &_eventVertex) :
-origin(Point(0,0,0)),
-circleProcessor(make_unique<CircleProcessor>())
+origin(Point(0,0,0))
 {
   seedID = uniqueID = reinterpret_cast<uint64_t>(this);
   
@@ -109,7 +104,7 @@ circleProcessor(make_unique<CircleProcessor>())
   points.push_back(make_shared<Point>(p1));
   points.push_back(make_shared<Point>(p2));
   
-  auto circle = circleProcessor->GetCircleFromTriplet(points);
+  auto circle = circleProcessor.GetCircleFromTriplet(points);
   
   origin = circle->GetCenter();
   
@@ -396,7 +391,7 @@ void Helix::SetPoints(const vector<shared_ptr<Point>> &_points)
   
   for(auto &p : _points){
     Point q = GetClosestPoint(*p);
-    if(pointsProcessor->distance(*p,q) < config.helixThickness){
+    if(pointsProcessor.distance(*p,q) < config.helixThickness){
       if(p->IsPionHit()) nPionPoints++;
       points.push_back(p);
     }
@@ -407,7 +402,7 @@ double Helix::GetChi2()
 {
   double chi2 = 0;
   for(auto &p : points){
-    chi2 += pow(pointsProcessor->distance(*p, GetClosestPoint(*p)), 2);
+    chi2 += pow(pointsProcessor.distance(*p, GetClosestPoint(*p)), 2);
   }
   return chi2 / points.size();
 }

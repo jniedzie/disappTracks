@@ -19,9 +19,6 @@
 int verbosityLevel = 2;
 
 string configPath = "configs/helixFitter.md";
-unique_ptr<PointsProcessor> pointsProcessor;
-unique_ptr<HelixProcessor> helixProcessor;
-unique_ptr<MonitorsManager> monitorsManager;
 
 void InjectPionPointsToCollectionOfPoints(const unique_ptr<Helix> &pionHelix,
                                           vector<shared_ptr<Point>> pixelPoints)
@@ -44,20 +41,20 @@ void PerformTests(int &nSuccess, int &nFullSuccess)
     
     shared_ptr<Track> track = trackProcessor->GetRandomTrack(config.nTrackHits, config.maxEta);
     
-    vector<shared_ptr<Point>> pixelPoints = pointsProcessor->GetRandomPoints(config.nNoiseHits);
+    vector<shared_ptr<Point>> pixelPoints = pointsProcessor.GetRandomPoints(config.nNoiseHits);
 //    unique_ptr<Event> event = make_unique<Event>();
 //    event->SetRunNumber(297100);
 //    event->SetLumiSection(136);
 //    event->SetEventNumber(245000232);
 //    shared_ptr<vector<Point>> pixelPoints = event->GetTrackerHits();
     
-    unique_ptr<Helix> pionHelix = helixProcessor->GetRandomPionHelix(track);
+    unique_ptr<Helix> pionHelix = helixProcessor.GetRandomPionHelix(track);
     if(config.injectPionHits) InjectPionPointsToCollectionOfPoints(pionHelix, pixelPoints);
     
     unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(pixelPoints, *track, Point(0,0,0));
-    monitorsManager->FillMonitors(bestHelix, pionHelix, track);
+    monitorsManager.FillMonitors(bestHelix, pionHelix, track);
     
-    auto successCode = monitorsManager->GetFittingStatus(bestHelix, pionHelix);
+    auto successCode = monitorsManager.GetFittingStatus(bestHelix, pionHelix);
     
     if(successCode == MonitorsManager::kFail)         continue;
     if(successCode == MonitorsManager::kSuccess)      nSuccess++;
@@ -124,10 +121,7 @@ void ScanParameter()
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
-  config          = ConfigManager(configPath);
-  pointsProcessor = make_unique<PointsProcessor>();
-  helixProcessor  = make_unique<HelixProcessor>();
-  monitorsManager = make_unique<MonitorsManager>();
+  config = ConfigManager(configPath);
   
   auto startTime = now();
   
@@ -138,7 +132,7 @@ int main(int argc, char* argv[])
   cout<<"Percentage of successful fits:"<<nSuccess/(double)nTests<<endl;
   cout<<"Percentage of fully successful fits:"<<nFullSuccess/(double)nTests<<endl;
   
-  monitorsManager->PlotAndSaveMonitors();
+  monitorsManager.PlotAndSaveMonitors();
   
 //  ScanParameter();
   config.Print();

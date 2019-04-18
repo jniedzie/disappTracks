@@ -1,10 +1,10 @@
-//
 //  PointsProcessor.cpp
 //
 //  Created by Jeremi Niedziela on 16/01/2019.
-//
 
 #include "PointsProcessor.hpp"
+
+PointsProcessor pointsProcessor = PointsProcessor();
 
 PointsProcessor::PointsProcessor()
 {

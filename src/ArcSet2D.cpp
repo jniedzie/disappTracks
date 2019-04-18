@@ -9,8 +9,7 @@
 #include "ArcSet2D.hpp"
 
 ArcSet2D::ArcSet2D() :
-iCycle(0),
-circleProcessor(make_unique<CircleProcessor>())
+iCycle(0)
 {
   
 }
@@ -101,7 +100,7 @@ void ArcSet2D::AddCircle(const unique_ptr<Circle> &circle)
   
   
   // add circle to the vector of segments
-  circles.push_back(circleProcessor->CopyCircleAddingRange(circle, r));
+  circles.push_back(circleProcessor.CopyCircleAddingRange(circle, r));
 
   // add last point of the circle to the collection (first two should already be there)
   points.push_back(circle->GetLastPoint());

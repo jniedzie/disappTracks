@@ -1,16 +1,8 @@
-//
 //  Jet.cpp
 //
 //  Created by Jeremi Niedziela on 17/07/2018.
-//
 
 #include "Jet.hpp"
-
-#include <TMath.h>
-
-#include <iostream>
-
-using namespace std;
 
 Jet::Jet() :
 pt(inf),

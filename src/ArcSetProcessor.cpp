@@ -1,14 +1,12 @@
-//
 //  AcrSetProcessor.cpp
 //
 //  Created by Jeremi Niedziela on 26/03/2019.
-//
 
 #include "ArcSetProcessor.hpp"
 
-ArcSetProcessor::ArcSetProcessor() :
-pointsProcessor(make_unique<PointsProcessor>()),
-circleProcessor(make_unique<CircleProcessor>())
+ArcSetProcessor arcSetProcessor = ArcSetProcessor();
+
+ArcSetProcessor::ArcSetProcessor()
 {
   
 }
@@ -128,7 +126,7 @@ TripletsVector ArcSetProcessor::BuildTripletsCompatibleWithArcSet(const unique_p
     }
     
     // it also has to be within the radius of the helix
-    double pointR = pointsProcessor->distanceXY(*point, circle->GetCenter());
+    double pointR = pointsProcessor.distanceXY(*point, circle->GetCenter());
     if(pointR > 1.1*circle->GetRadius()) isValidPoint = false; // FILTER
     
     if(isValidPoint){
@@ -188,7 +186,7 @@ vector<shared_ptr<Point>> ArcSetProcessor::FindPossibleNextPoints(const unique_p
     }
     
     // it also has to be within the radius of the helix
-    double pointR = pointsProcessor->distanceXY(*point, circle->GetCenter());
+    double pointR = pointsProcessor.distanceXY(*point, circle->GetCenter());
     if(pointR > circle->GetRadius() + config.circleThickness) isValidPoint = false; // FILTER
     
     if(isValidPoint) possiblePoints.push_back(point);

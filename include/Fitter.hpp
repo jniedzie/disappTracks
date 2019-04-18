@@ -39,10 +39,6 @@ public:
                              const Point &_vertex);
   
 private:
-  unique_ptr<PointsProcessor> pointsProcessor;
-  unique_ptr<HelixProcessor>  helixProcessor;
-  unique_ptr<CircleProcessor> circleProcessor;
-  unique_ptr<ArcSetProcessor> arcSetProcessor;
   
   vector<shared_ptr<Point>> points;
   Track track;
@@ -97,12 +93,7 @@ private:
   void PlotBestTrack(   int iPad, const unique_ptr<ArcSet2D> &pionTrack);
   void PlotRadiiAngles( int iPad, const vector<double> &alphaVector);
   
-  
-  
-  
-  
   TGraph* GetDecayGraph();
-  
   TCanvas *c1;
 };
 

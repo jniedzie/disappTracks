@@ -1,8 +1,6 @@
-//
 //  Point.hpp
 //
 //  Created by Jeremi Niedziela on 18/12/2018.
-//
 
 #ifndef Point_hpp
 #define Point_hpp
@@ -51,6 +49,7 @@ public:
   inline void SetZ(double val){z = val;}
   inline void SetIsPionHit(bool val){isPionHit = val;}
 private:
+  
   double x,y,z;             ///< XYZ coordinates of the point
   double errX, errY, errZ;  ///< coordinates uncertainties
   double value;             ///< Value at this point

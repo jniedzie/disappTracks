@@ -7,10 +7,6 @@
 #include "Fitter.hpp"
 
 Fitter::Fitter() :
-pointsProcessor(make_unique<PointsProcessor>()),
-helixProcessor(make_unique<HelixProcessor>()),
-circleProcessor(make_unique<CircleProcessor>()),
-arcSetProcessor(make_unique<ArcSetProcessor>()),
 vertex(Point(0, 0, 0))
 {
 //  c1 = new TCanvas("c1","c1",1500,1500);
@@ -26,7 +22,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
 {
   // Prepare 2D projections in XY
   vector<Point> points2D;
-  vector<vector<Point>> pointsByLine = pointsProcessor->SplitPointsIntoLines(points, config.linesToleranceForCircles);
+  vector<vector<Point>> pointsByLine = pointsProcessor.SplitPointsIntoLines(points, config.linesToleranceForCircles);
   
   for(vector<Point> line : pointsByLine){
     if((int)line.size() >= config.minNpointsAlongZ){
@@ -48,7 +44,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
         auto chi2Function = [&](const double *par) {
           double f = 0;
           
-          auto circle = circleProcessor->BuildCircleFromParams(par, vertex, track);
+          auto circle = circleProcessor.BuildCircleFromParams(par, vertex, track);
           
           f  = pow(circle->GetDistanceToPoint(points2D[i]),2);
           f += pow(circle->GetDistanceToPoint(points2D[j]),2);
@@ -63,7 +59,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
         if(fitter->FitFCN()) {
           auto result = fitter->Result();
           
-          auto circle = circleProcessor->BuildCircleFromParams(result.GetParams(), vertex, track);
+          auto circle = circleProcessor.BuildCircleFromParams(result.GetParams(), vertex, track);
           
           int nPointsOnCircle=0;
           for(Point p : points2D){
@@ -78,7 +74,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
     }
   }
   if(circles.size() == 0) return circles;
-  circleProcessor->RemoveSimilarCircles(circles);
+  circleProcessor.RemoveSimilarCircles(circles);
   return circles;
 }
 
@@ -158,7 +154,7 @@ unique_ptr<Helix> Fitter::GetHelixFromCircle(const unique_ptr<Circle> &circle, d
   
   unique_ptr<Helix> helix = make_unique<Helix>(circle->GetDecayPoint(), momentum, charge);
   helix->SetPoints(points);
-  helixProcessor->CalculateNregularPoints(helix);
+  helixProcessor.CalculateNregularPoints(helix);
   
   return helix;
 }
@@ -196,7 +192,7 @@ vector<unique_ptr<Circle>> Fitter::GetAllCirclesForPoints()
   circles.insert(circles.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
   circlesTmp = FitCirclesToPoints(-1, -1);
   circles.insert(circles.end(), make_move_iterator(circlesTmp.begin()), make_move_iterator(circlesTmp.end()));
-  circleProcessor->RemoveSimilarCircles(circles);
+  circleProcessor.RemoveSimilarCircles(circles);
   
   return circles;
 }
@@ -265,7 +261,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesAndAdjustFirstPoint(TripletsVector 
     auto chi2Function = [&](const double *par) {
       double f = 0;
       
-      auto circle = circleProcessor->BuildCircleFromParams(par, vertex, track);
+      auto circle = circleProcessor.BuildCircleFromParams(par, vertex, track);
       
       f  = pow(circle->GetDistanceToPoint(circle->GetDecayPoint()),2);
       f += pow(circle->GetDistanceToPoint(*p[1]),2);
@@ -282,7 +278,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesAndAdjustFirstPoint(TripletsVector 
       auto result = fitter->Result();
       
       if(result.MinFcnValue() > chi2threshold) continue; // FILTER
-      auto circle = circleProcessor->BuildCircleFromParams(result.GetParams(), vertex, track);
+      auto circle = circleProcessor.BuildCircleFromParams(result.GetParams(), vertex, track);
       
       p[0]->SetX(circle->GetDecayPoint().GetX());
       p[0]->SetY(circle->GetDecayPoint().GetY());
@@ -311,10 +307,10 @@ vector<unique_ptr<Helix>> Fitter::FitHelix(const vector<shared_ptr<Point>> &_poi
 //  double chi2threshold = 1E-6;
   
   // Get only points that are not too close to each other and plot them
-  vector<shared_ptr<Point>> filteredPoints = pointsProcessor->FilterNearbyPoints(points, minPointsSeparation);
+  vector<shared_ptr<Point>> filteredPoints = pointsProcessor.FilterNearbyPoints(points, minPointsSeparation);
   cout<<"Points after cleanup:"<<filteredPoints.size()<<endl;
   
-  vector<PointsPair> pointPairs = pointsProcessor->BuildPointPairs(filteredPoints);
+  vector<PointsPair> pointPairs = pointsProcessor.BuildPointPairs(filteredPoints);
   
   vector<unique_ptr<Helix>> helices;
   

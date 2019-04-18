@@ -1,13 +1,12 @@
-//
 //  CircleProcessor.cpp
 //
 //  Created by Jeremi Niedziela on 26/03/2019.
-//
 
 #include "CircleProcessor.hpp"
 
-CircleProcessor::CircleProcessor() :
-pointsProcessor(make_unique<PointsProcessor>())
+CircleProcessor circleProcessor = CircleProcessor();
+
+CircleProcessor::CircleProcessor()
 {
   
 }
@@ -140,7 +139,7 @@ unique_ptr<Circle> CircleProcessor::GetMostCompatibleCircle(const vector<unique_
     
     
     // The center of the new circle should be withing the previous circle
-    double centerDifference = pointsProcessor->distanceXY(theCircle->GetCenter(), testingCircle->GetCenter());
+    double centerDifference = pointsProcessor.distanceXY(theCircle->GetCenter(), testingCircle->GetCenter());
     if(centerDifference > theCircle->GetRadius()) continue; // FILTER
     
     // Here we calculate an angle between radius of the previous circle and radius of the testing circle
@@ -262,7 +261,7 @@ unique_ptr<Circle> CircleProcessor::CalcCircle(const Point &p1, const Point &p2,
     center_z = p1.GetZ();
     
     Point center(center_x, center_y, center_z);
-    radius = pointsProcessor->distanceXY(center, p1);
+    radius = pointsProcessor.distanceXY(center, p1);
     
     circle = make_unique<Circle>(p1, center, radius);
     
@@ -281,7 +280,7 @@ unique_ptr<Circle> CircleProcessor::CalcCircle(const Point &p1, const Point &p2,
   center_z = p1.GetZ();
   
   Point center(center_x, center_y, center_z);
-  radius = pointsProcessor->distanceXY(center, p1);
+  radius = pointsProcessor.distanceXY(center, p1);
   circle = make_unique<Circle>(p1, center, radius);
   
   return circle;

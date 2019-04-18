@@ -17,8 +17,6 @@ uint searchRun = 297100;
 uint searchLumi = 136;
 unsigned long long searchEvent = 245000232;
 
-unique_ptr<HelixProcessor> helixProcessor;
-
 void InjectPion(vector<shared_ptr<Point>> trackerPoints,
                 shared_ptr<Track> track){
   double theta = track->GetTheta();
@@ -35,7 +33,7 @@ void InjectPion(vector<shared_ptr<Point>> trackerPoints,
   double z = decayR/sin(theta)*cos(theta);
   
   track->SetDecayPoint(Point(x,y,z));
-  unique_ptr<Helix> pionHelix = helixProcessor->GetRandomPionHelix(track);
+  unique_ptr<Helix> pionHelix = helixProcessor.GetRandomPionHelix(track);
   pionHelix->Print();
   trackerPoints.insert(trackerPoints.end(),pionHelix->GetPoints().begin(), pionHelix->GetPoints().end());
 }
@@ -43,9 +41,7 @@ void InjectPion(vector<shared_ptr<Point>> trackerPoints,
 int main(int argc, char* argv[])
 {
   config = ConfigManager(configPath);
-  auto pointsProcessor = make_unique<PointsProcessor>();
-  auto fitter          = make_unique<Fitter>();
-  helixProcessor       = make_unique<HelixProcessor>();
+  auto fitter = make_unique<Fitter>();
   
   EventSet events;
   events.LoadEventsFromFiles("after_L1/");
@@ -60,7 +56,7 @@ int main(int argc, char* argv[])
     auto event = events.At(xtracks::kSignal, kWino_M_300_cTau_10, iEvent);
     
 //    shared_ptr<vector<Point>> trackerPoints = event->GetTrackerHits();
-    vector<shared_ptr<Point>> trackerPoints = pointsProcessor->GetRandomPoints(config.nNoiseHits);
+    vector<shared_ptr<Point>> trackerPoints = pointsProcessor.GetRandomPoints(config.nNoiseHits);
     
     if(trackerPoints.size()==0){
       cout<<"helixTagger -- no tracker hits for event "<<iEvent<<endl;

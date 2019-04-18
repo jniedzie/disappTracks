@@ -1,14 +1,15 @@
-//
 //  TrackProcessor.hpp
 //
 //  Created by Jeremi Niedziela on 30/01/2019.
-//
 
 #ifndef TrackProcessor_hpp
 #define TrackProcessor_hpp
 
 #include "Helpers.hpp"
 #include "Track.hpp"
+
+class TrackProcessor;
+extern TrackProcessor trackProcessor;
 
 /// Class description
 class TrackProcessor {

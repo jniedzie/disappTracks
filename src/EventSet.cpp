@@ -1,18 +1,11 @@
-//
 //  EventSet.cpp
 //
 //  Created by Jeremi Niedziela on 08/11/2018.
-//
 
 #include "EventSet.hpp"
 #include "HistSet.hpp"
 
-EventSet::EventSet() :
-trackProcessor(make_unique<TrackProcessor>()),
-jetProcessor(make_unique<JetProcessor>()),
-helixProcessor(make_unique<HelixProcessor>()),
-eventProcessor(make_unique<EventProcessor>()),
-leptonProcessor(make_unique<LeptonProcessor>())
+EventSet::EventSet()
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
     eventsSignal.push_back(vector<shared_ptr<Event>>());
@@ -25,22 +18,12 @@ leptonProcessor(make_unique<LeptonProcessor>())
   }
 }
 
-EventSet::EventSet(string fileName, xtracks::EDataType dataType, int maxNevents, ESignal iSig) :
-trackProcessor(make_unique<TrackProcessor>()),
-jetProcessor(make_unique<JetProcessor>()),
-helixProcessor(make_unique<HelixProcessor>()),
-eventProcessor(make_unique<EventProcessor>()),
-leptonProcessor(make_unique<LeptonProcessor>())
+EventSet::EventSet(string fileName, xtracks::EDataType dataType, int maxNevents, ESignal iSig)
 {
   AddEventsFromFile(fileName,dataType,maxNevents,iSig);
 }
 
-EventSet::EventSet(const EventSet &e) :
-trackProcessor(make_unique<TrackProcessor>()),
-jetProcessor(make_unique<JetProcessor>()),
-helixProcessor(make_unique<HelixProcessor>()),
-eventProcessor(make_unique<EventProcessor>()),
-leptonProcessor(make_unique<LeptonProcessor>())
+EventSet::EventSet(const EventSet &e)
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
     eventsSignal.push_back(vector<shared_ptr<Event>>());
@@ -65,12 +48,6 @@ leptonProcessor(make_unique<LeptonProcessor>())
 EventSet EventSet::operator=(const EventSet &e)
 {
   EventSet result;
-  
-  trackProcessor  = make_unique<TrackProcessor>();
-  jetProcessor    = make_unique<JetProcessor>();
-  helixProcessor  = make_unique<HelixProcessor>();
-  eventProcessor  = make_unique<EventProcessor>();
-  leptonProcessor = make_unique<LeptonProcessor>();
   
   for(int iSig=0;iSig<kNsignals;iSig++){
     result.eventsSignal.push_back(vector<shared_ptr<Event>>());
@@ -104,19 +81,19 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
   outFile.cd();
   TTree *tree = new TTree("tree","tree");
 	
-  eventProcessor->SetupBranchesForWriting(tree);
-	trackProcessor->SetupBranchesForWriting(tree);
-  jetProcessor->SetupBranchesForWriting(tree);
-  leptonProcessor->SetupBranchesForWriting(tree);
-  helixProcessor->SetupBranchesForWriting(tree);
+  eventProcessor.SetupBranchesForWriting(tree);
+  trackProcessor.SetupBranchesForWriting(tree);
+  eventProcessor.SetupBranchesForWriting(tree);
+  leptonProcessor.SetupBranchesForWriting(tree);
+  helixProcessor.SetupBranchesForWriting(tree);
   
   function<void(shared_ptr<Event>, TTree*)> func = [&](shared_ptr<Event> event, TTree *tree) -> void {
     
-    eventProcessor->SaveEventToTree(event);
-		trackProcessor->SaveTracksToTree(event->GetTracks());
-    leptonProcessor->SaveLeptonsToTree(event->GetLeptons());
-    jetProcessor->SaveJetsToTree(event->GetJets());
-    helixProcessor->SaveHelicesToTree(event->GetHelices());
+    eventProcessor.SaveEventToTree(event);
+    trackProcessor.SaveTracksToTree(event->GetTracks());
+    leptonProcessor.SaveLeptonsToTree(event->GetLeptons());
+    jetProcessor.SaveJetsToTree(event->GetJets());
+    helixProcessor.SaveHelicesToTree(event->GetHelices());
     
     tree->Fill();
   };
@@ -316,11 +293,11 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
     if(!config.runSignal[iSig]) continue;
     for(int iEvent=0;iEvent<(int)eventsSignal[iSig].size();){
       
-      eventProcessor->ApplyTrackCut(eventsSignal[iSig][iEvent], trackCut);
-      eventProcessor->ApplyJetCut(eventsSignal[iSig][iEvent], jetCut);
-      eventProcessor->ApplyLeptonCut(eventsSignal[iSig][iEvent], leptonCut);
+      eventProcessor.ApplyTrackCut(eventsSignal[iSig][iEvent], trackCut);
+      eventProcessor.ApplyJetCut(eventsSignal[iSig][iEvent], jetCut);
+      eventProcessor.ApplyLeptonCut(eventsSignal[iSig][iEvent], leptonCut);
       
-      if(!eventProcessor->IsPassingCut(eventsSignal[iSig][iEvent], eventCut)){
+      if(!eventProcessor.IsPassingCut(eventsSignal[iSig][iEvent], eventCut)){
         EraseFast(eventsSignal[iSig], iEvent);
       }
       else{
@@ -339,11 +316,11 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
     
     for(int iEvent=0;iEvent<(int)eventsBackground[iBck].size();){
       
-      eventProcessor->ApplyTrackCut(eventsBackground[iBck][iEvent], trackCut);
-      eventProcessor->ApplyJetCut(eventsBackground[iBck][iEvent], jetCut);
-      eventProcessor->ApplyLeptonCut(eventsBackground[iBck][iEvent], leptonCut);
+      eventProcessor.ApplyTrackCut(eventsBackground[iBck][iEvent], trackCut);
+      eventProcessor.ApplyJetCut(eventsBackground[iBck][iEvent], jetCut);
+      eventProcessor.ApplyLeptonCut(eventsBackground[iBck][iEvent], leptonCut);
       
-      if(!eventProcessor->IsPassingCut(eventsBackground[iBck][iEvent], eventCut)){
+      if(!eventProcessor.IsPassingCut(eventsBackground[iBck][iEvent], eventCut)){
         EraseFast(eventsBackground[iBck], iEvent);
       }
       else{
@@ -352,11 +329,11 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
     }
     
     for(int i=0;i<21;i++){
-      nEvents -= eventProcessor->cutReasons[i];
+      nEvents -= eventProcessor.cutReasons[i];
       cout<<"N events after cut "<<i<<":"<<nEvents<<endl;
     }
     
-    auto survivors = eventProcessor->survivingEvents;
+    auto survivors = eventProcessor.survivingEvents;
     
     vector<pair<uint, unsigned long long>> lumi_event;
     
@@ -379,11 +356,11 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
     if(!config.runData[iData]) continue;
     for(int iEvent=0;iEvent<(int)eventsData[iData].size();){
       
-      eventProcessor->ApplyTrackCut(eventsData[iData][iEvent], trackCut);
-      eventProcessor->ApplyJetCut(eventsData[iData][iEvent], jetCut);
-      eventProcessor->ApplyLeptonCut(eventsData[iData][iEvent], leptonCut);
+      eventProcessor.ApplyTrackCut(eventsData[iData][iEvent], trackCut);
+      eventProcessor.ApplyJetCut(eventsData[iData][iEvent], jetCut);
+      eventProcessor.ApplyLeptonCut(eventsData[iData][iEvent], leptonCut);
       
-      if(!eventProcessor->IsPassingCut(eventsData[iData][iEvent], eventCut)){
+      if(!eventProcessor.IsPassingCut(eventsData[iData][iEvent], eventCut)){
         EraseFast(eventsData[iData], iEvent);
       }
       else{
@@ -652,20 +629,20 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
   TTree *tree = (TTree*)inFile->Get("tree");
   TTreeReader reader("tree", inFile);
   
-  eventProcessor->SetupBranchesForReading(tree);
-  trackProcessor->SetupBranchesForReading(tree);
-  jetProcessor->SetupBranchesForReading(tree);
-  leptonProcessor->SetupBranchesForReading(tree);
-  helixProcessor->SetupBranchesForReading(tree);
+  eventProcessor.SetupBranchesForReading(tree);
+  trackProcessor.SetupBranchesForReading(tree);
+  jetProcessor.SetupBranchesForReading(tree);
+  leptonProcessor.SetupBranchesForReading(tree);
+  helixProcessor.SetupBranchesForReading(tree);
   
   
   for(int iEntry=0;iEntry<tree->GetEntries();iEntry++){
     if(maxNevents>0 && iEntry>maxNevents) break;
     tree->GetEntry(iEntry);
 
-    auto event = eventProcessor->GetEventFromTree(dataType, setIter);
+    auto event = eventProcessor.GetEventFromTree(dataType, setIter);
     
-    vector<shared_ptr<Track>> tracks = trackProcessor->GetTracksFromTree();
+    vector<shared_ptr<Track>> tracks = trackProcessor.GetTracksFromTree();
     
     for(int iTrack=0;iTrack<tracks.size();iTrack++){
       auto track = tracks[iTrack];
@@ -688,19 +665,19 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
       event->AddTrack(track);
     }
     
-    vector<shared_ptr<Helix>> helices = helixProcessor->GetHelicesFromTree();
+    vector<shared_ptr<Helix>> helices = helixProcessor.GetHelicesFromTree();
     
     for(auto helix : helices){
       event->AddHelix(helix);
     }
 
-    vector<shared_ptr<Jet>> jets = jetProcessor->GetJetsFromTree();
+    vector<shared_ptr<Jet>> jets = jetProcessor.GetJetsFromTree();
     
     for(auto jet : jets){
       event->AddJet(jet);
     }
     
-    vector<shared_ptr<Lepton>> leptons = leptonProcessor->GetLeptonsFromTree();
+    vector<shared_ptr<Lepton>> leptons = leptonProcessor.GetLeptonsFromTree();
     
     for(auto lepton : leptons){
       event->AddLepton(lepton);

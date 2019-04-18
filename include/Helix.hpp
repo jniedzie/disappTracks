@@ -114,9 +114,6 @@ private:
   
   Point GetClosestPoint(Point p);
   
-  unique_ptr<PointsProcessor> pointsProcessor;
-  unique_ptr<CircleProcessor> circleProcessor;
-  
   friend class HelixProcessor;
 };
 

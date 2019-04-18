@@ -73,7 +73,6 @@ namespace xtracks {
   };
 }
 
-
 // Plotting style
 const double fillOpacity = 1.0;
 const int fillStyleBack = 1000;

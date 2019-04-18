@@ -13,6 +13,9 @@
 #include "JetProcessor.hpp"
 #include "LeptonProcessor.hpp"
 
+class EventProcessor;
+extern EventProcessor eventProcessor;
+
 class EventProcessor {
 public:
   EventProcessor();
@@ -49,19 +52,16 @@ public:
   vector<shared_ptr<Event>> survivingEvents;
   
 private:
-  unique_ptr<TrackProcessor>  trackProcessor;
-  unique_ptr<JetProcessor>    jetProcessor;
-  unique_ptr<LeptonProcessor> leptonProcessor;
   
   map<string, float>                singleValuesFloat;  ///< Float per-event variables in the current entry
   map<string, int>                  singleValuesInt;     ///< Int per-event variables in the current entry
   map<string, uint>                 singleValuesUint;    ///< uint per-event variables in the current entry
   map<string, unsigned long long>   singleValuesUlonglong;///<long per-event variables in the current entry
   
-  vector<string> singleNamesFloat;     ///< Names or float per-event variables
-  vector<string> singleNamesInt;       ///< Names or int per-event variables
-  vector<string> singleNamesUint;
-  vector<string> singleNamesUlongLong;
+  vector<string> singleNamesFloat;      ///< Names or float per-event variables
+  vector<string> singleNamesInt;        ///< Names or int per-event variables
+  vector<string> singleNamesUint;       ///< Names or uint per-event variables
+  vector<string> singleNamesUlongLong;  ///< Names or long per-event variables
   
 };
 

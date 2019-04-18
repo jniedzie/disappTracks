@@ -1,16 +1,13 @@
-//
 //  Event.cpp
 //
 //  Created by Jeremi Niedziela on 16/07/2018.
-//
 
 #include "Event.hpp"
 
 #include <TLorentzVector.h>
 
 Event::Event() :
-vertex(make_unique<Point>(0,0,0)),
-trackProcessor(make_unique<TrackProcessor>())
+vertex(make_unique<Point>(0,0,0))
 {
   
 }

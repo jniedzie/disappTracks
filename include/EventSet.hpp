@@ -90,12 +90,6 @@ private:
   vector<vector<shared_ptr<Event>>> eventsBackground; ///< Vector of backgrnd events - [EBackkground][iEvent]
   vector<vector<shared_ptr<Event>>> eventsData;       ///< Vector of data events - [EData][iEvent]
   
-  unique_ptr<TrackProcessor>  trackProcessor;
-  unique_ptr<JetProcessor>    jetProcessor;
-  unique_ptr<HelixProcessor>  helixProcessor;
-  unique_ptr<EventProcessor>  eventProcessor;
-  unique_ptr<LeptonProcessor> leptonProcessor;
-  
   /// Default constructor. Loads events from ROOT tree
   /// \param fileName Path to the ROOT file with ntuples from which events will be loaded
   /// \param dataType Event weigth will be calculated differently background, signal and data

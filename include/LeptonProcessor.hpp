@@ -1,14 +1,15 @@
-//
 //  LeptonProcessor.hpp
 //
 //  Created by Jeremi Niedziela on 31/01/2019.
-//
 
 #ifndef LeptonProcessor_hpp
 #define LeptonProcessor_hpp
 
 #include "Helpers.hpp"
 #include "Lepton.hpp"
+
+class LeptonProcessor;
+extern LeptonProcessor leptonProcessor;
 
 /// Class description
 class LeptonProcessor {
