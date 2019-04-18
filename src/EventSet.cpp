@@ -296,8 +296,14 @@ void EventSet::ApplyCuts(const unique_ptr<EventCut> &eventCut,const unique_ptr<T
       
     }
   }
+  
+  vector<int> cutReasons = {0};
+  
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     if(!config->runBackground[iBck]) continue;
+    
+    int nEvents = (int)eventsBackground[iBck].size();
+    
     for(int iEvent=0;iEvent<(int)eventsBackground[iBck].size();){
       
       eventProcessor->ApplyTrackCut(eventsBackground[iBck][iEvent], trackCut);
@@ -310,9 +316,32 @@ void EventSet::ApplyCuts(const unique_ptr<EventCut> &eventCut,const unique_ptr<T
       else{
         iEvent++;
       }
-      
+    }
+    
+    for(int i=0;i<21;i++){
+      nEvents -= eventProcessor->cutReasons[i];
+      cout<<"N events after cut "<<i<<":"<<nEvents<<endl;
+    }
+    
+    auto survivors = eventProcessor->survivingEvents;
+    
+    vector<pair<uint, unsigned long long>> lumi_event;
+    
+    for(auto event : survivors){
+      lumi_event.push_back(make_pair(event->GetLumiSection(), event->GetEventNumber()));
+    }
+    
+    sort(lumi_event.begin(), lumi_event.end());
+    
+    for(auto &[lumi, event] : lumi_event){
+      cout<<lumi<<":"<<event<<endl;
     }
   }
+  
+  
+  
+  
+  
   for(int iData=0;iData<kNdata;iData++){
     if(!config->runData[iData]) continue;
     for(int iEvent=0;iEvent<(int)eventsData[iData].size();){
@@ -393,51 +422,66 @@ void EventSet::DrawStandardPlots(string prefix)
     hist.second->FillFromEvents(make_shared<EventSet>(*this));
   }
   
+  string outPath;
+  if(config->performCutsLevel==0)       outPath = "results/plots_after_L0/";
+  else if(config->performCutsLevel==1)  outPath = "results/plots_after_L1/";
+  else{
+    cout<<"ERROR -- unknown cuts level: "<<config->performCutsLevel<<endl;
+    exit(0);
+  }
+  
+    
   // Plot histograms
-  TCanvas *canvasEvents = new TCanvas((prefix+"Events").c_str(),(prefix+"Events").c_str(),2880,1800);
-  canvasEvents->Divide(3,2);
+  TCanvas *canvasEvents = new TCanvas((prefix+"Events").c_str(),(prefix+"Events").c_str(),800,1200);
+  canvasEvents->Divide(2,3);
   
   hists["nVertices"]->Draw(canvasEvents,1);
-  hists["nIsoTrack"]->Draw(canvasEvents,2);
-  hists["nJet"]->Draw(canvasEvents,3);
-  hists["jet_pt"]->Draw(canvasEvents, 4);
-  hists["nMetPt"]->Draw(canvasEvents,5);
-  hists["nMetJetDphi"]->Draw(canvasEvents,6);
+  hists["nJet"]->Draw(canvasEvents,2);
+  hists["nIsoTrack"]->Draw(canvasEvents,3);
+  hists["nMetPt"]->Draw(canvasEvents,4);
+  hists["nMetJetDphi"]->Draw(canvasEvents,5);
+  hists["trackMetDphi"]->Draw(canvasEvents,6);
   
-  TCanvas *canvasTrack = new TCanvas((prefix+"Tracks").c_str(),(prefix+"Tracks").c_str(),2880,1800);
-  canvasTrack->Divide(4,3);
+  TCanvas *canvasTrack = new TCanvas((prefix+"Tracks").c_str(),(prefix+"Tracks").c_str(),800,1200);
+  canvasTrack->Divide(2,3);
   
   hists["pt"]->Draw(canvasTrack,1);
-  hists["dedx"]->Draw(canvasTrack,2);
-  hists["caloEm"]->Draw(canvasTrack,3);
-  hists["caloHad"]->Draw(canvasTrack,4);
-  hists["eta"]->Draw(canvasTrack,5);
-  hists["phi"]->Draw(canvasTrack,6);
-  hists["trackMetDphi"]->Draw(canvasTrack,7);
-  hists["trackerLayers"]->Draw(canvasTrack,8);
-  hists["dz"]->Draw(canvasTrack,9);
-  hists["isolation"]->Draw(canvasTrack,10);
-  hists["absIsolation"]->Draw(canvasTrack,11);
+  hists["trackerLayers"]->Draw(canvasTrack,2);
+  hists["dedx"]->Draw(canvasTrack,3);
+  hists["isolation"]->Draw(canvasTrack,4);
+  hists["caloEm"]->Draw(canvasTrack,5);
+  hists["caloHad"]->Draw(canvasTrack,6);
   
-  TCanvas *helixCanvas = new TCanvas((prefix+"Helix").c_str(),(prefix+"Helix").c_str(),2880,1800);
-  helixCanvas->Divide(3,3);
-  hists["nHelices"]->Draw(helixCanvas,1);
-  hists["helixX"]->Draw(helixCanvas,2);
-  hists["helixY"]->Draw(helixCanvas,3);
-  hists["helixZ"]->Draw(helixCanvas,4);
-  hists["helixPx"]->Draw(helixCanvas,5);
-  hists["helixPy"]->Draw(helixCanvas,6);
-  hists["helixPz"]->Draw(helixCanvas,7);
-  hists["helixCharge"]->Draw(helixCanvas,8);
+//  hists["eta"]->Draw(canvasTrack,2);
+//  hists["phi"]->Draw(canvasTrack,3);
+//  hists["dz"]->Draw(canvasTrack,9);
+//  hists["absIsolation"]->Draw(canvasTrack,11);
   
-  TCanvas *canvasJets = new TCanvas("Jets","Jets",2880,1800);
-  canvasJets->Divide(3,2);
+  TCanvas *canvasHelix = new TCanvas((prefix+"Helix").c_str(),(prefix+"Helix").c_str(),2880,1800);
+  canvasHelix->Divide(3,3);
+  hists["nHelices"]->Draw(canvasHelix,1);
+  hists["helixX"]->Draw(canvasHelix,2);
+  hists["helixY"]->Draw(canvasHelix,3);
+  hists["helixZ"]->Draw(canvasHelix,4);
+  hists["helixPx"]->Draw(canvasHelix,5);
+  hists["helixPy"]->Draw(canvasHelix,6);
+  hists["helixPz"]->Draw(canvasHelix,7);
+  hists["helixCharge"]->Draw(canvasHelix,8);
   
-  hists["jetTrackDr"]->Draw(canvasJets, 1);
+  TCanvas *canvasJets = new TCanvas("Jets","Jets",800,1200);
+  canvasJets->Divide(2,3);
+  
+  hists["jet_pt"]->Draw(canvasJets, 1);
   hists["jet_eta"]->Draw(canvasJets, 2);
   hists["jet_phi"]->Draw(canvasJets, 3);
-  hists["jetCHF"]->Draw(canvasJets, 4);
-  hists["jetNHF"]->Draw(canvasJets, 5);
+  hists["jetTrackDr"]->Draw(canvasJets, 4);
+  hists["jetCHF"]->Draw(canvasJets, 5);
+  hists["jetNHF"]->Draw(canvasJets, 6);
+  
+  canvasEvents->SaveAs((outPath+"canvas_events.pdf").c_str());
+  canvasTrack->SaveAs((outPath+"canvas_tracks.pdf").c_str());
+  canvasJets->SaveAs((outPath+"canvas_jets.pdf").c_str());
+  canvasHelix->SaveAs((outPath+"canvas_helices.pdf").c_str());
 }
 
 void EventSet::DrawPerLayerPlots()
@@ -580,10 +624,11 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
   leptonProcessor->SetupBranchesForReading(tree);
   helixProcessor->SetupBranchesForReading(tree);
   
+  
   for(int iEntry=0;iEntry<tree->GetEntries();iEntry++){
     if(maxNevents>0 && iEntry>maxNevents) break;
     tree->GetEntry(iEntry);
-    
+
     auto event = eventProcessor->GetEventFromTree(dataType, setIter);
     
     vector<shared_ptr<Track>> tracks = trackProcessor->GetTracksFromTree();

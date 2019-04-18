@@ -15,10 +15,11 @@
 HistSet::HistSet(EVar _var) :
 var(_var)
 {
-  title= get<0>(settings.at(var)).c_str();
+  title = get<0>(settings.at(var)).c_str();
   nBins = get<1>(settings.at(var));
-  min = get<2>(settings.at(var));
-  max = get<3>(settings.at(var));
+  min   = get<2>(settings.at(var));
+  max   = get<3>(settings.at(var));
+  logy  = get<4>(settings.at(var));
   
   for(int iSig=0;iSig<kNsignals;iSig++){
     string histTitle = title+" (signal "+signalTitle[iSig]+")";
@@ -150,8 +151,8 @@ void HistSet::Fill(const shared_ptr<TH1D> &hist,
           jetVector.SetPtEtaPhiM(jet->GetPt(), jet->GetEta(), jet->GetPhi(), jet->GetMass());
           value = metVector.DeltaPhi(jetVector);
         }
-        else if(var == kJetCHF)     value = jet->GetChargedHadronEnergyFraction();
-        else if(var == kJetNHF)     value = jet->GetNeutralHadronEnergyFraction();
+        else if(var == kJetCHF)     value = jet->GetChHEF();
+        else if(var == kJetNHF)     value = jet->GetNeHEF();
         else if(var == kJetTrackDr){
           for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
             shared_ptr<Track> track = event->GetTrack(iTrack);
@@ -271,8 +272,8 @@ void HistSet::Draw(TCanvas *c1, int pad)
   }
   
   THStack *backgroundStack = new THStack(title.c_str(),title.c_str());
-  THStack *signalStack = new THStack(title.c_str(),title.c_str());
-  THStack *dataStack = new THStack(title.c_str(),title.c_str());
+  THStack *signalStack     = new THStack(title.c_str(),title.c_str());
+  THStack *dataStack       = new THStack(title.c_str(),title.c_str());
   
   int nActiveBackgrounds = 0;
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
@@ -291,18 +292,31 @@ void HistSet::Draw(TCanvas *c1, int pad)
     if(!config->runData[iData]) continue;
     dataStack->Add(&*data[iData]);
   }
+  
   if(nActiveBackgrounds > 0){
     backgroundStack->Draw("HIST");
     signalStack->Draw("nostack,same,p");
     dataStack->Draw("nostack,same,p");
+    
+    double maxValue = backgroundStack->GetMaximum();
+    if(signalStack->GetMaximum() > max) maxValue = signalStack->GetMaximum();
+    if(dataStack->GetMaximum() > max)   maxValue = dataStack->GetMaximum();
+    backgroundStack->GetYaxis()->SetLimits(0, 1.1*maxValue);
   }
   else if(nActiveSignals > 0){
     signalStack->Draw("nostack,p");
     dataStack->Draw("nostack,same,p");
+    
+    double maxValue = signalStack->GetMaximum();
+    if(dataStack->GetMaximum() > max)   maxValue = dataStack->GetMaximum();
+    signalStack->GetYaxis()->SetLimits(0, 1.1*maxValue);
   }
   else{
     dataStack->Draw("nostack,p");
+    dataStack->GetYaxis()->SetLimits(0, 1.1*dataStack->GetMaximum());
   }
+  
+  if(logy) gPad->SetLogy();
   
   if(config->showLegends) leg->Draw();
   c1->Update();

@@ -30,6 +30,6 @@ Jet::~Jet()
 void Jet::Print()
 {
   cout<<"Jet pt:"<<pt<<"\teta:"<<eta<<"\tphi:"<<phi<<endl;
-  cout<<"f_CH:"<<chargedHadronEnergyFraction<<"\tf_NE:"<<neutralHadronEnergyFraction<<endl;
+  cout<<"f_CH:"<<chHEF<<"\tf_NE:"<<neHEF<<endl;
   cout<<"forward:"<<isForward<<endl;
 }

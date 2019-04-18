@@ -50,7 +50,7 @@ void Display::AddStripCluster(TEveElementList *stripClusters,
   double errY = point->GetYerr();
   double errZ = point->GetZerr();
   
-  double minSize = 5.0;
+  double minSize = 1.0;
   
   if(errX < minSize) errX = minSize;
   if(errY < minSize) errY = minSize;

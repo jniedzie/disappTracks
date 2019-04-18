@@ -45,6 +45,9 @@ public:
   /// Writes an event to the tree previously set with SetupBranchesForWriting(...)
   void SaveEventToTree(shared_ptr<Event> event);
   
+  int cutReasons[21] = {0};
+  vector<shared_ptr<Event>> survivingEvents;
+  
 private:
   unique_ptr<TrackProcessor>  trackProcessor;
   unique_ptr<JetProcessor>    jetProcessor;

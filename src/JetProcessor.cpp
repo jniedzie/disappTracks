@@ -38,8 +38,8 @@ bool JetProcessor::IsPassingCut(const shared_ptr<Jet> jet,
   if( jet->isForward && cut->GetEtaForward().IsOutside(jet->eta)) return false;
   
   // check hadron energy fractions
-  if(cut->GetChargedHadronEnergyFraction().IsOutside(jet->chargedHadronEnergyFraction)) return false;
-  if(cut->GetNeutralHadronEnergyFraction().IsOutside(jet->neutralHadronEnergyFraction)) return false;
+  if(cut->GetChargedHadronEnergyFraction().IsOutside(jet->chHEF)) return false;
+  if(cut->GetNeutralHadronEnergyFraction().IsOutside(jet->neHEF)) return false;
   
   return true;
 }
@@ -55,8 +55,8 @@ vector<shared_ptr<Jet>> JetProcessor::GetJetsFromTree()
     jet->eta = arrayValuesFloat["Jet_eta"][iJet];
     jet->phi = arrayValuesFloat["Jet_phi"][iJet];
     jet->mass = arrayValuesFloat["Jet_mass"][iJet];
-    jet->chargedHadronEnergyFraction = arrayValuesFloat["Jet_chHEF"][iJet];
-    jet->neutralHadronEnergyFraction = arrayValuesFloat["Jet_neHEF"][iJet];
+    jet->chHEF = arrayValuesFloat["Jet_chHEF"][iJet];
+    jet->neHEF = arrayValuesFloat["Jet_neHEF"][iJet];
     jet->isForward = false;
     
     jets.push_back(jet);
@@ -69,8 +69,8 @@ vector<shared_ptr<Jet>> JetProcessor::GetJetsFromTree()
     jet->eta = arrayValuesFloat["JetFwd_eta"][iJet];
     jet->phi = arrayValuesFloat["JetFwd_phi"][iJet];
     jet->mass = arrayValuesFloat["JetFwd_mass"][iJet];
-    jet->chargedHadronEnergyFraction = arrayValuesFloat["JetFwd_chHEF"][iJet];
-    jet->neutralHadronEnergyFraction = arrayValuesFloat["JetFwd_neHEF"][iJet];
+    jet->chHEF = arrayValuesFloat["JetFwd_chHEF"][iJet];
+    jet->neHEF = arrayValuesFloat["JetFwd_neHEF"][iJet];
     jet->isForward = true;
     
     jets.push_back(jet);
@@ -89,8 +89,8 @@ void JetProcessor::SaveJetsToTree(vector<shared_ptr<Jet>> jets)
     arrayValuesFloat["Jet_eta"][iJet]   = jets[iJet]->GetEta();
     arrayValuesFloat["Jet_phi"][iJet]   = jets[iJet]->GetPhi();
     arrayValuesFloat["Jet_mass"][iJet]  = jets[iJet]->GetMass();
-    arrayValuesFloat["Jet_chHEF"][iJet] = jets[iJet]->GetChargedHadronEnergyFraction();
-    arrayValuesFloat["Jet_neHEF"][iJet] = jets[iJet]->GetNeutralHadronEnergyFraction();
+    arrayValuesFloat["Jet_chHEF"][iJet] = jets[iJet]->GetChHEF();
+    arrayValuesFloat["Jet_neHEF"][iJet] = jets[iJet]->GetNeHEF();
   }
 }
 

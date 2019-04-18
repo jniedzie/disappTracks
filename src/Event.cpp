@@ -27,7 +27,6 @@ Event::Event(const Event &e)
   vertex = make_unique<Point>(*e.vertex);
   SetNjet30(e.nJet30);
   SetNjet30a(e.nJet30a);
-  SetNlepton(e.nLepton);
   SetNtau(e.nTau);
   
   SetMetSumEt(e.metSumEt);

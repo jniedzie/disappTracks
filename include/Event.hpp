@@ -67,7 +67,6 @@ public:
   inline void SetNvertices(int n){nVertices = n;}
   inline void SetNjet30(int n){nJet30 = n;}
   inline void SetNjet30a(int n){nJet30a = n;}
-  inline void SetNlepton(int n){nLepton = n;}
   inline void SetNtau(int n){nTau = n;}
   
   inline void SetMetSumEt(double val){metSumEt = val;}
@@ -109,6 +108,7 @@ public:
   
   inline int GetNtracks(){return (int)tracks.size(); }
   inline int GetNjets(){return (int)jets.size(); }
+  inline int GetNleptons(){return (int)leptons.size(); }
   inline int GetNcentralJets(){
     int n=0;
     for(auto j : jets){
@@ -120,7 +120,6 @@ public:
   inline unique_ptr<Point> GetVertex(){return make_unique<Point>(*vertex);}
   inline int GetNjet30(){return nJet30;}
   inline int GetNjet30a(){return nJet30a;}
-  inline int GetNlepton(){return nLepton;}
   inline int GetNtau(){return nTau;}
   inline int GetNhelices(){return (int)helices.size();}
   
@@ -179,7 +178,6 @@ private:
   unique_ptr<Point> vertex; ///< Primary vertex of the event
   int nJet30;             ///< Number of jets with pt > 30, |eta|<2.4
   int nJet30a;            ///< Number of jets with pt > 30, |eta|<4.7
-  int nLepton;            ///< Number of leptons
   int nTau;               ///< Number of tau leptons
   
   double  metSumEt;       ///< Sum of missing transverse energy

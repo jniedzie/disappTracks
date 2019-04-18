@@ -43,13 +43,14 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
   // Check leading jet properties
   eventCut.SetLeadingJetPt(range<double>(100,inf));
   eventCut.SetLeadingJetEta(range<double>(-2.4,2.4));
-  eventCut.SetLeadingJetNeHEF(range<double>(-inf,0.8));
-  eventCut.SetLeadingJetChHEF(range<double>(0.1,inf));
+  eventCut.SetLeadingJetNeHEF(range<double>(0,0.8));
+  eventCut.SetLeadingJetChHEF(range<double>(0.1,1.0));
   
   // Check number of objects after cuts
   eventCut.SetNtracks(range<int>(1,inf));
   eventCut.SetNjets(range<int>(1,inf));
-  eventCut.SetNmuons(range<int>(0,0));
+  eventCut.SetRequireHighJet(true);
+//  eventCut.SetNmuons(range<int>(0,0));
   eventCut.SetNtaus(range<int>(0,0));
   eventCut.SetNleptons(range<int>(0,0));
   

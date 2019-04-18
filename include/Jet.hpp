@@ -28,18 +28,18 @@ public:
   inline double GetEta(){return eta;}
   inline double GetPhi(){return phi;}
   inline double GetMass(){return mass;}
-  inline double GetChargedHadronEnergyFraction(){return chargedHadronEnergyFraction;}
-  inline double GetNeutralHadronEnergyFraction(){return neutralHadronEnergyFraction;}
+  inline double GetChHEF(){return chHEF;}
+  inline double GetNeHEF(){return neHEF;}
   inline bool   IsForward(){return isForward;}
   
 private:
-  double pt;                          ///< Transverse momentum
-  double eta;                         ///< Pseudorapidity
-  double phi;                         ///< Polar angle
-  double mass;                        ///< Mass
-  double chargedHadronEnergyFraction; ///< Energy fraction carried by charged hadrons
-  double neutralHadronEnergyFraction; ///< Energy fraction carried by neutral hadrons
-  bool   isForward;                   ///< is this a forward jet, or a regular one
+  double pt;        ///< Transverse momentum
+  double eta;       ///< Pseudorapidity
+  double phi;       ///< Polar angle
+  double mass;      ///< Mass
+  double chHEF;     ///< Energy fraction carried by charged hadrons
+  double neHEF;     ///< Energy fraction carried by neutral hadrons
+  bool   isForward; ///< is this a forward jet, or a regular one
   
   friend class JetProcessor;
 };

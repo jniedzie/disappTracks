@@ -63,6 +63,8 @@ EventCut::EventCut(const EventCut &c)
   highJet         = c.highJet;
   tightMuon       = c.tightMuon;
   twoOpositeMuons = c.twoOpositeMuons;
+  
+  requirePassAllFilters = c.requirePassAllFilters;
 }
 
 EventCut::~EventCut()

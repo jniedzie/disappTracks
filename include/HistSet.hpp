@@ -52,6 +52,7 @@ private:
   int nBins;                ///< Number of bins for this variable
   double min;               ///< X axis minimum for this variable
   double max;               ///< X axis maximum for this variable
+  bool logy;                ///< Should Y axis be drawn in a log scale
   
   /// Fills per-layer plots with data from privided EventSet
   /// \param events EventSet from which histograms will be filled

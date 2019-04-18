@@ -81,7 +81,7 @@ void LeptonProcessor::SaveLeptonsToTree(vector<shared_ptr<Lepton>> leptons)
 void LeptonProcessor::SetupBranchesForReading(TTree *tree)
 {
   // single int variables
-  tree->SetBranchAddress("nLepGood",    &nLeptons);
+  tree->SetBranchAddress("nLepGood", &nLeptons);
   
   for(string name : arrayNamesFloat){
     if(!tree->GetBranchStatus(name.c_str())){
