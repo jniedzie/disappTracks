@@ -7,7 +7,8 @@
 #include "Helix.hpp"
 
 Helix::Helix() :
-origin(0,0,0)
+origin(0,0,0),
+eventVertex(0,0,0)
 {
   
 }
@@ -18,7 +19,8 @@ Helix::Helix(const Point &_origin,
 vertex(make_unique<Point>(_origin)),
 origin(_origin),
 momentum(make_unique<Point>(*_momentum)),
-charge(_charge)
+charge(_charge),
+eventVertex(0,0,0)
 {
   radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
   slope = radius * charge * momentum->GetVectorSlopeC();
@@ -49,16 +51,6 @@ charge(_charge)
 }
 
 Helix::Helix(const Helix &h) :
-Lmin(h.Lmin),
-Lmax(h.Lmax),
-bmin(h.bmin),
-bmax(h.bmax),
-s0min(h.s0min),
-s0max(h.s0max),
-amin(h.amin),
-amax(h.amax),
-R0min(h.R0min),
-R0max(h.R0max),
 iCycles(h.iCycles),
 isFinished(h.isFinished),
 slope_valmin(h.slope_valmin),
@@ -79,9 +71,14 @@ track(h.track),
 radius(h.radius),
 slope(h.slope),
 slopeAbs(h.slopeAbs),
-charge(h.charge)
+charge(h.charge),
+eventVertex(h.eventVertex)
 {
   uniqueID = reinterpret_cast<uint64_t>(this);
+  
+  for(int i=0;i<kNhelixParams;i++){
+    params[i] = h.params[i];
+  }
 }
 
 Helix Helix::operator=(const Helix &h)
@@ -89,55 +86,50 @@ Helix Helix::operator=(const Helix &h)
   Helix result(h.origin, h.momentum, h.charge);
   
   result.uniqueID = reinterpret_cast<uint64_t>(this);
-  
-  result.Lmin = h.Lmin;
-  result.Lmax = h.Lmax;
-  result.bmin = h.bmin;
-  result.bmax = h.bmax;
-  result.s0min = h.s0min;
-  result.s0max = h.s0max;
-  result.amin = h.amin;
-  result.amax = h.amax;
-  result.R0min = h.R0min;
-  result.R0max = h.R0max;
-  result.iCycles = h.iCycles;
-  result.isFinished = h.isFinished;
-  result.slope_valmin = h.slope_valmin;
-  result.slope_valmax = h.slope_valmax;
-  result.radius_valmin = h.radius_valmin;
-  result.radius_valmax = h.radius_valmax;
-  result.seedID = h.seedID;
-  result.points = h.points;
-  result.tShift = h.tShift;
-  result.tMax = h.tMax;
-  result.tStep = h.tStep;
+
+  result.iCycles        = h.iCycles;
+  result.isFinished     = h.isFinished;
+  result.slope_valmin   = h.slope_valmin;
+  result.slope_valmax   = h.slope_valmax;
+  result.radius_valmin  = h.radius_valmin;
+  result.radius_valmax  = h.radius_valmax;
+  result.seedID         = h.seedID;
+  result.points         = h.points;
+  result.tShift         = h.tShift;
+  result.tMax           = h.tMax;
+  result.tStep          = h.tStep;
   result.nRegularPoints = h.nRegularPoints;
-  result.nPionPoints = h.nPionPoints;
-  result.vertex = make_unique<Point>(*h.vertex);
-  result.track = h.track;
-  result.radius = h.radius;
-  result.slope = h.slope;
-  result.slopeAbs = h.slopeAbs;
+  result.nPionPoints    = h.nPionPoints;
+  result.vertex         = make_unique<Point>(*h.vertex);
+  result.track          = h.track;
+  result.radius         = h.radius;
+  result.slope          = h.slope;
+  result.slopeAbs       = h.slopeAbs;
+  result.eventVertex    = h.eventVertex;
+  
+  for(int i=0;i<kNhelixParams;i++){
+    result.params[i]  = h.params[i];
+  }
   
   return result;
 }
 
 Helix::Helix(const Track &_track, const Point &p1, const Point &p2, const Point &_eventVertex) :
-origin(Point(0,0,0))
+origin(Point(0,0,0)),
+eventVertex(_eventVertex)
 {
   seedID = uniqueID = reinterpret_cast<uint64_t>(this);
   
   track = _track;
-  
+  charge = track.GetCharge();
   int nLayers = track.GetNtrackerLayers();
-  
-  Lmin = layerR[nLayers-1];
-  Lmax = layerR[nLayers];
+  double Lmin = layerR[nLayers-1];
+  double Lmax = layerR[nLayers];
   
   // approximated position of the decay vertex
-  vertex = make_unique<Point>((Lmin+Lmax)/2. * cos(track.GetPhi())    + 10*_eventVertex.GetX(),
-                              (Lmin+Lmax)/2. * sin(track.GetPhi())    + 10*_eventVertex.GetY(),
-                              (Lmin+Lmax)/2. / tan(track.GetTheta())  + 10*_eventVertex.GetZ(),
+  vertex = make_unique<Point>((Lmin+Lmax)/2. * cos(track.GetPhi())    + 10*eventVertex.GetX(),
+                              (Lmin+Lmax)/2. * sin(track.GetPhi())    + 10*eventVertex.GetY(),
+                              (Lmin+Lmax)/2. / tan(track.GetTheta())  + 10*eventVertex.GetZ(),
                               0.0, "",
                               fabs( (Lmax-Lmin)/2. * cos(track.GetPhi()) ),
                               fabs( (Lmax-Lmin)/2. * sin(track.GetPhi()) ),
@@ -149,120 +141,63 @@ origin(Point(0,0,0))
   points.push_back(make_shared<Point>(p2));
   
   auto circle = circleProcessor.GetCircleFromTriplet(points);
-  
+  // this is an approximation, but seems to be ok. It would be perfect to analytically solve the real
+  // equations' set for first 3 points on the helix and calculate origin precisely...
   origin = circle->GetCenter();
-  
-  double t0 = atan2(vertex->GetY() - origin.GetY(), vertex->GetX() - origin.GetX());
-  
-  double t1 = atan2(p1.GetY() - origin.GetY(), p1.GetX() - origin.GetX());
-  while(t1 < t0) t1 += 2*TMath::Pi();
-  
-  double t2 = atan2(p2.GetY() - origin.GetY(), p2.GetX() - origin.GetX());
-  while(t2 < t1) t2 += 2*TMath::Pi();
-  
-  tShift = t0;
   
   // this only gives approximate direction of the momentum vector
   momentum = make_unique<Point>(p1.GetX() - vertex->GetX(),
                                 p1.GetY() - vertex->GetY(),
                                 p1.GetZ() - vertex->GetZ());
   
-  charge = track.GetCharge();
   
-  double z0_min = vertex->GetZ()-vertex->GetZerr() - config.helixThickness;
-  double z0_max = vertex->GetZ()+vertex->GetZerr() + config.helixThickness;
   
-  double z1_min = p1.GetZ()-p1.GetZerr() - config.helixThickness;
-  double z1_max = p1.GetZ()+p1.GetZerr() + config.helixThickness;
+  vector<Point> p0_variants;
+  p0_variants.push_back(Point(Lmin * cos(track.GetPhi())   + 10*eventVertex.GetX(),
+                              Lmin * sin(track.GetPhi())   + 10*eventVertex.GetY(),
+                              Lmin / tan(track.GetTheta()) + 10*eventVertex.GetZ()));
   
-  double z2_min = p2.GetZ()-p2.GetZerr() - config.helixThickness;
-  double z2_max = p2.GetZ()+p2.GetZerr() + config.helixThickness;
+  p0_variants.push_back(Point(Lmax * cos(track.GetPhi())   + 10*eventVertex.GetX(),
+                              Lmax * sin(track.GetPhi())   + 10*eventVertex.GetY(),
+                              Lmax / tan(track.GetTheta()) + 10*eventVertex.GetZ()));
   
-  // calculate all possible pairs of b -- s0 values and find extreme ones:
-  CalcAndUpdateSlopeVars(z0_min, t0, z1_min, t1, z2_min, t2);
-  CalcAndUpdateSlopeVars(z0_max, t0, z1_min, t1, z2_min, t2);
-  CalcAndUpdateSlopeVars(z0_min, t0, z1_max, t1, z2_min, t2);
-  CalcAndUpdateSlopeVars(z0_min, t0, z1_min, t1, z2_max, t2);
-  CalcAndUpdateSlopeVars(z0_max, t0, z1_max, t1, z2_max, t2);
-  CalcAndUpdateSlopeVars(z0_min, t0, z1_max, t1, z2_max, t2);
-  CalcAndUpdateSlopeVars(z0_max, t0, z1_min, t1, z2_max, t2);
-  CalcAndUpdateSlopeVars(z0_max, t0, z1_max, t1, z2_min, t2);
+  vector<Point> p1_variants;
+  vector<Point> p2_variants;
+  
+  vector<vector<int>> signs = { { 1, 1, 1},
+                                { 1, 1,-1},
+                                { 1,-1, 1},
+                                { 1,-1,-1},
+                                {-1, 1, 1},
+                                {-1, 1,-1},
+                                {-1,-1, 1},
+                                {-1,-1,-1}
+  };
+  
+  for(int i=0;i<8;i++){
+    p1_variants.push_back(Point(p1));
+    p1_variants[i].SetX(p1.GetX() + signs[i][0] * p1.GetXerr());
+    p1_variants[i].SetY(p1.GetY() + signs[i][1] * p1.GetYerr());
+    p1_variants[i].SetZ(p1.GetZ() + signs[i][2] * p1.GetZerr());
+    
+    p2_variants.push_back(Point(p2));
+    p2_variants[i].SetX(p2.GetX() + signs[i][0] * p2.GetXerr());
+    p2_variants[i].SetY(p2.GetY() + signs[i][1] * p2.GetYerr());
+    p2_variants[i].SetZ(p2.GetZ() + signs[i][2] * p2.GetZerr());
+  }
+  
+  for(Point p0 : p0_variants){
+    for(Point p1 : p1_variants){
+      for(Point p2 : p2_variants){
+        CalcAndUpateHelixParams(p0, p1, p2);
+      }
+    }
+  }
 
-  // make sure that ranges are in the correct order:
-  if(s0min > s0max) swap(s0min, s0max);
-  if(bmin > bmax) swap(bmin, bmax);
-  
-  origin.SetZ((z0_min+z0_max)/2. - GetSlope(t0)*t0);
-  
-  double x0_min = vertex->GetX() - vertex->GetXerr() - config.helixThickness;
-  double x0_max = vertex->GetX() + vertex->GetXerr() + config.helixThickness;
-  
-  double x1_min = p1.GetX()-p1.GetXerr()-config.helixThickness;
-  double x1_max = p1.GetX()+p1.GetXerr()+config.helixThickness;
-  
-  double x2_min = p2.GetX()-p2.GetXerr()-config.helixThickness;
-  double x2_max = p2.GetX()+p2.GetXerr()+config.helixThickness;
-  
-  CalcAndUpdateRadiiVars(x0_min, t0, x1_min, t1, x2_min, t2);
-  CalcAndUpdateRadiiVars(x0_max, t0, x1_min, t1, x2_min, t2);
-  CalcAndUpdateRadiiVars(x0_min, t0, x1_max, t1, x2_min, t2);
-  CalcAndUpdateRadiiVars(x0_min, t0, x1_min, t1, x2_max, t2);
-  CalcAndUpdateRadiiVars(x0_max, t0, x1_max, t1, x2_max, t2);
-  CalcAndUpdateRadiiVars(x0_min, t0, x1_max, t1, x2_max, t2);
-  CalcAndUpdateRadiiVars(x0_max, t0, x1_min, t1, x2_max, t2);
-  CalcAndUpdateRadiiVars(x0_max, t0, x1_max, t1, x2_min, t2);
-  
-  if(R0min > R0max) swap(R0min, R0max);
-  if(amin > amax) swap(amin, amax);
-  
-  tMax = t2;
   tStep = 0.01;
   iCycles=0;
+  
 }
-
-pair<double, double> Helix::CalcSlopeVars(double z0, double t0, double z1, double t1, double z2, double t2)
-{
-  double b_num = (z0-z2)*(t0-t1) - (z0-z1)*(t0-t2);
-  double b_den = (t2*t2-t0*t0)*(t0-t1) - (t1*t1-t0*t0)*(t0-t2);
-  double b = b_num/b_den;
-  double s0 = ( z0 - z1 - b*(t1*t1-t0*t0)) / (t0-t1);
-  
-  return make_pair(s0, b);
-}
-
-pair<double, double> Helix::CalcRadiiVars(double x0, double t0, double x1, double t1, double x2, double t2)
-{
-  double a_num = (x0-x2)*(cos(t0)-cos(t1)) - (x0-x1)*(cos(t0)-cos(t2));
-  double a_den = (cos(t0)-cos(t1))*(t2*cos(t2)-t0*cos(t0)) - (cos(t0)-cos(t2))*(t1*cos(t1)-t0*cos(t0));
-  double a = a_num/a_den;
-  double R0 = ( x0 - x1 - a*(t1*cos(t1)-t0*cos(t0))) / (cos(t0)-cos(t1));
-  
-  return make_pair(R0, a);
-}
-
-void Helix::CalcAndUpdateSlopeVars(double z0, double t0, double z1, double t1, double z2, double t2)
-{
-  const auto &[s0, b] = CalcSlopeVars(z0, t0, z1, t1, z2, t2);
-  
-  double testT = 2*TMath::Pi();
-  double val = s0 - b*testT;
-  
-  if(val < slope_valmin){ slope_valmin = val; s0min = s0; bmin = b; }
-  if(val > slope_valmax){ slope_valmax = val; s0max = s0; bmax = b; }
-}
-
-void Helix::CalcAndUpdateRadiiVars(double x0, double t0, double x1, double t1, double x2, double t2)
-{
-  const auto &[R0, a] = CalcRadiiVars(x0, t0, x1, t1, x2, t2);
-  
-  double testT = 2*TMath::Pi();
-  double val = R0 - a*testT;
-  
-  if(val < radius_valmin){ radius_valmin = val; R0min = R0; amin = a; }
-  if(val > radius_valmax){ radius_valmax = val; R0max = R0; amax = a; }
-}
-
-
 
 bool Helix::ExtendByPoint(const Point &point)
 {
@@ -271,144 +206,156 @@ bool Helix::ExtendByPoint(const Point &point)
     if(*p==point) return false;
   }
   
-  
-  Point p0 = *points[0];
-  Point p1 = *points[points.size()-1];
+  HelixParams newParams;
+
   Point p2 = point;
   
-  double t0 = tShift;
-  double t1 = tMax;
-  double t2 = atan2(p2.GetY() - origin.GetY(), p2.GetX() - origin.GetX());
+  double t2[kNhelixParams];
+  vector<Point> limitPoint(kNhelixParams);
   
-  while(t2 < t1) t2 += 2*TMath::Pi();
-
-  tMax = t2;
-
-  // vertex
-  double z0_min = p0.GetZ()-p0.GetZerr() - config.helixThickness;
-  double z0_max = p0.GetZ()+p0.GetZerr() + config.helixThickness;
-  
-  // last point on the helix
-  double z1_min = p1.GetZ()-p1.GetZerr() - config.helixThickness;
-  double z1_max = p1.GetZ()+p1.GetZerr() + config.helixThickness;
-  
-  // the new candidate point
-  double z2_min = p2.GetZ()-p2.GetZerr() - config.helixThickness;
-  double z2_max = p2.GetZ()+p2.GetZerr() + config.helixThickness;
-  
-  vector<pair<double, double>> s0_b;
-  
-  s0_b.push_back(CalcSlopeVars(z0_min, t0, z1_min, t1, z2_min, t2));
-  s0_b.push_back(CalcSlopeVars(z0_max, t0, z1_min, t1, z2_min, t2));
-  s0_b.push_back(CalcSlopeVars(z0_min, t0, z1_max, t1, z2_min, t2));
-  s0_b.push_back(CalcSlopeVars(z0_min, t0, z1_min, t1, z2_max, t2));
-  s0_b.push_back(CalcSlopeVars(z0_max, t0, z1_max, t1, z2_max, t2));
-  s0_b.push_back(CalcSlopeVars(z0_min, t0, z1_max, t1, z2_max, t2));
-  s0_b.push_back(CalcSlopeVars(z0_max, t0, z1_min, t1, z2_max, t2));
-  s0_b.push_back(CalcSlopeVars(z0_max, t0, z1_max, t1, z2_min, t2));
-  
-  double testT = 2*TMath::Pi();
-  
-  double new_s0min = inf;
-  double new_s0max = -inf;
-  
-  double new_bmin = inf;
-  double new_bmax = -inf;
-  
-  double new_valmin = inf;
-  double new_valmax = -inf;
-  
-  for(auto &[s0, b] : s0_b){
-    double val = s0 - b*testT;
+  for(int iParamNum = 0; iParamNum<kNhelixParams; iParamNum++){
+    EHelixParams iParam = static_cast<EHelixParams>(iParamNum);
     
-    if(val < new_valmin){ new_valmin = val; new_s0min = s0; new_bmin = b; }
-    if(val > new_valmax){ new_valmax = val; new_s0max = s0; new_bmax = b; }
+    // for given helix params, minimizing of maximizing radius or slope, find angle for the new point
+    // and calculate limiting point in that plane
+    t2[iParam] = atan2(p2.GetY() - origin.GetY(), p2.GetX() - origin.GetX());
+    while(t2[iParam] < params[iParam].tMax) t2[iParam] += 2*TMath::Pi();
+    
+    Point paramOrigin = GetOrigin(iParam);
+    
+    limitPoint[iParam].SetX(paramOrigin.GetX() + GetRadius(t2[iParam], iParam) * cos(t2[iParam]));
+    limitPoint[iParam].SetY(paramOrigin.GetY() + GetRadius(t2[iParam], iParam) * sin(t2[iParam]));
+    limitPoint[iParam].SetZ(paramOrigin.GetZ() + GetSlope(t2[iParam], iParam)  * t2[iParam]);
   }
   
-  if(new_s0min > new_s0max) swap(new_s0min, new_s0max);
-  if(new_bmin > new_bmax) swap(new_bmin, new_bmax);
+  // then, check if new point is between those 4 limiting points (within it's errors)
+  double minX=inf, maxX=-inf;
+  double minY=inf, maxY=-inf;
+  double minZ=inf, maxZ=-inf;
   
-  // if there's no overlap between new limits and the current ones:
-  if(new_s0max < s0min || new_s0min > s0max ||
-     new_bmax < bmin || new_bmin > bmax
+  for(Point p : limitPoint){
+    if(p.GetX() < minX) minX = p.GetX();
+    if(p.GetX() > maxX) maxX = p.GetX();
+    if(p.GetY() < minY) minY = p.GetY();
+    if(p.GetY() > maxY) maxY = p.GetY();
+    if(p.GetZ() < minZ) minZ = p.GetZ();
+    if(p.GetZ() > maxZ) maxZ = p.GetZ();
+  }
+  
+  if(   p2.GetX() + p2.GetXerr() < minX
+     || p2.GetX() - p2.GetXerr() > maxX
+     || p2.GetY() + p2.GetYerr() < minY
+     || p2.GetY() - p2.GetYerr() > maxY
+     || p2.GetZ() + p2.GetZerr() < minZ
+     || p2.GetZ() - p2.GetZerr() > maxZ
      ){
     return false;
   }
   
-  if(new_s0max < s0max) s0max = new_s0max;
-  if(new_s0min > s0min) s0min = new_s0min;
+  // next, take vertex, the last point on the helix and the new point and narrow down the limits
+  /*
+  Point p0 = *vertex;
+  Point p1 = *points[points.size()-1];
   
-  if(new_bmax < bmax) bmax = new_bmax;
-  if(new_bmin > bmin) bmin = new_bmin;
+  double t0 = params[iParam].tSecondMax;
+  double t1 = params[iParam].tMax;
   
-  // vertex
-  double x0_min = p0.GetX()-p0.GetXerr() - config.helixThickness;
-  double x0_max = p0.GetX()+p0.GetXerr() + config.helixThickness;
+//  newParams.tSecondMax = t1;
+//  newParams.tMax       = t2;
   
-  // last point on the helix
-  double x1_min = p1.GetX()-p1.GetXerr() - config.helixThickness;
-  double x1_max = p1.GetX()+p1.GetXerr() + config.helixThickness;
+  vector<Point> p0_variants;
+  vector<Point> p1_variants;
+  vector<Point> p2_variants;
   
-  // the new candidate point
-  double x2_min = p2.GetX()-p2.GetXerr() - config.helixThickness;
-  double x2_max = p2.GetX()+p2.GetXerr() + config.helixThickness;
+  vector<vector<int>> signs = { { 1, 1, 1},
+                                { 1, 1,-1},
+                                { 1,-1, 1},
+                                { 1,-1,-1},
+                                {-1, 1, 1},
+                                {-1, 1,-1},
+                                {-1,-1, 1},
+                                {-1,-1,-1}
+  };
   
-  vector<pair<double, double>> R0_a;
-  
-  R0_a.push_back(CalcRadiiVars(x0_min, t0, x1_min, t1, x2_min, t2));
-  R0_a.push_back(CalcRadiiVars(x0_max, t0, x1_min, t1, x2_min, t2));
-  R0_a.push_back(CalcRadiiVars(x0_min, t0, x1_max, t1, x2_min, t2));
-  R0_a.push_back(CalcRadiiVars(x0_min, t0, x1_min, t1, x2_max, t2));
-  R0_a.push_back(CalcRadiiVars(x0_max, t0, x1_max, t1, x2_max, t2));
-  R0_a.push_back(CalcRadiiVars(x0_min, t0, x1_max, t1, x2_max, t2));
-  R0_a.push_back(CalcRadiiVars(x0_max, t0, x1_min, t1, x2_max, t2));
-  R0_a.push_back(CalcRadiiVars(x0_max, t0, x1_max, t1, x2_min, t2));
-  
-  double new_R0min = inf;
-  double new_R0max = -inf;
-  
-  double new_amin = inf;
-  double new_amax = -inf;
-  
-  double new_radius_valmin = inf;
-  double new_radius_valmax = -inf;
-  
-  testT = 2*TMath::Pi();
-  
-  for(auto &[R0, a] : R0_a){
-    double val = R0 - a*testT;
+  for(int i=0;i<8;i++){
+    p0_variants.push_back(Point(p0));
+    p0_variants[i].SetX(p0.GetX() + signs[i][0] * p0.GetXerr());
+    p0_variants[i].SetY(p0.GetY() + signs[i][1] * p0.GetYerr());
+    p0_variants[i].SetZ(p0.GetZ() + signs[i][2] * p0.GetZerr());
     
-    if(val < new_radius_valmin){ new_radius_valmin = val; new_R0min = R0; new_amin = a; }
-    if(val > new_radius_valmax){ new_radius_valmax = val; new_R0max = R0; new_amax = a; }
+    p1_variants.push_back(Point(p1));
+    p1_variants[i].SetX(p1.GetX() + signs[i][0] * p1.GetXerr());
+    p1_variants[i].SetY(p1.GetY() + signs[i][1] * p1.GetYerr());
+    p1_variants[i].SetZ(p1.GetZ() + signs[i][2] * p1.GetZerr());
+    
+    p2_variants.push_back(Point(p2));
+    p2_variants[i].SetX(p2.GetX() + signs[i][0] * p2.GetXerr());
+    p2_variants[i].SetY(p2.GetY() + signs[i][1] * p2.GetYerr());
+    p2_variants[i].SetZ(p2.GetZ() + signs[i][2] * p2.GetZerr());
   }
   
-  if(new_R0min > new_R0max) swap(new_R0min, new_R0max);
-  if(new_amin > new_amax) swap(new_amin, new_amax);
-  
-  // if there's no overlap between new limits and the current ones:
-  if(new_R0max < R0min || new_R0min > R0max ||
-     new_amax < amin || new_amin > amax
-     ){
-    return false;
+  for(Point p0 : p0_variants){
+    for(Point p1 : p1_variants){
+      for(Point p2 : p2_variants){
+        
+        HelixParams newParamsTmp = CalcHelixParams(p0, t0, p1, t1, p2, t2);
+        
+        
+        
+      }
+    }
   }
-  
-  if(new_R0max < R0max) R0max = new_R0max;
-  if(new_R0min > R0min) R0min = new_R0min;
-  
-  if(new_amax < amax) amax = new_amax;
-  if(new_amin > amin) amin = new_amin;
-  
-  // adjust position of the origin
-  double y0_min = p0.GetY()-p0.GetYerr() - config.helixThickness;
-  double y0_max = p0.GetY()+p0.GetYerr() + config.helixThickness;
-  
-  origin.SetX((x0_min+x0_max)/2. - GetRadius(t0)*cos(t0));
-  origin.SetY((y0_min+y0_max)/2. - GetRadius(t0)*sin(t0));
-  origin.SetZ((z0_min+z0_max)/2. - GetSlope(t0)*t0);
+ 
+  */
   
   points.push_back(make_shared<Point>(point));
 
   return true;
+}
+
+HelixParams Helix::CalcHelixParams(const Point &p0, double t0,
+                                   const Point &p1, double t1,
+                                   const Point &p2, double t2)
+{
+  double b_num = (p0.GetZ()-p2.GetZ())*(t0-t1) - (p0.GetZ()-p1.GetZ())*(t0-t2);
+  double b_den = (t2*t2-t0*t0)*(t0-t1) - (t1*t1-t0*t0)*(t0-t2);
+  double b = b_num/b_den;
+  double s0 = ( p0.GetZ() - p1.GetZ() - b*(t1*t1-t0*t0)) / (t0-t1);
+  
+  double a_num = (p0.GetX()-p2.GetX())*(cos(t0)-cos(t1)) - (p0.GetX()-p1.GetX())*(cos(t0)-cos(t2));
+  double a_den = (cos(t0)-cos(t1))*(t2*cos(t2)-t0*cos(t0)) - (cos(t0)-cos(t2))*(t1*cos(t1)-t0*cos(t0));
+  double a = a_num/a_den;
+  double R0 = ( p0.GetX() - p1.GetX() - a*(t1*cos(t1)-t0*cos(t0))) / (cos(t0)-cos(t1));
+  
+  HelixParams params(R0, a, s0, b);
+  return params;
+}
+
+void Helix::CalcAndUpateHelixParams(const Point &p0, const Point &p1, const Point &p2)
+{
+  double t0 = atan2(p0.GetY() - origin.GetY(), p0.GetX() - origin.GetX());
+  double t1 = atan2(p1.GetY() - origin.GetY(), p1.GetX() - origin.GetX());
+  while(t1 < t0) t1 += 2*TMath::Pi();
+  double t2 = atan2(p2.GetY() - origin.GetY(), p2.GetX() - origin.GetX());
+  while(t2 < t1) t2 += 2*TMath::Pi();
+  
+  HelixParams par = CalcHelixParams(p0, t0, p1, t1, p2, t2);
+  
+  par.tShift     = t0;
+  par.tSecondMax = t1;
+  par.tMax       = t2;
+  par.zShift = p2.GetZ() - (par.s0-par.b*t2)*t2;
+  
+  double testT = 100*TMath::Pi();
+  
+  double valR = par.R0 - par.a*testT;
+  double valS = par.s0 - par.b*testT;
+  
+  if(valS < slope_valmin){slope_valmin = valS; params[kMinS] = par;}
+  if(valS > slope_valmax){slope_valmax = valS; params[kMaxS] = par;}
+  
+  if(valR < radius_valmin){radius_valmin = valR; params[kMinR] = par;}
+  if(valR > radius_valmax){radius_valmax = valR; params[kMaxR] = par;}
 }
 
 void Helix::Print()
@@ -420,11 +367,6 @@ void Helix::Print()
   cout<<"\tMomentum:("<<momentum->GetX()<<","<<momentum->GetY()<<","<<momentum->GetZ()<<")\n";
   cout<<"\tCharge: "<<charge<<"\tR:"<<radius<<"\tc:"<<slope<<"\n";
   cout<<"\tnPoints:"<<points.size()<<"\tnPionPoints:"<<nPionPoints<<"\tnRegularPoints:"<<nRegularPoints<<"\n";
-  cout<<"\tL:"<<Lmin<<" -- "<<Lmax<<endl;
-  cout<<"\tb:"<<bmin<<" -- "<<bmax<<endl;
-  cout<<"\ts0:"<<s0min<<" -- "<<s0max<<endl;
-  cout<<"\ta:"<<amin<<" -- "<<amax<<endl;
-  cout<<"\tR:"<<R0min<<" -- "<<R0max<<endl;
   cout<<"\tt min:"<<tShift<<"\tt max:"<<tMax<<endl;
 }
 

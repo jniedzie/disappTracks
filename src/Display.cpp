@@ -108,32 +108,26 @@ void Display::DrawShrinkingHelix(const Helix &helix, const map<string,any> optio
 {
   TEvePointSetArray *helixPoints = PreparePointsEventDisplay(options);
   
-  double tMin  = helix.GetTmin();
-  double tMax  = helix.GetTmax();
-  double tStep = helix.GetTstep();
-  
-//  int zSign = sgn(helix.GetMomentum()->GetZ());
-  
-  auto fillPointForT = [&](double t){
-    double x =  helix.GetOrigin().GetX();
-    double y =  helix.GetOrigin().GetY();
-    double z =  helix.GetOrigin().GetZ() + helix.GetSlope(t)*t;
+  auto fillPointForT = [&](double t, EHelixParams iParam){
+    double x =  helix.GetOrigin(iParam).GetX();
+    double y =  helix.GetOrigin(iParam).GetY();
+    double z =  helix.GetOrigin(iParam).GetZ() + helix.GetSlope(t, iParam)*t;
     
-//    if(helix.GetCharge()*zSign < 0){
-      x += helix.GetRadius(t)*cos(t);
-      y += helix.GetRadius(t)*sin(t);
-//    }
-//    else{
-//      x += helix->GetRadius(t)*sin(t);
-//      y += helix->GetRadius(t)*cos(t);
-//    }
+    x += helix.GetRadius(t, iParam)*cos(t);
+    y += helix.GetRadius(t, iParam)*sin(t);
     
     helixPoints->Fill(scale*x,scale*y,scale*z, 0);
   };
   
-//  if(zSign < 0) for(double t = tMin; t > -tMax; t -= tStep){fillPointForT(t);}
-//  else
-    for(double t = tMin; t <  tMax; t += tStep){fillPointForT(t);}
+  double tStep = helix.GetTstep();
+  double t;
+  for(int iParam=0; iParam<kNhelixParams; iParam++){
+    for(t = helix.GetTmin((EHelixParams)iParam);
+        t <  helix.GetTmax((EHelixParams)iParam);
+        t += tStep){
+      fillPointForT(t, (EHelixParams)iParam);
+    }
+  }
   
   helixPoints->SetRnrSelf(kTRUE);
   gEve->AddElement(helixPoints);

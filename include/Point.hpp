@@ -10,7 +10,10 @@
 class Point
 {
 public:
-  /// Default constructor taking XYZ coordinates and optionally a value in this point
+  /// Default constructor
+  Point();
+  
+  /// Constructor taking XYZ coordinates and optionally a value in this point, sub-detector name and errors
   Point(double _x, double _y, double _z, double _value=0, string _subDetName="",
         double _errX=0, double _errY=0, double _errZ=0);
   

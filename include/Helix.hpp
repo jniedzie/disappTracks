@@ -12,6 +12,29 @@
 #include "ConfigManager.hpp"
 #include "Track.hpp"
 
+struct HelixParams
+{
+  HelixParams(){}
+  HelixParams(double _R0, double _a, double _s0, double _b) : R0(_R0), a(_a), s0(_s0), b(_b) {}
+  double R0; // initial radius
+  double a;  // radius decrease rate
+  double s0; // initial Z-slope
+  double b;  // Z-slope decrease rate
+  double tShift;
+  double tSecondMax;
+  double tMax;
+  double zShift;
+};
+
+enum EHelixParams
+{
+  kMinS = 0,
+  kMaxS,
+  kMinR,
+  kMaxR,
+  kNhelixParams
+};
+
 class Helix
 {
 public:
@@ -42,14 +65,24 @@ public:
   // Getters
   vector<shared_ptr<Point>>  GetPoints() const {return points;}
   
-  inline const Point&   GetOrigin() const {return origin;}
+  inline Point  GetOrigin(EHelixParams iParam=kNhelixParams) const {
+    Point result(origin);
+    if(iParam != kNhelixParams) result.SetZ(params[iParam].zShift);
+    return result;
+  }
   inline unique_ptr<Point>  GetMomentum() const {return make_unique<Point>(*momentum);}
   inline double   GetRadius() const {return radius;}
   inline double   GetSlope() const {return slope;}
   inline int      GetCharge() const {return charge;}
   
-  inline double   GetTmin() const {return tShift;}
-  inline double   GetTmax() const {return tMax;}
+  inline double   GetTmin(EHelixParams iParam=kNhelixParams) const {
+    if(iParam != kNhelixParams) return params[iParam].tShift;
+    return tShift;
+  }
+  inline double   GetTmax(EHelixParams iParam=kNhelixParams) const {
+    if(iParam != kNhelixParams) return params[iParam].tMax;
+    return tMax;
+  }
   inline double   GetTstep() const {return tStep;}
   inline uint     GetNpoints() const {return (uint)points.size();}
   inline int      GetNpionPoints() const {return nPionPoints;}
@@ -67,23 +100,14 @@ public:
   
   Helix(const Track &_track, const Point &p1, const Point &p2, const Point &_eventVertex);
   
-  double GetRadius(double t) const {
-    double R0 = (R0max + R0min)/2.;
-    double a = (amin + amax)/2.;
-    return (R0 - a*(t));
+  double GetRadius(double t, EHelixParams iParam) const {
+    return (params[iParam].R0 - params[iParam].a*t);
   }
   
-  double GetSlope(double t) const {
-    double s0 = (s0min + s0max)/2.;
-    double b  = (bmin + bmax)/2.;
-    return (s0 - b*(t));
+  double GetSlope(double t, EHelixParams iParam) const {
+    return (params[iParam].s0 - params[iParam].b*t);
   }
   
-  double Lmin, Lmax;
-  double bmin, bmax;
-  double s0min, s0max;
-  double amin, amax;
-  double R0min, R0max;
   int iCycles;
   bool isFinished = false;
   double slope_valmin=inf, slope_valmax=-inf;
@@ -91,13 +115,16 @@ public:
   uint64_t seedID;
   uint64_t uniqueID;
   
+  HelixParams params[kNhelixParams]; // params that minimize/maximize S(t) or R(t)
+  
   unique_ptr<Point> GetVertex(){return make_unique<Point>(*vertex);}
   bool ExtendByPoint(const Point &point);
-  void CalcAndUpdateSlopeVars(double z0, double t0, double z1, double t1, double z2, double t2);
-  pair<double, double> CalcSlopeVars(double z0, double t0, double z1, double t1, double z2, double t2);
   
-  void CalcAndUpdateRadiiVars(double x0, double t0, double x1, double t1, double x2, double t2);
-  pair<double, double> CalcRadiiVars(double x0, double t0, double x1, double t1, double x2, double t2);
+  HelixParams CalcHelixParams(const Point &p0, double t0,
+                              const Point &p1, double t1,
+                              const Point &p2, double t2);
+  
+  void CalcAndUpateHelixParams(const Point &p0, const Point &p1, const Point &p2);
   
 private:
   vector<shared_ptr<Point>> points;   ///< Vector of points laying on the helix (withing thickness)
@@ -118,6 +145,8 @@ private:
   int    charge;                ///< Charge of the particle (determines helix direction)
   
   Point GetClosestPoint(const Point &p) const;
+  
+  Point eventVertex;
   
   friend class HelixProcessor;
 };

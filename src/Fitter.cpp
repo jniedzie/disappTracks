@@ -295,9 +295,9 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesAndAdjustFirstPoint(TripletsVector 
 }
 
 
-vector<unique_ptr<Helix>> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
-                                   const Track &_track,
-                                   const Point &_vertex)
+vector<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
+                               const Track &_track,
+                               const Point &_vertex)
 {
   points = _points;
   track = _track;
@@ -312,90 +312,101 @@ vector<unique_ptr<Helix>> Fitter::FitHelix(const vector<shared_ptr<Point>> &_poi
   
   vector<PointsPair> pointPairs = pointsProcessor.BuildPointPairs(filteredPoints);
   
-  vector<unique_ptr<Helix>> helices;
+  vector<Helix> helices;
   
   int iter=0;
   for(auto pointPair : pointPairs){
-//    if(iter > 0) break;
-    auto helix = make_unique<Helix>(track, *pointPair.first, *pointPair.second, vertex);
+    if(iter > 0) break;
+    Helix helix(track, *pointPair.first, *pointPair.second, vertex);
     
     // check that the radius of a new track candidate is within allowed limits
-    if(helix->R0min > GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField) ||
-       helix->R0max < GetRadiusInMagField(config.minPx, config.minPy, solenoidField)){
-      continue;
-    }
+//    if(helix.R0min > GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField) ||
+//       helix.R0max < GetRadiusInMagField(config.minPx, config.minPy, solenoidField)){
+//      continue;
+//    }
     
     // check that the range of a and b parameters allowed the pion not to gain momentum with time
-    if(helix->amax < 0 ||
-       helix->bmin > 0){
-      continue;
-    }
+//    if(helix.amax < 0 || helix.bmin > 0) continue;
     
-    helices.push_back(move(helix));
+    helices.push_back(helix);
     
     iter++;
   }
+
+  if(helices.size()==0){
+    cout<<"No seeds found..."<<endl;
+    return helices;
+  }
+  cout<<"Seed:"<<endl; helices[0].Print();cout<<endl;
+
+  return helices;
   
-  auto seedID = helices[0]->seedID;
+  auto seedID = helices[0].seedID;
   bool finished;
   long uniqueID=4872737680;
   
+  int iSteps=0;
+  int nSteps=1;
+  
   do{
+    if(iSteps==nSteps) break;
+    
     finished = true;
-    vector<unique_ptr<Helix>> helicesAfterExtending;
+    vector<Helix> helicesAfterExtending;
     
     // for all helices from previous step
-    for(auto &helix : helices){
+    for(Helix &helix : helices){
       
       // that are not yet marked as finished
-      if(helix->isFinished){
-        helicesAfterExtending.push_back(move(helix));
+      if(helix.isFinished){
+        helicesAfterExtending.push_back(helix);
       }
       else{
-        vector<unique_ptr<Helix>> extendedHelices;
+        vector<Helix> extendedHelices;
         
         // try to extend by all possible points
         for(auto &point : filteredPoints){
           
-          auto helixCopy = make_unique<Helix>(*helix);
-          bool extended = helixCopy->ExtendByPoint(*point);
-          
+          auto helixCopy = Helix(helix);
+          bool extended = helixCopy.ExtendByPoint(*point);
+
           if(extended){
             
             // check that the radius of a new track candidate is within allowed limits
-            if(helixCopy->R0min > GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField) ||
-               helixCopy->R0max < GetRadiusInMagField(config.minPx, config.minPy, solenoidField)){
-              continue;
+//            if(helixCopy.R0min > GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField) ||
+//               helixCopy.R0max < GetRadiusInMagField(config.minPx, config.minPy, solenoidField)){
+//              cout<<"Rejected because of radius"<<endl;
+//              continue;
+//            }
+//            
+//            // check that the range of a and b parameters allowed the pion not to gain momentum with time
+//            if(helixCopy.amax < 0 || helixCopy.bmin > 0){
+//              cout<<"Rejected because of gaining momentum"<<endl;
+//              continue;
+//            }
+            
+            if(helix.seedID == seedID){
+              cout<<"After extension:"<<endl; helixCopy.Print(); cout<<endl;
             }
             
-            // check that the range of a and b parameters allowed the pion not to gain momentum with time
-            if(helixCopy->amax < 0 ||
-               helixCopy->bmin > 0){
-              continue;
-            }
-            
-            if(helix->seedID == seedID){
-              cout<<"After extension:"<<endl; helixCopy->Print(); cout<<endl;
-            }
-            
-            helixCopy->uniqueID = uniqueID;
+            helixCopy.uniqueID = uniqueID;
             uniqueID++;
-            extendedHelices.push_back(move(helixCopy));
+            extendedHelices.push_back(helixCopy);
           }
         }
         // if it was possible to extend the helix
         if(extendedHelices.size() != 0){
           helicesAfterExtending.insert(helicesAfterExtending.end(),
-                                       make_move_iterator(extendedHelices.begin()),
-                                       make_move_iterator(extendedHelices.end()));
+                                       extendedHelices.begin(),
+                                       extendedHelices.end());
           finished = false;
         }
         else{ // if helix could not be extended
-          if(helix->seedID == seedID){
+          if(helix.seedID == seedID){
             cout<<"Could not further extend the helix"<<endl;
           }
-          helix->isFinished = true;
-          helicesAfterExtending.push_back(move(helix)); // is this needed?
+          helix.isFinished = true;
+          helicesAfterExtending.push_back(helix); // is this needed?
         }
       }
       
@@ -405,6 +416,7 @@ vector<unique_ptr<Helix>> Fitter::FitHelix(const vector<shared_ptr<Point>> &_poi
     for(auto &h : helicesAfterExtending){
       helices.push_back(move(h));
     }
+    iSteps++;
   }
   while(!finished);
   

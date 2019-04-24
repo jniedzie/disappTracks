@@ -4,6 +4,19 @@
 
 #include "Point.hpp"
 
+Point::Point() :
+x(0),
+y(0),
+z(0),
+errX(0),
+errY(0),
+errZ(0),
+value(0),
+subDetName("")
+{
+  
+}
+
 Point::Point(double _x, double _y, double _z, double _value, string _subDetName,
              double _errX, double _errY, double _errZ) :
 x(_x),

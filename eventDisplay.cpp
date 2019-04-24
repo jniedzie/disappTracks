@@ -31,7 +31,7 @@ int iEvent = 2;
 // 23 (q+, vz+, pz+) OK
 
 bool injectPion = false;
-bool fitHelix = false;
+bool fitHelix = true;
 
 Display *display;
 shared_ptr<EventSet> events;
@@ -244,7 +244,7 @@ int main(int argc, char* argv[])
 //      int r = RandInt(0, (int)allSimplePoints.size()-1);
 //      pionClusters.insert(pionClusters.end(),allSimplePoints[r]);
 //    }
-    auto fittedHelices = fitter->FitHelix(pionClusters, *track, *event->GetVertex());
+    vector<Helix> fittedHelices = fitter->FitHelix(pionClusters, *track, *event->GetVertex());
     
 //    auto bestHelix = fitter->GetBestFittingHelix(allSimplePoints, track, event->GetVertex());
 		
@@ -264,21 +264,21 @@ int main(int argc, char* argv[])
       {"color", kYellow}
     };
     
-    auto id = fittedHelices[0]->seedID;
+//    auto id = fittedHelices[0].seedID;
     
     for(int iHelix = 0;iHelix<fittedHelices.size();iHelix++){
-//      if(fittedHelices[iHelix]->seedID != id) continue;
+//      if(fittedHelices[iHelix].seedID != id) continue;
       
 //      if(iHelix != 0) continue;
-//      if(fittedHelices[iHelix]->GetNpoints() < 5) continue;
+//      if(fittedHelices[iHelix].GetNpoints() < 9) continue;
       
 //      fittedHelices[iHelix]->Print();cout<<endl;
-      bestHelixOptions["title"] = ("Helix "+to_string(fittedHelices[iHelix]->uniqueID)).c_str();
-      display->DrawShrinkingHelix(*fittedHelices[iHelix], bestHelixOptions);
+      bestHelixOptions["title"] = ("Helix "+to_string(fittedHelices[iHelix].uniqueID)).c_str();
+      display->DrawShrinkingHelix(fittedHelices[iHelix], bestHelixOptions);
       
       
       helixVertexOptions["markerStyle"] = 20;
-      vector<shared_ptr<Point>> helixVertex = fittedHelices[iHelix]->GetPoints();
+      vector<shared_ptr<Point>> helixVertex = fittedHelices[iHelix].GetPoints();
       display->DrawSimplePoints(helixVertex, helixVertexOptions);
       
 //      helixVertexOptions["markerStyle"] = 21;
