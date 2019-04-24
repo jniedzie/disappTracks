@@ -123,7 +123,7 @@ void Display::DrawShrinkingHelix(const Helix &helix, const map<string,any> optio
   double t;
   for(int iParam=0; iParam<kNhelixParams; iParam++){
     for(t = helix.GetTmin((EHelixParams)iParam);
-        t <  helix.GetTmax((EHelixParams)iParam);
+        t < helix.GetTmax((EHelixParams)iParam);
         t += tStep){
       fillPointForT(t, (EHelixParams)iParam);
     }

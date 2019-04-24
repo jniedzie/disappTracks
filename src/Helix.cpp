@@ -140,6 +140,16 @@ eventVertex(_eventVertex)
   points.push_back(make_shared<Point>(p1));
   points.push_back(make_shared<Point>(p2));
   
+  double t0 = atan2(points[0]->GetY() - origin.GetY(), points[0]->GetX() - origin.GetX());
+  double t1 = atan2(points[1]->GetY() - origin.GetY(), points[1]->GetX() - origin.GetX());
+  while(t1 < t0) t1 += 2*TMath::Pi();
+  double t2 = atan2(points[2]->GetY() - origin.GetY(), points[2]->GetX() - origin.GetX());
+  while(t2 < t1) t2 += 2*TMath::Pi();
+  
+  points[0]->SetT(t0);
+  points[1]->SetT(t1);
+  points[2]->SetT(t2);
+  
   auto circle = circleProcessor.GetCircleFromTriplet(points);
   // this is an approximation, but seems to be ok. It would be perfect to analytically solve the real
   // equations' set for first 3 points on the helix and calculate origin precisely...
@@ -161,6 +171,9 @@ eventVertex(_eventVertex)
                               Lmax * sin(track.GetPhi())   + 10*eventVertex.GetY(),
                               Lmax / tan(track.GetTheta()) + 10*eventVertex.GetZ()));
   
+  p0_variants[0].SetT(t0);
+  p0_variants[1].SetT(t0);
+  
   vector<Point> p1_variants;
   vector<Point> p2_variants;
   
@@ -179,11 +192,13 @@ eventVertex(_eventVertex)
     p1_variants[i].SetX(p1.GetX() + signs[i][0] * p1.GetXerr());
     p1_variants[i].SetY(p1.GetY() + signs[i][1] * p1.GetYerr());
     p1_variants[i].SetZ(p1.GetZ() + signs[i][2] * p1.GetZerr());
+    p1_variants[i].SetT(t1);
     
     p2_variants.push_back(Point(p2));
     p2_variants[i].SetX(p2.GetX() + signs[i][0] * p2.GetXerr());
     p2_variants[i].SetY(p2.GetY() + signs[i][1] * p2.GetYerr());
     p2_variants[i].SetZ(p2.GetZ() + signs[i][2] * p2.GetZerr());
+    p1_variants[i].SetT(t2);
   }
   
   for(Point p0 : p0_variants){
@@ -206,8 +221,6 @@ bool Helix::ExtendByPoint(const Point &point)
     if(*p==point) return false;
   }
   
-  HelixParams newParams;
-
   Point p2 = point;
   
   double t2[kNhelixParams];
@@ -252,18 +265,28 @@ bool Helix::ExtendByPoint(const Point &point)
     return false;
   }
   
+  // if the new point it ok, trim its errors to fit within the limiting helices
+  TrimPointToLimits(p2);
+  
   // next, take vertex, the last point on the helix and the new point and narrow down the limits
-  /*
   Point p0 = *vertex;
   Point p1 = *points[points.size()-1];
   
-  double t0 = params[iParam].tSecondMax;
-  double t1 = params[iParam].tMax;
-  
-//  newParams.tSecondMax = t1;
-//  newParams.tMax       = t2;
+  double Lmin = layerR[track.GetNtrackerLayers()-1];
+  double Lmax = layerR[track.GetNtrackerLayers()];
   
   vector<Point> p0_variants;
+  p0_variants.push_back(Point(Lmin * cos(track.GetPhi())   + 10*eventVertex.GetX(),
+                              Lmin * sin(track.GetPhi())   + 10*eventVertex.GetY(),
+                              Lmin / tan(track.GetTheta()) + 10*eventVertex.GetZ()));
+  
+  p0_variants.push_back(Point(Lmax * cos(track.GetPhi())   + 10*eventVertex.GetX(),
+                              Lmax * sin(track.GetPhi())   + 10*eventVertex.GetY(),
+                              Lmax / tan(track.GetTheta()) + 10*eventVertex.GetZ()));
+  
+  p0_variants[0].SetT(vertex->GetT());
+  p0_variants[1].SetT(vertex->GetT());
+  
   vector<Point> p1_variants;
   vector<Point> p2_variants;
   
@@ -278,11 +301,6 @@ bool Helix::ExtendByPoint(const Point &point)
   };
   
   for(int i=0;i<8;i++){
-    p0_variants.push_back(Point(p0));
-    p0_variants[i].SetX(p0.GetX() + signs[i][0] * p0.GetXerr());
-    p0_variants[i].SetY(p0.GetY() + signs[i][1] * p0.GetYerr());
-    p0_variants[i].SetZ(p0.GetZ() + signs[i][2] * p0.GetZerr());
-    
     p1_variants.push_back(Point(p1));
     p1_variants[i].SetX(p1.GetX() + signs[i][0] * p1.GetXerr());
     p1_variants[i].SetY(p1.GetY() + signs[i][1] * p1.GetYerr());
@@ -294,29 +312,72 @@ bool Helix::ExtendByPoint(const Point &point)
     p2_variants[i].SetZ(p2.GetZ() + signs[i][2] * p2.GetZerr());
   }
   
+  vector<HelixParams> newParams;
+  
   for(Point p0 : p0_variants){
     for(Point p1 : p1_variants){
       for(Point p2 : p2_variants){
-        
-        HelixParams newParamsTmp = CalcHelixParams(p0, t0, p1, t1, p2, t2);
-        
-        
-        
+        newParams.push_back(CalcHelixParams(p0, p1, p2));
       }
     }
   }
  
-  */
+  double new_slopeMin = inf;
+  double new_slopeMax = -inf;
+  double new_radiusMin = inf;
+  double new_radiusMax = -inf;
   
-  points.push_back(make_shared<Point>(point));
+  HelixParams newLimits[kNhelixParams];
+  
+  for(HelixParams par : newParams){
+    
+    double testT = 100*TMath::Pi();
+    
+    double valR = par.R0 - par.a*testT;
+    double valS = par.s0 - par.b*testT;
+    
+    if(valS < new_slopeMin){new_slopeMin = valS; newLimits[kMinS] = par;}
+    if(valS > new_slopeMax){new_slopeMax = valS; newLimits[kMaxS] = par;}
+    
+    if(valR < new_radiusMin){new_radiusMin = valR; newLimits[kMinR] = par;}
+    if(valR > new_radiusMax){new_radiusMax = valR; newLimits[kMaxR] = par;}
+  }
+  
+  // Check if new limits overlap with the current ones
+  if(   new_slopeMin > slope_valmax
+     || new_slopeMax < slope_valmin
+     || new_radiusMin > radius_valmax
+     || new_radiusMax < radius_valmin
+     ){
+    cout<<"new limits don't overlap with the current ones. Failed to add the point"<<endl;
+    return false;
+  }
+  
+  // Try to narrow down the limits
+  if( new_slopeMin > slope_valmin){   slope_valmin  = new_slopeMin;  params[kMinS] = newLimits[kMinS];}
+  if( new_slopeMax < slope_valmax){   slope_valmax  = new_slopeMax;  params[kMaxS] = newLimits[kMaxS];}
+  if( new_radiusMin > radius_valmin){ radius_valmin = new_radiusMin; params[kMinR] = newLimits[kMinR];}
+  if( new_radiusMax < radius_valmax){ radius_valmax = new_radiusMax; params[kMaxR] = newLimits[kMaxR];}
+  
+  // If we reached this stage, it means that the new point is a good candidate and we add them to the vector
+  // of points on this helix
+  
+  points.push_back(make_shared<Point>(p2));
 
+  // Finally, it's time to trim all previous points to the new limits
+  // And update limits that were based on the old errors of points
+  
   return true;
 }
 
-HelixParams Helix::CalcHelixParams(const Point &p0, double t0,
-                                   const Point &p1, double t1,
-                                   const Point &p2, double t2)
+HelixParams Helix::CalcHelixParams(const Point &p0, const Point &p1, const Point &p2)
 {
+  double t0 = atan2(p0.GetY() - origin.GetY(), p0.GetX() - origin.GetX());
+  double t1 = atan2(p1.GetY() - origin.GetY(), p1.GetX() - origin.GetX());
+  while(t1 < t0) t1 += 2*TMath::Pi();
+  double t2 = atan2(p2.GetY() - origin.GetY(), p2.GetX() - origin.GetX());
+  while(t2 < t1) t2 += 2*TMath::Pi();
+  
   double b_num = (p0.GetZ()-p2.GetZ())*(t0-t1) - (p0.GetZ()-p1.GetZ())*(t0-t2);
   double b_den = (t2*t2-t0*t0)*(t0-t1) - (t1*t1-t0*t0)*(t0-t2);
   double b = b_num/b_den;
@@ -328,23 +389,18 @@ HelixParams Helix::CalcHelixParams(const Point &p0, double t0,
   double R0 = ( p0.GetX() - p1.GetX() - a*(t1*cos(t1)-t0*cos(t0))) / (cos(t0)-cos(t1));
   
   HelixParams params(R0, a, s0, b);
+  
+  params.tShift     = t0;
+  params.tSecondMax = t1;
+  params.tMax       = t2;
+  params.zShift = p2.GetZ() - (params.s0-params.b*t2)*t2;
+  
   return params;
 }
 
 void Helix::CalcAndUpateHelixParams(const Point &p0, const Point &p1, const Point &p2)
 {
-  double t0 = atan2(p0.GetY() - origin.GetY(), p0.GetX() - origin.GetX());
-  double t1 = atan2(p1.GetY() - origin.GetY(), p1.GetX() - origin.GetX());
-  while(t1 < t0) t1 += 2*TMath::Pi();
-  double t2 = atan2(p2.GetY() - origin.GetY(), p2.GetX() - origin.GetX());
-  while(t2 < t1) t2 += 2*TMath::Pi();
-  
-  HelixParams par = CalcHelixParams(p0, t0, p1, t1, p2, t2);
-  
-  par.tShift     = t0;
-  par.tSecondMax = t1;
-  par.tMax       = t2;
-  par.zShift = p2.GetZ() - (par.s0-par.b*t2)*t2;
+  HelixParams par = CalcHelixParams(p0, p1, p2);
   
   double testT = 100*TMath::Pi();
   
@@ -422,4 +478,48 @@ Point Helix::GetClosestPoint(const Point &p) const
   z += zSign * nCycles * slopeAbs * 2 * TMath::Pi();
 
   return Point(x,y,z);
+}
+
+void Helix::TrimPointToLimits(Point &point)
+{
+  vector<Point> limitPoint(kNhelixParams);
+  
+  for(int iParamNum = 0; iParamNum<kNhelixParams; iParamNum++){
+    EHelixParams iParam = static_cast<EHelixParams>(iParamNum);
+    Point paramOrigin = GetOrigin(iParam);
+    
+    double t = atan2(point.GetY() - origin.GetY(), point.GetX() - origin.GetX());
+    while(t < params[iParam].tMax) t += 2*TMath::Pi();
+    
+    limitPoint[iParam].SetX(paramOrigin.GetX() + GetRadius(t, iParam) * cos(t));
+    limitPoint[iParam].SetY(paramOrigin.GetY() + GetRadius(t, iParam) * sin(t));
+    limitPoint[iParam].SetZ(paramOrigin.GetZ() + GetSlope(t, iParam)  * t);
+  }
+  
+  // then, check if new point is between those 4 limiting points (within it's errors)
+  double minX=inf, maxX=-inf;
+  double minY=inf, maxY=-inf;
+  double minZ=inf, maxZ=-inf;
+  
+  for(Point p : limitPoint){
+    if(p.GetX() < minX) minX = p.GetX();
+    if(p.GetX() > maxX) maxX = p.GetX();
+    if(p.GetY() < minY) minY = p.GetY();
+    if(p.GetY() > maxY) maxY = p.GetY();
+    if(p.GetZ() < minZ) minZ = p.GetZ();
+    if(p.GetZ() > maxZ) maxZ = p.GetZ();
+  }
+  
+  double upperX = min(point.GetX() + point.GetXerr(), maxX);
+  double lowerX = max(point.GetX() - point.GetXerr(), minX);
+  
+  double upperY = min(point.GetY() + point.GetYerr(), maxY);
+  double lowerY = max(point.GetY() - point.GetYerr(), minY);
+  
+  double upperZ = min(point.GetZ() + point.GetZerr(), maxZ);
+  double lowerZ = max(point.GetZ() - point.GetZerr(), minZ);
+  
+  point = Point((upperX+lowerX)/2., (upperY+lowerY)/2., (upperZ+lowerZ)/2.,
+                point.GetValue(), point.GetSubDetName(),
+                (upperX-lowerX)/2., (upperY-lowerY)/2., (upperZ-lowerZ)/2.);
 }

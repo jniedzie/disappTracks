@@ -338,15 +338,13 @@ vector<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
     return helices;
   }
   cout<<"Seed:"<<endl; helices[0].Print();cout<<endl;
-
-  return helices;
   
   auto seedID = helices[0].seedID;
   bool finished;
   long uniqueID=4872737680;
   
   int iSteps=0;
-  int nSteps=1;
+  int nSteps=10;
   
   do{
     if(iSteps==nSteps) break;

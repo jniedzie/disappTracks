@@ -276,7 +276,6 @@ int main(int argc, char* argv[])
       bestHelixOptions["title"] = ("Helix "+to_string(fittedHelices[iHelix].uniqueID)).c_str();
       display->DrawShrinkingHelix(fittedHelices[iHelix], bestHelixOptions);
       
-      
       helixVertexOptions["markerStyle"] = 20;
       vector<shared_ptr<Point>> helixVertex = fittedHelices[iHelix].GetPoints();
       display->DrawSimplePoints(helixVertex, helixVertexOptions);

@@ -65,6 +65,15 @@ using namespace std;
 
 #define inf 99999999
 
+enum EHelixParams
+{
+  kMinS = 0,
+  kMaxS,
+  kMinR,
+  kMaxR,
+  kNhelixParams
+};
+
 namespace xtracks {
   enum EDataType{
     kBackground,

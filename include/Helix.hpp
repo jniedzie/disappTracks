@@ -26,15 +26,6 @@ struct HelixParams
   double zShift;
 };
 
-enum EHelixParams
-{
-  kMinS = 0,
-  kMaxS,
-  kMinR,
-  kMaxR,
-  kNhelixParams
-};
-
 class Helix
 {
 public:
@@ -117,20 +108,26 @@ public:
   
   HelixParams params[kNhelixParams]; // params that minimize/maximize S(t) or R(t)
   
-  unique_ptr<Point> GetVertex(){return make_unique<Point>(*vertex);}
+  unique_ptr<Point> GetVertex() const {return make_unique<Point>(*vertex);}
+  shared_ptr<Point> GetLastPoint() const {return points[points.size()-1];}
+  
   bool ExtendByPoint(const Point &point);
   
-  HelixParams CalcHelixParams(const Point &p0, double t0,
-                              const Point &p1, double t1,
-                              const Point &p2, double t2);
+  HelixParams CalcHelixParams(const Point &p0, const Point &p1, const Point &p2);
   
   void CalcAndUpateHelixParams(const Point &p0, const Point &p1, const Point &p2);
   
+  /// Shrinks point's errors to fit within limiting helices. Assumes that point is somewhere between
+  /// those helices. Otherwise, the result will be incorrect.
+  /// It will also assume, that the point to trim will be further along the helix comparing to the last
+  /// point already assigned to it.
+  void TrimPointToLimits(Point &point);
+  
 private:
   vector<shared_ptr<Point>> points;   ///< Vector of points laying on the helix (withing thickness)
-  double tShift;          ///< Angle by which beginning of the helix is shifted due to the shift of its origin
-  double tMax;            ///< Max angle (taking into account number of cycles
-  double tStep;           ///< Step determining drawing precision
+  double tShift;  ///< Angle by which beginning of the helix is shifted due to the shift of its origin
+  double tMax;    ///< Max angle (taking into account number of cycles
+  double tStep;   ///< Step determining drawing precision
   
   int nRegularPoints = 0; ///< Number of points that are distributed regularly along Z axis
   int nPionPoints = 0;    ///< Number of points along the helix that are true pion hits

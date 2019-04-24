@@ -15,10 +15,13 @@ public:
   
   /// Constructor taking XYZ coordinates and optionally a value in this point, sub-detector name and errors
   Point(double _x, double _y, double _z, double _value=0, string _subDetName="",
-        double _errX=0, double _errY=0, double _errZ=0);
+        double _errX=0, double _errY=0, double _errZ=0, double _t=0);
   
   /// Copy constructor
   Point(const Point &p);
+  
+  /// Assignment operator
+  void operator=(const Point &p);
   
   /// Constructs a point that is an average of provided vector of points (also errors are averaged)
   Point(vector<Point> points);
@@ -44,6 +47,7 @@ public:
   inline double GetYerr() const {return errY;}
   inline double GetZerr() const {return errZ;}
   inline double GetValue() const {return value;}
+  inline double GetT() const {return t;}
   inline string GetSubDetName() const {return subDetName;}
   
   // Trivial setters
@@ -51,11 +55,13 @@ public:
   inline void SetY(double val){y = val;}
   inline void SetZ(double val){z = val;}
   inline void SetIsPionHit(bool val){isPionHit = val;}
+  inline void SetT(double val){t = val;}
 private:
   
   double x,y,z;             ///< XYZ coordinates of the point
   double errX, errY, errZ;  ///< coordinates uncertainties
   double value;             ///< Value at this point
+  double t;
   string subDetName;        ///< Can store name of the sub-detector
   
   bool isPionHit; ///< Flag saying whether or not this point belongs to a true pion's helix

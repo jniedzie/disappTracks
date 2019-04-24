@@ -12,13 +12,14 @@ errX(0),
 errY(0),
 errZ(0),
 value(0),
+t(0),
 subDetName("")
 {
   
 }
 
 Point::Point(double _x, double _y, double _z, double _value, string _subDetName,
-             double _errX, double _errY, double _errZ) :
+             double _errX, double _errY, double _errZ, double _t) :
 x(_x),
 y(_y),
 z(_z),
@@ -27,7 +28,8 @@ subDetName(_subDetName),
 isPionHit(false),
 errX(_errX),
 errY(_errY),
-errZ(_errZ)
+errZ(_errZ),
+t(_t)
 {
   
 }
@@ -43,6 +45,21 @@ Point::Point(const Point &p)
   errY = p.errY;
   errZ = p.errZ;
   subDetName = p.subDetName;
+  t = p.t;
+}
+
+void Point::operator=(const Point &p)
+{
+  x = p.x;
+  y = p.y;
+  z = p.z;
+  value = p.value;
+  isPionHit = p.isPionHit;
+  errX = p.errX;
+  errY = p.errY;
+  errZ = p.errZ;
+  subDetName = p.subDetName;
+  t = p.t;
 }
 
 Point::Point(vector<Point> points)
@@ -56,7 +73,7 @@ Point::Point(vector<Point> points)
     errX += p.GetXerr();
     errY += p.GetYerr();
     errZ += p.GetZerr();
-    
+    t += p.t;
   }
   x /= points.size();
   y /= points.size();
@@ -64,6 +81,7 @@ Point::Point(vector<Point> points)
   errX /= points.size();
   errY /= points.size();
   errZ /= points.size();
+  t /= points.size();
 }
 
 void Point::Print() const
