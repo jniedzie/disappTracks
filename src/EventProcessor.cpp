@@ -278,7 +278,6 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
 
   if(cut.jetMetDeltaPhi.GetMin() > 0.0){
     TLorentzVector metVector, jetVector;
-//    metVector.SetPtEtaPhiM(event->metPt, event->metEta, event->metPhi, event->metMass);
     metVector.SetPtEtaPhiM(event->metNoMuPt, event->metNoMuEta, event->metNoMuPhi, event->metNoMuMass);
     
     for(auto j : event->jets){

@@ -202,6 +202,7 @@ void Fitter::SetParameter(ROOT::Fit::Fitter *fitter, int i, string name, double 
   fitter->Config().ParSettings(i).SetName(name);
   fitter->Config().ParSettings(i).SetValue(start);
   fitter->Config().ParSettings(i).SetLimits((min < max) ? min : max,(min < max) ? max : min);
+  fitter->Config().ParSettings(i).SetStepSize(0.0001);
   if(fix) fitter->Config().ParSettings(i).Fix();
 }
 
@@ -344,7 +345,7 @@ vector<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
   long uniqueID=4872737680;
   
   int iSteps=0;
-  int nSteps=10;
+  int nSteps=1;
   
   do{
     if(iSteps==nSteps) break;
@@ -737,4 +738,158 @@ TGraph* Fitter::GetDecayGraph()
   graphDecay->SetMarkerColor(kRed);
   
   return graphDecay;
+}
+
+ROOT::Fit::Fitter* Fitter::GetHelixParamsFitter(range<double> rangeL)
+{
+  ROOT::Fit::Fitter *fitter = new ROOT::Fit::Fitter();
+  
+  // This is a stupid hack to be able to set fit parameters before actually setting a fitting function
+  // Params we want to set only once, but function will change in each iteration of the loop, because
+  // it captures loop iterators.
+  auto f = [&](const double*) {return 0;};
+  int nPar = 5;
+  ROOT::Math::Functor fitFunction = ROOT::Math::Functor(f, nPar);
+  double pStart[nPar];
+  fitter->SetFCN(fitFunction, pStart);
+  
+  double minR = GetRadiusInMagField(config.minPx, config.minPy, solenoidField);
+  double maxR = GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField);
+  
+  SetParameter(fitter, 0, "R0", (minR+maxR)/2., 0, 10000);
+  SetParameter(fitter, 1, "a" , (minR+maxR)/2., 0, 10000);
+  SetParameter(fitter, 2, "s0", -50, -1000, 1000);
+  SetParameter(fitter, 3, "b" , 5000, -10000, 10000);
+  SetParameter(fitter, 4, "L" , (rangeL.GetMin()+rangeL.GetMax())/2., rangeL.GetMin(), rangeL.GetMax());
+  
+  return fitter;
+}
+
+HelixParams Fitter::FitHelixParams(const vector<shared_ptr<Point>> &points, const Point &nextPoint,
+                                   const Point &origin, const Track &track,
+                                   const Point &eventVertex, EHelixParams iParam)
+{
+  int nLayers = track.GetNtrackerLayers();
+  double Lmin = layerR[nLayers-1];
+  double Lmax = layerR[nLayers];
+  
+  int nPar=5;
+  auto fitter = GetHelixParamsFitter(range<double>(Lmin, Lmax));
+  
+  double distPenalty = 10.;
+  double testT = 100*TMath::Pi();
+  
+  double ht = config.helixThickness;
+  
+  auto chi2Function = [&](const double *par) {
+    double R0 = par[0];
+    double a  = par[1];
+    double s0 = par[2];
+    double b  = par[3];
+    double L  = par[4];
+    
+    // First add distance to the vertex
+    double vertexX = L * cos(track.GetPhi())    + 10*eventVertex.GetX();
+    double vertexY = L * sin(track.GetPhi())    + 10*eventVertex.GetY();
+    double vertexZ = L / tan(track.GetTheta())  + 10*eventVertex.GetZ();
+    double t = atan2(vertexY - origin.GetY(), vertexX - origin.GetX());
+    
+    double x = origin.GetX() + (R0 - a*t)*cos(t);
+    double y = origin.GetY() + (R0 - a*t)*sin(t);
+    double z = origin.GetZ() + (s0 - b*t)*t;
+    
+    double distX = pow(x-vertexX, 2);
+    double distY = pow(y-vertexY, 2);
+    double distZ = pow(z-vertexZ, 2);
+    
+    double f = distX + distY + distZ;
+    
+    // Then add distances to all other points
+    for(auto &p : points){
+      t = p->GetT();
+      
+      // find helix point for this point's t
+      x = origin.GetX() + (R0 - a*t)*cos(t);
+      y = origin.GetY() + (R0 - a*t)*sin(t);
+      z = origin.GetZ() + (s0 - b*t)*t;
+      
+      // calculate distance between helix and point's boundary (taking into account its errors)
+      distX = fabs(x-p->GetX()) > p->GetXerr()+ht ? pow(x-p->GetX(), 2) : 0;
+      distY = fabs(y-p->GetY()) > p->GetYerr()+ht ? pow(y-p->GetY(), 2) : 0;
+      distZ = fabs(z-p->GetZ()) > p->GetZerr()+ht ? pow(z-p->GetZ(), 2) : 0;
+      
+      distX /= pow(p->GetXerr(), 2);
+      distY /= pow(p->GetYerr(), 2);
+      distZ /= pow(p->GetZerr(), 2);
+      
+      f += distX + distY + distZ;
+    }
+    
+    // Add distance to the testing point
+    t = nextPoint.GetT();
+    
+    // find helix point for this point's t
+    x = origin.GetX() + (R0 - a*t)*cos(t);
+    y = origin.GetY() + (R0 - a*t)*sin(t);
+    z = origin.GetZ() + (s0 - b*t)*t;
+    
+    // calculate distance between helix and point's boundary (taking into account its errors)
+    distX = fabs(x-nextPoint.GetX()) > nextPoint.GetXerr()+ht ? pow(x-nextPoint.GetX(), 2) : 0;
+    distY = fabs(y-nextPoint.GetY()) > nextPoint.GetYerr()+ht ? pow(y-nextPoint.GetY(), 2) : 0;
+    distZ = fabs(z-nextPoint.GetZ()) > nextPoint.GetZerr()+ht ? pow(z-nextPoint.GetZ(), 2) : 0;
+    
+    distX /= pow(nextPoint.GetXerr(), 2);
+    distY /= pow(nextPoint.GetYerr(), 2);
+    distZ /= pow(nextPoint.GetZerr(), 2);
+    
+    f += distX + distY + distZ;
+    
+    // apply additional penalty for being outside of the point errors
+    f *= distPenalty;
+    
+    // Finally, add factor minimizing/maximizing slope or radius
+    double valR = fabs(R0 - a*testT);
+    double valS = fabs(s0 - b*testT);
+    
+    if(iParam == kMinR) f += valR;
+    if(iParam == kMaxR) f += 1/valR;
+    if(iParam == kMinS) f += valS;
+    if(iParam == kMaxS) f += 1/valS;
+
+    return f;
+  };
+  
+  HelixParams resultParams;
+  
+  auto fitFunction = ROOT::Math::Functor(chi2Function, nPar);
+  double pStart[nPar];
+  for(int i=0; i<nPar; i++) pStart[i] = fitter->Config().ParSettings(i).Value();
+  fitter->SetFCN(fitFunction, pStart);
+  
+  
+//  if(fitter->FitFCN()) {
+  fitter->FitFCN();
+  auto result = fitter->Result();
+    
+  resultParams.R0 = result.GetParams()[0];
+  resultParams.a  = result.GetParams()[1];
+  resultParams.s0 = result.GetParams()[2];
+  resultParams.b  = result.GetParams()[3];
+  
+  double L = result.GetParams()[4];
+  
+  // First add distance to the vertex
+  double vertexX = L * cos(track.GetPhi())    + 10*eventVertex.GetX();
+  double vertexY = L * sin(track.GetPhi())    + 10*eventVertex.GetY();
+  double vertexZ = L / tan(track.GetTheta())  + 10*eventVertex.GetZ();
+  double t = atan2(vertexY - origin.GetY(), vertexX - origin.GetX());
+  
+  resultParams.tShift     = t;
+  resultParams.tMax       = nextPoint.GetT();
+  resultParams.zShift = 0;
+  resultParams.zShift = vertexZ - (resultParams.s0 - resultParams.b * t) * t;
+  
+//  }
+  
+  return resultParams;
 }

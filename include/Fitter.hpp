@@ -38,6 +38,10 @@ public:
                          const Track &_track,
                          const Point &_vertex);
   
+  HelixParams FitHelixParams(const vector<shared_ptr<Point>> &points, const Point &nextPoint,
+                             const Point &origin, const Track &track,
+                             const Point &eventVertex, EHelixParams iParam);
+  
 private:
   
   vector<shared_ptr<Point>> points;
@@ -95,6 +99,9 @@ private:
   
   TGraph* GetDecayGraph();
   TCanvas *c1;
+  
+  ///
+  ROOT::Fit::Fitter* GetHelixParamsFitter(range<double> rangeL);
 };
 
 #endif /* Fitter_hpp */

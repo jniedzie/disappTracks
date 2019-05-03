@@ -23,9 +23,9 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
   //----------------------------------------------------------------------------
   
   // Remove bad jets
+  jetCut.SetPt(range<double>(30.0, inf));
   jetCut.SetChargedHadronEnergyFraction(range<double>(0.01,0.99));
   jetCut.SetNeutralHadronEnergyFraction(range<double>(0.01,0.99));
-  jetCut.SetPt(range<double>(30.0, inf));
   
   // Remove bad tracks
   trackCut.SetNmissingInnerPixel(range<int>(0, 0));
@@ -49,7 +49,7 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
   // Check number of objects after cuts
   eventCut.SetNtracks(range<int>(1,inf));
   eventCut.SetNjets(range<int>(1,inf));
-//  eventCut.SetNmuons(range<int>(0,0));
+//  eventCut.SetNmuons(range<int>(0,0)); // we don't need this one, as nLeptons already contains loose muon cuts
   eventCut.SetNtaus(range<int>(0,0));
   eventCut.SetNleptons(range<int>(0,0));
   

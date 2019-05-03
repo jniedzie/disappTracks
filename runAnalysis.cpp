@@ -259,6 +259,8 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   if(config.performCutsLevel == 20) events.DrawStandardPlots();
   
+  cout<<"Done"<<endl;
+  
   if(config.drawStandardPlots || config.drawPerLayerPlots || config.scanMETbinning)  theApp.Run();
   return 0;
 }

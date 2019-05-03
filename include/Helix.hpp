@@ -121,7 +121,10 @@ public:
   /// those helices. Otherwise, the result will be incorrect.
   /// It will also assume, that the point to trim will be further along the helix comparing to the last
   /// point already assigned to it.
-  void TrimPointToLimits(Point &point);
+  void TrimPointToLimits(Point &point,
+                         double minX, double maxX,
+                         double minY, double maxY,
+                         double minZ, double maxZ);
   
 private:
   vector<shared_ptr<Point>> points;   ///< Vector of points laying on the helix (withing thickness)

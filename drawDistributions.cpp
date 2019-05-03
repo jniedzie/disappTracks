@@ -35,9 +35,13 @@ int main(int argc, char* argv[])
   cutsManager.GetCuts(eventCut, trackCut, jetCut, leptonCut);
   events.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
+  cout<<"Drawing plots"<<endl;
+  
   if(config.drawStandardPlots) events.DrawStandardPlots();
   if(config.drawPerLayerPlots) events.DrawPerLayerPlots();
  
+  cout<<"Done"<<endl;
+  
   theApp.Run();
   return 0;
 }

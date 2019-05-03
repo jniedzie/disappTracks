@@ -70,6 +70,7 @@ add_library(libAnalysis src/Track.cpp
                         src/Circle.cpp
                         src/CircleProcessor.cpp
                         src/ConfigManager.cpp
+                        src/CutsManager.cpp
                         src/Display.cpp
                         src/Fitter.cpp
                         src/Helix.cpp

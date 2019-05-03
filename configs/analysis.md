@@ -10,11 +10,11 @@ scan_MET_binning: 0
 do_MET_binning: 0
 
 ### Should events after processing be saved on disk:
-save_events:  0
+save_events:  1
 
 ### turn on/off different backgrounds, signals and data samples
-do_QCD:         1
-do_Zmm:         0
+do_QCD:         0
+do_Zmm:         1
 do_tops:          0
 do_dibosons:   0
 do_Wmv:         0
@@ -56,7 +56,7 @@ show_legends: 0
 **Other analysis options**
 
 ### Limit number of events loaded (-1 means load all available)
-max_N_events_background:  1000
+max_N_events_background:  -1
 max_N_events_signal:  -1
 max_N_events_data:  -1
 

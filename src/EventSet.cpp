@@ -83,12 +83,11 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
 	
   eventProcessor.SetupBranchesForWriting(tree);
   trackProcessor.SetupBranchesForWriting(tree);
-  eventProcessor.SetupBranchesForWriting(tree);
   leptonProcessor.SetupBranchesForWriting(tree);
+  jetProcessor.SetupBranchesForWriting(tree);
   helixProcessor.SetupBranchesForWriting(tree);
   
   function<void(shared_ptr<Event>, TTree*)> func = [&](shared_ptr<Event> event, TTree *tree) -> void {
-    
     eventProcessor.SaveEventToTree(event);
     trackProcessor.SaveTracksToTree(event->GetTracks());
     leptonProcessor.SaveLeptonsToTree(event->GetLeptons());
@@ -330,7 +329,7 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
     
     for(int i=0;i<21;i++){
       nEvents -= eventProcessor.cutReasons[i];
-      cout<<"N events after cut "<<i<<":"<<nEvents<<endl;
+//      cout<<"N events after cut "<<i<<":"<<nEvents<<endl;
     }
     
     auto survivors = eventProcessor.survivingEvents;
@@ -344,7 +343,7 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
     sort(lumi_event.begin(), lumi_event.end());
     
     for(auto &[lumi, event] : lumi_event){
-      cout<<lumi<<":"<<event<<endl;
+//      cout<<lumi<<":"<<event<<endl;
     }
   }
   
