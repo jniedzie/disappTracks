@@ -74,7 +74,8 @@ slope(h.slope),
 slopeAbs(h.slopeAbs),
 charge(h.charge),
 eventVertex(h.eventVertex),
-helixParams(h.helixParams)
+helixParams(h.helixParams),
+chi2(h.chi2)
 {
   uniqueID = reinterpret_cast<uint64_t>(this);
   
@@ -109,6 +110,7 @@ Helix Helix::operator=(const Helix &h)
   result.slopeAbs       = h.slopeAbs;
   result.eventVertex    = h.eventVertex;
   result.helixParams    = h.helixParams;
+  result.chi2           = h.chi2;
   
   for(int i=0;i<kNhelixParams;i++){
     result.params[i]  = h.params[i];
@@ -484,6 +486,7 @@ void Helix::Print()
   cout<<"\tCharge: "<<charge<<"\tR:"<<radius<<"\tc:"<<slope<<"\n";
   cout<<"\tnPoints:"<<points.size()<<"\tnPionPoints:"<<nPionPoints<<"\tnRegularPoints:"<<nRegularPoints<<"\n";
   cout<<"\tt min:"<<tShift<<"\tt max:"<<tMax<<endl;
+  cout<<"\tchi2:"<<chi2<<endl;
 }
 
 void Helix::SetPoints(const vector<shared_ptr<Point>> &_points)
@@ -586,7 +589,6 @@ track(_track)
   points.push_back(make_shared<Point>(_decayVertex));
   for(auto &p : _points) points.push_back(p);
   
-  
   // this only gives approximate direction of the momentum vector
   momentum = make_unique<Point>(points[0]->GetX() - vertex->GetX(),
                                 points[0]->GetY() - vertex->GetY(),
@@ -598,4 +600,25 @@ track(_track)
   tStep   = 0.01;
   iCycles =0;
   
+}
+
+void Helix::AddPoint(const shared_ptr<Point> &point)
+{
+  points.push_back(point);
+  
+  double t = atan2(point->GetY() - origin.GetY(), point->GetX() - origin.GetX());
+  point->SetT(t);
+  tMax = t;
+}
+
+void Helix::UpdateOrigin(const Point &_origin)
+{
+  origin = _origin;
+  
+  for(auto &p : points){
+    double t = atan2(p->GetY() - origin.GetY(), p->GetX() - origin.GetX());
+    p->SetT(t);
+  }
+  tShift = points[0]->GetT();
+  tMax = points.back()->GetT();
 }

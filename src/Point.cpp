@@ -13,13 +13,14 @@ errY(0),
 errZ(0),
 value(0),
 t(0),
+layer(-1),
 subDetName("")
 {
   
 }
 
 Point::Point(double _x, double _y, double _z, double _value, string _subDetName,
-             double _errX, double _errY, double _errZ, double _t) :
+             double _errX, double _errY, double _errZ, double _t, int _layer) :
 x(_x),
 y(_y),
 z(_z),
@@ -29,7 +30,8 @@ isPionHit(false),
 errX(_errX),
 errY(_errY),
 errZ(_errZ),
-t(_t)
+t(_t),
+layer(_layer)
 {
   
 }
@@ -46,6 +48,7 @@ Point::Point(const Point &p)
   errZ = p.errZ;
   subDetName = p.subDetName;
   t = p.t;
+  layer = p.layer;
 }
 
 void Point::operator=(const Point &p)
@@ -60,6 +63,7 @@ void Point::operator=(const Point &p)
   errZ = p.errZ;
   subDetName = p.subDetName;
   t = p.t;
+  layer = p.layer;
 }
 
 Point::Point(vector<Point> points)
@@ -94,7 +98,6 @@ double Point::GetVectorSlopeC() const
 {
   return tan(TMath::Pi()/2.-acos(z/sqrt(x*x+y*y+z*z)));
 }
-
 
 bool Point::operator==(const Point &p) const
 {

@@ -152,3 +152,30 @@ TripletPairsVector PointsProcessor::BuildPointTripletPairs(const vector<shared_p
   }
   return pointTripletPairs;
 }
+
+
+vector<vector<shared_ptr<Point>>> PointsProcessor::SortByLayer(const vector<shared_ptr<Point>> &points)
+{
+  vector<vector<shared_ptr<Point>>> pointsByLayer;
+  for(int iLayer=0; iLayer<nLayers; iLayer++) pointsByLayer.push_back(vector<shared_ptr<Point>>());
+  
+  for(auto &p : points){
+    // find in which layer is the hit located
+    int layer = -1;
+    double minDist = inf;
+    double pointR = sqrt(pow(p->GetX(), 2) + pow(p->GetY(), 2));
+    
+    for(int iLayer=0; iLayer<nLayers; iLayer++){
+      double pointLayerDist = fabs(layerR[iLayer] - pointR);
+      
+      if(pointLayerDist < minDist){
+        minDist = pointLayerDist;
+        layer = iLayer;
+      }
+    }
+    p->SetLayer(layer);
+    pointsByLayer[layer].push_back(p);
+  }
+  
+  return pointsByLayer;
+}

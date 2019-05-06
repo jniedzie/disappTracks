@@ -65,6 +65,9 @@ public:
   TripletPairsVector BuildPointTripletPairs(const vector<shared_ptr<Point>> &points,
                                             const shared_ptr<Point> &originMin,
                                             const shared_ptr<Point> &originMax);
+  
+  /// Sorts provided points by layer 
+  vector<vector<shared_ptr<Point>>> SortByLayer(const vector<shared_ptr<Point>> &points);
 };
 
 #endif /* PointsProcessor_hpp */

@@ -46,9 +46,8 @@ public:
                           const Track &_track,
                           const Point &_eventVertex);
   
-  unique_ptr<Helix> FitSeed(const vector<shared_ptr<Point>> &points,
-                            const Track &track,
-                            const Point &eventVertex);
+  unique_ptr<Helix> FitSeed(const vector<shared_ptr<Point>> &points);
+  void RefitHelix(Helix &helix);
   
 private:
   

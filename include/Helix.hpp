@@ -148,6 +148,17 @@ public:
     return (helixParams.s0 - helixParams.b*t);
   }
   
+  void AddPoint(const shared_ptr<Point> &point);
+  
+  void SetTmin(double tMin){tShift=tMin;}
+  void SetTmax(double _tMax){tMax=_tMax;}
+  
+  void UpdateOrigin(const Point &_origin);
+  void SetVertex(const Point &_vertex){
+    points[0] = make_shared<Point>(_vertex);
+    vertex = make_unique<Point>(_vertex);
+  }
+  double chi2;
 private:
   vector<shared_ptr<Point>> points;   ///< Vector of points laying on the helix (withing thickness)
   double tShift;  ///< Angle by which beginning of the helix is shifted due to the shift of its origin
@@ -167,8 +178,9 @@ private:
   int    charge;                ///< Charge of the particle (determines helix direction)
   
   Point GetClosestPoint(const Point &p) const;
-  
   Point eventVertex;
+  
+  
   
   friend class HelixProcessor;
 };

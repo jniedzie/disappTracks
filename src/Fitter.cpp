@@ -905,57 +905,105 @@ vector<Helix> Fitter::FitHelix2(const vector<shared_ptr<Point>> &_points,
                                 const Track &_track,
                                 const Point &_eventVertex)
 {
-  points = _points;
-  track  = _track;
+  points      = _points;
+  track       = _track;
   eventVertex = _eventVertex;
   
-  // Determine approximate decay vertex location
-  int trackLayers = track.GetNtrackerLayers();
+  vector<vector<shared_ptr<Point>>> pointsByLayer = pointsProcessor.SortByLayer(points);
   
   // find possible middle and last seeds' points
-  vector<shared_ptr<Point>> possibleMiddlePoints;
-  vector<shared_ptr<Point>> possibleLastPoints;
-  
-  for(auto &p : points){
-    
-    // find in which layer is the hit located
-    int layer = -1;
-    double minDist = inf;
-    double pointR = sqrt(pow(p->GetX(), 2) + pow(p->GetY(), 2));
-    
-    for(int iLayer=0; iLayer<nLayers; iLayer++){
-      double pointLayerDist = fabs(layerR[iLayer] - pointR);
-      
-      if(pointLayerDist < minDist){
-        minDist = pointLayerDist;
-        layer = iLayer;
-      }
-    }
-    
-    if(layer == trackLayers) possibleMiddlePoints.push_back(p);
-    if(layer == trackLayers+1) possibleLastPoints.push_back(p);
-    
-  }
+  int trackLayers = track.GetNtrackerLayers();
+  vector<shared_ptr<Point>> possibleMiddlePoints = pointsByLayer[trackLayers];
+  vector<shared_ptr<Point>> possibleLastPoints   = pointsByLayer[trackLayers+1];
   
   // build seeds for all possible combinations of points
-  
   vector<Helix> fittedHelices;
   
   for(auto &middlePoint : possibleMiddlePoints){
     for(auto &lastPoint : possibleLastPoints){
       vector<shared_ptr<Point>> points = { middlePoint, lastPoint };
       
-      unique_ptr<Helix> helix = FitSeed(points, track, eventVertex);
-      if(helix) fittedHelices.push_back(*helix);
+      unique_ptr<Helix> helix = FitSeed(points);
+      if(helix){
+        fittedHelices.push_back(*helix);
+        break;
+      }
     }
   }
+  
+  int iSteps=0;
+  int nSteps=10;
+  
+  bool finished;
+  
+  do{
+    if(iSteps==nSteps) break;
+    
+    finished = true;
+    vector<Helix> helicesAfterExtending;
+    
+    // for all helices from previous step
+    for(Helix &helix : fittedHelices){
+      
+      // that are not yet marked as finished
+      if(helix.isFinished){
+        helicesAfterExtending.push_back(helix);
+      }
+      else{
+        vector<Helix> extendedHelices;
+        int lastPointLayer = helix.GetLastPoint()->GetLayer();
+        vector<shared_ptr<Point>> possiblePoints = pointsByLayer[lastPointLayer+1];
+        
+        // try to extend by all possible points
+        for(auto &point : possiblePoints){
+          
+          Helix helixCopy(helix);
+          helixCopy.AddPoint(point);
+          
+          RefitHelix(helixCopy);
+          
+          
+            // check that the radius of a new track candidate is within allowed limits
+            //            if(helixCopy.R0min > GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField) ||
+            //               helixCopy.R0max < GetRadiusInMagField(config.minPx, config.minPy, solenoidField)){
+            //              cout<<"Rejected because of radius"<<endl;
+            //              continue;
+            //            }
+            //
+            //            // check that the range of a and b parameters allowed the pion not to gain momentum with time
+            //            if(helixCopy.amax < 0 || helixCopy.bmin > 0){
+            //              cout<<"Rejected because of gaining momentum"<<endl;
+            //              continue;
+            //            }
+          
+          extendedHelices.push_back(helixCopy);
+        }
+        // if it was possible to extend the helix
+        if(extendedHelices.size() != 0){
+          helicesAfterExtending.insert(helicesAfterExtending.end(),
+                                       extendedHelices.begin(),
+                                       extendedHelices.end());
+          finished = false;
+        }
+        else{ // if helix could not be extended
+          helix.isFinished = true;
+          helicesAfterExtending.push_back(helix); // is this needed?
+        }
+      }
+    }
+    fittedHelices.clear();
+    
+    for(auto &h : helicesAfterExtending){
+      fittedHelices.push_back(move(h));
+    }
+    iSteps++;
+  }
+  while(!finished);
   
   return fittedHelices;
 }
 
-unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points,
-                      const Track &track,
-                      const Point &eventVertex)
+unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points)
 {
   double Lmin = layerR[track.GetNtrackerLayers()-1];
   double Lmax = layerR[track.GetNtrackerLayers()];
@@ -992,8 +1040,6 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points,
     
     double f = distX + distY + distZ;
     
-    cout<<"chi2: "<<f<<"\t";
-    
     // Then add distances to all other points
     for(auto &p : points){
       t = atan2(p->GetY() - y0, p->GetX() - x0);
@@ -1016,11 +1062,8 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points,
       distY /= p->GetYerr() > 0 ? pow(p->GetYerr(), 2) : 1;
       distZ /= p->GetZerr() > 0 ? pow(p->GetZerr(), 2) : 1;
       
-      cout<<"\tx:"<<distX<<"\ty:"<<distY<<"\tz:"<<distZ<<endl;
-      
       f += distX + distY + distZ;
     }
-    cout<<f<<endl;
     return f;
   };
   
@@ -1033,12 +1076,8 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points,
   
   unique_ptr<Helix> resultHelix = nullptr;
   
-  cout<<"\n\nRunning fitting"<<endl;
-  
   if(fitter->FitFCN()) {
-    //  fitter->FitFCN();
     auto result = fitter->Result();
-    
     
     // Build helix from fitters output
     HelixParams resultParams;
@@ -1065,14 +1104,144 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points,
     resultParams.tMax   = points.back()->GetT();
     resultParams.zShift = vertex.GetZ() - (resultParams.s0 - resultParams.b * vertex.GetT()) * vertex.GetT();
     
-    
     resultHelix = make_unique<Helix>(resultParams, vertex, origin, points, track);
-    
   }
   
   return resultHelix;
 }
 
+void Fitter::RefitHelix(Helix &helix)
+{
+  vector<shared_ptr<Point>> helixPoints = helix.GetPoints();
+  double ht = config.helixThickness;
+  
+  auto chi2Function = [&](const double *par) {
+    double R0 = par[0];
+    double a  = par[1];
+    double s0 = par[2];
+    double b  = par[3];
+    double L  = par[4];
+    double x0 = par[5];
+    double y0 = par[6];
+    double z0 = par[7];
+    
+    // First add distance to the new vertex
+    double vertexX = L * cos(track.GetPhi())    + 10*eventVertex.GetX();
+    double vertexY = L * sin(track.GetPhi())    + 10*eventVertex.GetY();
+    double vertexZ = L / tan(track.GetTheta())  + 10*eventVertex.GetZ();
+    
+    double t = atan2(vertexY - y0, vertexX - x0);
+    
+    // Point on helix for t_vertex relative to the new origin
+    double x = x0 + (R0 - a*t)*cos(t);
+    double y = y0 + (R0 - a*t)*sin(t);
+    double z = z0 + (s0 - b*t)*t;
+    
+    double distX = pow(x-vertexX, 2);
+    double distY = pow(y-vertexY, 2);
+    double distZ = pow(z-vertexZ, 2);
+    
+    double f = distX + distY + distZ;
+//    cout<<"chi2: "<<distX<<"\t"<<distY<<"\t"<<distZ<<endl;
+    
+    // Then add distances to all other points
+    bool first=true;
+    for(auto &p : helixPoints){
+      // Skip first point, as this is the old vertex that will be replaced
+      if(first){
+        first = false;
+        continue;
+      }
+      
+      t = atan2(p->GetY() - y0, p->GetX() - x0);
+      
+      // find helix point for this point's t
+      x = x0 + (R0 - a*t)*cos(t);
+      y = y0 + (R0 - a*t)*sin(t);
+      z = z0 + (s0 - b*t)*t;
+      
+      // calculate distance between helix and point's boundary (taking into account its errors)
+      distX = distY = distZ = 0;
+      
+      if(fabs(x-p->GetX()) > p->GetXerr()+ht){
+        double distX_1 = x - (p->GetX() + p->GetXerr() + ht);
+        double distX_2 = x - (p->GetX() - p->GetXerr() - ht);
+        distX = min(pow(distX_1, 2), pow(distX_2, 2));
+      }
+      if(fabs(y-p->GetY()) > p->GetYerr()+ht){
+        double distY_1 = y - (p->GetY() + p->GetYerr() + ht);
+        double distY_2 = y - (p->GetY() - p->GetYerr() - ht);
+        distY = min(pow(distY_1, 2), pow(distY_2, 2));
+      }
+      if(fabs(z-p->GetZ()) > p->GetZerr()+ht){
+        double distZ_1 = z - (p->GetZ() + p->GetZerr() + ht);
+        double distZ_2 = z - (p->GetZ() - p->GetZerr() - ht);
+        distZ = min(pow(distZ_1, 2), pow(distZ_2, 2));
+      }
+      
+//      distX = pow(x-p->GetX(), 2);
+//      distY = pow(y-p->GetY(), 2);
+//      distZ = pow(z-p->GetZ(), 2);
+      
+      distX /= p->GetXerr() > 0 ? pow(p->GetXerr(), 2) : 1;
+      distY /= p->GetYerr() > 0 ? pow(p->GetYerr(), 2) : 1;
+      distZ /= p->GetZerr() > 0 ? pow(p->GetZerr(), 2) : 1;
+      
+      f += distX + distY + distZ;
+//      cout<<"\t"<<distX<<"\t"<<distY<<"\t"<<distZ<<endl;
+    }
+    return f/(3*helixPoints.size()+8);
+  };
+  
+  ROOT::Fit::Fitter *fitter = new ROOT::Fit::Fitter();
+  int nPar = 8;
+  ROOT::Math::Functor fitFunction = ROOT::Math::Functor(chi2Function, nPar);
+  double pStart[nPar];
+  fitter->SetFCN(fitFunction, pStart);
+  
+  double Lmin = layerR[track.GetNtrackerLayers()-1];
+  double Lmax = layerR[track.GetNtrackerLayers()];
+  
+  SetParameter(fitter, 0, "R0", helix.helixParams.R0, 0, 10000);
+  SetParameter(fitter, 1, "a" , helix.helixParams.a, 0, 10000);
+  SetParameter(fitter, 2, "s0", helix.helixParams.s0, -1000, 1000);
+  SetParameter(fitter, 3, "b" , helix.helixParams.b, -10000, 10000);
+  SetParameter(fitter, 4, "L" , (helix.GetVertex()->GetX()-10*eventVertex.GetX())/cos(track.GetPhi()),
+               Lmin, Lmax);
+  SetParameter(fitter, 5, "x0", helix.GetOrigin().GetX(), -layerR[nLayers-1] , layerR[nLayers-1]);
+  SetParameter(fitter, 6, "y0", helix.GetOrigin().GetY(), -layerR[nLayers-1] , layerR[nLayers-1]);
+  SetParameter(fitter, 7, "z0", helix.GetOrigin().GetZ(), -pixelBarrelZsize  , pixelBarrelZsize);
+  
+  for(int i=0; i<nPar; i++) pStart[i] = fitter->Config().ParSettings(i).Value();
+  
+//  if(fitter->FitFCN()) {
+  
+  fitter->FitFCN();
+    auto result = fitter->Result();
+    
+    double L  = result.GetParams()[4];
+    Point vertex(L * cos(track.GetPhi())    + 10*eventVertex.GetX(),
+                 L * sin(track.GetPhi())    + 10*eventVertex.GetY(),
+                 L / tan(track.GetTheta())  + 10*eventVertex.GetZ());
+    
+    helix.SetVertex(vertex);
+    
+    double x0 = result.GetParams()[5];
+    double y0 = result.GetParams()[6];
+    double z0 = result.GetParams()[7];
+    Point origin(x0, y0, z0);
+    helix.UpdateOrigin(origin);
+    
+    HelixParams resultParams;
+    resultParams.R0 = result.GetParams()[0];
+    resultParams.a  = result.GetParams()[1];
+    resultParams.s0 = result.GetParams()[2];
+    resultParams.b  = result.GetParams()[3];
+    helix.helixParams = resultParams;
+  
+  helix.chi2 = result.MinFcnValue();
+//  }
+}
 
 ROOT::Fit::Fitter* Fitter::GetSeedFitter(range<double> rangeL)
 {
