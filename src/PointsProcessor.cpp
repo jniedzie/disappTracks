@@ -60,7 +60,7 @@ vector<shared_ptr<Point>> PointsProcessor::GetRandomPoints(int nPoints) const
   return points;
 }
 
-double PointsProcessor::distance(Point p1, Point p2) const
+double PointsProcessor::distance(const Point &p1,const Point &p2) const
 {
   return sqrt(pow(p1.x-p2.x,2)+pow(p1.y-p2.y,2)+pow(p1.z-p2.z,2));
 }

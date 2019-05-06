@@ -7,7 +7,7 @@
 #include "Fitter.hpp"
 
 Fitter::Fitter() :
-vertex(Point(0, 0, 0))
+eventVertex(Point(0, 0, 0))
 {
 //  c1 = new TCanvas("c1","c1",1500,1500);
 //  c1->Divide(2,2);
@@ -44,7 +44,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
         auto chi2Function = [&](const double *par) {
           double f = 0;
           
-          auto circle = circleProcessor.BuildCircleFromParams(par, vertex, track);
+          auto circle = circleProcessor.BuildCircleFromParams(par, eventVertex, track);
           
           f  = pow(circle->GetDistanceToPoint(points2D[i]),2);
           f += pow(circle->GetDistanceToPoint(points2D[j]),2);
@@ -59,7 +59,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
         if(fitter->FitFCN()) {
           auto result = fitter->Result();
           
-          auto circle = circleProcessor.BuildCircleFromParams(result.GetParams(), vertex, track);
+          auto circle = circleProcessor.BuildCircleFromParams(result.GetParams(), eventVertex, track);
           
           int nPointsOnCircle=0;
           for(Point p : points2D){
@@ -80,12 +80,12 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesToPoints(int pxSign, int pySign)
 
 unique_ptr<Helix> Fitter::GetBestFittingHelix(vector<shared_ptr<Point>> _points,
                                               const Track &_track,
-                                              const Point &_vertex,
+                                              const Point &_eventVertex,
                                               bool drawCircles)
 {
   points = _points;
   track = _track;
-  vertex = _vertex;
+  eventVertex = _eventVertex;
   
   vector<unique_ptr<Circle>> circles = GetAllCirclesForPoints();
   
@@ -262,7 +262,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesAndAdjustFirstPoint(TripletsVector 
     auto chi2Function = [&](const double *par) {
       double f = 0;
       
-      auto circle = circleProcessor.BuildCircleFromParams(par, vertex, track);
+      auto circle = circleProcessor.BuildCircleFromParams(par, eventVertex, track);
       
       f  = pow(circle->GetDistanceToPoint(circle->GetDecayPoint()),2);
       f += pow(circle->GetDistanceToPoint(*p[1]),2);
@@ -279,7 +279,7 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesAndAdjustFirstPoint(TripletsVector 
       auto result = fitter->Result();
       
       if(result.MinFcnValue() > chi2threshold) continue; // FILTER
-      auto circle = circleProcessor.BuildCircleFromParams(result.GetParams(), vertex, track);
+      auto circle = circleProcessor.BuildCircleFromParams(result.GetParams(), eventVertex, track);
       
       p[0]->SetX(circle->GetDecayPoint().GetX());
       p[0]->SetY(circle->GetDecayPoint().GetY());
@@ -298,11 +298,11 @@ vector<unique_ptr<Circle>> Fitter::FitCirclesAndAdjustFirstPoint(TripletsVector 
 
 vector<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
                                const Track &_track,
-                               const Point &_vertex)
+                               const Point &_eventVertex)
 {
   points = _points;
   track = _track;
-  vertex = _vertex;
+  eventVertex = _eventVertex;
   
   double minPointsSeparation = 10.0; // mm
 //  double chi2threshold = 1E-6;
@@ -318,7 +318,7 @@ vector<Helix> Fitter::FitHelix(const vector<shared_ptr<Point>> &_points,
   int iter=0;
   for(auto pointPair : pointPairs){
     if(iter > 0) break;
-    Helix helix(track, *pointPair.first, *pointPair.second, vertex);
+    Helix helix(track, *pointPair.first, *pointPair.second, eventVertex);
     
     // check that the radius of a new track candidate is within allowed limits
 //    if(helix.R0min > GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField) ||
@@ -727,12 +727,12 @@ TGraph* Fitter::GetDecayGraph()
   double maxR = layerR[track.GetNtrackerLayers()];
   
   graphDecay->SetPoint(0,
-                       minR*cos(track.GetPhi()) + 10*vertex.GetX(),
-                       minR*sin(track.GetPhi()) + 10*vertex.GetY());
+                       minR*cos(track.GetPhi()) + 10*eventVertex.GetX(),
+                       minR*sin(track.GetPhi()) + 10*eventVertex.GetY());
   
   graphDecay->SetPoint(1,
-                       maxR*cos(track.GetPhi()) + 10*vertex.GetX(),
-                       maxR*sin(track.GetPhi()) + 10*vertex.GetY());
+                       maxR*cos(track.GetPhi()) + 10*eventVertex.GetX(),
+                       maxR*sin(track.GetPhi()) + 10*eventVertex.GetY());
   graphDecay->SetMarkerStyle(20);
   graphDecay->SetMarkerSize(1.0);
   graphDecay->SetMarkerColor(kRed);
@@ -892,4 +892,212 @@ HelixParams Fitter::FitHelixParams(const vector<shared_ptr<Point>> &points, cons
 //  }
   
   return resultParams;
+}
+
+
+
+
+//------------------------------------------------------------------------------------------------------
+// Another approach
+//
+
+vector<Helix> Fitter::FitHelix2(const vector<shared_ptr<Point>> &_points,
+                                const Track &_track,
+                                const Point &_eventVertex)
+{
+  points = _points;
+  track  = _track;
+  eventVertex = _eventVertex;
+  
+  // Determine approximate decay vertex location
+  int trackLayers = track.GetNtrackerLayers();
+  
+  // find possible middle and last seeds' points
+  vector<shared_ptr<Point>> possibleMiddlePoints;
+  vector<shared_ptr<Point>> possibleLastPoints;
+  
+  for(auto &p : points){
+    
+    // find in which layer is the hit located
+    int layer = -1;
+    double minDist = inf;
+    double pointR = sqrt(pow(p->GetX(), 2) + pow(p->GetY(), 2));
+    
+    for(int iLayer=0; iLayer<nLayers; iLayer++){
+      double pointLayerDist = fabs(layerR[iLayer] - pointR);
+      
+      if(pointLayerDist < minDist){
+        minDist = pointLayerDist;
+        layer = iLayer;
+      }
+    }
+    
+    if(layer == trackLayers) possibleMiddlePoints.push_back(p);
+    if(layer == trackLayers+1) possibleLastPoints.push_back(p);
+    
+  }
+  
+  // build seeds for all possible combinations of points
+  
+  vector<Helix> fittedHelices;
+  
+  for(auto &middlePoint : possibleMiddlePoints){
+    for(auto &lastPoint : possibleLastPoints){
+      vector<shared_ptr<Point>> points = { middlePoint, lastPoint };
+      
+      unique_ptr<Helix> helix = FitSeed(points, track, eventVertex);
+      if(helix) fittedHelices.push_back(*helix);
+    }
+  }
+  
+  return fittedHelices;
+}
+
+unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points,
+                      const Track &track,
+                      const Point &eventVertex)
+{
+  double Lmin = layerR[track.GetNtrackerLayers()-1];
+  double Lmax = layerR[track.GetNtrackerLayers()];
+  
+  auto fitter = GetSeedFitter(range<double>(Lmin, Lmax));
+  
+  double ht = config.helixThickness;
+  
+  auto chi2Function = [&](const double *par) {
+    double R0 = par[0];
+    double a  = par[1];
+    double s0 = par[2];
+    double b  = par[3];
+    double L  = par[4];
+    double x0 = par[5];
+    double y0 = par[6];
+    double z0 = par[7];
+    
+    // First add distance to the vertex
+    double vertexX = L * cos(track.GetPhi())    + 10*eventVertex.GetX();
+    double vertexY = L * sin(track.GetPhi())    + 10*eventVertex.GetY();
+    double vertexZ = L / tan(track.GetTheta())  + 10*eventVertex.GetZ();
+    
+    double t = atan2(vertexY - y0, vertexX - x0);
+    
+    // Point on helix for t_vertex
+    double x = x0 + (R0 - a*t)*cos(t);
+    double y = y0 + (R0 - a*t)*sin(t);
+    double z = z0 + (s0 - b*t)*t;
+    
+    double distX = pow(x-vertexX, 2);
+    double distY = pow(y-vertexY, 2);
+    double distZ = pow(z-vertexZ, 2);
+    
+    double f = distX + distY + distZ;
+    
+    cout<<"chi2: "<<f<<"\t";
+    
+    // Then add distances to all other points
+    for(auto &p : points){
+      t = atan2(p->GetY() - y0, p->GetX() - x0);
+      
+      // find helix point for this point's t
+      x = x0 + (R0 - a*t)*cos(t);
+      y = y0 + (R0 - a*t)*sin(t);
+      z = z0 + (s0 - b*t)*t;
+      
+      // calculate distance between helix and point's boundary (taking into account its errors)
+      distX = fabs(x-p->GetX()) > p->GetXerr()+ht ? pow(x-p->GetX(), 2) : 0;
+      distY = fabs(y-p->GetY()) > p->GetYerr()+ht ? pow(y-p->GetY(), 2) : 0;
+      distZ = fabs(z-p->GetZ()) > p->GetZerr()+ht ? pow(z-p->GetZ(), 2) : 0;
+      
+      distX = pow(x-p->GetX(), 2);
+      distY = pow(y-p->GetY(), 2);
+      distZ = pow(z-p->GetZ(), 2);
+      
+      distX /= p->GetXerr() > 0 ? pow(p->GetXerr(), 2) : 1;
+      distY /= p->GetYerr() > 0 ? pow(p->GetYerr(), 2) : 1;
+      distZ /= p->GetZerr() > 0 ? pow(p->GetZerr(), 2) : 1;
+      
+      cout<<"\tx:"<<distX<<"\ty:"<<distY<<"\tz:"<<distZ<<endl;
+      
+      f += distX + distY + distZ;
+    }
+    cout<<f<<endl;
+    return f;
+  };
+  
+
+  int nPar=8;
+  auto fitFunction = ROOT::Math::Functor(chi2Function, nPar);
+  double pStart[nPar];
+  for(int i=0; i<nPar; i++) pStart[i] = fitter->Config().ParSettings(i).Value();
+  fitter->SetFCN(fitFunction, pStart);
+  
+  unique_ptr<Helix> resultHelix = nullptr;
+  
+  cout<<"\n\nRunning fitting"<<endl;
+  
+  if(fitter->FitFCN()) {
+    //  fitter->FitFCN();
+    auto result = fitter->Result();
+    
+    
+    // Build helix from fitters output
+    HelixParams resultParams;
+    resultParams.R0 = result.GetParams()[0];
+    resultParams.a  = result.GetParams()[1];
+    resultParams.s0 = result.GetParams()[2];
+    resultParams.b  = result.GetParams()[3];
+    
+    double L  = result.GetParams()[4];
+    double x0 = result.GetParams()[5];
+    double y0 = result.GetParams()[6];
+    double z0 = result.GetParams()[7];
+    
+    Point origin(x0, y0, z0);
+    
+    Point vertex(L * cos(track.GetPhi())    + 10*eventVertex.GetX(),
+                 L * sin(track.GetPhi())    + 10*eventVertex.GetY(),
+                 L / tan(track.GetTheta())  + 10*eventVertex.GetZ());
+    
+    vertex.SetT(atan2(vertex.GetY() - y0, vertex.GetX() - x0));
+    for(auto &p : points) p->SetT(atan2(p->GetY() - y0, p->GetX() - x0));
+    
+    resultParams.tShift = vertex.GetT();
+    resultParams.tMax   = points.back()->GetT();
+    resultParams.zShift = vertex.GetZ() - (resultParams.s0 - resultParams.b * vertex.GetT()) * vertex.GetT();
+    
+    
+    resultHelix = make_unique<Helix>(resultParams, vertex, origin, points, track);
+    
+  }
+  
+  return resultHelix;
+}
+
+
+ROOT::Fit::Fitter* Fitter::GetSeedFitter(range<double> rangeL)
+{
+  ROOT::Fit::Fitter *fitter = new ROOT::Fit::Fitter();
+  
+  // This is a stupid hack to be able to set fit parameters before actually setting a fitting function
+  // Params we want to set only once, but function will change in each iteration of the loop, because
+  // it captures loop iterators.
+  auto f = [&](const double*) {return 0;};
+  int nPar = 8;
+  ROOT::Math::Functor fitFunction = ROOT::Math::Functor(f, nPar);
+  double pStart[nPar];
+  fitter->SetFCN(fitFunction, pStart);
+  
+  double minR = GetRadiusInMagField(config.minPx, config.minPy, solenoidField);
+  double maxR = GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField);
+  
+  SetParameter(fitter, 0, "R0", (minR+maxR)/2., 0, 10000);
+  SetParameter(fitter, 1, "a" , (minR+maxR)/2., 0, 10000);
+  SetParameter(fitter, 2, "s0", 0, -1000, 1000);
+  SetParameter(fitter, 3, "b" , 0, -10000, 10000);
+  SetParameter(fitter, 4, "L" , (rangeL.GetMin()+rangeL.GetMax())/2., rangeL.GetMin(), rangeL.GetMax());
+  SetParameter(fitter, 5, "x0", 0, -layerR[nLayers-1] , layerR[nLayers-1]);
+  SetParameter(fitter, 6, "y0", 0, -layerR[nLayers-1] , layerR[nLayers-1]);
+  SetParameter(fitter, 7, "z0", 0, -pixelBarrelZsize  , pixelBarrelZsize);
+  
+  return fitter;
 }

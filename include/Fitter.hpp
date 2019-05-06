@@ -36,17 +36,25 @@ public:
   
   vector<Helix> FitHelix(const vector<shared_ptr<Point>> &_points,
                          const Track &_track,
-                         const Point &_vertex);
+                         const Point &_eventVertex);
   
   HelixParams FitHelixParams(const vector<shared_ptr<Point>> &points, const Point &nextPoint,
                              const Point &origin, const Track &track,
                              const Point &eventVertex, EHelixParams iParam);
   
+  vector<Helix> FitHelix2(const vector<shared_ptr<Point>> &_points,
+                          const Track &_track,
+                          const Point &_eventVertex);
+  
+  unique_ptr<Helix> FitSeed(const vector<shared_ptr<Point>> &points,
+                            const Track &track,
+                            const Point &eventVertex);
+  
 private:
   
   vector<shared_ptr<Point>> points;
   Track track;
-  Point vertex;
+  Point eventVertex;
   
   /// Finds circles fitting points, matching all the other criteria specified in the config and for
   /// a specific signs of X and Y coordinates of the momentum and charge.
@@ -102,6 +110,7 @@ private:
   
   ///
   ROOT::Fit::Fitter* GetHelixParamsFitter(range<double> rangeL);
+  ROOT::Fit::Fitter* GetSeedFitter(range<double> rangeL);
 };
 
 #endif /* Fitter_hpp */

@@ -14,11 +14,11 @@ save_events:  1
 
 ### turn on/off different backgrounds, signals and data samples
 do_QCD:         0
-do_Zmm:         1
+do_Zmm:         0
 do_tops:          0
 do_dibosons:   0
 do_Wmv:         0
-do_Zvv:           0
+do_Zvv:           1
 
 do_300_3:       0
 do_300_10:     0

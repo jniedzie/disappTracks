@@ -27,7 +27,7 @@ public:
   ~PointsProcessor();
   
   /// Returns distance between this and another point
-  double distance(Point p1, Point p2) const;
+  double distance(const Point &p1,const Point &p2) const;
   double distance(shared_ptr<Point> p1, shared_ptr<Point> p2) const;
   
   double distanceWithUncertainZ(shared_ptr<Point> p1, shared_ptr<Point> p2, double zTolerance) const;

@@ -126,6 +126,28 @@ public:
                          double minY, double maxY,
                          double minZ, double maxZ);
   
+  
+  //------------------------------------------------------------------------
+  // Another approach
+  //
+  
+  Helix(const HelixParams &_params,
+        const Point &_decayVertex,
+        const Point &_origin,
+        const vector<shared_ptr<Point>> &_points,
+        const Track &_track);
+  
+  HelixParams helixParams;
+  
+  
+  double GetRadius(double t) const {
+    return (helixParams.R0 - helixParams.a*t);
+  }
+  
+  double GetSlope(double t) const {
+    return (helixParams.s0 - helixParams.b*t);
+  }
+  
 private:
   vector<shared_ptr<Point>> points;   ///< Vector of points laying on the helix (withing thickness)
   double tShift;  ///< Angle by which beginning of the helix is shifted due to the shift of its origin

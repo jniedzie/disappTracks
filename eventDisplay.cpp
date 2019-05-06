@@ -152,9 +152,9 @@ int main(int argc, char* argv[])
 	display->DrawEvent(event, dedxOptions);
   event->Print();
 
-  // ------------------------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------------
   // Helix fitting part
-  // ------------------------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------------
   
   cout<<"Preparing hits, track and pion's helix"<<endl;
   
@@ -234,17 +234,51 @@ int main(int argc, char* argv[])
 		cout<<"Fitting best helix"<<endl;
 		auto fitter = make_unique<Fitter>();
 		
-//    auto bestHelix = fitter->FitHelix(event->GetPionSimHits(), track, event->GetVertex());
-//    auto bestHelix = fitter->FitHelix(event->GetPionClusters(), track, event->GetVertex());
-    
     auto pionClusters = event->GetPionClusters();
 
+    for(auto &p : allSimplePoints){
+      int layer = -1;
+      double minDist = inf;
+      double pointR = sqrt(pow(p->GetX(), 2) + pow(p->GetY(), 2));
+      
+      for(int iLayer=0; iLayer<nLayers; iLayer++){
+        double pointLayerDist = fabs(layerR[iLayer] - pointR);
+        
+        if(pointLayerDist < minDist){
+          minDist = pointLayerDist;
+          layer = iLayer;
+        }
+      }
+      
+      if(layer == track->GetNtrackerLayers()){
+        Point trackPoint(layerR[layer] * cos(track->GetPhi())    + 10*event->GetVertex()->GetX(),
+                         layerR[layer] * sin(track->GetPhi())    + 10*event->GetVertex()->GetY(),
+                         layerR[layer] / tan(track->GetTheta())  + 10*event->GetVertex()->GetZ());
+//
+        if(pointsProcessor.distance(make_shared<Point>(trackPoint), p) < 50){
+          pionClusters.push_back(p);
+        }
+      }
+    }
+    
+    map<string,any> pionClustersOptions = {
+      {"title", "Pion clusters"},
+      {"binsMin" , 0},
+      {"binsMax" , 100000},
+      {"markerStyle", 20},
+      {"markerSize", 2.0},
+      {"color", kCyan}
+    };
+    
+    display->DrawSimplePoints(pionClusters, pionClustersOptions);
+    
     // Turn this on to inject some noise
 //    for(int i=0;i<50;i++){
 //      int r = RandInt(0, (int)allSimplePoints.size()-1);
 //      pionClusters.insert(pionClusters.end(),allSimplePoints[r]);
 //    }
-    vector<Helix> fittedHelices = fitter->FitHelix(pionClusters, *track, *event->GetVertex());
+    
+    vector<Helix> fittedHelices = fitter->FitHelix2(pionClusters, *track, *event->GetVertex());
     
 //    auto bestHelix = fitter->GetBestFittingHelix(allSimplePoints, track, event->GetVertex());
 		
@@ -264,92 +298,18 @@ int main(int argc, char* argv[])
       {"color", kYellow}
     };
     
-//    auto id = fittedHelices[0].seedID;
-    
-    for(int iHelix = 0;iHelix<fittedHelices.size();iHelix++){
-//      if(fittedHelices[iHelix].seedID != id) continue;
-      
-//      if(iHelix != 0) continue;
-//      if(fittedHelices[iHelix].GetNpoints() < 9) continue;
-      
-//      fittedHelices[iHelix]->Print();cout<<endl;
+    for(int iHelix=0; iHelix<fittedHelices.size(); iHelix++){
+
       bestHelixOptions["title"] = ("Helix "+to_string(fittedHelices[iHelix].uniqueID)).c_str();
-      display->DrawShrinkingHelix(fittedHelices[iHelix], bestHelixOptions);
+      display->DrawShrinkingHelix2(fittedHelices[iHelix], bestHelixOptions);
       
       helixVertexOptions["markerStyle"] = 20;
       vector<shared_ptr<Point>> helixVertex = fittedHelices[iHelix].GetPoints();
       display->DrawSimplePoints(helixVertex, helixVertexOptions);
-      
-//      helixVertexOptions["markerStyle"] = 21;
-//      vector<shared_ptr<Point>> helixCenter = {make_shared<Point>(bestHelix[iHelix]->GetOrigin())};
-//      display->DrawSimplePoints(helixCenter, helixVertexOptions);
-    }
-    /*
-    iHelix = 1;
-    bestHelix[iHelix]->Print();cout<<endl;
-    display->DrawShrinkingHelix(bestHelix[iHelix], bestHelixOptions);
-    
-    helixVertexOptions["color"] = kGreen;
-    helixVertexOptions["markerStyle"] = 20;
-    
-    helixVertex = bestHelix[iHelix]->GetPoints();
-    display->DrawSimplePoints(helixVertex, helixVertexOptions);
-    
-    helixVertexOptions["markerStyle"] = 21;
-    helixCenter = {make_shared<Point>(bestHelix[iHelix]->GetOrigin())};
-    display->DrawSimplePoints(helixCenter, helixVertexOptions);
-    */
-    
-    
-      /*
-			map<string,any> fitPointsOptions = {
-				{"title", "Fit helix points"},
-				{"markerStyle", 20},
-				{"markerSize", 1.0},
-				{"color", kRed}
-			};
-			display->DrawSimplePoints(bestHelix->GetPoints(), fitPointsOptions);
-			
-			cout<<"\n\nBest helix is:"<<endl;
-			bestHelix->Print();
-       */
-    
-  }
-	
-  /*
-  TCanvas *c1 = new TCanvas("c1","c1",800,600);
-  c1->cd();
-  TH1D *chargeHistClusters = new TH1D("chargeHistClusters","chargeHistClusters",100,0,1000);
-  TH1D *chargeHistPion = new TH1D("chargeHistPion","chargeHistPion",100,0,1000);
-  chargeHistClusters->Sumw2();
-  chargeHistPion->Sumw2();
-  chargeHistClusters->SetLineColor(kRed);
-  chargeHistPion->SetLineColor(kBlue);
-  
-  for(int i=0;i<30;i++){
-    auto event = events->At(dataType, setIter, i);
-    event->LoadAdditionalInfo();
-    
-    auto clusters = event->GetTrackerClusters();
-    auto pionHits = event->GetPionClusters();
-    
-    for(auto cluster : *clusters){
-      chargeHistClusters->Fill(cluster.GetValue());
-    }
-    for(auto hit : *pionHits){
-      chargeHistPion->Fill(hit.GetValue());
     }
   }
   
-  chargeHistClusters->DrawNormalized();
-  chargeHistPion->DrawNormalized("same");
-  c1->Update();
-  
-  cout<<"tracker mean:"<<chargeHistClusters->GetMean()<<" +/- "<<chargeHistClusters->GetMeanError()<<endl;
-  cout<<"pion mean:"<<chargeHistPion->GetMean()<<" +/- "<<chargeHistPion->GetMeanError()<<endl;
-  
-  */
-  
+     
   gEve->Redraw3D(true);
   theApp.Run();
   return 0;

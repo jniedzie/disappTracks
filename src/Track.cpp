@@ -109,7 +109,7 @@ void Track::Print()
 {
   cout<<"PID:"<<pid<<"\trel iso:"<<relativeIsolation<<endl;
   cout<<"eta:"<<eta<<"\tphi:"<<phi<<"\tpT:"<<pt<<endl;
-  cout<<"Tracker layers:"<<GetLastBarrelLayer()+1<<endl;
+  cout<<"Tracker layers:"<<nTrackerLayers<<endl;
   cout<<"Missing outer tracker hits:"<<nMissingOuterTrackerHits<<endl;
 }
 

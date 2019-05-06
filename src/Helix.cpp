@@ -73,7 +73,8 @@ radius(h.radius),
 slope(h.slope),
 slopeAbs(h.slopeAbs),
 charge(h.charge),
-eventVertex(h.eventVertex)
+eventVertex(h.eventVertex),
+helixParams(h.helixParams)
 {
   uniqueID = reinterpret_cast<uint64_t>(this);
   
@@ -107,6 +108,7 @@ Helix Helix::operator=(const Helix &h)
   result.slope          = h.slope;
   result.slopeAbs       = h.slopeAbs;
   result.eventVertex    = h.eventVertex;
+  result.helixParams    = h.helixParams;
   
   for(int i=0;i<kNhelixParams;i++){
     result.params[i]  = h.params[i];
@@ -556,4 +558,44 @@ void Helix::TrimPointToLimits(Point &point,
                 point.GetValue(), point.GetSubDetName(),
                 (upperX-lowerX)/2., (upperY-lowerY)/2., (upperZ-lowerZ)/2.,
                 point.GetT());
+}
+
+
+
+
+//------------------------------------------------------------------------------------------------
+// Annother approach
+//
+
+Helix::Helix(const HelixParams &_params,
+             const Point &_decayVertex,
+             const Point &_origin,
+             const vector<shared_ptr<Point>> &_points,
+             const Track &_track) :
+origin(_origin),
+vertex(make_unique<Point>(_decayVertex)),
+helixParams(_params),
+track(_track)
+{
+  seedID = uniqueID = reinterpret_cast<uint64_t>(this);
+  
+  charge = track.GetCharge();
+  
+  // approximated position of the decay vertex
+ 
+  points.push_back(make_shared<Point>(_decayVertex));
+  for(auto &p : _points) points.push_back(p);
+  
+  
+  // this only gives approximate direction of the momentum vector
+  momentum = make_unique<Point>(points[0]->GetX() - vertex->GetX(),
+                                points[0]->GetY() - vertex->GetY(),
+                                points[0]->GetZ() - vertex->GetZ());
+  
+  
+  tShift  = points[0]->GetT();
+  tMax    = points.back()->GetT();
+  tStep   = 0.01;
+  iCycles =0;
+  
 }
