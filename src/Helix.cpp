@@ -75,7 +75,8 @@ slopeAbs(h.slopeAbs),
 charge(h.charge),
 eventVertex(h.eventVertex),
 helixParams(h.helixParams),
-chi2(h.chi2)
+chi2(h.chi2),
+increasing(h.increasing)
 {
   uniqueID = reinterpret_cast<uint64_t>(this);
   
@@ -111,12 +112,26 @@ Helix Helix::operator=(const Helix &h)
   result.eventVertex    = h.eventVertex;
   result.helixParams    = h.helixParams;
   result.chi2           = h.chi2;
+  result.increasing     = h.increasing;
   
   for(int i=0;i<kNhelixParams;i++){
     result.params[i]  = h.params[i];
   }
   
   return result;
+}
+
+bool Helix::operator==(const Helix &h)
+{
+  if(points.size() == h.points.size() &&
+     fabs(helixParams.R0 - h.helixParams.R0) < 0.00001 &&
+     fabs(helixParams.s0 - h.helixParams.s0) < 0.00001 &&
+     fabs(helixParams.a - h.helixParams.a) < 0.00001 &&
+     fabs(helixParams.b - h.helixParams.b) < 0.00001 &&
+     origin == h.origin &&
+     vertex == h.vertex) return true;
+  
+  return false;
 }
 
 Helix::Helix(const Track &_track, const Point &p1, const Point &p2, const Point &_eventVertex) :
@@ -607,9 +622,16 @@ void Helix::AddPoint(const shared_ptr<Point> &point)
   points.push_back(point);
   
   double t = atan2(point->GetY() - origin.GetY(), point->GetX() - origin.GetX());
+  while(t < tMax) t += 2*TMath::Pi();
   point->SetT(t);
   tMax = t;
 }
+
+struct ComparePointByLayer{
+  inline bool operator() (const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){
+    return (p1->GetLayer() < p2->GetLayer());
+  }
+};
 
 void Helix::UpdateOrigin(const Point &_origin)
 {
@@ -619,6 +641,8 @@ void Helix::UpdateOrigin(const Point &_origin)
     double t = atan2(p->GetY() - origin.GetY(), p->GetX() - origin.GetX());
     p->SetT(t);
   }
+  sort(points.begin(), points.end(), ComparePointByLayer());
+  
   tShift = points[0]->GetT();
   tMax = points.back()->GetT();
 }

@@ -9,7 +9,7 @@ draw_tracker_clusters:      0
 draw_met:                         0
 draw_jets:                          1
 draw_pion_simhits:           0
-draw_pion_clusters:          1
+draw_pion_clusters:          0
 draw_chargino_simhits:    1
 
 **Input options**

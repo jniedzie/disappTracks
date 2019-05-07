@@ -254,10 +254,10 @@ int main(int argc, char* argv[])
         Point trackPoint(layerR[layer] * cos(track->GetPhi())    + 10*event->GetVertex()->GetX(),
                          layerR[layer] * sin(track->GetPhi())    + 10*event->GetVertex()->GetY(),
                          layerR[layer] / tan(track->GetTheta())  + 10*event->GetVertex()->GetZ());
-//
-        if(pointsProcessor.distance(make_shared<Point>(trackPoint), p) < 50){
+
+//        if(pointsProcessor.distance(make_shared<Point>(trackPoint), p) < 100){
           pionClusters.push_back(p);
-        }
+//        }
       }
     }
     
@@ -272,11 +272,13 @@ int main(int argc, char* argv[])
     
     display->DrawSimplePoints(pionClusters, pionClustersOptions);
     
+    vector<int> rndIndices = { 6269, 4249, 10152, 5706, 2447, 9510, 2445, 5119, 3441, 763, 10418, 3705, 794, 9749, 3703, 2494, 800, 3022, 8311, 4766, 8137, 6839, 6598, 1388, 2083, 7733, 10220, 691, 8566, 845 };
+    
     // Turn this on to inject some noise
-//    for(int i=0;i<50;i++){
-//      int r = RandInt(0, (int)allSimplePoints.size()-1);
-//      pionClusters.insert(pionClusters.end(),allSimplePoints[r]);
-//    }
+    for(int i=0;i<30;i++){
+      int r = rndIndices[i];// RandInt(0, (int)allSimplePoints.size()-1);
+      pionClusters.insert(pionClusters.end(),allSimplePoints[r]);
+    }
     
     vector<Helix> fittedHelices = fitter->FitHelix2(pionClusters, *track, *event->GetVertex());
     

@@ -46,6 +46,9 @@ public:
   /// Assignent operator
   Helix operator=(const Helix &h);
   
+  /// Comparison operator
+  bool operator==(const Helix &h);
+  
   /// Prints basic information about the helix
   void Print();
   
@@ -159,6 +162,12 @@ public:
     vertex = make_unique<Point>(_vertex);
   }
   double chi2;
+  bool increasing = false;
+  
+  void ReplacePoints(vector<shared_ptr<Point>> &_points){
+    points = _points;
+  }
+  
 private:
   vector<shared_ptr<Point>> points;   ///< Vector of points laying on the helix (withing thickness)
   double tShift;  ///< Angle by which beginning of the helix is shifted due to the shift of its origin

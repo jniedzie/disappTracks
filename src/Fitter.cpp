@@ -909,6 +909,8 @@ vector<Helix> Fitter::FitHelix2(const vector<shared_ptr<Point>> &_points,
   track       = _track;
   eventVertex = _eventVertex;
   
+  double maxChi2 = 5.0;
+  
   vector<vector<shared_ptr<Point>>> pointsByLayer = pointsProcessor.SortByLayer(points);
   
   // find possible middle and last seeds' points
@@ -922,23 +924,18 @@ vector<Helix> Fitter::FitHelix2(const vector<shared_ptr<Point>> &_points,
   for(auto &middlePoint : possibleMiddlePoints){
     for(auto &lastPoint : possibleLastPoints){
       vector<shared_ptr<Point>> points = { middlePoint, lastPoint };
-      
       unique_ptr<Helix> helix = FitSeed(points);
-      if(helix){
-        fittedHelices.push_back(*helix);
-        break;
-      }
+      if(!helix) continue;
+      if(helix->chi2 > maxChi2) continue;
+      
+      helix->increasing = true; // add decreasing later
+      fittedHelices.push_back(*helix);
     }
   }
-  
-  int iSteps=0;
-  int nSteps=10;
   
   bool finished;
   
   do{
-    if(iSteps==nSteps) break;
-    
     finished = true;
     vector<Helix> helicesAfterExtending;
     
@@ -952,30 +949,73 @@ vector<Helix> Fitter::FitHelix2(const vector<shared_ptr<Point>> &_points,
       else{
         vector<Helix> extendedHelices;
         int lastPointLayer = helix.GetLastPoint()->GetLayer();
-        vector<shared_ptr<Point>> possiblePoints = pointsByLayer[lastPointLayer+1];
+        vector<shared_ptr<Point>> possiblePoints;
+        
+        if(helix.increasing){
+          possiblePoints = pointsByLayer[lastPointLayer+1];
+        }
+        else{
+          possiblePoints = pointsByLayer[lastPointLayer-1];
+        }
         
         // try to extend by all possible points
         for(auto &point : possiblePoints){
+          
+          // Check if new point is within some cone
+          
+          int nHelixPoints = helix.GetPoints().size();
+          
+          
+          double x_v = helix.GetPoints()[nHelixPoints-2]->GetX();
+          double y_v = helix.GetPoints()[nHelixPoints-2]->GetY();
+          double z_v = helix.GetPoints()[nHelixPoints-2]->GetZ();
+          
+          double x_1 = helix.GetPoints()[nHelixPoints-1]->GetX();
+          double y_1 = helix.GetPoints()[nHelixPoints-1]->GetY();
+          double z_1 = helix.GetPoints()[nHelixPoints-1]->GetZ();
+          
+          double x_2 = point->GetX();
+          double y_2 = point->GetY();
+          double z_2 = point->GetZ();
+          
+          double v1_x = 2*x_1-x_v;
+          double v1_y = 2*y_1-y_v;
+          double v1_z = 2*z_1-z_v;
+          
+          double v2_x = x_2-x_1;
+          double v2_y = y_2-y_1;
+          double v2_z = z_2-z_1;
+          
+          double num = v1_x*v2_x + v1_y*v2_y + v1_z*v2_z;
+          double den = sqrt(v1_x*v1_x + v1_y*v1_y + v1_z*v1_z) * sqrt(v2_x*v2_x + v2_y*v2_y + v2_z*v2_z);
+          double phi = acos(num/den);
+          
+          
+          if(phi > TMath::Pi()/2.){
+            continue;
+          }
           
           Helix helixCopy(helix);
           helixCopy.AddPoint(point);
           
           RefitHelix(helixCopy);
           
+          if(helixCopy.helixParams.R0 > GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField)){
+//            cout<<"Rejected because of radius"<<endl;
+            continue;
+          }
           
-            // check that the radius of a new track candidate is within allowed limits
-            //            if(helixCopy.R0min > GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField) ||
-            //               helixCopy.R0max < GetRadiusInMagField(config.minPx, config.minPy, solenoidField)){
-            //              cout<<"Rejected because of radius"<<endl;
-            //              continue;
-            //            }
-            //
-            //            // check that the range of a and b parameters allowed the pion not to gain momentum with time
-            //            if(helixCopy.amax < 0 || helixCopy.bmin > 0){
-            //              cout<<"Rejected because of gaining momentum"<<endl;
-            //              continue;
-            //            }
+          // check that the range of a and b parameters allowed the pion not to gain momentum with time
+          if(helixCopy.helixParams.a < 0 || helixCopy.helixParams.b > 0){
+//            cout<<"Rejected because of gaining momentum"<<endl;
+            continue;
+          }
           
+          // check if chi2 is small enough
+          if(helixCopy.chi2 > maxChi2){
+//            cout<<"Rejected because of high chi2"<<endl;
+            continue;
+          }
           extendedHelices.push_back(helixCopy);
         }
         // if it was possible to extend the helix
@@ -992,13 +1032,60 @@ vector<Helix> Fitter::FitHelix2(const vector<shared_ptr<Point>> &_points,
       }
     }
     fittedHelices.clear();
-    
-    for(auto &h : helicesAfterExtending){
-      fittedHelices.push_back(move(h));
-    }
-    iSteps++;
+    for(auto &h : helicesAfterExtending) fittedHelices.push_back(h);
   }
   while(!finished);
+  
+  // Merge helices that are very similar to each other
+  bool merged=true;
+  
+  cout<<"Helices before merging:"<<fittedHelices.size()<<endl;
+  
+  while(merged){
+    merged=false;
+    
+    for(int iHelix1=0; iHelix1<fittedHelices.size(); iHelix1++){
+      Helix &helix1 = fittedHelices[iHelix1];
+      
+      for(int iHelix2=iHelix1+1; iHelix2<fittedHelices.size(); iHelix2++){
+        Helix &helix2 = fittedHelices[iHelix2];
+        
+        int nSamePoints = 0;
+        vector<shared_ptr<Point>> allPoints = helix1.GetPoints();
+        
+        for(auto &p1 : helix1.GetPoints()){
+          if(p1->GetLayer() < 0) continue;
+          
+          for(auto &p2 : helix2.GetPoints()){
+            if(p2->GetLayer() < 0) continue;
+            
+            if(p1 == p2) nSamePoints++;
+            else allPoints.push_back(p2);
+          }
+        }
+        
+        double samePointsFraction = nSamePoints/(double)helix1.GetPoints().size();
+        
+        cout<<"Helix "<<helix1.uniqueID<<"\tand "<<helix2.uniqueID<<" share "<<samePointsFraction<<" points"<<endl;
+        
+        // merging
+        if(samePointsFraction > 0.4){
+          // remove second helix
+          fittedHelices.erase(fittedHelices.begin() + iHelix2);
+          
+          // update first helix
+          helix1.ReplacePoints(allPoints);
+          RefitHelix(helix1);
+          
+          merged=true;
+          break;
+        }
+      }
+      
+      if(merged) break;
+    }
+  }
+  cout<<"Helices after merging:"<<fittedHelices.size()<<endl;
   
   return fittedHelices;
 }
@@ -1103,9 +1190,41 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points)
     resultParams.tShift = vertex.GetT();
     resultParams.tMax   = points.back()->GetT();
     resultParams.zShift = vertex.GetZ() - (resultParams.s0 - resultParams.b * vertex.GetT()) * vertex.GetT();
+  
+    double x_v = vertex.GetX();
+    double y_v = vertex.GetY();
+    double z_v = vertex.GetZ();
     
-    resultHelix = make_unique<Helix>(resultParams, vertex, origin, points, track);
+    double x_1 = points[0]->GetX();
+    double y_1 = points[0]->GetY();
+    double z_1 = points[0]->GetZ();
+    
+    double x_2 = points[1]->GetX();
+    double y_2 = points[1]->GetY();
+    double z_2 = points[1]->GetZ();
+    
+    double v1_x = 2*x_1-x_v;
+    double v1_y = 2*y_1-y_v;
+    double v1_z = 2*z_1-z_v;
+    
+    double v2_x = x_2-x_1;
+    double v2_y = y_2-y_1;
+    double v2_z = z_2-z_1;
+    
+    double num = v1_x*v2_x + v1_y*v2_y + v1_z*v2_z;
+    double den = sqrt(v1_x*v1_x + v1_y*v1_y + v1_z*v1_z) * sqrt(v2_x*v2_x + v2_y*v2_y + v2_z*v2_z);
+    double phi = acos(num/den);
+    
+    
+    if(phi < TMath::Pi()/2.){
+      resultHelix = make_unique<Helix>(resultParams, vertex, origin, points, track);
+      resultHelix->chi2 = result.MinFcnValue();
+    }
   }
+  
+  // Check if ordering of the points is correct (third point in a cone relative to vertex+first point)
+  
+  
   
   return resultHelix;
 }
@@ -1178,10 +1297,6 @@ void Fitter::RefitHelix(Helix &helix)
         double distZ_2 = z - (p->GetZ() - p->GetZerr() - ht);
         distZ = min(pow(distZ_1, 2), pow(distZ_2, 2));
       }
-      
-//      distX = pow(x-p->GetX(), 2);
-//      distY = pow(y-p->GetY(), 2);
-//      distZ = pow(z-p->GetZ(), 2);
       
       distX /= p->GetXerr() > 0 ? pow(p->GetXerr(), 2) : 1;
       distY /= p->GetYerr() > 0 ? pow(p->GetYerr(), 2) : 1;
