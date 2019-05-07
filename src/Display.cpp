@@ -104,36 +104,6 @@ void Display::DrawHelix(const Helix &helix, const map<string,any> options)
   gEve->Redraw3D();
 }
 
-void Display::DrawShrinkingHelix(const Helix &helix, const map<string,any> options)
-{
-  TEvePointSetArray *helixPoints = PreparePointsEventDisplay(options);
-  
-  auto fillPointForT = [&](double t, EHelixParams iParam){
-    double x =  helix.GetOrigin(iParam).GetX();
-    double y =  helix.GetOrigin(iParam).GetY();
-    double z =  helix.GetOrigin(iParam).GetZ() + helix.GetSlope(t, iParam)*t;
-    
-    x += helix.GetRadius(t, iParam)*cos(t);
-    y += helix.GetRadius(t, iParam)*sin(t);
-    
-    helixPoints->Fill(scale*x,scale*y,scale*z, 0);
-  };
-  
-  double tStep = helix.GetTstep();
-  double t;
-  for(int iParam=0; iParam<kNhelixParams; iParam++){
-    for(t = helix.GetTmin((EHelixParams)iParam);
-        t < helix.GetTmax((EHelixParams)iParam);
-        t += tStep){
-      fillPointForT(t, (EHelixParams)iParam);
-    }
-  }
-  
-  helixPoints->SetRnrSelf(kTRUE);
-  gEve->AddElement(helixPoints);
-  gEve->Redraw3D();
-}
-
 void Display::DrawShrinkingHelix2(const Helix &helix, const map<string,any> options)
 {
   TEvePointSetArray *helixPoints = PreparePointsEventDisplay(options);

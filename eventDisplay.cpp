@@ -275,15 +275,13 @@ int main(int argc, char* argv[])
     vector<int> rndIndices = { 6269, 4249, 10152, 5706, 2447, 9510, 2445, 5119, 3441, 763, 10418, 3705, 794, 9749, 3703, 2494, 800, 3022, 8311, 4766, 8137, 6839, 6598, 1388, 2083, 7733, 10220, 691, 8566, 845 };
     
     // Turn this on to inject some noise
-    for(int i=0;i<30;i++){
-      int r = rndIndices[i];// RandInt(0, (int)allSimplePoints.size()-1);
+    for(int i=0;i<10;i++){
+      int r = RandInt(0, (int)allSimplePoints.size()-1);
       pionClusters.insert(pionClusters.end(),allSimplePoints[r]);
     }
     
     vector<Helix> fittedHelices = fitter->FitHelix2(pionClusters, *track, *event->GetVertex());
-    
-//    auto bestHelix = fitter->GetBestFittingHelix(allSimplePoints, track, event->GetVertex());
-		
+    		
     map<string,any> bestHelixOptions = {
       {"title", "Best helix"},
       {"markerStyle", 20},

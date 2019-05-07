@@ -59,24 +59,14 @@ public:
   // Getters
   vector<shared_ptr<Point>>  GetPoints() const {return points;}
   
-  inline Point  GetOrigin(EHelixParams iParam=kNhelixParams) const {
-    Point result(origin);
-    if(iParam != kNhelixParams) result.SetZ(params[iParam].zShift);
-    return result;
-  }
+  inline Point  GetOrigin() const {return origin;}
   inline unique_ptr<Point>  GetMomentum() const {return make_unique<Point>(*momentum);}
   inline double   GetRadius() const {return radius;}
   inline double   GetSlope() const {return slope;}
   inline int      GetCharge() const {return charge;}
   
-  inline double   GetTmin(EHelixParams iParam=kNhelixParams) const {
-    if(iParam != kNhelixParams) return params[iParam].tShift;
-    return tShift;
-  }
-  inline double   GetTmax(EHelixParams iParam=kNhelixParams) const {
-    if(iParam != kNhelixParams) return params[iParam].tMax;
-    return tMax;
-  }
+  inline double   GetTmin() const {return tShift;}
+  inline double   GetTmax() const {return tMax;}
   inline double   GetTstep() const {return tStep;}
   inline uint     GetNpoints() const {return (uint)points.size();}
   inline int      GetNpionPoints() const {return nPionPoints;}
@@ -84,51 +74,18 @@ public:
   
   inline double   GetNcycles() const {return sgn(momentum->GetZ())*((sgn(momentum->GetZ())*trackerZsize) - origin.GetZ())/(fabs(slope)*2*TMath::Pi());}
   
-  /// Calculates average of the squared distances between points (hits) and the helix
-  double GetChi2() const;
-  
   // limit params
   // x = L cos(φ) + (R0 - at) cos(t)
   // y = L sin(φ) + (R0 - at) sin(t)
   // z = L ctg(φ) + (s0 - bt) t
   
-  Helix(const Track &_track, const Point &p1, const Point &p2, const Point &_eventVertex);
-  
-  double GetRadius(double t, EHelixParams iParam) const {
-    return (params[iParam].R0 - params[iParam].a*t);
-  }
-  
-  double GetSlope(double t, EHelixParams iParam) const {
-    return (params[iParam].s0 - params[iParam].b*t);
-  }
-  
   int iCycles;
   bool isFinished = false;
-  double slope_valmin=inf, slope_valmax=-inf;
-  double radius_valmin=inf, radius_valmax=-inf;
   uint64_t seedID;
   uint64_t uniqueID;
   
-  HelixParams params[kNhelixParams]; // params that minimize/maximize S(t) or R(t)
-  
   unique_ptr<Point> GetVertex() const {return make_unique<Point>(*vertex);}
   shared_ptr<Point> GetLastPoint() const {return points[points.size()-1];}
-  
-  bool ExtendByPoint(const Point &point);
-  
-  HelixParams CalcHelixParams(const Point &p0, const Point &p1, const Point &p2);
-  
-  void CalcAndUpateHelixParams(const Point &p0, const Point &p1, const Point &p2);
-  
-  /// Shrinks point's errors to fit within limiting helices. Assumes that point is somewhere between
-  /// those helices. Otherwise, the result will be incorrect.
-  /// It will also assume, that the point to trim will be further along the helix comparing to the last
-  /// point already assigned to it.
-  void TrimPointToLimits(Point &point,
-                         double minX, double maxX,
-                         double minY, double maxY,
-                         double minZ, double maxZ);
-  
   
   //------------------------------------------------------------------------
   // Another approach
