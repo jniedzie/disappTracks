@@ -72,7 +72,8 @@ charge(h.charge),
 eventVertex(h.eventVertex),
 helixParams(h.helixParams),
 chi2(h.chi2),
-increasing(h.increasing)
+increasing(h.increasing),
+shouldRefit(h.shouldRefit)
 {
   uniqueID = reinterpret_cast<uint64_t>(this);
 }
@@ -98,9 +99,11 @@ Helix Helix::operator=(const Helix &h)
   result.slope          = h.slope;
   result.slopeAbs       = h.slopeAbs;
   result.eventVertex    = h.eventVertex;
+  
   result.helixParams    = h.helixParams;
   result.chi2           = h.chi2;
   result.increasing     = h.increasing;
+  result.shouldRefit    = h.shouldRefit;
  
   return result;
 }

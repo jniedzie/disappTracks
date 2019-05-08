@@ -104,7 +104,7 @@ void Display::DrawHelix(const Helix &helix, const map<string,any> options)
   gEve->Redraw3D();
 }
 
-void Display::DrawShrinkingHelix2(const Helix &helix, const map<string,any> options)
+void Display::DrawShrinkingHelix(const Helix &helix, const map<string,any> options)
 {
   TEvePointSetArray *helixPoints = PreparePointsEventDisplay(options);
   

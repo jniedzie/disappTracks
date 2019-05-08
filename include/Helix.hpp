@@ -103,6 +103,7 @@ public:
   
   void SetTmin(double _tMin){ tShift = _tMin; }
   void SetTmax(double _tMax){ tMax = _tMax; }
+  void SetMomentum(const Point &_momentum){momentum = make_unique<Point>(_momentum);}
   
   void UpdateOrigin(const Point &_origin);
   
@@ -116,6 +117,7 @@ public:
   void ReplacePoints(vector<shared_ptr<Point>> &_points){
     points = _points;
   }
+  bool shouldRefit=false;
   
 private:
   unique_ptr<Point> vertex;     ///< Decay point (beginning) of the helix

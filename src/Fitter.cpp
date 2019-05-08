@@ -17,15 +17,16 @@ Fitter::~Fitter()
   
 }
 
-vector<Helix> Fitter::FitHelix2(const vector<shared_ptr<Point>> &_points,
-                                const Track &_track,
-                                const Point &_eventVertex)
+vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
+                                 const Track &_track,
+                                 const Point &_eventVertex)
 {
   points      = _points;
   track       = _track;
   eventVertex = _eventVertex;
   
-  double maxChi2 = 5.0;
+  double maxChi2 = 1.0;
+  double deltaPhiMax = TMath::Pi()/4.;
   
   vector<vector<shared_ptr<Point>>> pointsByLayer = pointsProcessor.SortByLayer(points);
   
@@ -49,125 +50,23 @@ vector<Helix> Fitter::FitHelix2(const vector<shared_ptr<Point>> &_points,
     }
   }
   
-  bool finished;
+  ExtendSeeds(fittedHelices, pointsByLayer, maxChi2, deltaPhiMax);
+  MergeHelices(fittedHelices);
   
-  do{
-    finished = true;
-    vector<Helix> helicesAfterExtending;
-    
-    // for all helices from previous step
-    for(Helix &helix : fittedHelices){
-      
-      // that are not yet marked as finished
-      if(helix.isFinished){
-        helicesAfterExtending.push_back(helix);
-      }
-      else{
-        vector<Helix> extendedHelices;
-        int lastPointLayer = helix.GetLastPoint()->GetLayer();
-        vector<shared_ptr<Point>> possiblePoints;
-        
-        if(helix.increasing)  possiblePoints = pointsByLayer[lastPointLayer+1];
-        else                  possiblePoints = pointsByLayer[lastPointLayer-1];
-        
-        // try to extend by all possible points
-        for(auto &point : possiblePoints){
-          
-          // Check if new point is within some cone
-          size_t nHelixPoints = helix.GetPoints().size();
-          double phi = pointsProcessor.GetPointingAngle(*helix.GetPoints()[nHelixPoints-2],
-                                                        *helix.GetPoints()[nHelixPoints-1],
-                                                        *point);
-          if(phi > TMath::Pi()/2.) continue;
-          
-          /// Extend helix by the new point and refit its params
-          Helix helixCopy(helix);
-          helixCopy.AddPoint(point);
-          RefitHelix(helixCopy);
-          
-          // check if chi2 is small enough
-          if(helixCopy.chi2 > maxChi2) continue;
-          
-          // check that is doesn't gain momentum
-          if(helixCopy.helixParams.a < 0 || helixCopy.helixParams.b > 0) continue;
-          
-          // check that the radius is small enough
-          if(helixCopy.helixParams.R0 > GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField)){
-            continue;
-          }
-          
-          extendedHelices.push_back(helixCopy);
-        }
-        // if it was possible to extend the helix
-        if(extendedHelices.size() != 0){
-          helicesAfterExtending.insert(helicesAfterExtending.end(),
-                                       extendedHelices.begin(),
-                                       extendedHelices.end());
-          finished = false;
-        }
-        else{ // if helix could not be extended
-          helix.isFinished = true;
-          helicesAfterExtending.push_back(helix); // is this needed?
-        }
-      }
-    }
-    fittedHelices.clear();
-    for(auto &h : helicesAfterExtending) fittedHelices.push_back(h);
-  }
-  while(!finished);
+  vector<Helix> longHelices;
   
-  // Merge helices that are very similar to each other
-  bool merged=true;
-  
-  cout<<"Helices before merging:"<<fittedHelices.size()<<endl;
-  
-  while(merged){
-    merged=false;
-    
-    for(int iHelix1=0; iHelix1<fittedHelices.size(); iHelix1++){
-      Helix &helix1 = fittedHelices[iHelix1];
-      
-      for(int iHelix2=iHelix1+1; iHelix2<fittedHelices.size(); iHelix2++){
-        Helix &helix2 = fittedHelices[iHelix2];
-        
-        int nSamePoints = 0;
-        vector<shared_ptr<Point>> allPoints = helix1.GetPoints();
-        
-        for(auto &p1 : helix1.GetPoints()){
-          if(p1->GetLayer() < 0) continue;
-          
-          for(auto &p2 : helix2.GetPoints()){
-            if(p2->GetLayer() < 0) continue;
-            
-            if(p1 == p2) nSamePoints++;
-            else allPoints.push_back(p2);
-          }
-        }
-        
-        double samePointsFraction = nSamePoints/(double)helix1.GetPoints().size();
-        
-        cout<<"Helix "<<helix1.uniqueID<<"\tand "<<helix2.uniqueID<<" share "<<samePointsFraction<<" points"<<endl;
-        
-        // merging
-        if(samePointsFraction > 0.4){
-          // remove second helix
-          fittedHelices.erase(fittedHelices.begin() + iHelix2);
-          
-          // update first helix
-          helix1.ReplacePoints(allPoints);
-          RefitHelix(helix1);
-          
-          merged=true;
-          break;
-        }
-      }
-      
-      if(merged) break;
+  // Remove helices that even after merging have only 3 hits
+  for(int iHelix=0; iHelix<fittedHelices.size(); iHelix++){
+    if(fittedHelices[iHelix].GetPoints().size() > 4){
+      longHelices.push_back(fittedHelices[iHelix]);
     }
   }
-  cout<<"Helices after merging:"<<fittedHelices.size()<<endl;
   
-  return fittedHelices;
+  for(auto &helix : longHelices){
+    if(helix.shouldRefit) RefitHelix(helix);
+  }
+  
+  return longHelices;
 }
 
 unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points)
@@ -267,6 +166,123 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points)
   return resultHelix;
 }
 
+void Fitter::ExtendSeeds(vector<Helix> &helices,
+                         const vector<vector<shared_ptr<Point>>> &pointsByLayer,
+                         double maxChi2,
+                         double deltaPhiMax)
+{
+  bool finished;
+  
+  do{
+    finished = true;
+    vector<Helix> helicesAfterExtending;
+    
+    // for all helices from previous step
+    for(Helix &helix : helices){
+      
+      // that are not yet marked as finished
+      if(helix.isFinished){
+        helicesAfterExtending.push_back(helix);
+      }
+      else{
+        vector<Helix> extendedHelices;
+        int lastPointLayer = helix.GetLastPoint()->GetLayer();
+        vector<shared_ptr<Point>> possiblePoints;
+        
+        if(helix.increasing)  possiblePoints = pointsByLayer[lastPointLayer+1];
+        else                  possiblePoints = pointsByLayer[lastPointLayer-1];
+        
+        // try to extend by all possible points
+        for(auto &point : possiblePoints){
+          
+          // Check if new point is within some cone
+          size_t nHelixPoints = helix.GetPoints().size();
+          double phi = pointsProcessor.GetPointingAngle(*helix.GetPoints()[nHelixPoints-2],
+                                                        *helix.GetPoints()[nHelixPoints-1],
+                                                        *point);
+          if(phi > deltaPhiMax) continue;
+          
+          /// Extend helix by the new point and refit its params
+          Helix helixCopy(helix);
+          helixCopy.AddPoint(point);
+          RefitHelix(helixCopy);
+          
+          // check if chi2 is small enough
+          if(helixCopy.chi2 > maxChi2) continue;
+          
+          extendedHelices.push_back(helixCopy);
+        }
+        // if it was possible to extend the helix
+        if(extendedHelices.size() != 0){
+          helicesAfterExtending.insert(helicesAfterExtending.end(),
+                                       extendedHelices.begin(),
+                                       extendedHelices.end());
+          finished = false;
+        }
+        else{ // if helix could not be extended
+          helix.isFinished = true;
+          helicesAfterExtending.push_back(helix); // is this needed?
+        }
+      }
+    }
+    helices.clear();
+    for(auto &h : helicesAfterExtending) helices.push_back(h);
+  }
+  while(!finished);
+}
+
+void Fitter::MergeHelices(vector<Helix> &helices)
+{
+  // Merge helices that are very similar to each other
+  bool merged=true;
+  
+  while(merged){
+    merged=false;
+    
+    for(int iHelix1=0; iHelix1<helices.size(); iHelix1++){
+      Helix &helix1 = helices[iHelix1];
+      
+      for(int iHelix2=iHelix1+1; iHelix2<helices.size(); iHelix2++){
+        Helix &helix2 = helices[iHelix2];
+        
+        vector<shared_ptr<Point>> points1 = helix1.GetPoints();
+        vector<shared_ptr<Point>> points2 = helix2.GetPoints();
+        
+        sort(points1.begin(), points1.end());
+        sort(points2.begin(), points2.end());
+        
+        vector<shared_ptr<Point>> samePoints;
+        set_intersection(points1.begin(), points1.end(),
+                         points2.begin(), points2.end(),
+                         back_inserter(samePoints));
+        
+        double samePointsFraction = samePoints.size()/(double)points1.size();
+        
+//        cout<<"Helix "<<helix1.uniqueID<<"\tand "<<helix2.uniqueID<<" share "<<samePointsFraction<<" points"<<endl;
+        
+        // merging
+        if(samePointsFraction > 0.4){
+          // remove second helix
+          helices.erase(helices.begin() + iHelix2);
+          
+          // update first helix
+          unordered_set<shared_ptr<Point>> uniquePoints;
+          for(auto &p : points1) uniquePoints.insert(p);
+          for(auto &p : points2) uniquePoints.insert(p);
+          vector<shared_ptr<Point>> allPoints(uniquePoints.begin(), uniquePoints.end());
+          helix1.ReplacePoints(allPoints);
+          helix1.shouldRefit = true;
+          
+          merged=true;
+          break;
+        }
+      }
+      
+      if(merged) break;
+    }
+  }
+}
+
 void Fitter::RefitHelix(Helix &helix)
 {
   vector<shared_ptr<Point>> helixPoints = helix.GetPoints();
@@ -329,9 +345,9 @@ void Fitter::RefitHelix(Helix &helix)
         distZ = min(pow(distZ_1, 2), pow(distZ_2, 2));
       }
       
-      distX /= p->GetXerr() > 0 ? pow(p->GetXerr(), 2) : 1;
-      distY /= p->GetYerr() > 0 ? pow(p->GetYerr(), 2) : 1;
-      distZ /= p->GetZerr() > 0 ? pow(p->GetZerr(), 2) : 1;
+      distX /= p->GetXerr() > 0 ? pow(p->GetXerr(), 2) : fabs(p->GetX());
+      distY /= p->GetYerr() > 0 ? pow(p->GetYerr(), 2) : fabs(p->GetY());
+      distZ /= p->GetZerr() > 0 ? pow(p->GetZerr(), 2) : fabs(p->GetZ());
       
       f += distX + distY + distZ;
     }
@@ -347,10 +363,12 @@ void Fitter::RefitHelix(Helix &helix)
   double Lmin = layerR[track.GetNtrackerLayers()-1];
   double Lmax = layerR[track.GetNtrackerLayers()];
   
-  SetParameter(fitter, 0, "R0", helix.helixParams.R0, 0, 10000);
+  SetParameter(fitter, 0, "R0", helix.helixParams.R0,
+               GetRadiusInMagField(config.minPx, config.minPy, solenoidField),
+               GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField));
   SetParameter(fitter, 1, "a" , helix.helixParams.a, 0, 10000);
   SetParameter(fitter, 2, "s0", helix.helixParams.s0, -1000, 1000);
-  SetParameter(fitter, 3, "b" , helix.helixParams.b, -10000, 10000);
+  SetParameter(fitter, 3, "b" , helix.helixParams.b, -10000, 0);
   SetParameter(fitter, 4, "L" , (helix.GetVertex()->GetX()-10*eventVertex.GetX())/cos(track.GetPhi()),
                Lmin, Lmax);
   SetParameter(fitter, 5, "x0", helix.GetOrigin().GetX(), -layerR[nLayers-1] , layerR[nLayers-1]);
@@ -365,9 +383,7 @@ void Fitter::RefitHelix(Helix &helix)
     auto result = fitter->Result();
     
     double L  = result.GetParams()[4];
-    Point vertex(L * cos(track.GetPhi())    + 10*eventVertex.GetX(),
-                 L * sin(track.GetPhi())    + 10*eventVertex.GetY(),
-                 L / tan(track.GetTheta())  + 10*eventVertex.GetZ());
+    Point vertex = pointsProcessor.GetPointOnTrack(L, track, eventVertex);
     
     helix.SetVertex(vertex);
     
@@ -407,7 +423,7 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(range<double> rangeL)
   SetParameter(fitter, 0, "R0", (minR+maxR)/2., 0, 10000);
   SetParameter(fitter, 1, "a" , (minR+maxR)/2., 0, 10000);
   SetParameter(fitter, 2, "s0", 0, -1000, 1000);
-  SetParameter(fitter, 3, "b" , 0, -10000, 10000);
+  SetParameter(fitter, 3, "b" , 0, -10000, 0);
   SetParameter(fitter, 4, "L" , (rangeL.GetMin()+rangeL.GetMax())/2., rangeL.GetMin(), rangeL.GetMax());
   SetParameter(fitter, 5, "x0", 0, -layerR[nLayers-1] , layerR[nLayers-1]);
   SetParameter(fitter, 6, "y0", 0, -layerR[nLayers-1] , layerR[nLayers-1]);

@@ -24,9 +24,9 @@ public:
   /// Default destructor
   ~Fitter();
   
-  vector<Helix> FitHelix2(const vector<shared_ptr<Point>> &_points,
-                          const Track &_track,
-                          const Point &_eventVertex);
+  vector<Helix> FitHelices(const vector<shared_ptr<Point>> &_points,
+                           const Track &_track,
+                           const Point &_eventVertex);
   
 private:
   vector<shared_ptr<Point>> points;
@@ -35,6 +35,15 @@ private:
   
   ///
   unique_ptr<Helix> FitSeed(const vector<shared_ptr<Point>> &points);
+  
+  ///
+  void ExtendSeeds(vector<Helix> &helices,
+                   const vector<vector<shared_ptr<Point>>> &pointsByLayer,
+                   double maxChi2,
+                   double deltaPhiMax);
+  
+  ///
+  void MergeHelices(vector<Helix> &helices);
   
   ///
   void RefitHelix(Helix &helix);

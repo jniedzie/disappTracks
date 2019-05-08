@@ -36,7 +36,6 @@ public:
   void DrawHelix(const Helix &helix, const map<string,any> options);
   
   void DrawShrinkingHelix(const Helix &helix, const map<string,any> options);
-  void DrawShrinkingHelix2(const Helix &helix, const map<string,any> options);
   
   /// Visualizes entire event
   /// \param event event to be visualized
