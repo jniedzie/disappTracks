@@ -17,26 +17,6 @@ Fitter::~Fitter()
   
 }
 
-void Fitter::SetParameter(ROOT::Fit::Fitter *fitter, int i, string name, double start, double min, double max, bool fix)
-{
-  fitter->Config().ParSettings(i).SetName(name);
-  fitter->Config().ParSettings(i).SetValue(start);
-  fitter->Config().ParSettings(i).SetLimits((min < max) ? min : max,(min < max) ? max : min);
-  fitter->Config().ParSettings(i).SetStepSize(0.0001);
-  if(fix) fitter->Config().ParSettings(i).Fix();
-}
-
-void Fitter::FixParameter(ROOT::Fit::Fitter *fitter, int i, string name, double val)
-{
-  fitter->Config().ParSettings(i).SetName(name);
-  fitter->Config().ParSettings(i).SetValue(val);
-  fitter->Config().ParSettings(i).Fix();
-}
-
-//------------------------------------------------------------------------------------------------------
-// Another approach
-//
-
 vector<Helix> Fitter::FitHelix2(const vector<shared_ptr<Point>> &_points,
                                 const Track &_track,
                                 const Point &_eventVertex)
@@ -87,71 +67,35 @@ vector<Helix> Fitter::FitHelix2(const vector<shared_ptr<Point>> &_points,
         int lastPointLayer = helix.GetLastPoint()->GetLayer();
         vector<shared_ptr<Point>> possiblePoints;
         
-        if(helix.increasing){
-          possiblePoints = pointsByLayer[lastPointLayer+1];
-        }
-        else{
-          possiblePoints = pointsByLayer[lastPointLayer-1];
-        }
+        if(helix.increasing)  possiblePoints = pointsByLayer[lastPointLayer+1];
+        else                  possiblePoints = pointsByLayer[lastPointLayer-1];
         
         // try to extend by all possible points
         for(auto &point : possiblePoints){
           
           // Check if new point is within some cone
+          size_t nHelixPoints = helix.GetPoints().size();
+          double phi = pointsProcessor.GetPointingAngle(*helix.GetPoints()[nHelixPoints-2],
+                                                        *helix.GetPoints()[nHelixPoints-1],
+                                                        *point);
+          if(phi > TMath::Pi()/2.) continue;
           
-          int nHelixPoints = helix.GetPoints().size();
-          
-          
-          double x_v = helix.GetPoints()[nHelixPoints-2]->GetX();
-          double y_v = helix.GetPoints()[nHelixPoints-2]->GetY();
-          double z_v = helix.GetPoints()[nHelixPoints-2]->GetZ();
-          
-          double x_1 = helix.GetPoints()[nHelixPoints-1]->GetX();
-          double y_1 = helix.GetPoints()[nHelixPoints-1]->GetY();
-          double z_1 = helix.GetPoints()[nHelixPoints-1]->GetZ();
-          
-          double x_2 = point->GetX();
-          double y_2 = point->GetY();
-          double z_2 = point->GetZ();
-          
-          double v1_x = 2*x_1-x_v;
-          double v1_y = 2*y_1-y_v;
-          double v1_z = 2*z_1-z_v;
-          
-          double v2_x = x_2-x_1;
-          double v2_y = y_2-y_1;
-          double v2_z = z_2-z_1;
-          
-          double num = v1_x*v2_x + v1_y*v2_y + v1_z*v2_z;
-          double den = sqrt(v1_x*v1_x + v1_y*v1_y + v1_z*v1_z) * sqrt(v2_x*v2_x + v2_y*v2_y + v2_z*v2_z);
-          double phi = acos(num/den);
-          
-          
-          if(phi > TMath::Pi()/2.){
-            continue;
-          }
-          
+          /// Extend helix by the new point and refit its params
           Helix helixCopy(helix);
           helixCopy.AddPoint(point);
-          
           RefitHelix(helixCopy);
           
-          if(helixCopy.helixParams.R0 > GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField)){
-//            cout<<"Rejected because of radius"<<endl;
-            continue;
-          }
-          
-          // check that the range of a and b parameters allowed the pion not to gain momentum with time
-          if(helixCopy.helixParams.a < 0 || helixCopy.helixParams.b > 0){
-//            cout<<"Rejected because of gaining momentum"<<endl;
-            continue;
-          }
-          
           // check if chi2 is small enough
-          if(helixCopy.chi2 > maxChi2){
-//            cout<<"Rejected because of high chi2"<<endl;
+          if(helixCopy.chi2 > maxChi2) continue;
+          
+          // check that is doesn't gain momentum
+          if(helixCopy.helixParams.a < 0 || helixCopy.helixParams.b > 0) continue;
+          
+          // check that the radius is small enough
+          if(helixCopy.helixParams.R0 > GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField)){
             continue;
           }
+          
           extendedHelices.push_back(helixCopy);
         }
         // if it was possible to extend the helix
@@ -233,8 +177,6 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points)
   
   auto fitter = GetSeedFitter(range<double>(Lmin, Lmax));
   
-  double ht = config.helixThickness;
-  
   auto chi2Function = [&](const double *par) {
     double R0 = par[0];
     double a  = par[1];
@@ -246,20 +188,17 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points)
     double z0 = par[7];
     
     // First add distance to the vertex
-    double vertexX = L * cos(track.GetPhi())    + 10*eventVertex.GetX();
-    double vertexY = L * sin(track.GetPhi())    + 10*eventVertex.GetY();
-    double vertexZ = L / tan(track.GetTheta())  + 10*eventVertex.GetZ();
-    
-    double t = atan2(vertexY - y0, vertexX - x0);
+    Point vertex = pointsProcessor.GetPointOnTrack(L, track, eventVertex);
+    double t = atan2(vertex.GetY() - y0, vertex.GetX() - x0);
     
     // Point on helix for t_vertex
-    double x = x0 + (R0 - a*t)*cos(t);
-    double y = y0 + (R0 - a*t)*sin(t);
-    double z = z0 + (s0 - b*t)*t;
+    Point vertexClosest(x0 + (R0 - a*t)*cos(t),
+                        y0 + (R0 - a*t)*sin(t),
+                        z0 + (s0 - b*t)*t);
     
-    double distX = pow(x-vertexX, 2);
-    double distY = pow(y-vertexY, 2);
-    double distZ = pow(z-vertexZ, 2);
+    double distX = pow(vertexClosest.GetX()-vertex.GetX(), 2);
+    double distY = pow(vertexClosest.GetY()-vertex.GetY(), 2);
+    double distZ = pow(vertexClosest.GetZ()-vertex.GetZ(), 2);
     
     double f = distX + distY + distZ;
     
@@ -268,15 +207,11 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points)
       t = atan2(p->GetY() - y0, p->GetX() - x0);
       
       // find helix point for this point's t
-      x = x0 + (R0 - a*t)*cos(t);
-      y = y0 + (R0 - a*t)*sin(t);
-      z = z0 + (s0 - b*t)*t;
+      double x = x0 + (R0 - a*t)*cos(t);
+      double y = y0 + (R0 - a*t)*sin(t);
+      double z = z0 + (s0 - b*t)*t;
       
       // calculate distance between helix and point's boundary (taking into account its errors)
-      distX = fabs(x-p->GetX()) > p->GetXerr()+ht ? pow(x-p->GetX(), 2) : 0;
-      distY = fabs(y-p->GetY()) > p->GetYerr()+ht ? pow(y-p->GetY(), 2) : 0;
-      distZ = fabs(z-p->GetZ()) > p->GetZerr()+ht ? pow(z-p->GetZ(), 2) : 0;
-      
       distX = pow(x-p->GetX(), 2);
       distY = pow(y-p->GetY(), 2);
       distZ = pow(z-p->GetZ(), 2);
@@ -315,52 +250,19 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points)
     double z0 = result.GetParams()[7];
     
     Point origin(x0, y0, z0);
+    Point vertex = pointsProcessor.GetPointOnTrack(L, track, eventVertex);
+    vertex.SetT(atan2(vertex.GetY() - origin.GetY(), vertex.GetX() - origin.GetX()));
     
-    Point vertex(L * cos(track.GetPhi())    + 10*eventVertex.GetX(),
-                 L * sin(track.GetPhi())    + 10*eventVertex.GetY(),
-                 L / tan(track.GetTheta())  + 10*eventVertex.GetZ());
-    
-    vertex.SetT(atan2(vertex.GetY() - y0, vertex.GetX() - x0));
     for(auto &p : points) p->SetT(atan2(p->GetY() - y0, p->GetX() - x0));
     
-    resultParams.tShift = vertex.GetT();
-    resultParams.tMax   = points.back()->GetT();
-    resultParams.zShift = vertex.GetZ() - (resultParams.s0 - resultParams.b * vertex.GetT()) * vertex.GetT();
-  
-    double x_v = vertex.GetX();
-    double y_v = vertex.GetY();
-    double z_v = vertex.GetZ();
-    
-    double x_1 = points[0]->GetX();
-    double y_1 = points[0]->GetY();
-    double z_1 = points[0]->GetZ();
-    
-    double x_2 = points[1]->GetX();
-    double y_2 = points[1]->GetY();
-    double z_2 = points[1]->GetZ();
-    
-    double v1_x = 2*x_1-x_v;
-    double v1_y = 2*y_1-y_v;
-    double v1_z = 2*z_1-z_v;
-    
-    double v2_x = x_2-x_1;
-    double v2_y = y_2-y_1;
-    double v2_z = z_2-z_1;
-    
-    double num = v1_x*v2_x + v1_y*v2_y + v1_z*v2_z;
-    double den = sqrt(v1_x*v1_x + v1_y*v1_y + v1_z*v1_z) * sqrt(v2_x*v2_x + v2_y*v2_y + v2_z*v2_z);
-    double phi = acos(num/den);
-    
+    // Check if ordering of the points is correct (third point in a cone relative to vertex+first point)
+    double phi = pointsProcessor.GetPointingAngle(vertex, *points[0], *points[1]);
     
     if(phi < TMath::Pi()/2.){
       resultHelix = make_unique<Helix>(resultParams, vertex, origin, points, track);
       resultHelix->chi2 = result.MinFcnValue();
     }
   }
-  
-  // Check if ordering of the points is correct (third point in a cone relative to vertex+first point)
-  
-  
   
   return resultHelix;
 }
@@ -381,39 +283,32 @@ void Fitter::RefitHelix(Helix &helix)
     double z0 = par[7];
     
     // First add distance to the new vertex
-    double vertexX = L * cos(track.GetPhi())    + 10*eventVertex.GetX();
-    double vertexY = L * sin(track.GetPhi())    + 10*eventVertex.GetY();
-    double vertexZ = L / tan(track.GetTheta())  + 10*eventVertex.GetZ();
+    Point vertex = pointsProcessor.GetPointOnTrack(L, track, eventVertex);
+    double t = atan2(vertex.GetY() - y0, vertex.GetX() - x0);
     
-    double t = atan2(vertexY - y0, vertexX - x0);
+    // Point on helix for t_vertex
+    Point vertexClosest(x0 + (R0 - a*t)*cos(t),
+                        y0 + (R0 - a*t)*sin(t),
+                        z0 + (s0 - b*t)*t);
     
-    // Point on helix for t_vertex relative to the new origin
-    double x = x0 + (R0 - a*t)*cos(t);
-    double y = y0 + (R0 - a*t)*sin(t);
-    double z = z0 + (s0 - b*t)*t;
-    
-    double distX = pow(x-vertexX, 2);
-    double distY = pow(y-vertexY, 2);
-    double distZ = pow(z-vertexZ, 2);
+    double distX = pow(vertexClosest.GetX()-vertex.GetX(), 2);
+    double distY = pow(vertexClosest.GetY()-vertex.GetY(), 2);
+    double distZ = pow(vertexClosest.GetZ()-vertex.GetZ(), 2);
     
     double f = distX + distY + distZ;
-//    cout<<"chi2: "<<distX<<"\t"<<distY<<"\t"<<distZ<<endl;
     
     // Then add distances to all other points
     bool first=true;
     for(auto &p : helixPoints){
       // Skip first point, as this is the old vertex that will be replaced
-      if(first){
-        first = false;
-        continue;
-      }
+      if(first){ first = false; continue; }
       
       t = atan2(p->GetY() - y0, p->GetX() - x0);
       
       // find helix point for this point's t
-      x = x0 + (R0 - a*t)*cos(t);
-      y = y0 + (R0 - a*t)*sin(t);
-      z = z0 + (s0 - b*t)*t;
+      double x = x0 + (R0 - a*t)*cos(t);
+      double y = y0 + (R0 - a*t)*sin(t);
+      double z = z0 + (s0 - b*t)*t;
       
       // calculate distance between helix and point's boundary (taking into account its errors)
       distX = distY = distZ = 0;
@@ -439,7 +334,6 @@ void Fitter::RefitHelix(Helix &helix)
       distZ /= p->GetZerr() > 0 ? pow(p->GetZerr(), 2) : 1;
       
       f += distX + distY + distZ;
-//      cout<<"\t"<<distX<<"\t"<<distY<<"\t"<<distZ<<endl;
     }
     return f/(3*helixPoints.size()+8);
   };
@@ -520,4 +414,20 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(range<double> rangeL)
   SetParameter(fitter, 7, "z0", 0, -pixelBarrelZsize  , pixelBarrelZsize);
   
   return fitter;
+}
+
+void Fitter::SetParameter(ROOT::Fit::Fitter *fitter, int i, string name, double start, double min, double max, bool fix)
+{
+  fitter->Config().ParSettings(i).SetName(name);
+  fitter->Config().ParSettings(i).SetValue(start);
+  fitter->Config().ParSettings(i).SetLimits((min < max) ? min : max,(min < max) ? max : min);
+  fitter->Config().ParSettings(i).SetStepSize(0.0001);
+  if(fix) fitter->Config().ParSettings(i).Fix();
+}
+
+void Fitter::FixParameter(ROOT::Fit::Fitter *fitter, int i, string name, double val)
+{
+  fitter->Config().ParSettings(i).SetName(name);
+  fitter->Config().ParSettings(i).SetValue(val);
+  fitter->Config().ParSettings(i).Fix();
 }

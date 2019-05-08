@@ -179,3 +179,39 @@ vector<vector<shared_ptr<Point>>> PointsProcessor::SortByLayer(const vector<shar
   
   return pointsByLayer;
 }
+
+double PointsProcessor::GetPointingAngle(const Point &p0, const Point &p1, const Point &p2)
+{
+  double x_v = p0.GetX();
+  double y_v = p0.GetY();
+  double z_v = p0.GetZ();
+  
+  double x_1 = p1.GetX();
+  double y_1 = p1.GetY();
+  double z_1 = p1.GetZ();
+  
+  double x_2 = p2.GetX();
+  double y_2 = p2.GetY();
+  double z_2 = p2.GetZ();
+  
+  double v1_x = 2*x_1-x_v;
+  double v1_y = 2*y_1-y_v;
+  double v1_z = 2*z_1-z_v;
+  
+  double v2_x = x_2-x_1;
+  double v2_y = y_2-y_1;
+  double v2_z = z_2-z_1;
+  
+  double num = v1_x*v2_x + v1_y*v2_y + v1_z*v2_z;
+  double den = sqrt(v1_x*v1_x + v1_y*v1_y + v1_z*v1_z) * sqrt(v2_x*v2_x + v2_y*v2_y + v2_z*v2_z);
+  return acos(num/den);
+}
+
+Point PointsProcessor::GetPointOnTrack(double L, const Track &track, const Point &eventVertex)
+{
+  Point p(L * cos(track.GetPhi())    + 10*eventVertex.GetX(),
+          L * sin(track.GetPhi())    + 10*eventVertex.GetY(),
+          L / tan(track.GetTheta())  + 10*eventVertex.GetZ());
+  return p;
+}
+

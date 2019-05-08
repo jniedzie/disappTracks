@@ -8,6 +8,7 @@
 #include "Helpers.hpp"
 #include "Point.hpp"
 #include "ConfigManager.hpp"
+#include "Track.hpp"
 
 typedef vector<shared_ptr<Point>> PointsTriplet; ///< Vector containing three points
 typedef pair<shared_ptr<Point>, shared_ptr<Point>> PointsPair;
@@ -68,6 +69,11 @@ public:
   
   /// Sorts provided points by layer 
   vector<vector<shared_ptr<Point>>> SortByLayer(const vector<shared_ptr<Point>> &points);
+  
+  /// Returns an angle between (p2-p1) vector and (p1-p0) vector shifted to start in p1
+  double GetPointingAngle(const Point &p0, const Point &p1, const Point &p2);
+  
+  Point GetPointOnTrack(double L, const Track &track, const Point &eventVertex);
 };
 
 #endif /* PointsProcessor_hpp */

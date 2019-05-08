@@ -20,10 +20,6 @@ struct HelixParams
   double a;  // radius decrease rate
   double s0; // initial Z-slope
   double b;  // Z-slope decrease rate
-  double tShift;
-  double tSecondMax;
-  double tMax;
-  double zShift;
 };
 
 class Helix
@@ -100,20 +96,16 @@ public:
   HelixParams helixParams;
   
   
-  double GetRadius(double t) const {
-    return (helixParams.R0 - helixParams.a*t);
-  }
-  
-  double GetSlope(double t) const {
-    return (helixParams.s0 - helixParams.b*t);
-  }
+  double GetRadius(double t) const { return (helixParams.R0 - helixParams.a*t); }
+  double GetSlope(double t) const { return (helixParams.s0 - helixParams.b*t); }
   
   void AddPoint(const shared_ptr<Point> &point);
   
-  void SetTmin(double tMin){tShift=tMin;}
-  void SetTmax(double _tMax){tMax=_tMax;}
+  void SetTmin(double _tMin){ tShift = _tMin; }
+  void SetTmax(double _tMax){ tMax = _tMax; }
   
   void UpdateOrigin(const Point &_origin);
+  
   void SetVertex(const Point &_vertex){
     points[0] = make_shared<Point>(_vertex);
     vertex = make_unique<Point>(_vertex);
@@ -126,7 +118,13 @@ public:
   }
   
 private:
+  unique_ptr<Point> vertex;     ///< Decay point (beginning) of the helix
+  Point origin;                 ///< Center of the helix
   vector<shared_ptr<Point>> points;   ///< Vector of points laying on the helix (withing thickness)
+  
+  double radius;                ///< Radius of the helix
+  double slope;                 ///< Slope of the helix in Z direction
+  double slopeAbs;              ///< Absolute value of the slope (to speed up the calculation)
   double tShift;  ///< Angle by which beginning of the helix is shifted due to the shift of its origin
   double tMax;    ///< Max angle (taking into account number of cycles
   double tStep;   ///< Step determining drawing precision
@@ -134,19 +132,12 @@ private:
   int nRegularPoints = 0; ///< Number of points that are distributed regularly along Z axis
   int nPionPoints = 0;    ///< Number of points along the helix that are true pion hits
   
-  unique_ptr<Point> vertex;     ///< Decay point (beginning) of the helix
-  Point origin;                 ///< Center of the helix
   unique_ptr<Point> momentum;   ///< Pion's momentum vector
   Track track;
-  double radius;                ///< Radius of the helix
-  double slope;                 ///< Slope of the helix in Z direction
-  double slopeAbs;              ///< Absolute value of the slope (to speed up the calculation)
-  int    charge;                ///< Charge of the particle (determines helix direction)
+  int charge;                ///< Charge of the particle (determines helix direction)
   
   Point GetClosestPoint(const Point &p) const;
   Point eventVertex;
-  
-  
   
   friend class HelixProcessor;
 };

@@ -223,12 +223,6 @@ void Helix::AddPoint(const shared_ptr<Point> &point)
   tMax = t;
 }
 
-struct ComparePointByLayer{
-  inline bool operator() (const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){
-    return (p1->GetLayer() < p2->GetLayer());
-  }
-};
-
 void Helix::UpdateOrigin(const Point &_origin)
 {
   origin = _origin;
@@ -237,8 +231,15 @@ void Helix::UpdateOrigin(const Point &_origin)
     double t = atan2(p->GetY() - origin.GetY(), p->GetX() - origin.GetX());
     p->SetT(t);
   }
+  
+  struct ComparePointByLayer{
+    bool operator() (const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){
+      return (p1->GetLayer() < p2->GetLayer());
+    }
+  };
+  
   sort(points.begin(), points.end(), ComparePointByLayer());
   
   tShift = points[0]->GetT();
-  tMax = points.back()->GetT();
+  tMax   = points.back()->GetT();
 }

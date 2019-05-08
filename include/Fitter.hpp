@@ -33,20 +33,20 @@ private:
   Track track;
   Point eventVertex;
   
-  /// Sets name, limits and starting value of a ROOT fitter's parameter
-  void SetParameter(ROOT::Fit::Fitter *fitter, int i, string name, double start, double min, double max, bool fix=false);
-  
-  /// Sets and fixes a value for a ROOT fitter's parameter
-  void FixParameter(ROOT::Fit::Fitter *fitter, int i, string name, double val);
-  
-  ///
-  ROOT::Fit::Fitter* GetSeedFitter(range<double> rangeL);
-  
   ///
   unique_ptr<Helix> FitSeed(const vector<shared_ptr<Point>> &points);
   
   ///
   void RefitHelix(Helix &helix);
+  
+  ///
+  ROOT::Fit::Fitter* GetSeedFitter(range<double> rangeL);
+  
+  /// Sets name, limits and starting value of a ROOT fitter's parameter
+  void SetParameter(ROOT::Fit::Fitter *fitter, int i, string name, double start, double min, double max, bool fix=false);
+  
+  /// Sets and fixes a value for a ROOT fitter's parameter
+  void FixParameter(ROOT::Fit::Fitter *fitter, int i, string name, double val);
 };
 
 #endif /* Fitter_hpp */
