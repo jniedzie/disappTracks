@@ -53,6 +53,48 @@ EventProcessor::EventProcessor()
     "Flag_globalTightHalo2016Filter"
   };
   
+  arrayNamesFriendInt = {
+    "pion_charge",
+    "pixelCluster_charge",
+    "stripCluster_charge",
+    "pionCluster_charge",
+    "pion_simHits_subDet",
+    "chargino_simHits_subDet",
+    "pixelCluster_subDet",
+    "stripCluster_subDet",
+    "pionCluster_subDet"
+  };
+  
+  arrayNamesFriendFloat = {
+    "pion_vx",
+    "pion_vy",
+    "pion_vz",
+    "pion_px",
+    "pion_py",
+    "pion_pz",
+    "pion_simHits_x",
+    "pion_simHits_y",
+    "pion_simHits_z",
+    "chargino_simHits_x",
+    "chargino_simHits_y",
+    "chargino_simHits_z",
+    "pixelCluster_x",
+    "pixelCluster_y",
+    "pixelCluster_z",
+    "stripCluster_x",
+    "stripCluster_y",
+    "stripCluster_z",
+    "stripCluster_ex",
+    "stripCluster_ey",
+    "stripCluster_ez",
+    "pionCluster_x",
+    "pionCluster_y",
+    "pionCluster_z",
+    "pionCluster_ex",
+    "pionCluster_ey",
+    "pionCluster_ez",
+  };
+  
 }
 
 EventProcessor::~EventProcessor()
@@ -293,7 +335,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
   return true;
 }
 
-shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, int setIter)
+shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, int setIter, TTree *friendTree)
 {
   for(auto &[name, val] : singleValuesInt ){
     if(val < -999999){
@@ -377,6 +419,88 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   event->metNoMuPhi  = singleValuesFloat["metNoMu_phi"];
   event->metNoMuEta  = singleValuesFloat["metNoMu_eta"];
   
+  // Load additional info from friend tree
+  if(!friendTree) return event;
+  
+  // uberhack to select needed entry directly...
+  friendTree->Draw("Entry$>>hist(Entries$,0,Entries$)",
+             ("lumiBlock=="+to_string(singleValuesUint["lumi"])+
+              "&&runNumber=="+to_string(singleValuesUint["run"])+
+              "&&eventNumber=="+to_string(singleValuesUlonglong["evt"])).c_str(),
+             "goff");
+  
+  TH1I *hist = (TH1I*)gDirectory->Get("hist");
+  Long64_t iEntry = hist->GetBinLowEdge(hist->FindFirstBinAbove(0));
+  delete hist;
+  friendTree->GetEntry(iEntry);
+  // end of uberhack
+  
+  for(uint i=0;i<arrayValuesFriendFloat["pion_vx"]->size();i++){
+    // change units from cm to mm and from GeV to MeV
+    event->genPionHelices.emplace(event->genPionHelices.end(),
+                           Helix(Point(10*arrayValuesFriendFloat["pion_vx"]->at(i),
+                                       10*arrayValuesFriendFloat["pion_vy"]->at(i),
+                                       10*arrayValuesFriendFloat["pion_vz"]->at(i)),
+                                 make_unique<Point>(1000*arrayValuesFriendFloat["pion_px"]->at(i),
+                                                    1000*arrayValuesFriendFloat["pion_py"]->at(i),
+                                                    1000*arrayValuesFriendFloat["pion_pz"]->at(i)),
+                                 1*arrayValuesFriendInt["pion_charge"]->at(i)));
+  }
+  
+  for(uint i=0;i<arrayValuesFriendFloat["pion_simHits_x"]->size();i++){
+    // convert cm to mm
+    event->pionSimHits.push_back(make_shared<Point>(10*arrayValuesFriendFloat["pion_simHits_x"]->at(i),
+                                                    10*arrayValuesFriendFloat["pion_simHits_y"]->at(i),
+                                                    10*arrayValuesFriendFloat["pion_simHits_z"]->at(i),
+                                             0,
+                                             subDetMap[arrayValuesFriendInt["pion_simHits_subDet"]->at(i)]));
+  }
+  
+  for(uint i=0;i<arrayValuesFriendFloat["chargino_simHits_x"]->size();i++){
+    // convert cm to mm
+    event->charginoSimHits.push_back(make_shared<Point>(10*arrayValuesFriendFloat["chargino_simHits_x"]->at(i),
+                                                        10*arrayValuesFriendFloat["chargino_simHits_y"]->at(i),
+                                                        10*arrayValuesFriendFloat["chargino_simHits_z"]->at(i),
+                                                        0,
+                                                        subDetMap[arrayValuesFriendInt["chargino_simHits_subDet"]->at(i)]));
+  }
+  
+  // Parameters for all hits in the pixel barrel
+  for(uint i=0;i<arrayValuesFriendFloat["pixelCluster_x"]->size();i++){
+    // convert cm to mm
+    event->trackerClusters.push_back(make_shared<Point>(10*arrayValuesFriendFloat["pixelCluster_x"]->at(i),
+                                                        10*arrayValuesFriendFloat["pixelCluster_y"]->at(i),
+                                                        10*arrayValuesFriendFloat["pixelCluster_z"]->at(i),
+                                                        arrayValuesFriendInt["pixelCluster_charge"]->at(i),
+                                                        subDetMap[arrayValuesFriendInt["pixelCluster_subDet"]->at(i)]));
+  }
+  
+  for(uint i=0;i<arrayValuesFriendFloat["stripCluster_x"]->size();i++){
+    // convert cm to mm
+    event->trackerClusters.push_back(make_shared<Point>(10*arrayValuesFriendFloat["stripCluster_x"]->at(i),
+                                                        10*arrayValuesFriendFloat["stripCluster_y"]->at(i),
+                                                        10*arrayValuesFriendFloat["stripCluster_z"]->at(i),
+                                                        arrayValuesFriendInt["stripCluster_charge"]->at(i),
+                                                        subDetMap[arrayValuesFriendInt["stripCluster_subDet"]->at(i)],
+                                                        10*arrayValuesFriendFloat["stripCluster_ex"]->at(i),
+                                                        10*arrayValuesFriendFloat["stripCluster_ey"]->at(i),
+                                                        10*arrayValuesFriendFloat["stripCluster_ez"]->at(i)));
+    
+    
+  }
+  
+  for(uint i=0;i<arrayValuesFriendFloat["pionCluster_x"]->size();i++){
+    // convert cm to mm
+    event->pionClusters.push_back(make_shared<Point>(10*arrayValuesFriendFloat["pionCluster_x"]->at(i),
+                                                     10*arrayValuesFriendFloat["pionCluster_y"]->at(i),
+                                                     10*arrayValuesFriendFloat["pionCluster_z"]->at(i),
+                                                     arrayValuesFriendInt["pionCluster_charge"]->at(i),
+                                                     subDetMap[arrayValuesFriendInt["pionCluster_subDet"]->at(i)],
+                                                     10*arrayValuesFriendFloat["pionCluster_ex"]->at(i),
+                                                     10*arrayValuesFriendFloat["pionCluster_ey"]->at(i),
+                                                     10*arrayValuesFriendFloat["pionCluster_ez"]->at(i)));
+  }
+  
   return event;
 }
 
@@ -419,7 +543,7 @@ void EventProcessor::SaveEventToTree(shared_ptr<Event> event)
   singleValuesFloat["metNoMu_eta"]  = event->metNoMuEta;
 }
 
-void EventProcessor::SetupBranchesForReading(TTree *tree)
+void EventProcessor::SetupBranchesForReading(TTree *tree, TTree *friendTree)
 {
   for(string name : singleNamesFloat){
     if(!tree->GetBranchStatus(name.c_str())){
@@ -455,6 +579,28 @@ void EventProcessor::SetupBranchesForReading(TTree *tree)
       continue;
     }
     tree->SetBranchAddress(name.c_str(), &singleValuesUlonglong[name]);
+  }
+  
+  if(!friendTree) return;
+  
+  for(string name : arrayNamesFriendFloat){
+    arrayValuesFriendFloat[name] = nullptr;
+    
+    if(!friendTree->GetBranchStatus(name.c_str())){
+      cout<<"WARNING -- no branch named "<<name<<"!!"<<endl;
+      continue;
+    }
+    friendTree->SetBranchAddress(name.c_str(), &arrayValuesFriendFloat[name]);
+  }
+  
+  for(string name : arrayNamesFriendInt){
+    arrayValuesFriendInt[name] = nullptr;
+    
+    if(!friendTree->GetBranchStatus(name.c_str())){
+      cout<<"WARNING -- no branch named "<<name<<"!!"<<endl;
+      continue;
+    }
+    friendTree->SetBranchAddress(name.c_str(), &arrayValuesFriendInt[name]);
   }
 }
 

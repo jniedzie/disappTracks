@@ -97,6 +97,8 @@ ConfigManager::ConfigManager(string _path)
   maxNeventsSignal       = configFile->GetValue("max_N_events_signal",-1);
   maxNeventsData         = configFile->GetValue("max_N_events_data",-1);
   
+  loadFriendTree         = configFile->GetValue("load_friend_tree",0);
+  
   totalLuminosity        = configFile->GetValue("total_luminosity",146.91);
   
   showGeometryPixel      = configFile->GetValue("show_geometry_pixel",0);

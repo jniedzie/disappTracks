@@ -45,6 +45,8 @@ struct ConfigManager {
   int maxNeventsSignal;
   int maxNeventsData;
   
+  bool loadFriendTree;
+  
   double totalLuminosity;
   
   string category;

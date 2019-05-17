@@ -33,9 +33,6 @@ public:
   /// Prints basic information about the event
   void Print();
   
-  /// Look for a friend tree and load gen-level information + all tracker clusters
-  void LoadAdditionalInfo();
-  
   /// Returns vector of tracker clusters not assigned to any tracks
   inline vector<shared_ptr<Point>> GetTrackerClusters(){return trackerClusters;}
   
@@ -43,7 +40,7 @@ public:
   inline vector<shared_ptr<Point>> GetPionClusters(){return pionClusters;}
   
   /// Returns helices of generated pion(s)
-  inline void GetGenPionHelices(vector<Helix> &helices) const {helices = genPionHelices;}
+  inline vector<Helix> GetGenPionHelices() const {return genPionHelices;}
   
   /// Returns vector of pion(s) sim hits
   inline vector<shared_ptr<Point>> GetPionSimHits(){return pionSimHits;}
@@ -159,6 +156,7 @@ public:
   inline vector<shared_ptr<Jet>>     GetJets(){return jets;}
   inline vector<shared_ptr<Lepton>>  GetLeptons(){return leptons;}
   inline vector<shared_ptr<Helix>>   GetHelices(){return helices;}
+
 private:
   vector<shared_ptr<Track>>  tracks;   ///< Vector of isolated tracks
   vector<shared_ptr<Jet>>    jets;     ///< Vector of jets
@@ -215,6 +213,8 @@ private:
   vector<shared_ptr<Point>> pionSimHits;  ///< Sim hits associated with generated pion(s) coming from chargino decay vertex
   vector<shared_ptr<Point>> charginoSimHits; ///< Sim hits associated with generated chargino(s)
   vector<Helix> genPionHelices; ///< Helix representing gen-level pion(s)
+  
+  TTree *friendTree;
   
   friend class EventProcessor;
 };

@@ -45,6 +45,14 @@ public:
   /// \param prefix If specified, prefix will be appended at the end of the path, before "tree.root"
   void LoadEventsFromFiles(xtracks::EDataType dataType, int setIter, string prefix="");
   
+  /// Load single event from a tree
+  /// \param dataType Specifies whether signal, background or data events should be loaded.
+  /// \param setIter Specifies which set should be loaded (e.g. kZmumuJets for Z->mumu)
+  /// \param iEvent Number of the event to be loaded
+  /// \param prefix If specified, prefix will be appended at the end of the path, before "tree.root"
+  void LoadEventFromFiles(xtracks::EDataType dataType, int setIter, int iEvent,
+                          string prefix="");
+  
   /// Saves signal, background and data events in the ROOT files, according to settings in the config.
   /// \param prefix If specified, prefix will be appended at the end of the path, before "tree.root"
   void SaveEventsToFiles(string prefix="after_L/") const;
@@ -90,6 +98,10 @@ private:
   vector<vector<shared_ptr<Event>>> eventsBackground; ///< Vector of backgrnd events - [EBackkground][iEvent]
   vector<vector<shared_ptr<Event>>> eventsData;       ///< Vector of data events - [EData][iEvent]
   
+  vector<TTree*> friendTreeSignal; ///< Friend tries for each ESignal
+  vector<TTree*> friendTreeBackground; ///< Friend tries for each ESignal
+  vector<TTree*> friendTreeData; ///< Friend tries for each ESignal
+  
   /// Default constructor. Loads events from ROOT tree
   /// \param fileName Path to the ROOT file with ntuples from which events will be loaded
   /// \param dataType Event weigth will be calculated differently background, signal and data
@@ -106,7 +118,7 @@ private:
   /// \param dataType Event weigth will be calculated differently for background, signal and data
   /// \param maxNevents Load just maxNevents from file and then stop
   /// \param setIter Data set type (i.a. for correct cross section assignment). Will be casted to ESignal, EBackground or EData, depending on dataType parameter provided
-  void AddEventsFromFile(string fileName, xtracks::EDataType dataType=xtracks::kBackground, int maxNevents=-1, int setIter=-1);
+  void AddEventsFromFile(string fileName, xtracks::EDataType dataType=xtracks::kBackground, int maxNevents=-1, int setIter=-1, int iEvent=-1);
  
   void SaveToTree(string fileName, xtracks::EDataType type, int setIter) const;
 };

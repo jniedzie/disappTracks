@@ -107,7 +107,8 @@ shared_ptr<Event> GetEvent()
 {
   EventSet events;
 	//  events->LoadEventsFromFiles("/");
-	events.LoadEventsFromFiles(cutLevel);
+//  events.LoadEventsFromFiles(cutLevel);
+  events.LoadEventFromFiles(dataType, setIter, iEvent, cutLevel);
 	
 //  auto event = events.GetEvent(dataType, searchRun, searchLumi, searchEvent);
 	auto event = events.At(dataType, setIter, iEvent);
@@ -125,8 +126,6 @@ shared_ptr<Event> GetEvent()
 	
   eventProcessor.ApplyJetCut(event, jetCut);
 	
-  event->LoadAdditionalInfo();
-  
 	return event;
 }
 
@@ -214,8 +213,7 @@ int main(int argc, char* argv[])
 		allSimplePoints.insert(allSimplePoints.end(), pionPoints.begin(), pionPoints.end());
 	}
 	else{
-    vector<Helix> truePionHelices;
-    event->GetGenPionHelices(truePionHelices);
+    vector<Helix> truePionHelices = event->GetGenPionHelices();
 		
 		for(auto &helix : truePionHelices){
 			display->DrawHelix(helix,trueHelixOptions);

@@ -36,10 +36,11 @@ public:
   
   /// Link class variables to branches of a specified tree
   /// \param tree Tree from which event parameters will be read
-  void SetupBranchesForReading(TTree *tree);
+  void SetupBranchesForReading(TTree *tree, TTree *friendTree=nullptr);
   
   /// Returns an event with parameters and objects read from tree previously set with SetupBranchesForReading(..)
-  shared_ptr<Event> GetEventFromTree(xtracks::EDataType dataType, int setIter);
+  shared_ptr<Event> GetEventFromTree(xtracks::EDataType dataType, int setIter,
+                                     TTree *friendTree=nullptr);
   
   /// Link class variables to branches of a specified tree
   /// \param tree Tree to which evnet parameters and objects will be saved
@@ -47,6 +48,11 @@ public:
   
   /// Writes an event to the tree previously set with SetupBranchesForWriting(...)
   void SaveEventToTree(shared_ptr<Event> event);
+  
+  /// Read friend tree for given dataType and setIter
+  TTree* GetFriendTree(xtracks::EDataType dataType, int setIter);
+  
+  ///
   
   int cutReasons[21] = {0};
   vector<shared_ptr<Event>> survivingEvents;
@@ -63,6 +69,14 @@ private:
   vector<string> singleNamesUint;       ///< Names or uint per-event variables
   vector<string> singleNamesUlongLong;  ///< Names or long per-event variables
   
+  
+  static const int nMax = 10000;   ///< Maximum supported number of tracks per event
+  
+  map<string, vector<double>* > arrayValuesFriendFloat;  ///< Float variables in the current entry
+  map<string, vector<int>* >   arrayValuesFriendInt;    ///< Int variables in the current entry
+  
+  vector<string> arrayNamesFriendFloat;     ///< Names or float variables
+  vector<string> arrayNamesFriendInt;       ///< Names or int variables  
 };
 
 #endif /* EventProcessor_hpp */

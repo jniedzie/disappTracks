@@ -178,6 +178,35 @@ void EventSet::LoadEventsFromFiles(xtracks::EDataType dataType, int setIter, str
   }
 }
 
+void EventSet::LoadEventFromFiles(xtracks::EDataType dataType, int setIter, int iEvent, string prefix)
+{
+  if(dataType == xtracks::kBackground){
+    if(prefix==""){
+      for(string path : inFileNameBackground[setIter]){
+        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kBackground, config.maxNeventsBackground, setIter, iEvent);
+      }
+    }
+    else{
+      string path = inFileNameBackground[setIter][0];
+      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kBackground, config.maxNeventsBackground, setIter, iEvent);
+    }
+  }
+  else if(dataType == xtracks::kSignal){
+    AddEventsFromFile((inFileNameSignal[setIter]+prefix+"tree.root"),xtracks::kSignal,config.maxNeventsSignal,setIter, iEvent);
+  }
+  else if(dataType == xtracks::kData){
+    if(prefix==""){
+      for(string path : inFileNameData[setIter]){
+        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, config.maxNeventsData, setIter, iEvent);
+      }
+    }
+    else{
+      string path = inFileNameData[setIter][0];
+      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, config.maxNeventsData, setIter, iEvent);
+    }
+  }
+}
+
 void EventSet::SaveEventsToFiles(string prefix) const
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
@@ -621,25 +650,55 @@ void EventSet::AddEvent(shared_ptr<Event> event, xtracks::EDataType dataType, in
   }
 }
 
-void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataType, int maxNevents, int setIter)
+void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataType, int maxNevents, int setIter, int iEvent)
 {
   cout<<"Reading events from:"<<fileName<<endl;
   TFile *inFile = TFile::Open(fileName.c_str());
   TTree *tree = (TTree*)inFile->Get("tree");
   TTreeReader reader("tree", inFile);
   
-  eventProcessor.SetupBranchesForReading(tree);
+  string basePath;
+  
+  if(dataType == xtracks::kSignal)      basePath = inFileNameSignal[setIter];
+  if(dataType == xtracks::kBackground)  basePath = inFileNameBackground[setIter][0];
+  if(dataType == xtracks::kData)        basePath = inFileNameData[setIter][0];
+  
+  TFile *inFileFriend = nullptr;
+  TTree *treeFriend = nullptr;
+  
+  if(config.loadFriendTree){
+    cout<<"Opening friend file"<<endl;
+    inFileFriend = TFile::Open(Form("%s/tree_friend.root",basePath.c_str()));
+    
+    if(!inFileFriend){
+      cout<<"WARNING -- no friend file was found in path: "<<basePath<<"/tree_friend.root"<<endl;
+      cout<<"WARNING -- some additional info will not be available"<<endl;
+    }
+    else{
+      cout<<"Reading friend tree...";
+      treeFriend = (TTree*)inFileFriend->Get("CharginoAnalyzer/tree");
+      cout<<" done"<<endl;
+    }
+    if(!treeFriend) cout<<"ERROR -- Could not find friend tree in the friend file!"<<endl;
+  }
+  
+  eventProcessor.SetupBranchesForReading(tree, treeFriend);
   trackProcessor.SetupBranchesForReading(tree);
   jetProcessor.SetupBranchesForReading(tree);
   leptonProcessor.SetupBranchesForReading(tree);
   helixProcessor.SetupBranchesForReading(tree);
   
-  
+  cout<<"Loading events"<<endl;
   for(int iEntry=0;iEntry<tree->GetEntries();iEntry++){
-    if(maxNevents>0 && iEntry>maxNevents) break;
-    tree->GetEntry(iEntry);
+    if(iEvent >= 0){
+      tree->GetEntry(iEvent);
+    }
+    else{
+      if(maxNevents>0 && iEntry>maxNevents) break;
+      tree->GetEntry(iEntry);
+    }
 
-    auto event = eventProcessor.GetEventFromTree(dataType, setIter);
+    auto event = eventProcessor.GetEventFromTree(dataType, setIter, treeFriend);
     
     vector<shared_ptr<Track>> tracks = trackProcessor.GetTracksFromTree();
     
@@ -687,5 +746,7 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
     else if(dataType == xtracks::kBackground) eventsBackground[setIter].push_back(event);
     else if(dataType == xtracks::kData)       eventsData[setIter].push_back(event);
     else                                      throw out_of_range("Unknown data type provided");
+    
+    if(iEvent >= 0) break;
   }
 }
