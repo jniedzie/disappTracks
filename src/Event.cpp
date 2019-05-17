@@ -192,21 +192,19 @@ void Event::LoadAdditionalInfo()
   tree->SetBranchAddress("pionCluster_charge",&pionClusterCharge);
   tree->SetBranchAddress("pionCluster_subDet",&pionClusterSubDet);
   
-  bool eventFound = false;
+  // uberhack to select needed entry directly...
+  tree->Draw("Entry$>>hist(Entries$,0,Entries$)",
+             ("lumiBlock=="+to_string(lumiSection)+
+              "&&runNumber=="+to_string(runNumber)+
+              "&&eventNumber=="+to_string(eventNumber)).c_str(),
+             "goff");
   
-  for(int i=0;i<tree->GetEntries();i++){
-    tree->GetEntry(i);
-    if(run == runNumber && lumi == lumiSection && event == eventNumber){
-      eventFound = true;
-      break;
-    }
-  }
+  TH1I *hist = (TH1I*)gDirectory->Get("hist");
+  Long64_t iEntry = hist->GetBinLowEdge(hist->FindFirstBinAbove(0));
+  delete hist;
+  tree->GetEntry(iEntry);
+  // end of uberhack
   
-  if(!eventFound){
-    cout<<"\n\nERROR - could not find all hits for requested event!\n\n"<<endl;
-    return;
-  }
-
   for(uint i=0;i<pionVx->size();i++){
     // change units from cm to mm and from GeV to MeV
     genPionHelices.emplace(genPionHelices.end(),
