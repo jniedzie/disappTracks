@@ -34,7 +34,7 @@ private:
   Point eventVertex;
   
   ///
-  unique_ptr<Helix> FitSeed(const vector<shared_ptr<Point>> &points);
+  unique_ptr<Helix> FitSeed(const vector<shared_ptr<Point>> &points, int charge);
   
   ///
   void ExtendSeeds(vector<Helix> &helices,

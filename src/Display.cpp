@@ -113,14 +113,25 @@ void Display::DrawShrinkingHelix(const Helix &helix, const map<string,any> optio
     double y =  helix.GetOrigin().GetY();
     double z =  helix.GetOrigin().GetZ() + helix.GetSlope(t)*t;
     
-    x += helix.GetRadius(t)*cos(t);
-    y += helix.GetRadius(t)*sin(t);
+    if(helix.GetCharge() < 0){
+      x += helix.GetRadius(t)*cos(t);
+      y += helix.GetRadius(t)*sin(t);
+    }
+    else{
+      x += helix.GetRadius(t)*sin(t);
+      y += helix.GetRadius(t)*cos(t);
+    }
     
     helixPoints->Fill(scale*x,scale*y,scale*z, 0);
   };
   
   double tStep = helix.GetTstep();
-  for(double t = helix.GetTmin(); t < helix.GetTmax(); t += tStep) fillPointForT(t);
+  if(helix.GetTmin() < helix.GetTmax()){
+    for(double t = helix.GetTmin(); t < helix.GetTmax(); t += tStep) fillPointForT(t);
+  }
+  else{
+    for(double t = helix.GetTmax(); t < helix.GetTmin(); t += tStep) fillPointForT(t);
+  }
   
   helixPoints->SetRnrSelf(kTRUE);
   gEve->AddElement(helixPoints);

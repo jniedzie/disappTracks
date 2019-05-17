@@ -41,17 +41,29 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   for(auto &middlePoint : possibleMiddlePoints){
     for(auto &lastPoint : possibleLastPoints){
       vector<shared_ptr<Point>> points = { middlePoint, lastPoint };
-      unique_ptr<Helix> helix = FitSeed(points);
-      if(!helix) continue;
-      if(helix->chi2 > maxChi2) continue;
+      unique_ptr<Helix> helixPos = FitSeed(points,  1);
+      unique_ptr<Helix> helixNeg = FitSeed(points, -1);
       
-      helix->increasing = true; // add decreasing later
-      fittedHelices.push_back(*helix);
+      vector<unique_ptr<Helix>> goodHelices;
+      
+      if(helixPos){
+        if(helixPos->chi2 < maxChi2) goodHelices.push_back(move(helixPos));
+      }
+      if(helixNeg){
+        if(helixNeg->chi2 < maxChi2) goodHelices.push_back(move(helixNeg));
+      }
+      
+      for(auto &helix : goodHelices){
+        helix->increasing = true; // add decreasing later
+        fittedHelices.push_back(*helix);
+      }
     }
   }
   
-  ExtendSeeds(fittedHelices, pointsByLayer, maxChi2, deltaPhiMax);
-  MergeHelices(fittedHelices);
+//  ExtendSeeds(fittedHelices, pointsByLayer, maxChi2, deltaPhiMax);
+//  MergeHelices(fittedHelices);
+  
+  return fittedHelices;
   
   vector<Helix> longHelices;
   
@@ -69,7 +81,7 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   return longHelices;
 }
 
-unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points)
+unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points, int charge)
 {
   double Lmin = layerR[track.GetNtrackerLayers()-1];
   double Lmax = layerR[track.GetNtrackerLayers()];
@@ -88,13 +100,25 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points)
     
     // First add distance to the vertex
     Point vertex = pointsProcessor.GetPointOnTrack(L, track, eventVertex);
-    double t = atan2(vertex.GetY() - y0, vertex.GetX() - x0);
+    double t;
+    
+    if(charge < 0)  t = atan2(vertex.GetY() - y0, vertex.GetX() - x0);
+    else            t = atan2(vertex.GetX() - x0, vertex.GetY() - y0);
     
     // Point on helix for t_vertex
-    Point vertexClosest(x0 + (R0 - a*t)*cos(t),
-                        y0 + (R0 - a*t)*sin(t),
-                        z0 + (s0 - b*t)*t);
+    Point vertexClosest;
     
+    if(charge < 0){
+      vertexClosest = Point(x0 + (R0 - a*t)*cos(t),
+                            y0 + (R0 - a*t)*sin(t),
+                            z0 + (s0 - b*t)*t);
+    }
+    else{
+      vertexClosest = Point(x0 + (R0 - a*t)*sin(t),
+                            y0 + (R0 - a*t)*cos(t),
+                            z0 + (s0 - b*t)*t);
+    }
+      
     double distX = pow(vertexClosest.GetX()-vertex.GetX(), 2);
     double distY = pow(vertexClosest.GetY()-vertex.GetY(), 2);
     double distZ = pow(vertexClosest.GetZ()-vertex.GetZ(), 2);
@@ -103,12 +127,22 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points)
     
     // Then add distances to all other points
     for(auto &p : points){
-      t = atan2(p->GetY() - y0, p->GetX() - x0);
+      if(charge < 0) t = atan2(p->GetY() - y0, p->GetX() - x0);
+      else           t = atan2(p->GetX() - x0, p->GetY() - y0);
+      
       
       // find helix point for this point's t
-      double x = x0 + (R0 - a*t)*cos(t);
-      double y = y0 + (R0 - a*t)*sin(t);
-      double z = z0 + (s0 - b*t)*t;
+      double x,y,z;
+      if(charge < 0){
+        x = x0 + (R0 - a*t)*cos(t);
+        y = y0 + (R0 - a*t)*sin(t);
+        z = z0 + (s0 - b*t)*t;
+      }
+      else{
+        x = x0 + (R0 - a*t)*sin(t);
+        y = y0 + (R0 - a*t)*cos(t);
+        z = z0 + (s0 - b*t)*t;
+      }
       
       // calculate distance between helix and point's boundary (taking into account its errors)
       distX = pow(x-p->GetX(), 2);
@@ -150,9 +184,13 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points)
     
     Point origin(x0, y0, z0);
     Point vertex = pointsProcessor.GetPointOnTrack(L, track, eventVertex);
-    vertex.SetT(atan2(vertex.GetY() - origin.GetY(), vertex.GetX() - origin.GetX()));
+    if(charge < 0)  vertex.SetT(atan2(vertex.GetY() - origin.GetY(), vertex.GetX() - origin.GetX()));
+    else            vertex.SetT(atan2(vertex.GetX() - origin.GetX(), vertex.GetY() - origin.GetY()));
     
-    for(auto &p : points) p->SetT(atan2(p->GetY() - y0, p->GetX() - x0));
+    for(auto &p : points){
+      if(charge < 0)  p->SetT(atan2(p->GetY() - y0, p->GetX() - x0));
+      else            p->SetT(atan2(p->GetX() - x0, p->GetY() - y0));
+    }
     
     // Check if ordering of the points is correct (third point in a cone relative to vertex+first point)
     double phi = pointsProcessor.GetPointingAngle(vertex, *points[0], *points[1]);
@@ -160,6 +198,7 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points)
     if(phi < TMath::Pi()/2.){
       resultHelix = make_unique<Helix>(resultParams, vertex, origin, points, track);
       resultHelix->chi2 = result.MinFcnValue();
+      resultHelix->SetCharge(charge);
     }
   }
   

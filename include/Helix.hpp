@@ -52,6 +52,8 @@ public:
   /// and count how many of them are pion points
   void SetPoints(const vector<shared_ptr<Point>> &_points);
   
+  void SetCharge(int val){charge = val;}
+  
   // Getters
   vector<shared_ptr<Point>>  GetPoints() const {return points;}
   

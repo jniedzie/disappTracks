@@ -16,19 +16,12 @@ string cutLevel = "after_L1/4layers/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 0;
+int iEvent = 27;
 
-// 6  (q+, vz+, pz-) OK
-// 10 (q+, vz+, pz-) OK - RECO
-// 11 (q+, vz-, pz-) OK [strong breaking]
-// 13 (q-, vz-, pz-) OK
-// 14 (q-, vz+, pz+) OK
-// 15 (q+, vz+, pz+) OK
-// 18 (q-, vz+, pz+), (q+, vz+, pz+) OK [nice two helices]
-// 19 (q-, vz-, pz-), (q+, vz-, pz-) OK [crazy stuff, probably 3rd soft particle there...]
-// 20 (q+, vz+, pz+) OK [very high p_z]
-// 21 (q-, vz+, pz-), (q+, vz+, pz+) OK [two big helices, one strongly breaking]
-// 23 (q+, vz+, pz+) OK
+// 13 - should be possible, two helices
+// 14 - nice helix, but probably missing first strip hit
+// 26 - beautiful example, must be possible, but track misreconstructed
+// 27 - two helices, one looks fine
 
 bool injectPion = false;
 bool fitHelix = true;
@@ -111,7 +104,7 @@ shared_ptr<Event> GetEvent()
   events.LoadEventFromFiles(dataType, setIter, iEvent, cutLevel);
 	
 //  auto event = events.GetEvent(dataType, searchRun, searchLumi, searchEvent);
-	auto event = events.At(dataType, setIter, iEvent);
+	auto event = events.At(dataType, setIter, 0);
 	
 	if(!event){
 		cout<<"eventDisplay -- event not found"<<endl;
