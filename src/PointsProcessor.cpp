@@ -207,6 +207,60 @@ double PointsProcessor::GetPointingAngle(const Point &p0, const Point &p1, const
   return acos(num/den);
 }
 
+double PointsProcessor::GetPointingAngleXY(const Point &p0, const Point &p1, const Point &p2)
+{
+  double x_v = p0.GetX();
+  double y_v = p0.GetY();
+  
+  double x_1 = p1.GetX();
+  double y_1 = p1.GetY();
+  
+  double x_2 = p2.GetX();
+  double y_2 = p2.GetY();
+  
+  double v1_x = x_1-x_v;
+  double v1_y = y_1-y_v;
+  
+  double v2_x = x_2-x_1;
+  double v2_y = y_2-y_1;
+  
+  double num = v1_x*v2_x + v1_y*v2_y;
+  double den = sqrt(v1_x*v1_x + v1_y*v1_y) * sqrt(v2_x*v2_x + v2_y*v2_y);
+  return acos(num/den);
+}
+
+double PointsProcessor::GetPointingAngleTZ(const Point &p0, const Point &p1, const Point &p2)
+{
+  double x_v = p0.GetX();
+  double y_v = p0.GetY();
+  double z_v = p0.GetZ();
+  
+  double x_1 = p1.GetX();
+  double y_1 = p1.GetY();
+  double z_1 = p1.GetZ();
+  
+  double x_2 = p2.GetX();
+  double y_2 = p2.GetY();
+  double z_2 = p2.GetZ();
+  
+  double v1_x = x_1-x_v;
+  double v1_y = y_1-y_v;
+  double v1_z = z_1-z_v;
+  
+  double v2_x = x_2-x_1;
+  double v2_y = y_2-y_1;
+  double v2_z = z_2-z_1;
+  
+  // rotate both vectors
+  double v1_y_rot = sqrt(v1_x*v1_x + v1_y*v1_y);
+  double beta = atan2(v1_x, v1_y);
+  double v2_y_rot = sin(beta)*v2_x + cos(beta)*v2_y;
+  
+  double num = v1_y_rot*v2_y_rot + v1_z*v2_z;
+  double den = sqrt(v1_y_rot*v1_y_rot + v1_z*v1_z) * sqrt(v2_y_rot*v2_y_rot + v2_z*v2_z);
+  return acos(num/den);
+}
+
 Point PointsProcessor::GetPointOnTrack(double L, const Track &track, const Point &eventVertex)
 {
   Point p(L * cos(track.GetPhi())    + 10*eventVertex.GetX(),

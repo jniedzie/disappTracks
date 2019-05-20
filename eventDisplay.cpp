@@ -16,12 +16,13 @@ string cutLevel = "after_L1/4layers/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 27;
+int iEvent = 31;
 
 // 13 - should be possible, two helices
 // 14 - nice helix, but probably missing first strip hit
 // 26 - beautiful example, must be possible, but track misreconstructed
 // 27 - two helices, one looks fine
+// 31 - two helices, one has many hits and looks good
 
 bool injectPion = false;
 bool fitHelix = true;
@@ -232,7 +233,7 @@ int main(int argc, char* argv[])
 		auto fitter = make_unique<Fitter>();
 		
     auto pionClusters = event->GetPionClusters();
-
+/*
     for(auto &p : allSimplePoints){
       int layer = -1;
       double minDist = inf;
@@ -257,34 +258,36 @@ int main(int argc, char* argv[])
         }
       }
     }
+  */
+    map<string,any> pionClustersOptions = {
+      {"title", "All clusters"},
+      {"binsMin" , 0},
+      {"binsMax" , 100000},
+      {"markerStyle", 20},
+      {"markerSize", 2.0},
+      {"color", kCyan}
+    };
+
     
-//    map<string,any> pionClustersOptions = {
-//      {"title", "Pion clusters"},
-//      {"binsMin" , 0},
-//      {"binsMax" , 100000},
-//      {"markerStyle", 20},
-//      {"markerSize", 2.0},
-//      {"color", kCyan}
-//    };
-//
-//    display->DrawSimplePoints(pionClusters, pionClustersOptions);
-    
-    vector<int> rndIndices = { };
+//    vector<int> rndIndices = { };
     
     // Turn this on to inject some noise
     cout<<endl;
-    for(int i=0;i<0;i++){
+    for(int i=0;i<2000;i++){
 //      int r = rndIndices[i];
       int r = RandInt(0, (int)allSimplePoints.size()-1);
       cout<<r<<",";
       pionClusters.insert(pionClusters.end(),allSimplePoints[r]);
     }
     cout<<endl;
+
+      display->DrawSimplePoints(pionClusters, pionClustersOptions);
     
 //    display->DrawSimplePoints(pionClusters, filteredPointsOptions);
     
+//    vector<Helix> fittedHelices = fitter->FitHelices(allSimplePoints, *track, *event->GetVertex());
     vector<Helix> fittedHelices = fitter->FitHelices(pionClusters, *track, *event->GetVertex());
-    		
+    
     map<string,any> bestHelixOptions = {
       {"title", "Best helix"},
       {"markerStyle", 20},

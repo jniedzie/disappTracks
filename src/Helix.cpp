@@ -195,10 +195,7 @@ helixParams(_params),
 track(_track)
 {
   seedID = uniqueID = reinterpret_cast<uint64_t>(this);
-  
   charge = track.GetCharge();
-  
-  // approximated position of the decay vertex
  
   points.push_back(make_shared<Point>(_decayVertex));
   for(auto &p : _points) points.push_back(p);

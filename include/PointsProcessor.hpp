@@ -73,6 +73,13 @@ public:
   /// Returns an angle between (p2-p1) vector and (p1-p0) vector shifted to start in p1
   double GetPointingAngle(const Point &p0, const Point &p1, const Point &p2);
   
+  /// Returns an angle between (p2-p1) vector and (p1-p0) vector in the transverse plane
+  double GetPointingAngleXY(const Point &p0, const Point &p1, const Point &p2);
+  
+  /// Returns an angle between Z coordinates and the transverse plane of (p2-p1) vector
+  /// and (p1-p0) vector
+  double GetPointingAngleTZ(const Point &p0, const Point &p1, const Point &p2);
+  
   Point GetPointOnTrack(double L, const Track &track, const Point &eventVertex);
 };
 
