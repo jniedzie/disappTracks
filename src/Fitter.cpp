@@ -60,7 +60,7 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
     }
   }
   
-//  ExtendSeeds(fittedHelices, pointsByLayer, maxChi2, deltaPhiMax);
+  ExtendSeeds(fittedHelices, pointsByLayer, maxChi2, deltaPhiMax);
 //  MergeHelices(fittedHelices);
   
   return fittedHelices;
@@ -339,12 +339,23 @@ void Fitter::RefitHelix(Helix &helix)
     
     // First add distance to the new vertex
     Point vertex = pointsProcessor.GetPointOnTrack(L, track, eventVertex);
-    double t = atan2(vertex.GetY() - y0, vertex.GetX() - x0);
+    double t;
     
     // Point on helix for t_vertex
-    Point vertexClosest(x0 + (R0 - a*t)*cos(t),
-                        y0 + (R0 - a*t)*sin(t),
-                        z0 + (s0 - b*t)*t);
+    Point vertexClosest;
+    
+    if(helix.GetCharge() < 0){
+      t = atan2(vertex.GetY() - y0, vertex.GetX() - x0);
+      vertexClosest = Point (x0 + (R0 - a*t)*cos(t),
+                             y0 + (R0 - a*t)*sin(t),
+                             z0 + (s0 - b*t)*t);
+    }
+    else{
+      t = atan2(vertex.GetX() - x0, vertex.GetY() - y0);
+      vertexClosest = Point (x0 + (R0 - a*t)*sin(t),
+                             y0 + (R0 - a*t)*cos(t),
+                             z0 + (s0 - b*t)*t);
+    }
     
     double distX = pow(vertexClosest.GetX()-vertex.GetX(), 2);
     double distY = pow(vertexClosest.GetY()-vertex.GetY(), 2);
@@ -358,12 +369,21 @@ void Fitter::RefitHelix(Helix &helix)
       // Skip first point, as this is the old vertex that will be replaced
       if(first){ first = false; continue; }
       
-      t = atan2(p->GetY() - y0, p->GetX() - x0);
+      double x, y, z;
       
       // find helix point for this point's t
-      double x = x0 + (R0 - a*t)*cos(t);
-      double y = y0 + (R0 - a*t)*sin(t);
-      double z = z0 + (s0 - b*t)*t;
+      if(helix.GetCharge() < 0){
+        t = atan2(p->GetY() - y0, p->GetX() - x0);
+        x = x0 + (R0 - a*t)*cos(t);
+        y = y0 + (R0 - a*t)*sin(t);
+        z = z0 + (s0 - b*t)*t;
+      }
+      else{
+        t = atan2(p->GetX() - x0, p->GetY() - y0);
+        x = x0 + (R0 - a*t)*sin(t);
+        y = y0 + (R0 - a*t)*cos(t);
+        z = z0 + (s0 - b*t)*t;
+      }
       
       // calculate distance between helix and point's boundary (taking into account its errors)
       distX = distY = distZ = 0;

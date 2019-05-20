@@ -220,8 +220,16 @@ void Helix::AddPoint(const shared_ptr<Point> &point)
 {
   points.push_back(point);
   
-  double t = atan2(point->GetY() - origin.GetY(), point->GetX() - origin.GetX());
-  while(t < tMax) t += 2*TMath::Pi();
+  double t;
+  if(charge < 0){
+    t = atan2(point->GetY() - origin.GetY(), point->GetX() - origin.GetX());
+    while(t < tMax) t += 2*TMath::Pi();
+  }
+  else{
+    t = atan2(point->GetX() - origin.GetX(), point->GetY() - origin.GetY());
+    while(t > tMax) t -= 2*TMath::Pi();
+  }
+  
   point->SetT(t);
   tMax = t;
 }
@@ -231,7 +239,9 @@ void Helix::UpdateOrigin(const Point &_origin)
   origin = _origin;
   
   for(auto &p : points){
-    double t = atan2(p->GetY() - origin.GetY(), p->GetX() - origin.GetX());
+    double t;
+    if(charge < 0)  t = atan2(p->GetY() - origin.GetY(), p->GetX() - origin.GetX());
+    else            t = atan2(p->GetX() - origin.GetX(), p->GetY() - origin.GetY());
     p->SetT(t);
   }
   
