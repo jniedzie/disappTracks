@@ -30,6 +30,7 @@ INTERFACE_LINK_LIBRARIES ${ROOT_EXE_LINKER_FLAGS})
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
+add_executable(analyzeClusters analyzeClusters.cpp)
 add_executable(runAnalysis runAnalysis.cpp)
 add_executable(drawDistributions drawDistributions.cpp)
 add_executable(helixTagger helixTagger.cpp)
@@ -40,6 +41,7 @@ add_executable(scanCuts scanCuts.cpp)
 add_executable(singleCutDetails singleCutDetails.cpp)
 add_executable(cutsCorrelations cutsCorrelations.cpp)
 
+set_property(TARGET analyzeClusters PROPERTY CXX_STANDARD 17)
 set_property(TARGET runAnalysis PROPERTY CXX_STANDARD 17)
 set_property(TARGET drawDistributions PROPERTY CXX_STANDARD 17)
 set_property(TARGET helixTagger PROPERTY CXX_STANDARD 17)
@@ -83,6 +85,7 @@ add_library(libAnalysis src/Track.cpp
 
 set_property(TARGET libAnalysis PROPERTY CXX_STANDARD 17)
 
+target_link_libraries(analyzeClusters libAnalysis ${ROOT_LIBRARIES})
 target_link_libraries(runAnalysis libAnalysis ${ROOT_LIBRARIES})
 target_link_libraries(drawDistributions libAnalysis ${ROOT_LIBRARIES})
 target_link_libraries(helixTagger libAnalysis ${ROOT_LIBRARIES})

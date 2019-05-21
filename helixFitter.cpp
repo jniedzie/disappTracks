@@ -49,7 +49,7 @@ void PerformTests(int &nSuccess, int &nFullSuccess)
     helixProcessor.GetRandomPionHelix(track, pionHelix);
     if(config.injectPionHits) InjectPionPointsToCollectionOfPoints(pionHelix, pixelPoints);
     
-    unique_ptr<Helix> bestHelix = fitter->GetBestFittingHelix(pixelPoints, *track, Point(0,0,0));
+    unique_ptr<Helix> bestHelix = nullptr;//fitter->GetBestFittingHelix(pixelPoints, *track, Point(0,0,0));
     monitorsManager.FillMonitors(bestHelix, pionHelix, track);
     
     auto successCode = monitorsManager.GetFittingStatus(*bestHelix, pionHelix);

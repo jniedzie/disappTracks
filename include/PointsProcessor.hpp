@@ -80,7 +80,29 @@ public:
   /// and (p1-p0) vector
   double GetPointingAngleTZ(const Point &p0, const Point &p1, const Point &p2);
   
+  /// Returns point laying on the track (assuming straight line) at distance L, taking
+  /// into account position of the primary event vertex
   Point GetPointOnTrack(double L, const Track &track, const Point &eventVertex);
+  
+  /// Structs for sorting point
+  struct ComparePointByZ{
+    bool operator() (const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){
+      return (p1->GetZ() < p2->GetZ());
+    }
+  };
+  
+  struct ComparePointByX{
+    bool operator() (const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){
+      return (p1->GetX() < p2->GetX());
+    }
+  };
+  
+  struct ComparePointByY{
+    bool operator() (const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){
+      return (p1->GetY() < p2->GetY());
+    }
+  };
+  
 };
 
 #endif /* PointsProcessor_hpp */

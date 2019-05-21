@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
       
       if(config.injectPionHits) InjectPion(trackerPoints, track);
       
-      unique_ptr<Helix> fittedHelix = fitter->GetBestFittingHelix(trackerPoints, *track, *event->GetVertex());
+      unique_ptr<Helix> fittedHelix = nullptr;//fitter->FitHelix(trackerPoints, *track, *event->GetVertex());
       if(fittedHelix){
         fittedHelix->Print();
         event->AddHelix(move(fittedHelix));

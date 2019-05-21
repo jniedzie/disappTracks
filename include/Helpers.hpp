@@ -601,7 +601,6 @@ double duration(T t0,T t1)
 inline std::chrono::time_point<std::chrono::steady_clock> now()
 {
   return std::chrono::steady_clock::now();
-  //  return std::chrono::system_clock::now();
 }
 
 inline map<int, string> subDetMap = {

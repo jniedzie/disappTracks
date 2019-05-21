@@ -30,6 +30,8 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   double deltaPhiXYmaxSeed = TMath::Pi()/4.;
   double deltaZmaxSeed = 300;
   
+//  pointsProcessor.FilterNearbyPoints(points, 50);
+  
   vector<vector<shared_ptr<Point>>> pointsByLayer = pointsProcessor.SortByLayer(points);
   
   // find possible middle and last seeds' points
@@ -47,7 +49,14 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   
   // Count how many seeds we'll need to test
   int nPairs=0;
+  double firstHitLimit = 0.7;
+  
   for(auto &middlePoint : possibleMiddlePoints){
+    
+    // Make sure that middle hit can be reached from track without crossing other layers of tracker (assuming straight track!!)
+    double middleHitPhi = pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMax, *middlePoint);
+    if(middleHitPhi > firstHitLimit*TMath::Pi() || middleHitPhi < -firstHitLimit*TMath::Pi()) continue;
+    
     double deltaZmin  = fabs(middlePoint->GetZ() - trackPointMin.GetZ());
     double deltaZmax  = fabs(middlePoint->GetZ() - trackPointMax.GetZ());
     
@@ -68,6 +77,10 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   cout<<"N pairs to test:"<<nPairs<<endl;
   int nTested=0;
   for(auto &middlePoint : possibleMiddlePoints){
+    
+    double middleHitPhi = pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMax, *middlePoint);
+    if(middleHitPhi > firstHitLimit*TMath::Pi() || middleHitPhi < -firstHitLimit*TMath::Pi()) continue;
+    
     double deltaZmin  = fabs(middlePoint->GetZ() - trackPointMin.GetZ());
     double deltaZmax  = fabs(middlePoint->GetZ() - trackPointMax.GetZ());
     
@@ -242,6 +255,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
 {
   double deltaPhiXYmax = TMath::Pi()/4.;
   double deltaZmax = 300;
+  int minNhits = 10;
   
   
   bool finished;
@@ -250,22 +264,22 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
     cout<<"Performing step "<<nSteps<<endl;
     cout<<"Helices to extend: "<<helices.size()<<endl;
     finished = true;
-    vector<Helix> helicesAfterExtending;
+    vector<Helix> nextStepHelices;
     
     // for all helices from previous step
     for(Helix &helix : helices){
       
-      // that are not yet marked as finished
       if(helix.isFinished){
-        helicesAfterExtending.push_back(helix);
+        nextStepHelices.push_back(helix);
       }
       else{
-        vector<Helix> extendedHelices;
+        // Find points that could extend this helix
         int lastPointLayer = helix.GetLastPoint()->GetLayer();
         vector<shared_ptr<Point>> possiblePoints;
-        
         if(helix.increasing)  possiblePoints = pointsByLayer[lastPointLayer+1];
         else                  possiblePoints = pointsByLayer[lastPointLayer-1];
+        
+        vector<Helix> extendedHelices;
         
         // try to extend by all possible points
         for(auto &point : possiblePoints){
@@ -277,10 +291,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
                                                             *point);
           double deltaZ   = fabs(helix.GetPoints()[nHelixPoints-1]->GetZ() - point->GetZ());
           
-          if((phiXY > deltaPhiXYmax) ||
-             (deltaZ > deltaZmax)){
-            continue;
-          }
+          if((phiXY > deltaPhiXYmax) || (deltaZ > deltaZmax)) continue;
           
           /// Extend helix by the new point and refit its params
           Helix helixCopy(helix);
@@ -294,21 +305,30 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         }
         // if it was possible to extend the helix
         if(extendedHelices.size() != 0){
-          helicesAfterExtending.insert(helicesAfterExtending.end(),
-                                       extendedHelices.begin(),
-                                       extendedHelices.end());
+          nextStepHelices.insert(nextStepHelices.end(),
+                                 extendedHelices.begin(),
+                                 extendedHelices.end());
           finished = false;
         }
-        else{ // if helix could not be extended
+        else if(!helix.isFinished){ // if helix could not be extended
           helix.isFinished = true;
-          helicesAfterExtending.push_back(helix); // is this needed?
+          nextStepHelices.push_back(helix);
         }
       }
     }
-    cout<<"Merging extended helices"<<endl;
-    helices.clear();
-    for(auto &h : helicesAfterExtending) helices.push_back(h);
     
+    helices.clear();
+    for(auto &h : nextStepHelices) helices.push_back(h);
+    /*
+    for(auto &h : nextStepHelices){
+      if(nSteps+3 <= minNhits){
+        if(h.GetNpoints() >= nSteps+3) helices.push_back(h);
+      }
+      else{
+        if(h.GetNpoints() >= minNhits) helices.push_back(h);
+      }
+    }
+    */
     nSteps++;
   }
   while(!finished);
