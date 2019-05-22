@@ -1,7 +1,7 @@
 **Analysis settings**
 
 ### Which level of cuts to apply:
-cuts_level: 1
+cuts_level: 0
 
 ### Analysis category ( 2-tracks | 3-layers | 4-layers ):
 analysis_category:  2-tracks
@@ -10,7 +10,7 @@ scan_MET_binning: 0
 do_MET_binning: 0
 
 ### Should events after processing be saved on disk:
-save_events:  1
+save_events:  0
 
 ### turn on/off different backgrounds, signals and data samples
 do_QCD:         0
@@ -45,7 +45,7 @@ print_data_details: 0
 print_signal_details: 0
 
 ### Draw standard (per event/track/jet/helix) plots:
-draw_standard_plots:  0
+draw_standard_plots:  1
 
 ### Draw per-layer plots (mainly dE/dx):
 draw_per_layer_plots: 0

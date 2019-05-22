@@ -6,20 +6,18 @@
 #include "EventSet.hpp"
 
 string configPath = "configs/eventDisplay.md";
-string cutLevel = "after_L1/3layers/";//after_L1/";
-string outfileName = "genPionHists3layers";
+string cutLevel = "after_L1/4layers/";//after_L1/";
+string outfileName = "results/genPionHists4layers_clusters.root";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 3;
-
 
 vector<tuple<string, int, double, double, string>> histOptions1D = {
 // title                        nBins  min     max    titleX
   {"lumi"                       , 300, 0      , 300   , "lumi block"              },
   {"pion_px"                    , 50 , 0      , 1000  , "|p_{x}| (MeV)"           },
   {"pion_py"                    , 50 , 0      , 1000  , "|p_{y}| (MeV)"           },
-  {"pion_pz"                    , 50 , 0      , 2000  , "|p_{z}| (MeV)"           },
+  {"pion_pz"                    , 50 , 0      , 1500  , "|p_{z}| (MeV)"           },
   {"pion_pt"                    , 50 , 0      , 1000  , " p_{t}  (MeV)"           },
   {"pion_n_clusters"            , 50 , 0      , 100   , "# clusters"              },
   {"pion_n_clusters_TIB"        , 50 , 0      , 50    , "# clusters"              },
@@ -52,6 +50,12 @@ vector<tuple<string, int, double, double, string>> histOptions1D = {
   {"tracker_cluster_charge_TEC" , 100, 0      , 600   , ""                        },
   {"tracker_cluster_charge_PXB" , 100, 0      , 600   , ""                        },
   {"tracker_cluster_charge_PXE" , 100, 0      , 600   , ""                        },
+  
+  // special cases
+  {"pion_pz_noTIB"              , 50 , 0      , 2000  , "|p_{z}| (MeV)"           },
+  {"pion_pt_noTIB"              , 50 , 0      , 1000  , " p_{t}  (MeV)"           },
+  {"pion_vertex_xy_noTIB"       , 100, 0      , 500   , "v_{xy} (mm)"             },
+  {"pion_vertex_z_noTIB"        , 50 , -1000  , 1000  , "v_{z} (mm)"              },
 };
 
 vector<tuple<string, int, double, double, string, int, double, double, string>> histOptions2D = {
@@ -98,7 +102,19 @@ range<double> GetPointsRingSize(vector<shared_ptr<Point>> points)
   
   return range<double>(minDistanceToCenter, maxDistanceToCenter);
 }
-  
+
+shared_ptr<Point> FindClusterForHit(const Point &hit, const vector<shared_ptr<Point>> &clusters)
+{
+  for(auto &cluster : clusters){
+    if(fabs(hit.GetX() - cluster->GetX()) < cluster->GetXerr() &&
+       fabs(hit.GetY() - cluster->GetY()) < cluster->GetYerr() &&
+       fabs(hit.GetZ() - cluster->GetZ()) < cluster->GetZerr()){
+      return cluster;
+    }
+  }
+  return nullptr;
+}
+
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
@@ -142,13 +158,15 @@ int main(int argc, char* argv[])
     double pionPt = sqrt(pow(pionHelix.GetMomentum()->GetX(), 2) + pow(pionHelix.GetMomentum()->GetY(), 2));
     double pionPz = pionHelix.GetMomentum()->GetZ();
     double phiPion = atan2(pionHelix.GetMomentum()->GetY(), pionHelix.GetMomentum()->GetX());
+    double pionVertexXY = sqrt(pow(pionHelix.GetVertex()->GetX(), 2) + pow(pionHelix.GetVertex()->GetY(), 2));
+    double pionVertexZ = pionHelix.GetVertex()->GetZ();
     
     hists1D["pion_px"]->Fill(fabs(pionHelix.GetMomentum()->GetX()));
     hists1D["pion_py"]->Fill(fabs(pionHelix.GetMomentum()->GetY()));
     hists1D["pion_pz"]->Fill(fabs(pionPz));
     hists1D["pion_pt"]->Fill(pionPt);
-    hists1D["pion_vertex_z"]->Fill(pionHelix.GetVertex()->GetZ());
-    hists1D["pion_vertex_xy"]->Fill(sqrt(pow(pionHelix.GetVertex()->GetX(), 2) + pow(pionHelix.GetVertex()->GetY(), 2)));
+    hists1D["pion_vertex_z"]->Fill(pionVertexZ);
+    hists1D["pion_vertex_xy"]->Fill(pionVertexXY);
     
     for(auto &track : event->GetTracks()){
       hists1D["delta_phi_pion_chargino"]->Fill(fabs(phiPion - track->GetPhi()));
@@ -158,21 +176,41 @@ int main(int argc, char* argv[])
     sort(pionSimHits.begin(), pionSimHits.end(), PointsProcessor::ComparePointByZ());
     
     for(int iHit=1; iHit<pionSimHits.size()-1; iHit++){
-      double deltaPhi = pointsProcessor.GetPointingAngleXY(*pionSimHits[iHit-1],
-                                                           *pionSimHits[iHit],
-                                                           *pionSimHits[iHit+1]);
+      auto previousCluster = FindClusterForHit(*pionSimHits[iHit-1],  pionClusters);
+      auto thisCluster     = FindClusterForHit(*pionSimHits[iHit],    pionClusters);
+      auto nextCluster     = FindClusterForHit(*pionSimHits[iHit+1],  pionClusters);
       
-      double deltaZ = fabs(pionSimHits[iHit]->GetZ() - pionSimHits[iHit+1]->GetZ());
+      if(!previousCluster || !thisCluster || !nextCluster){
+//        cout<<"Could not find cluster for sim hit"<<endl;
+        continue;
+      }
       
+      double deltaPhi = pointsProcessor.GetPointingAngleXY(*previousCluster, *thisCluster, *nextCluster);
+      double deltaZ = fabs(thisCluster->GetZ() - nextCluster->GetZ());
+
       hists1D["next_point_delta_phi"]->Fill(deltaPhi);
       hists2D["next_point_delta_phi_pion_pt"]->Fill(deltaPhi, pionPt);
       hists1D["next_point_delta_z"]->Fill(deltaZ);
       hists2D["next_point_delta_z_pion_pz"]->Fill(deltaZ, pionPz);
     }
     
+//    for(int iCluster=1; iCluster<pionClusters.size()-1; iCluster++){
+//      double deltaPhi = pointsProcessor.GetPointingAngleXY(*pionClusters[iCluster-1],
+//                                                           *pionClusters[iCluster],
+//                                                           *pionClusters[iCluster+1]);
+//
+//      double deltaZ = fabs(pionClusters[iCluster]->GetZ() - pionClusters[iCluster+1]->GetZ());
+//
+//      hists1D["next_point_delta_phi"]->Fill(deltaPhi);
+//      hists2D["next_point_delta_phi_pion_pt"]->Fill(deltaPhi, pionPt);
+//      hists1D["next_point_delta_z"]->Fill(deltaZ);
+//      hists2D["next_point_delta_z_pion_pz"]->Fill(deltaZ, pionPz);
+//    }
+    
+    
     shared_ptr<Point> farthestPoint;
     if(fabs(pionSimHits.front()->GetZ()) > fabs(pionSimHits.back()->GetZ()))  farthestPoint = pionSimHits.front();
-    else                                                                        farthestPoint = pionSimHits.back();
+    else                                                                      farthestPoint = pionSimHits.back();
     
     hists1D["pion_range_z"]->Fill(fabs(eventVertex->GetZ() - farthestPoint->GetZ()));
     
@@ -212,6 +250,13 @@ int main(int argc, char* argv[])
     hists1D["pion_n_clusters_PXB"]->Fill(nClustersInDet["PXB"]);
     hists1D["pion_n_clusters_PXE"]->Fill(nClustersInDet["PXE"]);
     
+    // Fill special histograms
+    if(nClustersInDet["TIB"] == 0){
+      hists1D["pion_pt_noTIB"]->Fill(pionPt);
+      hists1D["pion_pz_noTIB"]->Fill(pionPz);
+      hists1D["pion_vertex_xy_noTIB"]->Fill(pionVertexXY);
+      hists1D["pion_vertex_z_noTIB"]->Fill(pionVertexZ);
+    }
     
     // Fill seeds tracking histograms
     Point decayVertexMin = pointsProcessor.GetPointOnTrack(layerR[track->GetNtrackerLayers()-1], *track, *eventVertex);
@@ -301,10 +346,19 @@ int main(int argc, char* argv[])
     cout<<"Number of last hits in "<<detNames[i]<<": "<<nLastHitsInDet[detNames[i]]<<"\t("<<nLastHitsInDet[detNames[i]]/(double)nLastHits<<" %)"<<endl;
   }
   
+  TCanvas *specialCanvas = new TCanvas("specialCanvas", "specialCanvas", 2880, 1800);
+  specialCanvas->Divide(4,3);
+
+  specialCanvas->cd(1);  hists1D["pion_pt_noTIB"]->Draw();
+  specialCanvas->cd(2);  hists1D["pion_pz_noTIB"]->Draw();
+  specialCanvas->cd(3);  hists1D["pion_vertex_xy_noTIB"]->Draw();
+  specialCanvas->cd(4);  hists1D["pion_vertex_z_noTIB"]->Draw();
+  
   genPionCanvas->Update();
   trackingCanvas->Update();
   chargeCanvas->Update();
   clustersCanvas->Update();
+  specialCanvas->Update();
   
   TFile *outFile = new TFile(outfileName.c_str(), "recreate");
   outFile->cd();

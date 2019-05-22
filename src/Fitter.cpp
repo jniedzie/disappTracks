@@ -26,9 +26,12 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   eventVertex = _eventVertex;
   
   double maxChi2 = 1.0;
-  double deltaPhiMax = TMath::Pi()/2.;
-  double deltaPhiXYmaxSeed = TMath::Pi()/4.;
-  double deltaZmaxSeed = 300;
+  
+  double middleSeedHitMaxDeltaPhi = 1.5;
+  double middleSeedHitMaxDeltaZ = 200;
+  
+  double lastSeedHitMaxDeltaPhi = 1.5;
+  double lastSeedHitMaxDeltaZ = 100;
   
 //  pointsProcessor.FilterNearbyPoints(points, 50);
   
@@ -49,28 +52,29 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   
   // Count how many seeds we'll need to test
   int nPairs=0;
-  double firstHitLimit = 0.7;
-  
   for(auto &middlePoint : possibleMiddlePoints){
     
     // Make sure that middle hit can be reached from track without crossing other layers of tracker (assuming straight track!!)
-    double middleHitPhi = pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMax, *middlePoint);
-    if(middleHitPhi > firstHitLimit*TMath::Pi() || middleHitPhi < -firstHitLimit*TMath::Pi()) continue;
+    double middleHitDeltaPhi = min(pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMin, *middlePoint),
+                                   pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMax, *middlePoint));
     
-    double deltaZmin  = fabs(middlePoint->GetZ() - trackPointMin.GetZ());
-    double deltaZmax  = fabs(middlePoint->GetZ() - trackPointMax.GetZ());
+    if(middleHitDeltaPhi > middleSeedHitMaxDeltaPhi) continue;
     
-    if(deltaZmin > deltaZmaxSeed && deltaZmax > deltaZmaxSeed) continue;
+    double middleHitDeltaZ = min( fabs(middlePoint->GetZ() - trackPointMin.GetZ()),
+                                  fabs(middlePoint->GetZ() - trackPointMax.GetZ()));
+    
+    if(middleHitDeltaZ > middleSeedHitMaxDeltaZ) continue;
     
     for(auto &lastPoint : possibleLastPoints){
-      double phiMinXY = pointsProcessor.GetPointingAngleXY(trackPointMin, *middlePoint, *lastPoint);
-      double phiMaxXY = pointsProcessor.GetPointingAngleXY(trackPointMax, *middlePoint, *lastPoint);
-      double deltaZ   = fabs(middlePoint->GetZ() - lastPoint->GetZ());
+      double lastHitDeltaPhi = min(pointsProcessor.GetPointingAngleXY(trackPointMin, *middlePoint, *lastPoint),
+                                   pointsProcessor.GetPointingAngleXY(trackPointMax, *middlePoint, *lastPoint));
       
-      if((phiMinXY > deltaPhiXYmaxSeed && phiMaxXY > deltaPhiXYmaxSeed) ||
-         (deltaZ > deltaZmaxSeed)){
-        continue;
-      }
+      if(lastHitDeltaPhi > lastSeedHitMaxDeltaPhi) continue;
+      
+      double lastPointDeltaZ = fabs(middlePoint->GetZ() - lastPoint->GetZ());
+      
+      if(lastPointDeltaZ > lastSeedHitMaxDeltaZ) continue;
+      
       nPairs++;
     }
   }
@@ -78,23 +82,25 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   int nTested=0;
   for(auto &middlePoint : possibleMiddlePoints){
     
-    double middleHitPhi = pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMax, *middlePoint);
-    if(middleHitPhi > firstHitLimit*TMath::Pi() || middleHitPhi < -firstHitLimit*TMath::Pi()) continue;
+    double middleHitDeltaPhi = min(pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMin, *middlePoint),
+                                   pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMax, *middlePoint));
     
-    double deltaZmin  = fabs(middlePoint->GetZ() - trackPointMin.GetZ());
-    double deltaZmax  = fabs(middlePoint->GetZ() - trackPointMax.GetZ());
+    if(middleHitDeltaPhi > middleSeedHitMaxDeltaPhi) continue;
     
-    if(deltaZmin > deltaZmaxSeed && deltaZmax > deltaZmaxSeed) continue;
+    double middleHitDeltaZ = min( fabs(middlePoint->GetZ() - trackPointMin.GetZ()),
+                                 fabs(middlePoint->GetZ() - trackPointMax.GetZ()));
+    
+    if(middleHitDeltaZ > middleSeedHitMaxDeltaZ) continue;
     
     for(auto &lastPoint : possibleLastPoints){
-      double phiMinXY = pointsProcessor.GetPointingAngleXY(trackPointMin, *middlePoint, *lastPoint);
-      double phiMaxXY = pointsProcessor.GetPointingAngleXY(trackPointMax, *middlePoint, *lastPoint);
-      double deltaZ   = fabs(middlePoint->GetZ() - lastPoint->GetZ());
-
-      if((phiMinXY > deltaPhiXYmaxSeed && phiMaxXY > deltaPhiXYmaxSeed) ||
-         (deltaZ > deltaZmaxSeed)){
-        continue;
-      }
+      double lastHitDeltaPhi = min(pointsProcessor.GetPointingAngleXY(trackPointMin, *middlePoint, *lastPoint),
+                                   pointsProcessor.GetPointingAngleXY(trackPointMax, *middlePoint, *lastPoint));
+      
+      if(lastHitDeltaPhi > lastSeedHitMaxDeltaPhi) continue;
+      
+      double lastPointDeltaZ = fabs(middlePoint->GetZ() - lastPoint->GetZ());
+      
+      if(lastPointDeltaZ > lastSeedHitMaxDeltaZ) continue;
       
       vector<shared_ptr<Point>> points = { middlePoint, lastPoint };
       unique_ptr<Helix> helixPos = FitSeed(points,  1);
@@ -119,7 +125,7 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   }
   cout<<"Fitter -- found "<<fittedHelices.size()<<" valid seeds"<<endl;
   cout<<"Fitter -- extending seeds"<<endl;
-  ExtendSeeds(fittedHelices, pointsByLayer, maxChi2, deltaPhiMax);
+  ExtendSeeds(fittedHelices, pointsByLayer, maxChi2);
   cout<<"Fitter -- merging overlapping helices. Before: "<<fittedHelices.size();
   MergeHelices(fittedHelices);
   cout<<"\tafter:"<<fittedHelices.size()<<endl;
@@ -167,7 +173,6 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points, int c
     double t, distX, distY, distZ;
     double f=0;
     
-    bool first=true;
     // Then add distances to all other points
     for(auto &p : pointsTriplet){
       if(charge < 0) t = atan2(p->GetY() - y0, p->GetX() - x0);
@@ -250,13 +255,10 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points, int c
 
 void Fitter::ExtendSeeds(vector<Helix> &helices,
                          const vector<vector<shared_ptr<Point>>> &pointsByLayer,
-                         double maxChi2,
-                         double deltaPhiMax)
+                         double maxChi2)
 {
-  double deltaPhiXYmax = TMath::Pi()/4.;
-  double deltaZmax = 300;
-  int minNhits = 10;
-  
+  double nextPointMaxDeltaPhi = 0.7;
+  double nextPointMaxDeltaZ = 200;
   
   bool finished;
   int nSteps=0;
@@ -276,8 +278,11 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         // Find points that could extend this helix
         int lastPointLayer = helix.GetLastPoint()->GetLayer();
         vector<shared_ptr<Point>> possiblePoints;
-        if(helix.increasing)  possiblePoints = pointsByLayer[lastPointLayer+1];
-        else                  possiblePoints = pointsByLayer[lastPointLayer-1];
+        
+        if(lastPointLayer+1 < pointsByLayer.size() && lastPointLayer-1 >= 0){
+          if(helix.increasing)  possiblePoints = pointsByLayer[lastPointLayer+1];
+          else                  possiblePoints = pointsByLayer[lastPointLayer-1];
+        }
         
         vector<Helix> extendedHelices;
         
@@ -286,12 +291,15 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           
           // Check if new point is within some cone
           size_t nHelixPoints = helix.GetPoints().size();
-          double phiXY = pointsProcessor.GetPointingAngleXY(*helix.GetPoints()[nHelixPoints-2],
-                                                            *helix.GetPoints()[nHelixPoints-1],
-                                                            *point);
+          double deltaPhi = pointsProcessor.GetPointingAngleXY(*helix.GetPoints()[nHelixPoints-2],
+                                                               *helix.GetPoints()[nHelixPoints-1],
+                                                               *point);
+          
+          if(deltaPhi > nextPointMaxDeltaPhi) continue;
+          
           double deltaZ   = fabs(helix.GetPoints()[nHelixPoints-1]->GetZ() - point->GetZ());
           
-          if((phiXY > deltaPhiXYmax) || (deltaZ > deltaZmax)) continue;
+          if(deltaZ > nextPointMaxDeltaZ) continue;
           
           /// Extend helix by the new point and refit its params
           Helix helixCopy(helix);

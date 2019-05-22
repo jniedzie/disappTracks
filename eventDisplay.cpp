@@ -281,13 +281,11 @@ int main(int argc, char* argv[])
     }
     cout<<endl;
     
-    
-    
     display->DrawSimplePoints(pionClusters, pionClustersOptions);
     
     auto start = now();
-//    vector<Helix> fittedHelices = fitter->FitHelices(allSimplePoints, *track, *event->GetVertex());
-    vector<Helix> fittedHelices = fitter->FitHelices(pionClusters, *track, *event->GetVertex());
+    vector<Helix> fittedHelices = fitter->FitHelices(allSimplePoints, *track, *event->GetVertex());
+//    vector<Helix> fittedHelices = fitter->FitHelices(pionClusters, *track, *event->GetVertex());
     auto end = now();
     
     cout<<"Fitting time: "<<duration(start, end)<<endl;
