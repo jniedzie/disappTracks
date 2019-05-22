@@ -24,11 +24,6 @@ ConfigManager::ConfigManager(string _path)
   
   helixThickness              = configFile->GetValue("helix_thickness",1.0);
   circleThickness             = configFile->GetValue("circle_thickness",1.0);
-  linesToleranceForCircles    = configFile->GetValue("lines_tolerance_for_circles",1.0);
-  linesToleranceForRegularity = configFile->GetValue("lines_tolerance_for_regularity",10.0);
-  stepPz                      = configFile->GetValue("step_pz",1.0);
-  zRegularityTolerance        = configFile->GetValue("z_regularity_tolerance",1.0);
-  minNpointsAlongZ            = configFile->GetValue("min_n_points_along_z",2);
   maxEta                      = configFile->GetValue("max_eta",10.0);
   nTrackHits                  = configFile->GetValue("n_track_hits",3);
   minPx                       = configFile->GetValue("min_px",50.0);
@@ -134,11 +129,6 @@ void ConfigManager::Print()
   cout<<"Algorithm parameters:"<<endl;
   cout<<"\tHelix thickness:"<<helixThickness<<endl;
   cout<<"\tCircle thickness:"<<circleThickness<<endl;
-  cout<<"\tLines tolerance for circles:"<<linesToleranceForCircles<<endl;
-  cout<<"\tLines tolerance for circles:"<<linesToleranceForRegularity<<endl;
-  cout<<"\tStep z:"<<stepPz<<endl;
-  cout<<"\tZ regularity tolerance:"<<zRegularityTolerance<<endl;
-  cout<<"\tMin points along Z:"<<minNpointsAlongZ<<endl;
   
   cout<<"Benchmark options:"<<endl;
   cout<<"\tTolerance X:"<<toleranceX<<endl;

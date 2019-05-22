@@ -41,24 +41,6 @@ helix_thickness:  0.3
 ### Determines how far points can be from circle to be assigned to it (in mm):
 circle_thickness: 0.4
 
-### Determines how far points can be from each other to be counted as the same z-line (in mm),
-### when assigining circles (probably this needs to be greater than circle_thickness):
-lines_tolerance_for_circles: 0.5
-
-### Determines how far points can be from each other to be counted as the same z-line (in mm), 
-### when calculating number of regular points:
-lines_tolerance_for_regularity: 10.0
-
-### Precision of pz scanning:
-step_pz:  0.5
-
-### Determines how far points can be from perfectly regular position in Z to be counted as a regular point (in mm):
-z_regularity_tolerance: 1.0
-
-### Minimum number of hits for each line along Z axis (approximately equivalent to minimum number of helix cycles).
-### The higher this number, the faster it gets, but less cases will be successfully fitted:
-min_n_points_along_z: 2
-
 **Benchmark parameters**
 
 ### Conditinos to accept fitted helix as a proper solution (each parameter has to be within given tolerance).

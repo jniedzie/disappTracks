@@ -273,7 +273,7 @@ int main(int argc, char* argv[])
     
     // Turn this on to inject some noise
     cout<<endl;
-    for(int i=0; i<0; i++){
+    for(int i=0; i<1000; i++){
       int r = rndIndices[i];
 //      int r = RandInt(0, (int)allSimplePoints.size()-1);
 //      cout<<r<<",";
@@ -281,11 +281,13 @@ int main(int argc, char* argv[])
     }
     cout<<endl;
     
+//    pionClusters = pointsProcessor.FilterNearbyPoints(pionClusters, 50);
+    
     display->DrawSimplePoints(pionClusters, pionClustersOptions);
     
     auto start = now();
-    vector<Helix> fittedHelices = fitter->FitHelices(allSimplePoints, *track, *event->GetVertex());
-//    vector<Helix> fittedHelices = fitter->FitHelices(pionClusters, *track, *event->GetVertex());
+//    vector<Helix> fittedHelices = fitter->FitHelices(allSimplePoints, *track, *event->GetVertex());
+    vector<Helix> fittedHelices = fitter->FitHelices(pionClusters, *track, *event->GetVertex());
     auto end = now();
     
     cout<<"Fitting time: "<<duration(start, end)<<endl;

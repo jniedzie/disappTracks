@@ -31,14 +31,6 @@ public:
   /// Returns vector of points along helix trajectory that hit the tracker
   vector<shared_ptr<Point>> GetPointsHittingSilicon(const Helix &helix);
   
-  /// Calculates number of regular points.
-  /// Splits all points into lines along Z axis. For each line, checks all possible distances between points.
-  /// For each possible distance, calculates number of regular points (for all points in the collection,
-  /// within zRegularityTolarance) and finds a maximum number of such points.
-  /// \param helix Helix object that will be modified with an updated number of regular points
-  /// \param limit Stop calculation after reaching this number of regular points
-  void CalculateNregularPoints(unique_ptr<Helix> &helix, int limit=inf);
-  
   /// Generates random helix starting on the track (withing the decay region)
   /// \param track Track on which the helix will be generated
   /// \param pionHelix Returns generated helix

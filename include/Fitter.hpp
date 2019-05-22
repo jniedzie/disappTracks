@@ -10,7 +10,6 @@
 #include "Helpers.hpp"
 #include "PointsProcessor.hpp"
 #include "CircleProcessor.hpp"
-#include "ArcSetProcessor.hpp"
 #include "HelixProcessor.hpp"
 #include "ConfigManager.hpp"
 #include "Track.hpp"
@@ -32,6 +31,9 @@ private:
   vector<shared_ptr<Point>> points;
   Track track;
   Point eventVertex;
+  
+  ///
+  vector<Helix> GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer);
   
   ///
   unique_ptr<Helix> FitSeed(const vector<shared_ptr<Point>> &points, int charge);

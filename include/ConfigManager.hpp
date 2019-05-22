@@ -68,11 +68,6 @@ struct ConfigManager {
   // Fitter parameters
   double helixThickness;
   double circleThickness;
-  double linesToleranceForCircles;
-  double linesToleranceForRegularity;
-  double stepPz;
-  double zRegularityTolerance;
-  int minNpointsAlongZ;
   
   // Random chargino's track parameters
   double maxEta;

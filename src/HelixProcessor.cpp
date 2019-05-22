@@ -103,58 +103,6 @@ vector<shared_ptr<Point>> HelixProcessor::GetPointsHittingSilicon(const Helix &h
   return points;
 }
 
-void HelixProcessor::CalculateNregularPoints(unique_ptr<Helix> &helix, int limit)
-{
-  vector<vector<Point>> pointsByLine = pointsProcessor.SplitPointsIntoLines(helix->points,
-                                                                             config.linesToleranceForRegularity);
-  vector<double> possibleDistances;
-  set<double> possibleDistancesSet;
-  helix->nRegularPoints = 0;
-  
-  int nPointsForDistance;
-  double zRegularityTolerance = config.zRegularityTolerance;
-  double testingDistance;
-  
-  // Maybe just calculate what would be the distance for given pz?
-  // For whatever reason it's not actually faster... (maybe with more noise it will be faster)
-  testingDistance = fabs(helix->GetSlope())*2*TMath::Pi();
-  nPointsForDistance = 0;
-  
-  for(auto line2 : pointsByLine){
-    for(int i=0;i<(int)line2.size();i++){
-      if(std::abs(pointsProcessor.distance(line2[0], line2[i])-i*testingDistance) < zRegularityTolerance)  nPointsForDistance++;
-    }
-  }
-  helix->nRegularPoints = nPointsForDistance;
-  /*
-  bool found;
-  for(auto line : pointsByLine){
-    int iPoint;
-    for(iPoint=0; iPoint < (int)line.size()-1; iPoint++){
-      testingDistance = pointsProcessor->distance(line[iPoint], line[iPoint+1]);
-      found = false;
-      for(double dd : possibleDistances){
-        if(fabs(testingDistance-dd) < zRegularityTolerance){found = true;break;}
-      }
-      if(found) continue;
-      
-      possibleDistances.push_back(testingDistance);
-      nPointsForDistance = 0;
-      
-      for(auto line2 : pointsByLine){
-        for(int i=0;i<(int)line2.size();i++){
-          if(std::abs(pointsProcessor->distance(line2[0], line2[i])-i*testingDistance) < zRegularityTolerance)  nPointsForDistance++;
-        }
-      }
-      if(nPointsForDistance > helix->nRegularPoints){
-        helix->nRegularPoints = nPointsForDistance;
-        if(helix->nRegularPoints > limit) return;
-      }
-    }
-  }
-   */
-}
-
 void HelixProcessor::GetRandomPionHelix(const shared_ptr<Track> &track, Helix &pionHelix)
 {
   unique_ptr<Point> pionVector = make_unique<Point>(RandSign()*RandDouble(config.minPx, config.maxPx),

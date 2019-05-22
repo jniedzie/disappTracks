@@ -67,8 +67,6 @@ add_library(libAnalysis src/Track.cpp
                         src/EventCut.cpp
                         src/EventProcessor.cpp
                         src/EventSet.cpp
-                        src/ArcSet2D.cpp
-                        src/ArcSetProcessor.cpp
                         src/Circle.cpp
                         src/CircleProcessor.cpp
                         src/ConfigManager.cpp
