@@ -40,8 +40,7 @@ private:
   
   ///
   void ExtendSeeds(vector<Helix> &helices,
-                   const vector<vector<shared_ptr<Point>>> &pointsByLayer,
-                   double maxChi2);
+                   const vector<vector<shared_ptr<Point>>> &pointsByLayer);
   
   ///
   void MergeHelices(vector<Helix> &helices);

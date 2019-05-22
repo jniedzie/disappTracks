@@ -25,41 +25,39 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   track       = _track;
   eventVertex = _eventVertex;
 
-  double maxChi2 = 1.0;
-  
   vector<vector<shared_ptr<Point>>> pointsByLayer = pointsProcessor.SortByLayer(points);
   
-  cout<<"Fitter -- looking for seeds"<<endl;
+  // Find seeds
+  cout<<"Looking for seeds..."<<endl;
   vector<Helix> fittedHelices = GetSeeds(pointsByLayer);
+  cout<<"Number of valid seeds: "<<fittedHelices.size()<<endl;
   
-  // build seeds for all possible combinations of points
-
+  // Extend seeds
+  cout<<"Extending seeds..."<<endl;
+  ExtendSeeds(fittedHelices, pointsByLayer);
+  cout<<"Candidates found: "<<fittedHelices.size()<<endl;
   
-  cout<<"Fitter -- found "<<fittedHelices.size()<<" valid seeds"<<endl;
-  
-  cout<<"Fitter -- extending seeds"<<endl;
-  ExtendSeeds(fittedHelices, pointsByLayer, maxChi2);
-  
-  cout<<"Fitter -- merging overlapping helices. Before: "<<fittedHelices.size();
+  // Merge similar candidates
+  cout<<"Merging overlapping helices...";
   MergeHelices(fittedHelices);
-  cout<<"\tafter:"<<fittedHelices.size()<<endl;
+  cout<<" merged down to: "<<fittedHelices.size()<<endl;
   
+  // Remove helices that are too short
+  cout<<"Removing very short helices...";
   vector<Helix> longHelices;
-  
-  // Remove helices that even after merging have only 3 hits
-  cout<<"Fitter -- removing very short helices"<<endl;
   for(int iHelix=0; iHelix<fittedHelices.size(); iHelix++){
     if(fittedHelices[iHelix].GetPoints().size() > 4){
       longHelices.push_back(fittedHelices[iHelix]);
     }
   }
+  cout<<" long helices: "<<longHelices.size()<<endl;
   
-  cout<<"Fitter -- refitting surviving helices ("<<longHelices.size()<<")"<<endl;
+  cout<<"Refitting surviving helices...";
   for(auto &helix : longHelices){
     if(helix.shouldRefit) RefitHelix(helix);
   }
+  cout<<" done."<<endl;
   
-  cout<<"Fitter -- done"<<endl;
   return longHelices;
 }
 
@@ -82,7 +80,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
   
   Point trackPointMin = pointsProcessor.GetPointOnTrack(layerR[track.GetNtrackerLayers()-1],  track, eventVertex);
   Point trackPointMax = pointsProcessor.GetPointOnTrack(layerR[track.GetNtrackerLayers()],    track, eventVertex);
-  
+  int nPairs=0;
   for(auto &middlePoint : possibleMiddlePoints){
     
     double middleHitDeltaPhi = min(pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMin, *middlePoint),
@@ -105,6 +103,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
       
       if(lastPointDeltaZ > lastSeedHitMaxDeltaZ) continue;
       
+      nPairs++;
       auto points = { middlePoint, lastPoint };
       auto helix = FitSeed(points,  track.GetCharge());
       
@@ -114,6 +113,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
       }
     }
   }
+  cout<<"Tested pairs: "<<nPairs<<endl;
   return seeds;
 }
 
@@ -247,23 +247,16 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points, int c
 }
 
 void Fitter::ExtendSeeds(vector<Helix> &helices,
-                         const vector<vector<shared_ptr<Point>>> &pointsByLayer,
-                         double maxChi2)
+                         const vector<vector<shared_ptr<Point>>> &pointsByLayer)
 {
+  double maxChi2 = 1.0;
   double nextPointMaxDeltaPhi = 0.7;
   double nextPointMaxDeltaZ = 200;
   
   bool finished;
   int nSteps=0;
   do{
-    cout<<"Performing step "<<nSteps<<endl;
-    cout<<"Helices to extend: "<<helices.size()<<endl;
-//    for(auto helix : helices){
-////      helix.GetVertex()->Print();cout<<endl;
-////      cout<<"Charge: "<<helix.GetCharge()<<endl;
-////      cout<<"Chi2: "<<helix.chi2<<endl;
-//      cout<<endl;
-//    }
+    cout<<"Helices before "<<nSteps<<" step: "<<helices.size()<<endl;
     
     finished = true;
     vector<Helix> nextStepHelices;
