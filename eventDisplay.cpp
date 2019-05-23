@@ -37,8 +37,8 @@ int iEvent = 19;
 // 15 - ... short one, but should work
 // 16 - no hits
 // 17 - bad hits
-// 18 - ... should work
-// 19 - ... perfect case for many cycles.
+// 18 - ..., Z-, Q- should work
+// 19 - OK, Z+, Q+, perfect case for many cycles.
 // 20 - very scattered hits
 
 // "after_L1/4layers/":
@@ -298,10 +298,10 @@ int main(int argc, char* argv[])
     vector<shared_ptr<Point>> pionClusters;
     
     for(int iCluster=0; iCluster<pionClustersTmp.size(); iCluster++){
-      if(iCluster == 0 ||
-//         iCluster == 1 ||
-         iCluster == 13
-         ) pionClusters.push_back(pionClustersTmp[iCluster]);
+//      if(iCluster == 0 ||
+////         iCluster == 1 ||
+//         iCluster == 13)
+      pionClusters.push_back(pionClustersTmp[iCluster]);
     }
     
     auto pointsByLayer = pointsProcessor.SortByLayer(allSimplePoints);
@@ -325,9 +325,9 @@ int main(int argc, char* argv[])
     };
 
     
-    display->DrawSimplePoints(pointsByLayer[4], pionClustersOptions);
+//    display->DrawSimplePoints(pointsByLayer[4], pionClustersOptions);
     pionClustersOptions["title"] = "Layer 5";
-    display->DrawSimplePoints(pointsByLayer[5], pionClustersOptions);
+//    display->DrawSimplePoints(pointsByLayer[5], pionClustersOptions);
     pionClustersOptions["title"] = "Pion clusters";
     
     vector<int> rndIndices = {};

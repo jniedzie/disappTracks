@@ -203,16 +203,15 @@ track(_track)
   for(auto &p : _points) points.push_back(p);
   
   // this only gives approximate direction of the momentum vector
-  momentum = make_unique<Point>(points[0]->GetX() - vertex->GetX(),
-                                points[0]->GetY() - vertex->GetY(),
-                                points[0]->GetZ() - vertex->GetZ());
+  momentum = make_unique<Point>(points[1]->GetX() - vertex->GetX(),
+                                points[1]->GetY() - vertex->GetY(),
+                                points[1]->GetZ() - vertex->GetZ());
   
   
-  tShift  = points[0]->GetT();
+  tShift  = points.front()->GetT();
   tMax    = points.back()->GetT();
   tStep   = 0.01;
   iCycles =0;
-  
 }
 
 void Helix::AddPoint(const shared_ptr<Point> &point)
@@ -225,7 +224,7 @@ void Helix::AddPoint(const shared_ptr<Point> &point)
     while(t < tMax) t += 2*TMath::Pi();
   }
   else{
-    t = atan2(point->GetX() - origin.GetX(), point->GetY() - origin.GetY());
+    t = TMath::Pi()/2 - atan2(point->GetX() - origin.GetX(), point->GetY() - origin.GetY());
     while(t > tMax) t -= 2*TMath::Pi();
   }
   
@@ -240,12 +239,25 @@ void Helix::UpdateOrigin(const Point &_origin)
   for(auto &p : points){
     double t;
     if(charge < 0)  t = atan2(p->GetY() - origin.GetY(), p->GetX() - origin.GetX());
-    else            t = atan2(p->GetX() - origin.GetX(), p->GetY() - origin.GetY());
+    else            t = TMath::Pi()/2 - atan2(p->GetX() - origin.GetX(), p->GetY() - origin.GetY());
     p->SetT(t);
   }
   
   sort(points.begin(), points.end(), PointsProcessor::ComparePointByLayer());
 //  sort(points.begin(), points.end(), PointsProcessor::ComparePointByT());
+  
+  for(int iPoint=0; iPoint<points.size()-1; iPoint++){
+    if(charge < 0){
+      while(points[iPoint+1]->GetT() < points[iPoint]->GetT()){
+        points[iPoint+1]->SetT(points[iPoint+1]->GetT() + 2*TMath::Pi());
+      }
+    }
+    else{
+      while(points[iPoint+1]->GetT() > points[iPoint]->GetT()){
+        points[iPoint+1]->SetT(points[iPoint+1]->GetT() - 2*TMath::Pi());
+      }
+    }
+  }
   
   tShift = points.front()->GetT();
   tMax   = points.back()->GetT();

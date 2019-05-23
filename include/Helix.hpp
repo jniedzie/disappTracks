@@ -122,9 +122,9 @@ public:
   bool shouldRefit=false;
   
 private:
-  unique_ptr<Point> vertex;     ///< Decay point (beginning) of the helix
-  Point origin;                 ///< Center of the helix
-  vector<shared_ptr<Point>> points;   ///< Vector of points laying on the helix (withing thickness)
+  unique_ptr<Point> vertex;         ///< Decay point (beginning) of the helix
+  Point origin;                     ///< Center of the helix
+  vector<shared_ptr<Point>> points; ///< Vector of points laying on the helix
   
   double radius;                ///< Radius of the helix
   double slope;                 ///< Slope of the helix in Z direction

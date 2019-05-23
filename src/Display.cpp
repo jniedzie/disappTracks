@@ -113,14 +113,14 @@ void Display::DrawShrinkingHelix(const Helix &helix, const map<string,any> optio
     double y =  helix.GetOrigin().GetY();
     double z =  helix.GetOrigin().GetZ() + helix.GetSlope(t)*t;
     
-    if(helix.GetCharge() < 0){
+//    if(helix.GetCharge() < 0){
       x += helix.GetRadius(t)*cos(t);
       y += helix.GetRadius(t)*sin(t);
-    }
-    else{
-      x += helix.GetRadius(t)*sin(t);
-      y += helix.GetRadius(t)*cos(t);
-    }
+//    }
+//    else{
+//      x += helix.GetRadius(t)*sin(t);
+//      y += helix.GetRadius(t)*cos(t);
+//    }
     
     helixPoints->Fill(scale*x,scale*y,scale*z, 0);
   };
