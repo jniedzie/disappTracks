@@ -9,7 +9,7 @@ draw_tracker_clusters:      0
 draw_met:                         0
 draw_jets:                          1
 draw_pion_simhits:           0
-draw_pion_clusters:          1
+draw_pion_clusters:          0
 draw_chargino_simhits:    1
 
 **Input options**
@@ -56,7 +56,7 @@ n_noise_hits: 0
 n_tracker_layers: 4
 
 ### Limit number of events loaded (-1 means load all available)
-max_N_events_signal:  -1
+max_N_events_signal:  50
 
 **Pion's parameters**
 

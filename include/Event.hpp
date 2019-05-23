@@ -214,6 +214,8 @@ private:
   vector<shared_ptr<Point>> charginoSimHits; ///< Sim hits associated with generated chargino(s)
   vector<Helix> genPionHelices; ///< Helix representing gen-level pion(s)
   
+  vector<Track> genCharginoTrack; ///< Gen-level information about charginos
+  
   TTree *friendTree;
   
   friend class EventProcessor;

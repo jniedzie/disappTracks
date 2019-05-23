@@ -86,6 +86,16 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
   
   if(config.performCutsLevel == 1) return;
   
+  //----------------------------------------------------------------------------
+  // Level 2 cuts (gen info)
+  //----------------------------------------------------------------------------
+  
+  trackCut.SetRequireCorrectNlayers(true);
+  trackCut.SetRequireCorrectCharge(true);
+  eventCut.SetNgenPions(range<int>(1,2));
+  
+  if(config.performCutsLevel == 2) return;
+  
   //
   
   return;

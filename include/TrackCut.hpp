@@ -43,6 +43,9 @@ public:
   
   inline void SetTrackMetDeltaPhi(range<double> val){trackMetDeltaPhi = val;}
 
+  inline void SetRequireCorrectNlayers(bool val){requiresCorrectNlayers = val;}
+  inline void SetRequireCorrectCharge(bool val){requiresCorrectCharge = val;}
+  
 private:
   range<double> pt;                 ///< allowed transverse momentum of the track
   range<double> eta;                ///< allowed pseudorapidity
@@ -65,7 +68,11 @@ private:
   range<int> nDetIDs;               ///< allowed number of subdetectors
   range<int> nDedxClusters;         ///< allowed number of dedx clusters along the track
   
+  bool requiresCorrectNlayers;      ///< requires gen-rec N tracker layers match
+  bool requiresCorrectCharge;       ///< requires gen-rec charge match
+  
   friend class TrackProcessor;
+  friend class EventProcessor;
 };
 
 #endif /* TrackCut_hpp */

@@ -102,8 +102,14 @@ int main(int argc, char* argv[])
   config = ConfigManager(configPath);
   EventSet events;
   
-  string initPrefix = "after_L"+to_string(config.performCutsLevel-1)+"/";
+  string initPrefix;
   if(config.performCutsLevel==0 || config.performCutsLevel==10) initPrefix = "";
+  if(config.performCutsLevel==1)  initPrefix = "after_L0/";
+  if(config.performCutsLevel==2){
+    if(config.category == "2-tracks") initPrefix = "after_L1/2tracks/";
+    if(config.category == "3-layers") initPrefix = "after_L1/3layers/";
+    if(config.category == "4-layers") initPrefix = "after_L1/4layers/";
+  }
   if(config.performCutsLevel==20) initPrefix = "afterHelixTagging/";
   
   events.LoadEventsFromFiles(initPrefix);
@@ -252,6 +258,14 @@ int main(int argc, char* argv[])
       if(config.category == "4-layers") suffix = "4layers";
       ProcessCuts(events, eventCut, trackCut, jetCut, leptonCut, suffix);
     }
+  }
+  
+  if(config.performCutsLevel == 2){
+    string suffix = "";
+    if(config.category == "2-tracks") suffix = "2tracks";
+    if(config.category == "3-layers") suffix = "3layers";
+    if(config.category == "4-layers") suffix = "4layers";
+    ProcessCuts(events, eventCut, trackCut, jetCut, leptonCut, suffix);
   }
   
   //---------------------------------------------------------------------------

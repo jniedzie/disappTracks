@@ -75,14 +75,16 @@ chi2(h.chi2),
 increasing(h.increasing),
 shouldRefit(h.shouldRefit)
 {
-  uniqueID = reinterpret_cast<uint64_t>(this);
+  uniqueID = h.uniqueID;
+//  uniqueID = reinterpret_cast<uint64_t>(this);
 }
 
 Helix Helix::operator=(const Helix &h)
 {
   Helix result(h.origin, h.momentum, h.charge);
   
-  result.uniqueID = reinterpret_cast<uint64_t>(this);
+  result.uniqueID = h.uniqueID;
+//  result.uniqueID = reinterpret_cast<uint64_t>(this);
 
   result.iCycles        = h.iCycles;
   result.isFinished     = h.isFinished;
@@ -242,14 +244,9 @@ void Helix::UpdateOrigin(const Point &_origin)
     p->SetT(t);
   }
   
-  struct ComparePointByLayer{
-    bool operator() (const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){
-      return (p1->GetLayer() < p2->GetLayer());
-    }
-  };
+  sort(points.begin(), points.end(), PointsProcessor::ComparePointByLayer());
+//  sort(points.begin(), points.end(), PointsProcessor::ComparePointByT());
   
-  sort(points.begin(), points.end(), ComparePointByLayer());
-  
-  tShift = points[0]->GetT();
+  tShift = points.front()->GetT();
   tMax   = points.back()->GetT();
 }

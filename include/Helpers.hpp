@@ -309,12 +309,66 @@ enum EData{
   kNdata
 };
 
+template <class T>
+class range
+{
+public:
+  range(T _min=-inf, T _max=inf) : min(_min), max(_max){
+    if(min > max){
+      throw logic_error("You try to set min grater than max!");
+    }
+  }
+  
+  inline T GetMin() const {return min;}
+  inline T GetMax() const {return max;}
+  
+  inline bool IsInside(T val) const {
+    if(val >= min && val <= max) return true;
+    else return false;
+  }
+  
+  inline bool IsOutside(T val) const {
+    if(val < min || val > max) return true;
+    else return false;
+  }
+  
+  inline void Print(){
+    cout<<"( "<<min<<" -- "<<max<<" )";
+  }
+  
+private:
+  T min;
+  T max;
+};
+
 // Constants for tracker layers
 const int nLayers = 14;
 const double pixelBarrelZsize = 265; // mm
 const double trackerZsize = 2700; // mm
 const double layerR[nLayers] = { 29, 68, 109, 160, 250, 340, 430, 520, 610, 696, 782, 868, 965, 1080 };
 const double stripModuleZlength = 300;
+
+const vector<range<double>> layerRanges = { // mm
+  // pixel barrel
+  range<double>(20, 40), // 0 (29)
+  range<double>(60, 80), // 1 (68)
+  range<double>(100, 120), // 2 (109)
+  range<double>(150, 170), // 3 (160)
+  
+  // strips (TIB)
+  range<double>(230, 285),  // 4 (250)
+  range<double>(310, 370),  // 5 (340)
+  range<double>(390, 450),  // 6 (430)
+  range<double>(470, 530),  // 7 (520)
+  
+  // strips (TOB)
+  range<double>(580, 640),  // 8 (610)
+  range<double>(660, 730),  // 9 (696)
+  range<double>(750, 810),  // 10 (782)
+  range<double>(840, 900),  // 11 (868)
+  range<double>(940, 1000), // 12 (965)
+  range<double>(1050, 1110),// 13 (1080)
+};
 
 const double solenoidField = 3.7; // T
 
@@ -520,39 +574,6 @@ inline void EraseFast(ContainerType &container, size_t index)
   //Pop the back of the container, deleting our old element.
   container.pop_back();
 }
-
-template <class T>
-class range
-{
-public:
-  range(T _min=-inf, T _max=inf) : min(_min), max(_max){
-    if(min > max){
-      throw logic_error("You try to set min grater than max!");
-    }
-  }
-  
-  inline T GetMin() const {return min;}
-  inline T GetMax() const {return max;}
-  
-  inline bool IsInside(T val) const {
-    if(val >= min && val <= max) return true;
-    else return false;
-  }
-  
-  inline bool IsOutside(T val) const {
-    if(val < min || val > max) return true;
-    else return false;
-  }
-  
-  inline void Print(){
-    cout<<"( "<<min<<" -- "<<max<<" )";
-  }
-  
-private:
-  T min;
-  T max;
-};
-
 
 inline double GetRadiusInMagField(double px, double py, double B)
 {

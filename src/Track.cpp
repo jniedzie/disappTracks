@@ -49,6 +49,52 @@ decayPoint(Point(0,0,0))
   }
 };
 
+Track::Track(double _eta, double _phi, int _charge, int _nTrackerLayers) :
+eta(_eta),
+phi(_phi),
+charge(_charge),
+nTrackerLayers(_nTrackerLayers),
+
+pt(inf),
+mass(inf),
+caloEmEnergy(-1.0),
+caloHadEnergy(-1.0),
+relativeIsolation(inf),
+dxy(inf),
+dxyErr(inf),
+dz(inf),
+dzErr(inf),
+pid(inf),
+mcMatch(inf),
+nPixelLayers(inf),
+nTrackerHits(inf),
+nPixelHits(inf),
+nMissingInnerPixelHits(inf),
+nMissingOuterPixelHits(inf),
+nMissingInnerStripHits(inf),
+nMissingOuterStripHits(inf),
+nMissingInnerTrackerHits(inf),
+nMissingOuterTrackerHits(inf),
+nMissingMiddleTrackerHits(inf),
+nDetIDs(-1),
+nDedxClusters(-1),
+eventMetPt(inf),
+eventMetEta(inf),
+eventMetPhi(inf),
+eventMetMass(inf),
+decayPoint(Point(0,0,0))
+{
+  for(int iLayer=0;iLayer<nLayers;iLayer++){
+    dedx.push_back(0.0);
+    subDetId.push_back(-1);
+    sizeX.push_back(-1);
+    sizeY.push_back(-1);
+    detType.push_back(-1);
+    layer.push_back(-1);
+    ladder.push_back(-1);
+  }
+}
+
 Track::Track(const Track &t) :
   dedx(t.dedx),
   subDetId(t.subDetId),

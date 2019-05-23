@@ -44,6 +44,7 @@ private:
   
   ///
   void MergeHelices(vector<Helix> &helices);
+  bool MergeHelices2(vector<Helix> &helices);
   
   ///
   void RefitHelix(Helix &helix);

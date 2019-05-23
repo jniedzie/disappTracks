@@ -5,9 +5,9 @@
 #include "Helpers.hpp"
 #include "EventSet.hpp"
 
-string configPath = "configs/eventDisplay.md";
-string cutLevel = "after_L1/4layers/";//after_L1/";
-string outfileName = "results/genPionHists4layers_clusters.root";
+string configPath  = "configs/eventDisplay.md";
+string cutLevel    = "after_L0/"; //"after_L1/4layers/";//after_L1/";
+string outfileName = "results/tmp.root";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
@@ -24,8 +24,8 @@ vector<tuple<string, int, double, double, string>> histOptions1D = {
   {"pion_n_clusters_TOB"        , 50 , 0      , 50    , "# clusters"              },
   {"pion_n_clusters_TID"        , 50 , 0      , 50    , "# clusters"              },
   {"pion_n_clusters_TEC"        , 50 , 0      , 50    , "# clusters"              },
-  {"pion_n_clusters_PXB"        , 50 , 0      , 50    , "# clusters"              },
-  {"pion_n_clusters_PXE"        , 50 , 0      , 50    , "# clusters"              },
+  {"pion_n_clusters_P1PXB"      , 50 , 0      , 50    , "# clusters"              },
+  {"pion_n_clusters_P1PXE"      , 50 , 0      , 50    , "# clusters"              },
   {"pion_initial_radius"        , 50 , 0      , 1000  , "R_{max} (mm)"            },
   {"pion_final_radius"          , 50 , 0      , 1000  , "R_{min} (mm)"            },
   {"pion_range_z"               , 100, 0      , 3500  , "#Delta z (mm)"           },
@@ -42,20 +42,22 @@ vector<tuple<string, int, double, double, string>> histOptions1D = {
   {"pion_cluster_charge_TOB"    , 100, 0      , 600   , ""                        },
   {"pion_cluster_charge_TID"    , 100, 0      , 600   , ""                        },
   {"pion_cluster_charge_TEC"    , 100, 0      , 600   , ""                        },
-  {"pion_cluster_charge_PXB"    , 100, 0      , 600   , ""                        },
-  {"pion_cluster_charge_PXE"    , 100, 0      , 600   , ""                        },
-  {"tracker_cluster_charge_TIB" , 100, 0      , 600   , ""                        },
-  {"tracker_cluster_charge_TOB" , 100, 0      , 600   , ""                        },
-  {"tracker_cluster_charge_TID" , 100, 0      , 600   , ""                        },
-  {"tracker_cluster_charge_TEC" , 100, 0      , 600   , ""                        },
-  {"tracker_cluster_charge_PXB" , 100, 0      , 600   , ""                        },
-  {"tracker_cluster_charge_PXE" , 100, 0      , 600   , ""                        },
+  {"pion_cluster_charge_P1PXB"  , 100, 0      , 600   , ""                        },
+  {"pion_cluster_charge_P1PXE"  , 100, 0      , 600   , ""                        },
+  {"tracker_cluster_charge_TIB"   , 100, 0      , 600   , ""                        },
+  {"tracker_cluster_charge_TOB"   , 100, 0      , 600   , ""                        },
+  {"tracker_cluster_charge_TID"   , 100, 0      , 600   , ""                        },
+  {"tracker_cluster_charge_TEC"   , 100, 0      , 600   , ""                        },
+  {"tracker_cluster_charge_P1PXB" , 100, 0      , 600   , ""                        },
+  {"tracker_cluster_charge_P1PXE" , 100, 0      , 600   , ""                        },
   
-  // special cases
+  // special hists
   {"pion_pz_noTIB"              , 50 , 0      , 2000  , "|p_{z}| (MeV)"           },
   {"pion_pt_noTIB"              , 50 , 0      , 1000  , " p_{t}  (MeV)"           },
   {"pion_vertex_xy_noTIB"       , 100, 0      , 500   , "v_{xy} (mm)"             },
   {"pion_vertex_z_noTIB"        , 50 , -1000  , 1000  , "v_{z} (mm)"              },
+  {"noise_n_clusters"           , 100, 0      , 10000 , "# clusters"              },
+  {"tracker_clusters_r"         , 1100,0      , 1500  , "R (mm)"                  },
 };
 
 vector<tuple<string, int, double, double, string, int, double, double, string>> histOptions2D = {
@@ -153,6 +155,7 @@ int main(int argc, char* argv[])
     
     // Fill basic info about events
     hists1D["lumi"]->Fill(event->GetLumiSection());
+    hists1D["noise_n_clusters"]->Fill(trackerClusters.size()-pionClusters.size());
     
     // Fill gen-pion histograms
     double pionPt = sqrt(pow(pionHelix.GetMomentum()->GetX(), 2) + pow(pionHelix.GetMomentum()->GetY(), 2));
@@ -247,8 +250,8 @@ int main(int argc, char* argv[])
     hists1D["pion_n_clusters_TOB"]->Fill(nClustersInDet["TOB"]);
     hists1D["pion_n_clusters_TID"]->Fill(nClustersInDet["TID"]);
     hists1D["pion_n_clusters_TEC"]->Fill(nClustersInDet["TEC"]);
-    hists1D["pion_n_clusters_PXB"]->Fill(nClustersInDet["PXB"]);
-    hists1D["pion_n_clusters_PXE"]->Fill(nClustersInDet["PXE"]);
+    hists1D["pion_n_clusters_P1PXB"]->Fill(nClustersInDet["P1PXB"]);
+    hists1D["pion_n_clusters_P1PXE"]->Fill(nClustersInDet["P1PXE"]);
     
     // Fill special histograms
     if(nClustersInDet["TIB"] == 0){
@@ -289,6 +292,15 @@ int main(int argc, char* argv[])
       if(hists1D.find(title) != hists1D.end()){
         hists1D[title]->Fill(cluster->GetValue());
       }
+      
+      double r = sqrt(pow(cluster->GetX(), 2) + pow(cluster->GetY(), 2));
+      
+      if(cluster->GetSubDetName() == "TIB" ||
+         cluster->GetSubDetName() == "TOB" ||
+         cluster->GetSubDetName() == "P1PXB"){
+        hists1D["tracker_clusters_r"]->Fill(r);
+      }
+      
     }
     
     nLastHitsInDet[maxDet]++;
@@ -328,7 +340,7 @@ int main(int argc, char* argv[])
   chargeCanvas->Divide(2,3);
   clustersCanvas->Divide(2,3);
   
-  vector<string> detNames = {"TIB", "TOB", "TID", "TEC", "PXB", "PXE" };
+  vector<string> detNames = {"TIB", "TOB", "TID", "TEC", "P1PXB", "P1PXE" };
   int nLastHits=0;
   for(auto &[key, val] : nLastHitsInDet) nLastHits += val;
   
@@ -353,6 +365,8 @@ int main(int argc, char* argv[])
   specialCanvas->cd(2);  hists1D["pion_pz_noTIB"]->Draw();
   specialCanvas->cd(3);  hists1D["pion_vertex_xy_noTIB"]->Draw();
   specialCanvas->cd(4);  hists1D["pion_vertex_z_noTIB"]->Draw();
+  specialCanvas->cd(5);  hists1D["noise_n_clusters"]->Draw();
+  specialCanvas->cd(6);  hists1D["tracker_clusters_r"]->Draw();
   
   genPionCanvas->Update();
   trackingCanvas->Update();

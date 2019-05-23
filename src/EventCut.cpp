@@ -11,6 +11,7 @@ nJets(range<int>()),
 nLeptons(range<int>()),
 nMuons(range<int>()),
 nTaus(range<int>()),
+nGenPions(range<int>()),
 
 metPt(range<double>()),
 metNoMuPt(range<double>()),
@@ -39,6 +40,7 @@ EventCut::EventCut(const EventCut &c)
   nLeptons                = c.nLeptons;
   nMuons                  = c.nMuons;
   nTaus                   = c.nTaus;
+  nGenPions               = c.nGenPions;
   
   metPt                   = c.metPt;
   metNoMuPt               = c.metNoMuPt;

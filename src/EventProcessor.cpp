@@ -62,7 +62,9 @@ EventProcessor::EventProcessor()
     "chargino_simHits_subDet",
     "pixelCluster_subDet",
     "stripCluster_subDet",
-    "pionCluster_subDet"
+    "pionCluster_subDet",
+    "chargino_charge",
+    "chargino_nTrackerLayers"
   };
   
   arrayNamesFriendFloat = {
@@ -93,6 +95,8 @@ EventProcessor::EventProcessor()
     "pionCluster_ex",
     "pionCluster_ey",
     "pionCluster_ez",
+    "chargino_eta",
+    "chargino_phi"
   };
   
 }
@@ -105,8 +109,35 @@ EventProcessor::~EventProcessor()
 void EventProcessor::ApplyTrackCut(shared_ptr<Event> event, const TrackCut &cut)
 {
   for(auto track = event->tracks.begin(); track != event->tracks.end();){
-    if(!trackProcessor.IsPassingCut(*track,cut)) track = event->tracks.erase(track);
-    else                                         track++;
+    bool passesGenCuts = true;
+    
+    if(cut.requiresCorrectNlayers || cut.requiresCorrectCharge){
+      
+      // Find gen track matching this rec track
+      double minDeltaR = inf;
+      Track matchingGenTrack;
+      
+      for(auto &genTrack : event->genCharginoTrack){
+        double deltaR = sqrt(pow(genTrack.GetEta() - (*track)->GetEta(), 2) +
+                             pow(genTrack.GetPhi() - (*track)->GetPhi(), 2));
+        
+        if(deltaR < minDeltaR){
+          minDeltaR = deltaR;
+          matchingGenTrack = genTrack;
+        }
+      }
+      
+      // check conditions
+      if(cut.requiresCorrectNlayers){
+        if(matchingGenTrack.GetNtrackerLayers() != (*track)->GetNtrackerLayers()) passesGenCuts = false;
+      }
+      if(cut.requiresCorrectCharge){
+        if(matchingGenTrack.GetCharge() != (*track)->GetCharge()) passesGenCuts = false;
+      }
+    }
+    
+    if(!trackProcessor.IsPassingCut(*track,cut) || !passesGenCuts) track = event->tracks.erase(track);
+    else                                                           track++;
   }
 }
 
@@ -152,6 +183,9 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
   }
   
   // check number of objects
+  if(cut.nGenPions.IsOutside((uint)event->genPionHelices.size())){
+    return false;
+  }
   if(cut.nLeptons.IsOutside(event->GetNleptons())){
     cutReasons[2]++;
     return false;
@@ -499,6 +533,13 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
                                                      10*arrayValuesFriendFloat["pionCluster_ex"]->at(i),
                                                      10*arrayValuesFriendFloat["pionCluster_ey"]->at(i),
                                                      10*arrayValuesFriendFloat["pionCluster_ez"]->at(i)));
+  }
+  
+  for(uint i=0;i<arrayValuesFriendFloat["chargino_eta"]->size();i++){
+    event->genCharginoTrack.push_back(Track(arrayValuesFriendFloat["chargino_eta"]->at(i),
+                                            arrayValuesFriendFloat["chargino_phi"]->at(i),
+                                            arrayValuesFriendInt["chargino_charge"]->at(i),
+                                            arrayValuesFriendInt["chargino_nTrackerLayers"]->at(i)));
   }
   
   return event;

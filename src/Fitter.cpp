@@ -37,18 +37,23 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   ExtendSeeds(fittedHelices, pointsByLayer);
   cout<<"Candidates found: "<<fittedHelices.size()<<endl;
   
+  int iter=0;
+  for(auto &helix : fittedHelices){
+    helix.uniqueID = iter++;
+  }
+  
   // Merge similar candidates
   cout<<"Merging overlapping helices...";
-  MergeHelices(fittedHelices);
+  while(MergeHelices2(fittedHelices));
   cout<<" merged down to: "<<fittedHelices.size()<<endl;
   
   // Remove helices that are too short
   cout<<"Removing very short helices...";
   vector<Helix> longHelices;
   for(int iHelix=0; iHelix<fittedHelices.size(); iHelix++){
-    if(fittedHelices[iHelix].GetPoints().size() > 4){
+//    if(fittedHelices[iHelix].GetPoints().size() > 7){
       longHelices.push_back(fittedHelices[iHelix]);
-    }
+//    }
   }
   cout<<" long helices: "<<longHelices.size()<<endl;
   
@@ -73,6 +78,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
   
   // find possible middle and last seeds' points
   int trackLayers = track.GetNtrackerLayers();
+  cout<<"Track layers:"<<trackLayers<<endl;
   vector<shared_ptr<Point>> possibleMiddlePoints = pointsByLayer[trackLayers];
   vector<shared_ptr<Point>> possibleLastPoints   = pointsByLayer[trackLayers+1];
   
@@ -86,30 +92,46 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
     double middleHitDeltaPhi = min(pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMin, *middlePoint),
                                    pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMax, *middlePoint));
     
-    if(middleHitDeltaPhi > middleSeedHitMaxDeltaPhi) continue;
+    if(middleHitDeltaPhi > middleSeedHitMaxDeltaPhi){
+      cout<<"Middle point phi out of limits"<<endl;
+      continue;
+    }
     
     double middleHitDeltaZ = min( fabs(middlePoint->GetZ() - trackPointMin.GetZ()),
                                  fabs(middlePoint->GetZ() - trackPointMax.GetZ()));
     
-    if(middleHitDeltaZ > middleSeedHitMaxDeltaZ) continue;
+    if(middleHitDeltaZ > middleSeedHitMaxDeltaZ){
+      cout<<"Middle point Z out of limits"<<endl;
+      continue;
+    }
     
     for(auto &lastPoint : possibleLastPoints){
       double lastHitDeltaPhi = min(pointsProcessor.GetPointingAngleXY(trackPointMin, *middlePoint, *lastPoint),
                                    pointsProcessor.GetPointingAngleXY(trackPointMax, *middlePoint, *lastPoint));
       
-      if(lastHitDeltaPhi > lastSeedHitMaxDeltaPhi) continue;
+      if(lastHitDeltaPhi > lastSeedHitMaxDeltaPhi){
+        cout<<"Last point phi out of limits"<<endl;
+        continue;
+      }
       
       double lastPointDeltaZ = fabs(middlePoint->GetZ() - lastPoint->GetZ());
       
-      if(lastPointDeltaZ > lastSeedHitMaxDeltaZ) continue;
+      if(lastPointDeltaZ > lastSeedHitMaxDeltaZ){
+        cout<<"Last point Z out of limits"<<endl;
+        continue;
+      }
       
       nPairs++;
       auto points = { middlePoint, lastPoint };
+      cout<<"Points pair ok, trying to fit a seed"<<endl;
       auto helix = FitSeed(points,  track.GetCharge());
       
       if(helix){
         helix->increasing = true; // add decreasing later
         if(helix->chi2 < maxChi2) seeds.push_back(*helix);
+        else{
+          cout<<"Seed chi2 out of limits"<<endl;
+        }
       }
     }
   }
@@ -328,21 +350,22 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
 void Fitter::MergeHelices(vector<Helix> &helices)
 {
   // Merge helices that are very similar to each other
-  bool merged=true;
+  bool merged = true;
+  int nPasses = 0;
   
   while(merged){
     merged=false;
+//    cout<<"Merging pass "<<nPasses<<", n helices: "<<helices.size()<<endl;
     
     for(int iHelix1=0; iHelix1<helices.size(); iHelix1++){
       Helix &helix1 = helices[iHelix1];
+      vector<shared_ptr<Point>> points1 = helix1.GetPoints();
+      sort(points1.begin(), points1.end());
       
       for(int iHelix2=iHelix1+1; iHelix2<helices.size(); iHelix2++){
+        
         Helix &helix2 = helices[iHelix2];
-        
-        vector<shared_ptr<Point>> points1 = helix1.GetPoints();
         vector<shared_ptr<Point>> points2 = helix2.GetPoints();
-        
-        sort(points1.begin(), points1.end());
         sort(points2.begin(), points2.end());
         
         vector<shared_ptr<Point>> samePoints;
@@ -351,12 +374,11 @@ void Fitter::MergeHelices(vector<Helix> &helices)
                          back_inserter(samePoints));
         
         double samePointsFraction = samePoints.size()/(double)points1.size();
-
-        // merging
-        if(samePointsFraction > 0.7){
-          // remove second helix
-          helices.erase(helices.begin() + iHelix2);
-          
+        int nDifferentPoints = max(points1.size()-samePoints.size(),
+                                   points2.size()-samePoints.size());
+        
+//        if(samePointsFraction > 0.8){
+        if(nDifferentPoints < 3){
           // update first helix
           unordered_set<shared_ptr<Point>> uniquePoints;
           for(auto &p : points1) uniquePoints.insert(p);
@@ -365,15 +387,99 @@ void Fitter::MergeHelices(vector<Helix> &helices)
           helix1.ReplacePoints(allPoints);
           helix1.shouldRefit = true;
           
+          // remove second helix
+          helices.erase(helices.begin() + iHelix2);
+          iHelix2--;
           merged=true;
-          break;
+//          break;
         }
       }
       
-      if(merged) break;
+//      if(merged) break;
     }
+    nPasses++;
   }
 }
+
+bool Fitter::MergeHelices2(vector<Helix> &helices)
+{
+  // Merge helices that are very similar to each other
+  bool merged = false;
+  
+  vector<pair<Helix, vector<int>>> helixLinks;
+  
+  for(auto helix : helices){
+    helixLinks.push_back(make_pair(helix, vector<int>()));
+  }
+  
+  // build links between different helices
+  for(int iHelix1=0; iHelix1<helixLinks.size(); iHelix1++){
+    Helix &helix1 = helixLinks[iHelix1].first;
+    vector<shared_ptr<Point>> points1 = helix1.GetPoints();
+    sort(points1.begin(), points1.end());
+      
+    for(int iHelix2=iHelix1+1; iHelix2<helixLinks.size(); iHelix2++){
+      Helix &helix2 = helixLinks[iHelix2].first;
+      vector<shared_ptr<Point>> points2 = helix2.GetPoints();
+      sort(points2.begin(), points2.end());
+        
+      vector<shared_ptr<Point>> samePoints;
+      set_intersection(points1.begin(), points1.end(),
+                       points2.begin(), points2.end(),
+                       back_inserter(samePoints));
+        
+      
+      size_t nDifferentPoints = max(points1.size()-samePoints.size(),
+                                    points2.size()-samePoints.size());
+        
+      
+      if(nDifferentPoints < 3){
+        helixLinks[iHelix1].second.push_back(iHelix2);
+        merged = true;
+      }
+    }
+  }
+  
+  // Merge all linked helices
+  vector<int> alreadyUsedHelices;
+  vector<int> toRemove;
+  
+  for(int iHelix=0; iHelix<helixLinks.size(); iHelix++){
+    Helix &helix1 = helixLinks[iHelix].first;
+    vector<shared_ptr<Point>> points1 = helix1.GetPoints();
+    
+    
+    unordered_set<shared_ptr<Point>> uniquePoints;
+    for(auto &p : points1) uniquePoints.insert(p);
+    
+    alreadyUsedHelices.push_back(iHelix);
+    
+    for(auto iChild : helixLinks[iHelix].second){
+      if(find(alreadyUsedHelices.begin(), alreadyUsedHelices.end(), iChild) != alreadyUsedHelices.end()) continue;
+      
+      alreadyUsedHelices.push_back(iChild);
+      
+      Helix &helix2 = helices[iChild];
+      vector<shared_ptr<Point>> points2 = helix2.GetPoints();
+      for(auto &p : points2) uniquePoints.insert(p);
+      toRemove.push_back(iChild);
+    }
+    vector<shared_ptr<Point>> allPoints(uniquePoints.begin(), uniquePoints.end());
+    helix1.ReplacePoints(allPoints);
+    helix1.shouldRefit = true;
+  }
+  
+  // Store all helices that were not merged into another helix
+  vector<Helix> goodHelices;
+  for(int iHelix=0; iHelix<helixLinks.size(); iHelix++){
+    if(find(toRemove.begin(), toRemove.end(), iHelix) != toRemove.end()) continue;
+    goodHelices.push_back(helixLinks[iHelix].first);
+  }
+  helices = goodHelices;
+  
+  return merged;
+}
+
 
 void Fitter::RefitHelix(Helix &helix)
 {
