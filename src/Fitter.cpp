@@ -145,28 +145,29 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points, int c
     double y0 = par[6];
     double z0 = par[7];
     
+//    cout<<"Fitting origin: "<<x0<<", "<<y0<<", "<<z0<<endl;
+    
     // First add distance to the vertex
     auto vertex = make_shared<Point>(pointsProcessor.GetPointOnTrack(L, track, eventVertex));
     auto pointsTriplet = {vertex, points[0], points[1] };
     
-    double t, distX, distY, distZ;
+    double t, distX, distY, distZ, x, y, z;
     double f=0;
-//    cout<<endl;
+    cout<<endl;
     // Then add distances to all other points
     for(auto &p : pointsTriplet){
-      if(charge < 0) t = atan2(p->GetY() - y0, p->GetX() - x0);
-      else           t = TMath::Pi()/2 - atan2(p->GetX() - x0, p->GetY() - y0);
+      if(charge < 0)  t = atan2(p->GetY() - y0, p->GetX() - x0);
+      else            t = TMath::Pi()/2 - atan2(p->GetX() - x0, p->GetY() - y0);
       
-//      cout<<"t:"<<t<<endl;
-      
-      // find helix point for this point's t
-      double x,y,z;
       x = x0 + (R0 - a*t)*cos(t);
       y = y0 + (R0 - a*t)*sin(t);
-      z = z0 + (s0 - b*t)*t;
+      z = charge*z0 + (s0 - b*t)*t;
+      
+//      cout<<"Point:"; p->Print(); cout<<endl;
+//      cout<<"t:"<<t<<endl;
+//      cout<<"Fit:("<<x<<","<<y<<","<<z<<")"<<endl;
       
       // calculate distance between helix and point's boundary (taking into account its errors)
-      
       distX = distY = distZ = 0;
       
       if(fabs(x-p->GetX()) > p->GetXerr()+ht){
@@ -472,19 +473,19 @@ void Fitter::RefitHelix(Helix &helix)
     auto points = helixPoints;
     points[0] = vertex;
     
-    double t, distX, distY, distZ;
+    double t, distX, distY, distZ, x, y, z;
     double f=0;
     
     // Then add distances to all other points
     for(auto &p : points){
-      double x, y, z;
-      
       // find helix point for this point's t
       if(helix.GetCharge() < 0) t = atan2(p->GetY() - y0, p->GetX() - x0);
       else                      t = TMath::Pi()/2 - atan2(p->GetX() - x0, p->GetY() - y0);
+      
       x = x0 + (R0 - a*t)*cos(t);
       y = y0 + (R0 - a*t)*sin(t);
-      z = z0 + (s0 - b*t)*t;
+      z = helix.GetCharge()*z0 + (s0 - b*t)*t;
+      
 
       // calculate distance between helix and point's boundary (taking into account its errors)
       distX = distY = distZ = 0;
@@ -535,9 +536,9 @@ void Fitter::RefitHelix(Helix &helix)
   SetParameter(fitter, 3, "b" , helix.helixParams.b, -10000, 10000);
   SetParameter(fitter, 4, "L" , (helix.GetVertex()->GetX()-10*eventVertex.GetX())/cos(track.GetPhi()),
                Lmin, Lmax);
-  SetParameter(fitter, 5, "x0", helix.GetOrigin().GetX(), -layerR[nLayers-1] , layerR[nLayers-1]);
-  SetParameter(fitter, 6, "y0", helix.GetOrigin().GetY(), -layerR[nLayers-1] , layerR[nLayers-1]);
-  SetParameter(fitter, 7, "z0", helix.GetOrigin().GetZ(), -pixelBarrelZsize  , pixelBarrelZsize);
+  SetParameter(fitter, 5, "x0", helix.GetOrigin().GetX(), -1000 , 1000);
+  SetParameter(fitter, 6, "y0", helix.GetOrigin().GetY(), -1000 , 1000);
+  SetParameter(fitter, 7, "z0", helix.GetOrigin().GetZ(), -1000 , 1000);
   
   for(int i=0; i<nPar; i++) pStart[i] = fitter->Config().ParSettings(i).Value();
   
@@ -582,15 +583,22 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(range<double> rangeL)
   
   double minR = GetRadiusInMagField(config.minPx, config.minPy, solenoidField);
   double maxR = GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField);
+  double startR = (minR+maxR)/2.;
   
-  SetParameter(fitter, 0, "R0", (minR+maxR)/2., 0, 10000);
-  FixParameter(fitter, 1, "a" , 0);
+  double LmidPoint = (rangeL.GetMin()+rangeL.GetMax())/2.;
+  Point trackPoint = pointsProcessor.GetPointOnTrack(LmidPoint, track, eventVertex);
+  
+  double startX0 = trackPoint.GetX() - track.GetCharge() * startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
+  double startY0 = trackPoint.GetY() + track.GetCharge() * startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
+  
+  SetParameter(fitter, 0, "R0", startR, 0, 10000);
+  SetParameter(fitter, 1, "a" , 0, 0, 10000);
   SetParameter(fitter, 2, "s0", 0, -10000, 10000);
-  FixParameter(fitter, 3, "b" , 0);
-  SetParameter(fitter, 4, "L" , (rangeL.GetMin()+rangeL.GetMax())/2., rangeL.GetMin(), rangeL.GetMax());
-  SetParameter(fitter, 5, "x0", 0, -layerR[nLayers-1] , layerR[nLayers-1]);
-  SetParameter(fitter, 6, "y0", 0, -layerR[nLayers-1] , layerR[nLayers-1]);
-  SetParameter(fitter, 7, "z0", 0, -pixelBarrelZsize  , pixelBarrelZsize);
+  SetParameter(fitter, 3, "b" , 0, -10000, 10000);
+  SetParameter(fitter, 4, "L" , LmidPoint, rangeL.GetMin(), rangeL.GetMax());
+  SetParameter(fitter, 5, "x0", startX0, -1000 , 1000);
+  SetParameter(fitter, 6, "y0", startY0, -1000 , 1000);
+  SetParameter(fitter, 7, "z0", trackPoint.GetZ(), -1000 , 1000);
   
   return fitter;
 }

@@ -21,25 +21,25 @@ int iEvent = 19;
 // "after_L2/4layers/":
 // 0 - bad hits
 // 1 - bad hits
-// 2 - ... many hits, this could work. No valid seeds, extremally low p_z
-// 3 - ... very few hits. No valid seeds
+// 2 - ... Z-, Q+, many hits, extremally low p_z. Got lost
+// 3 - ... (Z-, Q+)
 // 4 - not enough hits
 // 5 - extremally scattered
-// 6 - ... ok, this should work. Zero tested pairs...
-// 7 - ... should work, no valid seeds.
+// 6 - missing second hit
+// 7 - OK (Z-, Q-)
 // 8 - high p_z (820)
 // 9 - extremally scattered
 // 10 - not enough hits
-// 11 - ... no seeds, probably missing first pion hit
-// 12 - OK, but not enough hits and low p_z
-// 13 - ...
+// 11 - ... Z+, Q-
+// 12 - scattered
+// 13 - OK (Z+, Q+)
 // 14 - missing (very scattered) first pion hit
 // 15 - ... short one, but should work
 // 16 - no hits
 // 17 - bad hits
-// 18 - ..., Z-, Q- should work
-// 19 - OK, Z+, Q+, perfect case for many cycles.
-// 20 - very scattered hits
+// 18 - ... (Z-, Q-) should work
+// 19 - ... (Z+, Q+) perfect case for many cycles.
+// 20 - scattered
 
 // "after_L1/4layers/":
 // 0 - charge mismatch
@@ -298,9 +298,10 @@ int main(int argc, char* argv[])
     vector<shared_ptr<Point>> pionClusters;
     
     for(int iCluster=0; iCluster<pionClustersTmp.size(); iCluster++){
-//      if(iCluster == 0 ||
-////         iCluster == 1 ||
-//         iCluster == 13)
+//      if(   iCluster == 0
+//         || iCluster == 2
+////         || iCluster == 13
+//         )
       pionClusters.push_back(pionClustersTmp[iCluster]);
     }
     
