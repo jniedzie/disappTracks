@@ -31,51 +31,60 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   cout<<"Looking for seeds..."<<endl;
   vector<Helix> fittedHelices = GetSeeds(pointsByLayer);
   cout<<"Number of valid seeds: "<<fittedHelices.size()<<endl;
-
+  
   int iter=0;
   for(auto &helix : fittedHelices){
     helix.uniqueID = iter++;
   }
+  return fittedHelices;
   
   // Extend seeds
   cout<<"Extending seeds..."<<endl;
   ExtendSeeds(fittedHelices, pointsByLayer);
   cout<<"Candidates found: "<<fittedHelices.size()<<endl;
   
+  vector<Helix> helix69;
+  for(int iHelix=0; iHelix<fittedHelices.size(); iHelix++){
+//    if(fittedHelices[iHelix].uniqueID == 69)
+      helix69.push_back(fittedHelices[iHelix]);
+  }
+  
+  // Remove very short candidates which should not even be merged with others
+  cout<<"Removing short candidates...";
+  vector<Helix> longHelices;
+  for(int iHelix=0; iHelix<helix69.size(); iHelix++){
+    if(helix69[iHelix].GetPoints().size() >= config.candidateMinNpoints){
+      longHelices.push_back(helix69[iHelix]);
+    }
+  }
+  cout<<" Candidates left:"<<longHelices.size()<<endl;
+  
   // Merge similar candidates
   cout<<"Merging overlapping helices...";
-  while(MergeHelices2(fittedHelices));
-  cout<<" merged down to: "<<fittedHelices.size()<<endl;
+  while(MergeHelices2(longHelices));
+  cout<<" merged down to: "<<longHelices.size()<<endl;
   
   // Remove helices that are too short
-  cout<<"Removing very short helices...";
-  vector<Helix> longHelices;
-  for(int iHelix=0; iHelix<fittedHelices.size(); iHelix++){
-//    if(fittedHelices[iHelix].GetPoints().size() > 7){
-      longHelices.push_back(fittedHelices[iHelix]);
-//    }
+  cout<<"Removing very short merged helices...";
+  vector<Helix> longMergedHelices;
+  for(int iHelix=0; iHelix<longHelices.size(); iHelix++){
+    if(longHelices[iHelix].GetPoints().size() >= config.trackMinNpoints){
+      longMergedHelices.push_back(longHelices[iHelix]);
+    }
   }
-  cout<<" long helices: "<<longHelices.size()<<endl;
+  cout<<" long merged helices: "<<longMergedHelices.size()<<endl;
   
   cout<<"Refitting surviving helices...";
-  for(auto &helix : longHelices){
+  for(auto &helix : longMergedHelices){
     if(helix.shouldRefit) RefitHelix(helix);
   }
   cout<<" done."<<endl;
   
-  return longHelices;
+  return longMergedHelices;
 }
 
 vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
 {
-  double maxChi2 = 3.0;
-  
-  double middleSeedHitMaxDeltaPhi = 1.5;
-  double middleSeedHitMaxDeltaZ = 200;
-  
-  double lastSeedHitMaxDeltaPhi = 1.5;
-  double lastSeedHitMaxDeltaZ = 100;
-  
   // find possible middle and last seeds' points
   int trackLayers = track.GetNtrackerLayers();
   cout<<"Track layers:"<<trackLayers<<endl;
@@ -86,29 +95,28 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
   
   Point trackPointMin = pointsProcessor.GetPointOnTrack(layerR[track.GetNtrackerLayers()-1],  track, eventVertex);
   Point trackPointMax = pointsProcessor.GetPointOnTrack(layerR[track.GetNtrackerLayers()],    track, eventVertex);
+  Point trackPointMid = pointsProcessor.GetPointOnTrack((layerR[track.GetNtrackerLayers()-1]+layerR[track.GetNtrackerLayers()])/2.,    track, eventVertex);
+  
+  
   int nPairs=0;
   for(auto &middlePoint : possibleMiddlePoints){
     
-    double middleHitDeltaPhi = min(pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMin, *middlePoint),
-                                   pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMax, *middlePoint));
+    double middleHitDeltaPhi = pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMid, *middlePoint);
     
-    if(middleHitDeltaPhi > middleSeedHitMaxDeltaPhi) continue;
+    if(middleHitDeltaPhi > config.seedMiddleHitMaxDeltaPhi) continue;
     
-    double middleHitDeltaZ = min( fabs(middlePoint->GetZ() - trackPointMin.GetZ()),
-                                 fabs(middlePoint->GetZ() - trackPointMax.GetZ()));
+    double middleHitDeltaZ = fabs(middlePoint->GetZ() - trackPointMid.GetZ());
     
-    if(middleHitDeltaZ > middleSeedHitMaxDeltaZ) continue;
+    if(middleHitDeltaZ > config.seedMiddleHitMaxDeltaZ) continue;
     
     for(auto &lastPoint : possibleLastPoints){
-      double lastHitDeltaPhi = min(pointsProcessor.GetPointingAngleXY(trackPointMin, *middlePoint, *lastPoint),
-                                   pointsProcessor.GetPointingAngleXY(trackPointMax, *middlePoint, *lastPoint));
+      double lastHitDeltaPhi = pointsProcessor.GetPointingAngleXY(trackPointMid, *middlePoint, *lastPoint);
       
-      if(lastHitDeltaPhi > lastSeedHitMaxDeltaPhi) continue;
-      
+      if(lastHitDeltaPhi > config.seedLastHitMaxDeltaPhi) continue;
       
       double lastPointDeltaZ = fabs(middlePoint->GetZ() - lastPoint->GetZ());
       
-      if(lastPointDeltaZ > lastSeedHitMaxDeltaZ) continue;
+      if(lastPointDeltaZ > config.seedLastHitMaxDeltaZ) continue;
       
       nPairs++;
       auto points = { middlePoint, lastPoint };
@@ -116,7 +124,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
       
       if(helix){
         helix->increasing = true; // add decreasing later
-        if(helix->chi2 < maxChi2) seeds.push_back(*helix);
+        if(helix->chi2 < config.seedMaxChi2) seeds.push_back(*helix);
         else{
           cout<<"Seed chi2 out of limits"<<endl;
         }
@@ -129,11 +137,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
 
 unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points, int charge)
 {
-  double Lmin = layerRanges[track.GetNtrackerLayers()-1].GetMax();
-  double Lmax = layerRanges[track.GetNtrackerLayers()].GetMin();
-  
-  auto fitter = GetSeedFitter(range<double>(Lmin, Lmax));
-  double ht = 0.0;//config.helixThickness;
+  auto fitter = GetSeedFitter(points);
   
   auto chi2Function = [&](const double *par) {
     double R0 = par[0];
@@ -145,15 +149,13 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points, int c
     double y0 = par[6];
     double z0 = par[7];
     
-//    cout<<"Fitting origin: "<<x0<<", "<<y0<<", "<<z0<<endl;
-    
     // First add distance to the vertex
     auto vertex = make_shared<Point>(pointsProcessor.GetPointOnTrack(L, track, eventVertex));
     auto pointsTriplet = {vertex, points[0], points[1] };
     
     double t, distX, distY, distZ, x, y, z;
     double f=0;
-    cout<<endl;
+//    cout<<endl;
     // Then add distances to all other points
     for(auto &p : pointsTriplet){
       if(charge < 0)  t = atan2(p->GetY() - y0, p->GetX() - x0);
@@ -170,19 +172,19 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points, int c
       // calculate distance between helix and point's boundary (taking into account its errors)
       distX = distY = distZ = 0;
       
-      if(fabs(x-p->GetX()) > p->GetXerr()+ht){
-        double distX_1 = x - (p->GetX() + p->GetXerr() + ht);
-        double distX_2 = x - (p->GetX() - p->GetXerr() - ht);
+      if(fabs(x-p->GetX()) > p->GetXerr()){
+        double distX_1 = x - (p->GetX() + p->GetXerr());
+        double distX_2 = x - (p->GetX() - p->GetXerr());
         distX = min(pow(distX_1, 2), pow(distX_2, 2));
       }
-      if(fabs(y-p->GetY()) > p->GetYerr()+ht){
-        double distY_1 = y - (p->GetY() + p->GetYerr() + ht);
-        double distY_2 = y - (p->GetY() - p->GetYerr() - ht);
+      if(fabs(y-p->GetY()) > p->GetYerr()){
+        double distY_1 = y - (p->GetY() + p->GetYerr());
+        double distY_2 = y - (p->GetY() - p->GetYerr());
         distY = min(pow(distY_1, 2), pow(distY_2, 2));
       }
-      if(fabs(z-p->GetZ()) > p->GetZerr()+ht){
-        double distZ_1 = z - (p->GetZ() + p->GetZerr() + ht);
-        double distZ_2 = z - (p->GetZ() - p->GetZerr() - ht);
+      if(fabs(z-p->GetZ()) > p->GetZerr()){
+        double distZ_1 = z - (p->GetZ() + p->GetZerr());
+        double distZ_2 = z - (p->GetZ() - p->GetZerr());
         distZ = min(pow(distZ_1, 2), pow(distZ_2, 2));
       }
 //      distX = pow(x-p->GetX(), 2);
@@ -243,10 +245,6 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points, int c
 void Fitter::ExtendSeeds(vector<Helix> &helices,
                          const vector<vector<shared_ptr<Point>>> &pointsByLayer)
 {
-  double maxChi2 = 0.1;
-  double nextPointMaxDeltaPhi = 0.7;
-  double nextPointMaxDeltaZ = 200;
-  
   bool finished;
   int nSteps=0;
   do{
@@ -282,11 +280,11 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
                                                                *helix.GetPoints()[nHelixPoints-1],
                                                                *point);
           
-          if(deltaPhi > nextPointMaxDeltaPhi) continue;
+          if(deltaPhi > config.nextPointMaxDeltaPhi) continue;
           
           double deltaZ = fabs(helix.GetPoints()[nHelixPoints-1]->GetZ() - point->GetZ());
           
-          if(deltaZ > nextPointMaxDeltaZ) continue;
+          if(deltaZ > config.nextPointMaxDeltaZ) continue;
           
           /// Extend helix by the new point and refit its params
           Helix helixCopy(helix);
@@ -294,7 +292,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           RefitHelix(helixCopy);
           
           // check if chi2 is small enough
-          if(helixCopy.chi2 > maxChi2) continue;
+          if(helixCopy.chi2 > config.trackMaxChi2) continue;
 
           extendedHelices.push_back(helixCopy);
         }
@@ -345,12 +343,10 @@ void Fitter::MergeHelices(vector<Helix> &helices)
                          points2.begin(), points2.end(),
                          back_inserter(samePoints));
         
-        double samePointsFraction = samePoints.size()/(double)points1.size();
-        int nDifferentPoints = max(points1.size()-samePoints.size(),
-                                   points2.size()-samePoints.size());
+        size_t nDifferentPoints = max(points1.size()-samePoints.size(),
+                                      points2.size()-samePoints.size());
         
-//        if(samePointsFraction > 0.8){
-        if(nDifferentPoints < 3){
+        if(nDifferentPoints <= config.mergingMaxDifferentPoints){
           // update first helix
           unordered_set<shared_ptr<Point>> uniquePoints;
           for(auto &p : points1) uniquePoints.insert(p);
@@ -405,7 +401,7 @@ bool Fitter::MergeHelices2(vector<Helix> &helices)
                                     points2.size()-samePoints.size());
         
       
-      if(nDifferentPoints < 3){
+      if(nDifferentPoints <= config.mergingMaxDifferentPoints){
         helixLinks[iHelix1].second.push_back(iHelix2);
         merged = true;
       }
@@ -418,13 +414,16 @@ bool Fitter::MergeHelices2(vector<Helix> &helices)
   
   for(int iHelix=0; iHelix<helixLinks.size(); iHelix++){
     Helix &helix1 = helixLinks[iHelix].first;
-    vector<shared_ptr<Point>> points1 = helix1.GetPoints();
+    Helix helix1Copy(helix1);
     
+    vector<shared_ptr<Point>> points1 = helix1.GetPoints();
     
     unordered_set<shared_ptr<Point>> uniquePoints;
     for(auto &p : points1) uniquePoints.insert(p);
     
     alreadyUsedHelices.push_back(iHelix);
+    
+    vector<int> childIndices;
     
     for(auto iChild : helixLinks[iHelix].second){
       if(find(alreadyUsedHelices.begin(), alreadyUsedHelices.end(), iChild) != alreadyUsedHelices.end()) continue;
@@ -435,10 +434,30 @@ bool Fitter::MergeHelices2(vector<Helix> &helices)
       vector<shared_ptr<Point>> points2 = helix2.GetPoints();
       for(auto &p : points2) uniquePoints.insert(p);
       toRemove.push_back(iChild);
+      childIndices.push_back(iChild);
     }
     vector<shared_ptr<Point>> allPoints(uniquePoints.begin(), uniquePoints.end());
-    helix1.ReplacePoints(allPoints);
-    helix1.shouldRefit = true;
+    
+    helix1Copy.ReplacePoints(allPoints);
+    RefitHelix(helix1Copy);
+    
+    if(helix1Copy.chi2 < config.trackMaxChi2){
+      helix1 = helix1Copy;
+//      helix1.ReplacePoints(allPoints);
+//      helix1.shouldRefit = true;
+    }
+    else{
+      // if merged helix had very bad chi2, cancel the whole merging operation
+      for(int i=0; i<toRemove.size();){
+        if(find(childIndices.begin(), childIndices.end(), i) != childIndices.end()) toRemove.erase(toRemove.begin()+i);
+        else i++;
+      }
+      for(int i=0; i<alreadyUsedHelices.size();){
+        if(find(childIndices.begin(), childIndices.end(), i) != childIndices.end())
+          alreadyUsedHelices.erase(alreadyUsedHelices.begin()+i);
+        else i++;
+      }
+    }
   }
   
   // Store all helices that were not merged into another helix
@@ -528,12 +547,10 @@ void Fitter::RefitHelix(Helix &helix)
   double Lmin = layerRanges[track.GetNtrackerLayers()-1].GetMax();
   double Lmax = layerRanges[track.GetNtrackerLayers()].GetMin();
   
-  SetParameter(fitter, 0, "R0", helix.helixParams.R0,
-               GetRadiusInMagField(config.minPx, config.minPy, solenoidField),
-               GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField));
-  SetParameter(fitter, 1, "a" , helix.helixParams.a, 0, 10000);
+  SetParameter(fitter, 0, "R0", helix.helixParams.R0, 0, 1000); // from MC
+  SetParameter(fitter, 1, "a" , helix.helixParams.a , 0, 10000);
   SetParameter(fitter, 2, "s0", helix.helixParams.s0, -10000, 10000);
-  SetParameter(fitter, 3, "b" , helix.helixParams.b, -10000, 10000);
+  SetParameter(fitter, 3, "b" , helix.helixParams.b , -10000, 10000);
   SetParameter(fitter, 4, "L" , (helix.GetVertex()->GetX()-10*eventVertex.GetX())/cos(track.GetPhi()),
                Lmin, Lmax);
   SetParameter(fitter, 5, "x0", helix.GetOrigin().GetX(), -1000 , 1000);
@@ -568,7 +585,7 @@ void Fitter::RefitHelix(Helix &helix)
   
 }
 
-ROOT::Fit::Fitter* Fitter::GetSeedFitter(range<double> rangeL)
+ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points)
 {
   ROOT::Fit::Fitter *fitter = new ROOT::Fit::Fitter();
   
@@ -581,24 +598,118 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(range<double> rangeL)
   double pStart[nPar];
   fitter->SetFCN(fitFunction, pStart);
   
-  double minR = GetRadiusInMagField(config.minPx, config.minPy, solenoidField);
-  double maxR = GetRadiusInMagField(config.maxPx, config.maxPy, solenoidField);
-  double startR = (minR+maxR)/2.;
   
-  double LmidPoint = (rangeL.GetMin()+rangeL.GetMax())/2.;
-  Point trackPoint = pointsProcessor.GetPointOnTrack(LmidPoint, track, eventVertex);
+  // Calculate initial parameters as good as we can at this point.
+  double startR = 320; // mm, from MC
   
-  double startX0 = trackPoint.GetX() - track.GetCharge() * startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
-  double startY0 = trackPoint.GetY() + track.GetCharge() * startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
+  // -- decay vertex must be after last track layer and before the next one
+  double minL = layerRanges[track.GetNtrackerLayers()-1].GetMax();
+  double maxL = layerRanges[track.GetNtrackerLayers()].GetMin();
+  double startL = (minL+maxL)/2.; // estimate decay vertex in between of the two above
+  Point trackPoint = pointsProcessor.GetPointOnTrack(startL, track, eventVertex);
   
-  SetParameter(fitter, 0, "R0", startR, 0, 10000);
-  SetParameter(fitter, 1, "a" , 0, 0, 10000);
-  SetParameter(fitter, 2, "s0", 0, -10000, 10000);
-  SetParameter(fitter, 3, "b" , 0, -10000, 10000);
-  SetParameter(fitter, 4, "L" , LmidPoint, rangeL.GetMin(), rangeL.GetMax());
-  SetParameter(fitter, 5, "x0", startX0, -1000 , 1000);
-  SetParameter(fitter, 6, "y0", startY0, -1000 , 1000);
-  SetParameter(fitter, 7, "z0", trackPoint.GetZ(), -1000 , 1000);
+  int zSign = 0;
+  
+  if(points.back()->GetZ() > points.front()->GetZ() > trackPoint.GetZ()) zSign =  1;
+  if(points.back()->GetZ() < points.front()->GetZ() < trackPoint.GetZ()) zSign = -1;
+  
+  cout<<"Charge: "<<track.GetCharge()<<"\tzSign: "<<zSign<<endl;
+  
+  // -- calculate where wuold the origin X and Y be for the most probable radius and average L position
+  double startX0 = 0, startY0 = 0;
+  
+  if(track.GetCharge() > 0 && zSign < 0){
+    // works:   13?, 19?, 22-, 26-, 28-, 31-, 39-
+    // doesn't: 3? , 33+, 34+?
+    startX0 = trackPoint.GetX() - startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
+    // works:   13+, 19+, 22?, 26?, 28+, 31?, 39?
+    // doesn't: 3- , 33+, 34-
+    startY0 = trackPoint.GetY() + startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
+  }
+  else if(track.GetCharge() < 0 && zSign > 0){
+    // 11+, 30-, 43+, 44-
+    startX0 = trackPoint.GetX() + startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
+    // 11?, 30+, 43-, 44+?
+    startY0 = trackPoint.GetY() - startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
+  }
+  else if(track.GetCharge() > 0 && zSign > 0){
+    // 37-, 38-
+    startX0 = trackPoint.GetX() - startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
+    // 37+, 38+
+    startY0 = trackPoint.GetY() + startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
+  }
+  else if(track.GetCharge() < 0 && zSign < 0){
+    // 7+, 18+, 27+?, 41+
+    startX0 = trackPoint.GetX() + startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
+    // 7?, 18-, 27- , 41+
+    startY0 = trackPoint.GetY() + startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
+  }
+  
+  // -- calculate slope from the track momentum direction (pion usually follows this direction)
+  double startS0 = 0;
+  
+  if(track.GetCharge() > 0 && zSign < 0){
+    // works:   13+, 19+, 22-, 26+, 28+, 31+, 39+
+    // doesn't: 3- , 33+, 34+,
+    startS0 =  startR * trackPoint.GetVectorSlopeC();
+  }
+  else if(track.GetCharge() < 0 && zSign > 0){
+    // 11+, 15+, 30+, 43-, 44?
+    startS0 =  startR * trackPoint.GetVectorSlopeC();
+  }
+  else if(track.GetCharge() > 0 && zSign > 0){
+    // 37+, 38+
+    startS0 =  startR * trackPoint.GetVectorSlopeC();
+  }
+  else if(track.GetCharge() < 0 && zSign < 0){
+    // 7-, 18+?, 27+, 41-
+    startS0 =  startR * trackPoint.GetVectorSlopeC();
+  }
+  
+  // -- get t param of the track point
+  double tTrack;
+  if(track.GetCharge() < 0) tTrack = atan2(trackPoint.GetY() - startY0, trackPoint.GetX() - startX0);
+  else                      tTrack = TMath::Pi()/2 - atan2(trackPoint.GetX() - startX0, trackPoint.GetY() - startY0);
+  
+  // -- calculate Z position of the vertex
+  double startZ0 = 0;
+  
+  if(track.GetCharge() > 0 && zSign < 0){
+    // 3++, 13-+, 19++?, 22--, 26--, 28-+, 31-+/--, 33--, 34?, 39--
+    startZ0 = -trackPoint.GetZ() - startS0 * tTrack;
+  }
+  else if(track.GetCharge() < 0 && zSign > 0){
+    // 11+-, 15++, 30++?, 43++, 44++
+    startZ0 = -trackPoint.GetZ() - startS0 * tTrack;
+  }
+  else if(track.GetCharge() > 0 && zSign > 0){
+    // 37+-, 38+-
+    startZ0 = trackPoint.GetZ() - startS0 * tTrack;
+  }
+  else if(track.GetCharge() < 0 && zSign < 0){
+    // 7+-, 18+-, 27?, 41+-
+    startZ0 = trackPoint.GetZ() - startS0 * tTrack;
+  }
+  
+  // Set calculated initial param values
+  SetParameter(fitter, 0, "R0", startR  ,  0      , 1000  ); // limits from MC
+  SetParameter(fitter, 2, "s0", startS0 , -10000  , 10000 );
+  SetParameter(fitter, 4, "L" , startL  ,  minL   , maxL  );
+  SetParameter(fitter, 5, "x0", startX0 , -1000   , 1000  );
+  SetParameter(fitter, 6, "y0", startY0 , -1000   , 1000  );
+  SetParameter(fitter, 7, "z0", startZ0 , -1000   , 1000  );
+  
+  // With 3 points we don't know how fast will radius and slope decrease:
+  FixParameter(fitter, 1, "a" , 0);
+  FixParameter(fitter, 3, "b" , 0);
+  
+  cout<<"Starting params:"<<endl;
+  cout<<"\tR0: "<<startR<<endl;
+  cout<<"\ts0: "<<startS0<<endl;
+  cout<<"\tL: "<<startL<<endl;
+  cout<<"\tx0: "<<startX0<<endl;
+  cout<<"\ty0: "<<startY0<<endl;
+  cout<<"\tz0: "<<startZ0<<endl;
   
   return fitter;
 }

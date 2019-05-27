@@ -16,30 +16,60 @@ string cutLevel = "after_L2/4layers/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 19;
+int iEvent = 13;
 
 // "after_L2/4layers/":
+
+// 37 - OK (q+, z+)
+// 38 - OK (q+, z+)
+
+// 3  - ...(q+, z-)
+// 13 - OK (q+, z-) noise ok
+// 19 - OK (q+, z-)
+// 22 - OK (q+, z-)
+// 26 - OK (q+, z-)
+// 28 - OK (q+, z-)
+// 31 - OK (q+, z-)
+// 33 - ...(q+, z-)
+// 34 - ...(q+, z-)
+// 39 - OK (q+, z-)
+
+// 11 - ...(q-, z+)
+// 30 - OK (q-, z+)
+// 43 - OK (q-, z+) noise ok
+// 44 - ...(q-, z+)
+
+// 7  - OK (q-, z-)
+// 18 - OK (q-, z-)
+// 27 - OK (q-, z-)
+// 41 - OK (q-, z-)
+
 // 0 - bad hits
 // 1 - bad hits
-// 2 - ... Z-, Q+, many hits, extremally low p_z. Got lost
-// 3 - ... (Z-, Q+)
+// 2 - missing second hit
 // 4 - not enough hits
-// 5 - extremally scattered
+// 5 - scattered
 // 6 - missing second hit
-// 7 - OK (Z-, Q-)
 // 8 - high p_z (820)
-// 9 - extremally scattered
+// 9 - scattered
 // 10 - not enough hits
-// 11 - ... Z+, Q-
 // 12 - scattered
-// 13 - OK (Z+, Q+)
 // 14 - missing (very scattered) first pion hit
-// 15 - ... short one, but should work
+// 15 - almost ok
 // 16 - no hits
 // 17 - bad hits
-// 18 - ... (Z-, Q-) should work
-// 19 - ... (Z+, Q+) perfect case for many cycles.
 // 20 - scattered
+// 21 - high p_z (1700 MeV)
+// 23 - no hits
+// 24 - high p_z
+// 25 - high p_z
+// 29 - high p_z
+// 32 - no hits
+// 35 - missing first hit
+// 36 - high p_z/small R
+// 40 - no hits
+// 42 - high p_z
+
 
 // "after_L1/4layers/":
 // 0 - charge mismatch
@@ -283,11 +313,14 @@ int main(int argc, char* argv[])
 		}
 	}
 	
-//  for(auto p = allSimplePoints.begin(); p != allSimplePoints.end();){
-//    shared_ptr<Point> point = *p;
-//    if(point->GetSubDetName() == "TID" || point->GetSubDetName() == "TEC") p = allSimplePoints.erase(p);
-//    else p++;
-//  }
+  for(auto p = allSimplePoints.begin(); p != allSimplePoints.end();){
+    shared_ptr<Point> point = *p;
+    if(   point->GetSubDetName() == "TID"
+       || point->GetSubDetName() == "TEC"
+       || point->GetSubDetName() == "P1PXEC")
+      p = allSimplePoints.erase(p);
+    else p++;
+  }
   
 	if(fitHelix){
 		cout<<"Fitting best helix"<<endl;
@@ -336,7 +369,12 @@ int main(int argc, char* argv[])
     vector<shared_ptr<Point>> pointsNoEndcaps;
     
     for(auto &point : allSimplePoints){
-      if(point->GetSubDetName() == "TID" || point->GetSubDetName() == "TEC") continue;
+      if(point->GetSubDetName() == "TID" || point->GetSubDetName() == "TEC" || point->GetSubDetName() == "P1PXEC") continue;
+      
+      if(point->GetSubDetName() != "TIB" && point->GetSubDetName() != "TOB" && point->GetSubDetName() != "P1PXB"){
+        cout<<"Weird detector:"<<point->GetSubDetName()<<endl;
+      }
+      
       pointsNoEndcaps.push_back(point);
     }
     
@@ -352,12 +390,15 @@ int main(int argc, char* argv[])
     
 //    pionClusters = pointsProcessor.FilterNearbyPoints(pionClusters, 50);
     
-    display->DrawSimplePoints(pionClusters, pionClustersOptions);
-    
     auto start = now();
 //    vector<Helix> fittedHelices = fitter->FitHelices(allSimplePoints, *track, *event->GetVertex());
-//    vector<Helix> fittedHelices = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
-    vector<Helix> fittedHelices = fitter->FitHelices(pionClusters, *track, *event->GetVertex());
+//
+    display->DrawSimplePoints(pointsNoEndcaps, pionClustersOptions);
+    vector<Helix> fittedHelices = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
+    
+//    display->DrawSimplePoints(pionClusters, pionClustersOptions);
+//    vector<Helix> fittedHelices = fitter->FitHelices(pionClusters, *track, *event->GetVertex());
+    
     auto end = now();
     
     cout<<"Fitting time: "<<duration(start, end)<<endl;

@@ -56,7 +56,7 @@ n_noise_hits: 0
 n_tracker_layers: 4
 
 ### Limit number of events loaded (-1 means load all available)
-max_N_events_signal:  50
+max_N_events_signal:  -1
 
 **Pion's parameters**
 
@@ -80,10 +80,29 @@ n_track_hits: 2
 **Fitter parameters**
 
 ### Determines how far points can be from helix to be assigned to it (in mm):
-helix_thickness:  5.0
+helix_thickness:  0.0
 
 ### Determines how far points can be from circle to be assigned to it (in mm):
 circle_thickness: 20.0
+
+### Constraints on seeds parameters:
+seed_max_chi2:                            1e-6
+seed_middle_hit_max_delta_phi:  1.0
+seed_middle_hit_max_delta_z:     100
+seed_last_hit_max_delta_phi:        1.0
+seed_last_hit_max_delta_z:           100
+
+### Constrains on pion track parameters:
+track_max_chi2:                             1e-6
+next_point_max_delta_phi:             1.0
+next_point_max_delta_z:                200
+track_min_n_points:                       5
+
+### Max number of different points to merge two helices:
+merging_max_different_point:        2
+
+### Min number of points for a candidate to pass to the merging step:
+candidate_min_n_points:                5
 
 **Benchmark parameters**
 

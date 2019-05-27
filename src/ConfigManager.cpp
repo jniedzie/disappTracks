@@ -22,8 +22,20 @@ ConfigManager::ConfigManager(string _path)
     cout<<"INFO -- Successfully read config file: "<<_path<<endl;
   }
   
-  helixThickness              = configFile->GetValue("helix_thickness",1.0);
-  circleThickness             = configFile->GetValue("circle_thickness",1.0);
+  helixThickness            = configFile->GetValue("helix_thickness",1.0);
+  circleThickness           = configFile->GetValue("circle_thickness",1.0);
+  seedMaxChi2               = configFile->GetValue("seed_max_chi2",100.0);
+  seedMiddleHitMaxDeltaPhi  = configFile->GetValue("seed_middle_hit_max_delta_phi",3.14);
+  seedMiddleHitMaxDeltaZ    = configFile->GetValue("seed_middle_hit_max_delta_z",1000.0);
+  seedLastHitMaxDeltaPhi    = configFile->GetValue("seed_last_hit_max_delta_phi",3.14);
+  seedLastHitMaxDeltaZ      = configFile->GetValue("seed_last_hit_max_delta_z",1000.0);
+  trackMaxChi2              = configFile->GetValue("track_max_chi2",100.0);
+  nextPointMaxDeltaPhi      = configFile->GetValue("next_point_max_delta_phi",3.14);
+  nextPointMaxDeltaZ        = configFile->GetValue("next_point_max_delta_z",1000.0);
+  mergingMaxDifferentPoints = configFile->GetValue("merging_max_different_point", 0);
+  candidateMinNpoints       = configFile->GetValue("track_min_n_points", 0);
+  trackMinNpoints           = configFile->GetValue("candidate_min_n_points", 0);
+  
   maxEta                      = configFile->GetValue("max_eta",10.0);
   nTrackHits                  = configFile->GetValue("n_track_hits",3);
   minPx                       = configFile->GetValue("min_px",50.0);

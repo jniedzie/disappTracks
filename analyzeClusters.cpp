@@ -32,6 +32,8 @@ vector<tuple<string, int, double, double, string>> histOptions1D = {
   {"pion_vertex_xy"             , 100, 0      , 500   , "v_{xy} (mm)"             },
   {"pion_vertex_z"              , 50 , -1000  , 1000  , "v_{z} (mm)"              },
   {"delta_phi_pion_chargino"    , 50 , 0      , 3.2   , "#Delta #phi (#pi, #chi)" },
+  {"delta_theta_pion_chargino"  , 100, -6.3   , 6.3   , "#Delta #theta(#pi, #chi)"},
+  
   {"next_point_delta_phi"       , 100, 0      , 3.2   , "#Delta #phi"             },
   {"next_point_delta_z"         , 100, 0      , 500   , "#Delta z"                },
   {"middle_seed_hit_delta_phi"  , 32 , 0      , 3.2   , "#Delta #phi"             },
@@ -171,8 +173,11 @@ int main(int argc, char* argv[])
     hists1D["pion_vertex_z"]->Fill(pionVertexZ);
     hists1D["pion_vertex_xy"]->Fill(pionVertexXY);
     
+    double pionTheta = TMath::Pi()/2-pionHelix.GetMomentum()->GetVectorSlopeC();
+    
     for(auto &track : event->GetTracks()){
       hists1D["delta_phi_pion_chargino"]->Fill(fabs(phiPion - track->GetPhi()));
+      hists1D["delta_theta_pion_chargino"]->Fill(track->GetTheta() - pionTheta);
     }
     
     // Fill pion sim hit histograms
@@ -307,7 +312,7 @@ int main(int argc, char* argv[])
   }
   
   TCanvas *genPionCanvas = new TCanvas("gen_pion", "gen_pion", 2880, 1800);
-  genPionCanvas->Divide(4,3);
+  genPionCanvas->Divide(4,4);
   
   genPionCanvas->cd(1);   hists1D["lumi"]->Draw();
   genPionCanvas->cd(2);   hists1D["pion_pz"]->Draw();
@@ -321,6 +326,7 @@ int main(int argc, char* argv[])
   genPionCanvas->cd(10);  hists1D["pion_vertex_z"]->Draw();
   genPionCanvas->cd(11);  hists1D["pion_vertex_xy"]->Draw();
   genPionCanvas->cd(12);  hists1D["delta_phi_pion_chargino"]->Draw();
+  genPionCanvas->cd(13);  hists1D["delta_theta_pion_chargino"]->Draw();
   
   TCanvas *trackingCanvas = new TCanvas("tracking", "tracking", 2880, 1800);
   trackingCanvas->Divide(4,2);

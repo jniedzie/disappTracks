@@ -40,7 +40,7 @@ public:
   Helix(const Helix &h);
   
   /// Assignent operator
-  Helix operator=(const Helix &h);
+  Helix& operator=(const Helix &h);
   
   /// Comparison operator
   bool operator==(const Helix &h);

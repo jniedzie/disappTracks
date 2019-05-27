@@ -50,7 +50,7 @@ private:
   void RefitHelix(Helix &helix);
   
   ///
-  ROOT::Fit::Fitter* GetSeedFitter(range<double> rangeL);
+  ROOT::Fit::Fitter* GetSeedFitter(const vector<shared_ptr<Point>> &points);
   
   /// Sets name, limits and starting value of a ROOT fitter's parameter
   void SetParameter(ROOT::Fit::Fitter *fitter, int i, string name, double start, double min, double max, bool fix=false);

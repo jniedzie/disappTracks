@@ -79,35 +79,37 @@ shouldRefit(h.shouldRefit)
 //  uniqueID = reinterpret_cast<uint64_t>(this);
 }
 
-Helix Helix::operator=(const Helix &h)
+Helix& Helix::operator=(const Helix &h)
 {
-  Helix result(h.origin, h.momentum, h.charge);
+  origin = h.origin;
+  momentum = make_unique<Point>(*h.momentum);
+  charge = h.charge;
   
-  result.uniqueID = h.uniqueID;
-//  result.uniqueID = reinterpret_cast<uint64_t>(this);
+  uniqueID = h.uniqueID;
+//  uniqueID = reinterpret_cast<uint64_t>(this);
 
-  result.iCycles        = h.iCycles;
-  result.isFinished     = h.isFinished;
-  result.seedID         = h.seedID;
-  result.points         = h.points;
-  result.tShift         = h.tShift;
-  result.tMax           = h.tMax;
-  result.tStep          = h.tStep;
-  result.nRegularPoints = h.nRegularPoints;
-  result.nPionPoints    = h.nPionPoints;
-  result.vertex         = make_unique<Point>(*h.vertex);
-  result.track          = h.track;
-  result.radius         = h.radius;
-  result.slope          = h.slope;
-  result.slopeAbs       = h.slopeAbs;
-  result.eventVertex    = h.eventVertex;
+  iCycles        = h.iCycles;
+  isFinished     = h.isFinished;
+  seedID         = h.seedID;
+  points         = h.points;
+  tShift         = h.tShift;
+  tMax           = h.tMax;
+  tStep          = h.tStep;
+  nRegularPoints = h.nRegularPoints;
+  nPionPoints    = h.nPionPoints;
+  vertex         = make_unique<Point>(*h.vertex);
+  track          = h.track;
+  radius         = h.radius;
+  slope          = h.slope;
+  slopeAbs       = h.slopeAbs;
+  eventVertex    = h.eventVertex;
   
-  result.helixParams    = h.helixParams;
-  result.chi2           = h.chi2;
-  result.increasing     = h.increasing;
-  result.shouldRefit    = h.shouldRefit;
+  helixParams    = h.helixParams;
+  chi2           = h.chi2;
+  increasing     = h.increasing;
+  shouldRefit    = h.shouldRefit;
  
-  return result;
+  return *this;
 }
 
 bool Helix::operator==(const Helix &h)
@@ -131,6 +133,7 @@ void Helix::Print()
   cout<<"\tOrigin:("<<origin.GetX()<<","<<origin.GetY()<<","<<origin.GetZ()<<")\n";
   cout<<"\tMomentum:("<<momentum->GetX()<<","<<momentum->GetY()<<","<<momentum->GetZ()<<")\n";
   cout<<"\tCharge: "<<charge<<"\tR:"<<radius<<"\tc:"<<slope<<"\n";
+  cout<<"\ts0: "<<helixParams.s0<<"\tb: "<<helixParams.b<<"\tR0: "<<helixParams.R0<<"\t a: "<<helixParams.a<<endl;
   cout<<"\tnPoints:"<<points.size()<<"\tnPionPoints:"<<nPionPoints<<"\tnRegularPoints:"<<nRegularPoints<<"\n";
   cout<<"\tt min:"<<tShift<<"\tt max:"<<tMax<<endl;
   cout<<"\tchi2:"<<chi2<<endl;
@@ -221,10 +224,12 @@ void Helix::AddPoint(const shared_ptr<Point> &point)
   double t;
   if(charge < 0){
     t = atan2(point->GetY() - origin.GetY(), point->GetX() - origin.GetX());
+    // FIX this:
     while(t < tMax) t += 2*TMath::Pi();
   }
   else{
     t = TMath::Pi()/2 - atan2(point->GetX() - origin.GetX(), point->GetY() - origin.GetY());
+    // FIX this:
     while(t > tMax) t -= 2*TMath::Pi();
   }
   
@@ -245,7 +250,8 @@ void Helix::UpdateOrigin(const Point &_origin)
   
   sort(points.begin(), points.end(), PointsProcessor::ComparePointByLayer());
 //  sort(points.begin(), points.end(), PointsProcessor::ComparePointByT());
-  
+
+  // this should be fixed:
   for(int iPoint=0; iPoint<points.size()-1; iPoint++){
     if(charge < 0){
       while(points[iPoint+1]->GetT() < points[iPoint]->GetT()){

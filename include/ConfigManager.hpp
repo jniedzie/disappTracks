@@ -68,6 +68,19 @@ struct ConfigManager {
   // Fitter parameters
   double helixThickness;
   double circleThickness;
+  double seedMaxChi2;
+  double seedMiddleHitMaxDeltaPhi;
+  double seedMiddleHitMaxDeltaZ;
+  double seedLastHitMaxDeltaPhi;
+  double seedLastHitMaxDeltaZ;
+  
+  double trackMaxChi2;
+  double nextPointMaxDeltaPhi;
+  double nextPointMaxDeltaZ;
+  
+  int mergingMaxDifferentPoints;
+  int trackMinNpoints;
+  int candidateMinNpoints;
   
   // Random chargino's track parameters
   double maxEta;
