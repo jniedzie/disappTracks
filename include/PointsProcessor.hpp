@@ -84,6 +84,9 @@ public:
   /// into account position of the primary event vertex
   Point GetPointOnTrack(double L, const Track &track, const Point &eventVertex);
   
+  
+  double GetTforPoint(Point &point, Point &origin, int charge);
+  
   /// Structs for sorting point
   struct ComparePointByZ{
     bool operator() (const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){

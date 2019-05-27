@@ -111,7 +111,7 @@ void Display::DrawShrinkingHelix(const Helix &helix, const map<string,any> optio
   auto fillPointForT = [&](double t){
     double x = helix.GetOrigin().GetX() + helix.GetRadius(t)*cos(t);
     double y = helix.GetOrigin().GetY() + helix.GetRadius(t)*sin(t);
-    double z = helix.GetCharge()*helix.GetOrigin().GetZ() + helix.GetSlope(t)*t;
+    double z = -helix.GetCharge()*helix.GetOrigin().GetZ() + helix.GetSlope(t)*t;
     
     helixPoints->Fill(scale*x,scale*y,scale*z, 0);
   };

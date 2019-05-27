@@ -27,6 +27,8 @@ public:
                            const Track &_track,
                            const Point &_eventVertex);
   
+  Point trueOrigin;
+  
 private:
   vector<shared_ptr<Point>> points;
   Track track;

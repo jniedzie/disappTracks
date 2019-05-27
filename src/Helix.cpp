@@ -221,18 +221,9 @@ void Helix::AddPoint(const shared_ptr<Point> &point)
 {
   points.push_back(point);
   
-  double t;
-  if(charge < 0){
-    t = atan2(point->GetY() - origin.GetY(), point->GetX() - origin.GetX());
-    // FIX this:
-    while(t < tMax) t += 2*TMath::Pi();
-  }
-  else{
-    t = TMath::Pi()/2 - atan2(point->GetX() - origin.GetX(), point->GetY() - origin.GetY());
-    // FIX this:
-    while(t > tMax) t -= 2*TMath::Pi();
-  }
-  
+  double t = pointsProcessor.GetTforPoint(*point, origin, charge);
+  if(charge < 0) while(t < tMax) t += 2*TMath::Pi();
+  else           while(t > tMax) t -= 2*TMath::Pi();
   point->SetT(t);
   tMax = t;
 }
@@ -242,10 +233,7 @@ void Helix::UpdateOrigin(const Point &_origin)
   origin = _origin;
   
   for(auto &p : points){
-    double t;
-    if(charge < 0)  t = atan2(p->GetY() - origin.GetY(), p->GetX() - origin.GetX());
-    else            t = TMath::Pi()/2 - atan2(p->GetX() - origin.GetX(), p->GetY() - origin.GetY());
-    p->SetT(t);
+    p->SetT(pointsProcessor.GetTforPoint(*p, origin, charge));
   }
   
   sort(points.begin(), points.end(), PointsProcessor::ComparePointByLayer());

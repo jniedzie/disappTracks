@@ -263,3 +263,13 @@ Point PointsProcessor::GetPointOnTrack(double L, const Track &track, const Point
   return p;
 }
 
+double PointsProcessor::GetTforPoint(Point &point, Point &origin, int charge)
+{
+  double t;
+  if(charge < 0) t =  atan2(point.GetY() - origin.GetY(), point.GetX() - origin.GetX());
+  else           t = -atan2(point.GetX() - origin.GetX(), point.GetY() - origin.GetY());
+  
+  t =  atan2(point.GetY() - origin.GetY(), point.GetX() - origin.GetX());
+  
+  return t;
+}

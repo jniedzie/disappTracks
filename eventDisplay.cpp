@@ -20,29 +20,33 @@ int iEvent = 13;
 
 // "after_L2/4layers/":
 
-// 37 - OK (q+, z+)
-// 38 - OK (q+, z+)
+// q+, z+
+// 37 - OK
+// 38 - OK
 
-// 3  - ...(q+, z-)
-// 13 - OK (q+, z-) noise ok
-// 19 - OK (q+, z-)
-// 22 - OK (q+, z-)
-// 26 - OK (q+, z-)
-// 28 - OK (q+, z-)
-// 31 - OK (q+, z-)
-// 33 - ...(q+, z-)
-// 34 - ...(q+, z-)
-// 39 - OK (q+, z-)
+// q+, z-
+// 3  - .. Sign X0: -1   sign Y0:-1   signs Z0:--
+// 13 - .. Sign X0: -1   sign Y0:1   signs Z0:-+
+// 19 - .. Sign X0: 1   sign Y0:1   signs Z0:-+
+// 22 - .. Sign X0: -1   sign Y0:1   signs Z0:-+
+// 26 - .. Sign X0: -1   sign Y0:1   signs Z0:-+
+// 28 - .. Sign X0: -1   sign Y0:1   signs Z0:-+
+// 31 - .. Sign X0: -1   sign Y0:-1   signs Z0:--
+// 33 - .. Sign X0: 1   sign Y0:1   signs Z0:-+
+// 34 - .. Sign X0: -1   sign Y0:-1   signs Z0:-+
+// 39 - .. Sign X0: -1   sign Y0:-1   signs Z0:--
 
-// 11 - ...(q-, z+)
-// 30 - OK (q-, z+)
-// 43 - OK (q-, z+) noise ok
-// 44 - ...(q-, z+)
+// q-, z+
+// 11 - ..
+// 30 - OK
+// 43 - OK
+// 44 - ..
 
-// 7  - OK (q-, z-)
-// 18 - OK (q-, z-)
-// 27 - OK (q-, z-)
-// 41 - OK (q-, z-)
+// q-, z-
+// 7  - OK
+// 18 - OK
+// 27 - OK
+// 41 - OK
 
 // 0 - bad hits
 // 1 - bad hits
@@ -325,7 +329,14 @@ int main(int argc, char* argv[])
 	if(fitHelix){
 		cout<<"Fitting best helix"<<endl;
 		auto fitter = make_unique<Fitter>();
-		
+    
+    
+    for(auto &helix : event->GetGenPionHelices()){
+      if(helix.GetCharge() == track->GetCharge()){
+        fitter->trueOrigin = helix.GetOrigin();
+      }
+    }
+    
     auto pionClustersTmp = event->GetPionClusters();
 
     vector<shared_ptr<Point>> pionClusters;
@@ -393,11 +404,11 @@ int main(int argc, char* argv[])
     auto start = now();
 //    vector<Helix> fittedHelices = fitter->FitHelices(allSimplePoints, *track, *event->GetVertex());
 //
-    display->DrawSimplePoints(pointsNoEndcaps, pionClustersOptions);
-    vector<Helix> fittedHelices = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
+//    display->DrawSimplePoints(pointsNoEndcaps, pionClustersOptions);
+//    vector<Helix> fittedHelices = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
     
-//    display->DrawSimplePoints(pionClusters, pionClustersOptions);
-//    vector<Helix> fittedHelices = fitter->FitHelices(pionClusters, *track, *event->GetVertex());
+    display->DrawSimplePoints(pionClusters, pionClustersOptions);
+    vector<Helix> fittedHelices = fitter->FitHelices(pionClusters, *track, *event->GetVertex());
     
     auto end = now();
     
