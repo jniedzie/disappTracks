@@ -91,18 +91,30 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
   for(auto &middlePoint : possibleMiddlePoints){
     
     double middleHitDeltaPhi = pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMid, *middlePoint);
-    if(middleHitDeltaPhi > config.seedMiddleHitMaxDeltaPhi) continue;
+    if(middleHitDeltaPhi > config.seedMiddleHitMaxDeltaPhi){
+      cout<<"middle hit phi"<<endl;
+      continue;
+    }
     
     double middleHitDeltaZ = fabs(middlePoint->GetZ() - trackPointMid.GetZ());
-    if(middleHitDeltaZ > config.seedMiddleHitMaxDeltaZ) continue;
+    if(middleHitDeltaZ > config.seedMiddleHitMaxDeltaZ){
+      cout<<"middle hit z"<<endl;
+      continue;
+    }
     
     for(auto &lastPoint : possibleLastPoints){
       
       double lastHitDeltaPhi = pointsProcessor.GetPointingAngleXY(trackPointMid, *middlePoint, *lastPoint);
-      if(lastHitDeltaPhi > config.seedLastHitMaxDeltaPhi) continue;
+      if(lastHitDeltaPhi > config.seedLastHitMaxDeltaPhi){
+        cout<<"last hit phi"<<endl;
+        continue;
+      }
       
       double lastPointDeltaZ = fabs(middlePoint->GetZ() - lastPoint->GetZ());
-      if(lastPointDeltaZ > config.seedLastHitMaxDeltaZ) continue;
+      if(lastPointDeltaZ > config.seedLastHitMaxDeltaZ){
+        cout<<"last hit z"<<endl;
+        continue;
+      }
       
       nPairs++;
       auto points = { middlePoint, lastPoint };
@@ -144,7 +156,9 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points, int c
     
     for(int iPoint=1;iPoint<pointsTriplet.size(); iPoint++){
       if(charge < 0){
-        //      t = atan2(p->GetY() - y0, p->GetX() - x0);
+        double t = pointsProcessor.GetTforPoint(*pointsTriplet[iPoint], origin, charge);
+        while(t < pointsTriplet[iPoint-1]->GetT()) t += 2*TMath::Pi();
+        pointsTriplet[iPoint]->SetT(t);
       }
       else{
         double t = pointsProcessor.GetTforPoint(*pointsTriplet[iPoint], origin, charge);
@@ -494,7 +508,9 @@ void Fitter::RefitHelix(Helix &helix)
     
     for(int iPoint=1;iPoint<points.size(); iPoint++){
       if(helix.GetCharge() < 0){
-        //      t = atan2(p->GetY() - y0, p->GetX() - x0);
+        double t = pointsProcessor.GetTforPoint(*points[iPoint], origin, helix.GetCharge());
+        while(t < points[iPoint-1]->GetT()) t += 2*TMath::Pi();
+        points[iPoint]->SetT(t);
       }
       else{
         double t = pointsProcessor.GetTforPoint(*points[iPoint], origin, helix.GetCharge());
@@ -609,6 +625,7 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   
   // Calculate initial parameters as good as we can at this point.
   double startR = 320; // mm, from MC
+  double maxR = 1000;
   
   // -- decay vertex must be after last track layer and before the next one
   double minL = layerRanges[track.GetNtrackerLayers()-1].GetMax();
@@ -620,160 +637,80 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   if(points.back()->GetZ() > points.front()->GetZ() > trackPoint.GetZ()) zSign =  1;
   if(points.back()->GetZ() < points.front()->GetZ() < trackPoint.GetZ()) zSign = -1;
   
-  cout<<"Charge: "<<track.GetCharge()<<"\tzSign: "<<zSign<<endl;
-  
   // -- calculate where wuold the origin X and Y be for the most probable radius and average L position
-  double startX0 = 0, startY0 = 0;
+  double startX0 = 0, minX0 = trackPoint.GetX(), maxX0 = trackPoint.GetX();
+  double startY0 = 0, minY0 = trackPoint.GetY(), maxY0 = trackPoint.GetY();
   
-  if(track.GetCharge() > 0 && zSign < 0){
-    // works:   13?, 19?, 22-, 26-, 28-, 31-, 39-
-    // doesn't: 3? , 33+, 34+?
-    startX0 = trackPoint.GetX() + startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
-    // works:   13+, 19+, 22?, 26?, 28+, 31?, 39?
-    // doesn't: 3- , 33+, 34-
-    startY0 = trackPoint.GetY() + startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
+  if(trackPoint.GetX() >= 0 && trackPoint.GetY() > 0){
+    startX0 = trackPoint.GetX() + track.GetCharge() * startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
+    minX0 -= track.GetCharge() > 0 ? 0 : maxR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
+    maxX0 += track.GetCharge() > 0 ? maxR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1) : 0;
+    
+    startY0 = trackPoint.GetY() - track.GetCharge() * startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
+    minY0 -= track.GetCharge() > 0 ? maxR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1) : 0;
+    maxY0 += track.GetCharge() > 0 ? 0 : maxR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
   }
-  else if(track.GetCharge() < 0 && zSign > 0){
-    // 11+, 30-, 43+, 44-
-    startX0 = trackPoint.GetX() + startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
-    // 11?, 30+, 43-, 44+?
-    startY0 = trackPoint.GetY() - startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
+  if(trackPoint.GetX() < 0 && trackPoint.GetY() > 0){
+    startX0 = trackPoint.GetX() + track.GetCharge() * startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
+    minX0 -= track.GetCharge() > 0 ? 0 : maxR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
+    maxX0 += track.GetCharge() > 0 ? maxR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1) : 0;
+    
+    startY0 = trackPoint.GetY() + track.GetCharge() * startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
+    minY0 -= track.GetCharge() > 0 ? 0 : maxR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
+    maxY0 += track.GetCharge() > 0 ? maxR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1) : 0;
   }
-  else if(track.GetCharge() > 0 && zSign > 0){
-    // 37-, 38-
-    startX0 = trackPoint.GetX() - startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
-    // 37+, 38+
-    startY0 = trackPoint.GetY() + startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
+  if(trackPoint.GetX() >= 0 && trackPoint.GetY() <= 0){
+    startX0 = trackPoint.GetX() - track.GetCharge() * startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
+    minX0 -= track.GetCharge() > 0 ? maxR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1) : 0;
+    maxX0 += track.GetCharge() > 0 ? 0 : maxR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
+
+    startY0 = trackPoint.GetY() - track.GetCharge() * startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
+    minY0 -= track.GetCharge() > 0 ? maxR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1) : 0;
+    maxY0 += track.GetCharge() > 0 ? 0 : maxR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
   }
-  else if(track.GetCharge() < 0 && zSign < 0){
-    // 7+, 18+, 27+?, 41+
-    startX0 = trackPoint.GetX() + startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
-    // 7?, 18-, 27- , 41+
-    startY0 = trackPoint.GetY() + startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
-  }
-  
-  int signX0;
-  double startX0_plu = trackPoint.GetX() + startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
-  double startX0_min = trackPoint.GetX() - startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
-  if(fabs(startX0_plu - trueOrigin.GetX()) < fabs(startX0_min - trueOrigin.GetX())){
-    startX0 = startX0_plu;
-    signX0 = 1;
-  }
-  else{
-    startX0 = startX0_min;
-    signX0 = -1;
-  }
-  int signY0;
-  double startY0_plu = trackPoint.GetY() + startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
-  double startY0_min = trackPoint.GetY() - startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
-  if(fabs(startY0_plu - trueOrigin.GetY()) < fabs(startY0_min - trueOrigin.GetY())){
-    startY0 = startY0_plu;
-    signY0 = 1;
-  }
-  else{
-    startY0 = startY0_min;
-    signY0 = -1;
+  if(trackPoint.GetX() < 0 && trackPoint.GetY() <= 0){
+    startX0 = trackPoint.GetX() - track.GetCharge() * startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
+    minX0 -= track.GetCharge() > 0 ? maxR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1) : 0;
+    maxX0 += track.GetCharge() > 0 ? 0 : maxR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
+    
+    startY0 = trackPoint.GetY() + track.GetCharge() * startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
+    minY0 -= track.GetCharge() > 0 ? 0 : maxR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
+    maxY0 += track.GetCharge() > 0 ? maxR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1) : 0;
   }
   
   // -- calculate slope from the track momentum direction (pion usually follows this direction)
-  double startS0 = 0;
-  
-  if(track.GetCharge() > 0 && zSign < 0){
-    // works:   13+, 19+, 22-, 26+, 28+, 31+, 39+
-    // doesn't: 3- , 33+, 34+,
-    startS0 =  startR * trackPoint.GetVectorSlopeC();
-  }
-  else if(track.GetCharge() < 0 && zSign > 0){
-    // 11+, 15+, 30+, 43-, 44?
-    startS0 =  startR * trackPoint.GetVectorSlopeC();
-  }
-  else if(track.GetCharge() > 0 && zSign > 0){
-    // 37+, 38+
-    startS0 =  startR * trackPoint.GetVectorSlopeC();
-  }
-  else if(track.GetCharge() < 0 && zSign < 0){
-    // 7-, 18+?, 27+, 41-
-    startS0 =  startR * trackPoint.GetVectorSlopeC();
-  }
+  double startS0 = startR * trackPoint.GetVectorSlopeC();
   
   // -- get t param of the track point
   Point origin(startX0, startY0, 0);
   double tTrack = pointsProcessor.GetTforPoint(trackPoint, origin, track.GetCharge());
   
   // -- calculate Z position of the vertex
-  double startZ0 = 0;
+  double startZ0 = -track.GetCharge() * (trackPoint.GetZ() - startS0 * tTrack);
+  double minZ0 = -1000; // to be adjusted from math of MC
+  double maxZ0 = 1000;
   
-  if(track.GetCharge() > 0 && zSign < 0){
-    // 3++, 13-+, 19++?, 22--, 26--, 28-+, 31-+/--, 33--, 34?, 39--
-    startZ0 = -trackPoint.GetZ() + startS0 * tTrack;
+  if(startX0 < minX0 || startX0 > maxX0){
+    cout<<"ERROR -- x0:"<<startX0<<"\tmin:"<<minX0<<"\tmax:"<<maxX0<<endl;
   }
-  else if(track.GetCharge() < 0 && zSign > 0){
-    // 11+-, 15++, 30++?, 43++, 44++
-    startZ0 = -trackPoint.GetZ() - startS0 * tTrack;
+  if(startY0 < minY0 || startY0 > maxY0){
+    cout<<"ERROR -- y0:"<<startY0<<"\tmin:"<<minY0<<"\tmax:"<<maxY0<<endl;
   }
-  else if(track.GetCharge() > 0 && zSign > 0){
-    // 37+-, 38+-
-    startZ0 = trackPoint.GetZ() - startS0 * tTrack;
+  if(startZ0 < minZ0 || startZ0 > maxZ0){
+    cout<<"ERROR -- z0:"<<startZ0<<"\tmin:"<<minZ0<<"\tmax:"<<maxZ0<<endl;
   }
-  else if(track.GetCharge() < 0 && zSign < 0){
-    // 7+-, 18+-, 27?, 41+-
-    startZ0 = trackPoint.GetZ() - startS0 * tTrack;
-  }
-  
-  
-  string signZ0;
-  double startZ0_pluplu = startZ0 =  trackPoint.GetZ() + startS0 * tTrack;
-  double startZ0_plumin = startZ0 =  trackPoint.GetZ() - startS0 * tTrack;
-  double startZ0_minplu = startZ0 = -trackPoint.GetZ() + startS0 * tTrack;
-  double startZ0_minmin = startZ0 = -trackPoint.GetZ() - startS0 * tTrack;
-  
-  double minDiff = inf;
-  
-  if(fabs(startZ0_pluplu - trueOrigin.GetZ()) < minDiff){
-    minDiff = fabs(startZ0_pluplu - trueOrigin.GetZ());
-    startZ0 = startZ0_pluplu;
-    signZ0 = "++";
-  }
-  if(fabs(startZ0_plumin - trueOrigin.GetZ()) < minDiff){
-    minDiff = fabs(startZ0_plumin - trueOrigin.GetZ());
-    startZ0 = startZ0_plumin;
-    signZ0 = "+-";
-  }
-  if(fabs(startZ0_minplu - trueOrigin.GetZ()) < minDiff){
-    minDiff = fabs(startZ0_minplu - trueOrigin.GetZ());
-    startZ0 = startZ0_minplu;
-    signZ0 = "-+";
-  }
-  if(fabs(startZ0_minmin - trueOrigin.GetZ()) < minDiff){
-    minDiff = fabs(startZ0_minmin - trueOrigin.GetZ());
-    startZ0 = startZ0_minmin;
-    signZ0 = "--";
-  }
-  
-  
-  cout<<"True origin:"; trueOrigin.Print(); cout<<endl;
-  cout<<"Found origin:("<<startX0<<", "<<startY0<<", "<<startZ0<<")"<<endl;
-  cout<<"Sign X0: "<<signX0<<"\t sign Y0:"<<signY0<<"\t signs Z0:"<<signZ0<<endl;
   
   // Set calculated initial param values
-  SetParameter(fitter, 0, "R0", startR  ,  0      , 1000  ); // limits from MC
+  SetParameter(fitter, 0, "R0", startR  ,  0      , maxR  ); // limits from MC
   SetParameter(fitter, 2, "s0", startS0 , -10000  , 10000 );
   SetParameter(fitter, 4, "L" , startL  ,  minL   , maxL  );
-  SetParameter(fitter, 5, "x0", startX0 , -1000   , 1000  );
-  SetParameter(fitter, 6, "y0", startY0 , -1000   , 1000  );
-  SetParameter(fitter, 7, "z0", startZ0 , -1000   , 1000  );
+  SetParameter(fitter, 5, "x0", startX0 , minX0   , maxX0 );
+  SetParameter(fitter, 6, "y0", startY0 , minY0   , maxY0 );
+  SetParameter(fitter, 7, "z0", startZ0 , minZ0   , maxZ0  );
   
   // With 3 points we don't know how fast will radius and slope decrease:
   FixParameter(fitter, 1, "a" , 0);
   FixParameter(fitter, 3, "b" , 0);
-  
-  cout<<"Starting params:"<<endl;
-  cout<<"\tR0: "<<startR<<endl;
-  cout<<"\ts0: "<<startS0<<endl;
-  cout<<"\tL: "<<startL<<endl;
-  cout<<"\tx0: "<<startX0<<endl;
-  cout<<"\ty0: "<<startY0<<endl;
-  cout<<"\tz0: "<<startZ0<<endl;
   
   return fitter;
 }

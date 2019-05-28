@@ -86,23 +86,21 @@ helix_thickness:  0.0
 circle_thickness: 20.0
 
 ### Constraints on seeds parameters:
-seed_max_chi2:                            1e-4
-seed_middle_hit_max_delta_phi:  0.7
+seed_max_chi2:                            1e-1
+seed_middle_hit_max_delta_phi:  1.0
 seed_middle_hit_max_delta_z:     100
-seed_last_hit_max_delta_phi:        0.7
+seed_last_hit_max_delta_phi:       1.0
 seed_last_hit_max_delta_z:           100
 
 ### Constrains on pion track parameters:
 track_max_chi2:                             1e-2
 next_point_max_delta_phi:             1.0
 next_point_max_delta_z:                200
-track_min_n_points:                       5
+track_min_n_points:                       6
 
-### Max number of different points to merge two helices:
+### Max number of different points and min number of points to merge two helices:
 merging_max_different_point:        2
-
-### Min number of points for a candidate to pass to the merging step:
-candidate_min_n_points:                3
+candidate_min_n_points:               4
 
 **Benchmark parameters**
 

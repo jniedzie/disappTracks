@@ -174,6 +174,20 @@ vector<vector<shared_ptr<Point>>> PointsProcessor::SortByLayer(const vector<shar
   return pointsByLayer;
 }
 
+void PointsProcessor::SetPointsLayers(vector<shared_ptr<Point>> &points)
+{
+  for(auto &p : points){
+    double pointR = sqrt(pow(p->GetX(), 2) + pow(p->GetY(), 2));
+    
+    for(int iLayer=0; iLayer<layerRanges.size(); iLayer++){
+      if(layerRanges[iLayer].IsInside(pointR)){
+        p->SetLayer(iLayer);
+        break;
+      }
+    }
+  }
+}
+
 double PointsProcessor::GetPointingAngle(const Point &p0, const Point &p1, const Point &p2)
 {
   double x_v = p0.GetX();

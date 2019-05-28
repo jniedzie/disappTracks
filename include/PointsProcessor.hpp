@@ -87,6 +87,8 @@ public:
   
   double GetTforPoint(Point &point, Point &origin, int charge);
   
+  void SetPointsLayers(vector<shared_ptr<Point>> &points);
+  
   /// Structs for sorting point
   struct ComparePointByZ{
     bool operator() (const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){

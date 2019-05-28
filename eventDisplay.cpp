@@ -16,37 +16,37 @@ string cutLevel = "after_L2/4layers/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 13;
+int iEvent = 41;
 
 // "after_L2/4layers/":
 
 // q+, z+
-// 37 - OK
-// 38 - OK
+// 37 - ok
+// 38 -
 
 // q+, z-
-// 3  - .. Sign X0: -1   sign Y0:-1   signs Z0:--
-// 13 - .. Sign X0: -1   sign Y0:1   signs Z0:-+
-// 19 - .. Sign X0: 1   sign Y0:1   signs Z0:-+
-// 22 - .. Sign X0: -1   sign Y0:1   signs Z0:-+
-// 26 - .. Sign X0: -1   sign Y0:1   signs Z0:-+
-// 28 - .. Sign X0: -1   sign Y0:1   signs Z0:-+
-// 31 - .. Sign X0: -1   sign Y0:-1   signs Z0:--
-// 33 - .. Sign X0: 1   sign Y0:1   signs Z0:-+
-// 34 - .. Sign X0: -1   sign Y0:-1   signs Z0:-+
-// 39 - .. Sign X0: -1   sign Y0:-1   signs Z0:--
+// 3  - ok
+// 13 - ok track chi2 <= 1e-3
+// 19 - ok
+// 22 - no, track chi2: 1e-2
+// 26 -
+// 28 - ok
+// 31 - ok
+// 33 - ok
+// 34 - ok track chi2 <= 1e-2
+// 39 - ok
 
 // q-, z+
-// 11 - ..
-// 30 - OK
-// 43 - OK
-// 44 - ..
+// 11 - pion doesn't really follow the chargino
+// 30 - ok
+// 43 - ok
+// 44 - somehow this is special
 
 // q-, z-
-// 7  - OK
-// 18 - OK
-// 27 - OK
-// 41 - OK
+// 7  - ok-ish
+// 18 - missing hit in the middle?
+// 27 - ok
+// 41 -
 
 // 0 - bad hits
 // 1 - bad hits
@@ -403,10 +403,11 @@ int main(int argc, char* argv[])
     
     auto start = now();
 //    vector<Helix> fittedHelices = fitter->FitHelices(allSimplePoints, *track, *event->GetVertex());
-//
+
 //    display->DrawSimplePoints(pointsNoEndcaps, pionClustersOptions);
 //    vector<Helix> fittedHelices = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
     
+    pointsProcessor.SetPointsLayers(pionClusters);
     display->DrawSimplePoints(pionClusters, pionClustersOptions);
     vector<Helix> fittedHelices = fitter->FitHelices(pionClusters, *track, *event->GetVertex());
     

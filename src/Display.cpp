@@ -66,6 +66,8 @@ void Display::AddStripCluster(TEveElementList *stripClusters,
   
   stripBox->SetMainColor(any_cast<EColor>(options["color"]));
   stripBox->SetRnrSelf(true);
+  stripBox->SetPickable(true);
+  stripBox->SetTitle(("Layer:"+to_string(point->GetLayer())).c_str());
   
   stripClusters->AddElement(stripBox);
 }
