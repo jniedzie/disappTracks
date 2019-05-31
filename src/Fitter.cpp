@@ -32,11 +32,6 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   vector<Helix> fittedHelices = GetSeeds(pointsByLayer);
   cout<<"Number of valid seeds: "<<fittedHelices.size()<<endl;
   
-  int iter=0;
-  for(auto &helix : fittedHelices){
-    helix.uniqueID = iter++;
-  }
-  
   // Extend seeds
   cout<<"Extending seeds..."<<endl;
   ExtendSeeds(fittedHelices, pointsByLayer);
@@ -69,7 +64,7 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   
   cout<<"Refitting surviving helices...";
   for(auto &helix : longMergedHelices){
-    if(helix.shouldRefit) RefitHelix(helix);
+    if(helix.GetShouldRefit()) RefitHelix(helix);
   }
   cout<<" done."<<endl;
   
@@ -135,8 +130,8 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
       auto helix = FitSeed(points,  track.GetCharge());
       
       if(helix){
-        helix->increasing = true; // add decreasing later
-        if(helix->chi2 < config.seedMaxChi2) seeds.push_back(*helix);
+        helix->SetIncreasing(true); // add decreasing later
+        if(helix->GetChi2() < config.seedMaxChi2) seeds.push_back(*helix);
         else{
           cout<<"Seed chi2 out of limits"<<endl;
         }
@@ -183,17 +178,13 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points, int c
     
     double t, distX, distY, distZ, x, y, z;
     double f=0;
-//    cout<<endl;
+
     // Then add distances to all other points
     for(auto &p : pointsTriplet){
       t = p->GetT();
       x = x0 + (R0 - a*t)*cos(t);
       y = y0 + (R0 - a*t)*sin(t);
       z = -charge*z0 + (s0 - b*t)*t;
-      
-//      cout<<"Point:"; p->Print(); cout<<endl;
-//      cout<<"t:"<<t<<endl;
-//      cout<<"Fit:("<<x<<","<<y<<","<<z<<")"<<endl;
       
       // calculate distance between helix and point's boundary (taking into account its errors)
       distX = distY = distZ = 0;
@@ -261,9 +252,9 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points, int c
   resultHelix = make_unique<Helix>(resultParams, vertex, origin, points, track);
   resultHelix->SetCharge(charge);
   resultHelix->UpdateOrigin(origin);
-  resultHelix->chi2 = result.MinFcnValue();
+  resultHelix->SetChi2(result.MinFcnValue());
   
-  cout<<"Final chi2:"<<resultHelix->chi2<<endl;
+  cout<<"Final chi2:"<<resultHelix->GetChi2()<<endl;
   
   return resultHelix;
 }
@@ -282,7 +273,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
     // for all helices from previous step
     for(Helix &helix : helices){
       
-      if(helix.isFinished){
+      if(helix.GetIsFinished()){
         nextStepHelices.push_back(helix);
       }
       else{
@@ -291,7 +282,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         vector<shared_ptr<Point>> possiblePoints;
         
         if(lastPointLayer+1 < pointsByLayer.size() && lastPointLayer-1 >= 0){
-          if(helix.increasing)  possiblePoints = pointsByLayer[lastPointLayer+1];
+          if(helix.GetIncreasing())  possiblePoints = pointsByLayer[lastPointLayer+1];
           else                  possiblePoints = pointsByLayer[lastPointLayer-1];
         }
         
@@ -318,7 +309,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           RefitHelix(helixCopy);
           
           // check if chi2 is small enough
-          if(helixCopy.chi2 > config.trackMaxChi2) continue;
+          if(helixCopy.GetChi2() > config.trackMaxChi2) continue;
 
           extendedHelices.push_back(helixCopy);
         }
@@ -329,8 +320,8 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
                                  extendedHelices.end());
           finished = false;
         }
-        else if(!helix.isFinished){ // if helix could not be extended
-          helix.isFinished = true;
+        else if(!helix.GetIsFinished()){ // if helix could not be extended
+          helix.SetIsFinished(true);
           nextStepHelices.push_back(helix);
         }
       }
@@ -412,10 +403,10 @@ bool Fitter::MergeHelices(vector<Helix> &helices)
     }
     vector<shared_ptr<Point>> allPoints(uniquePoints.begin(), uniquePoints.end());
     
-    helix1Copy.ReplacePoints(allPoints);
+    helix1Copy.SetPoints(allPoints);
     RefitHelix(helix1Copy);
     
-    if(helix1Copy.chi2 < config.trackMaxChi2){
+    if(helix1Copy.GetChi2() < config.trackMaxChi2){
       helix1 = helix1Copy;
     }
     else{
@@ -527,10 +518,10 @@ void Fitter::RefitHelix(Helix &helix)
   double Lmin = layerRanges[track.GetNtrackerLayers()-1].GetMax();
   double Lmax = layerRanges[track.GetNtrackerLayers()].GetMin();
   
-  SetParameter(fitter, 0, "R0", helix.helixParams.R0, 0, 1000); // from MC
-  SetParameter(fitter, 1, "a" , helix.helixParams.a , 0, 10000);
-  SetParameter(fitter, 2, "s0", helix.helixParams.s0, -10000, 10000);
-  SetParameter(fitter, 3, "b" , helix.helixParams.b , -10000, 10000);
+  SetParameter(fitter, 0, "R0", helix.GetRadius(0), 0, 1000); // from MC
+  SetParameter(fitter, 1, "a" , helix.GetRadiusFactor() , 0, 10000);
+  SetParameter(fitter, 2, "s0", helix.GetSlope(0), -10000, 10000);
+  SetParameter(fitter, 3, "b" , helix.GetSlopeFactor() , -10000, 10000);
   SetParameter(fitter, 4, "L" , (helix.GetVertex()->GetX()-10*eventVertex.GetX())/cos(track.GetPhi()),
                Lmin, Lmax);
   SetParameter(fitter, 5, "x0", helix.GetOrigin().GetX(), -1000 , 1000);
@@ -558,10 +549,10 @@ void Fitter::RefitHelix(Helix &helix)
   
   Point origin(x0, y0, z0);
   
-  helix.helixParams = resultParams;
+  helix.SetParams(resultParams);
   helix.SetVertex(vertex);
   helix.UpdateOrigin(origin);
-  helix.chi2 = result.MinFcnValue();
+  helix.SetChi2(result.MinFcnValue());
   
 }
 

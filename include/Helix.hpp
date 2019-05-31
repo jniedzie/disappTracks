@@ -13,6 +13,11 @@
 
 struct HelixParams
 {
+  // Helix params given parametric equation:
+  // x = x0 + (R0 - at) cos(t)
+  // y = y0 + (R0 - at) sin(t)
+  // z = z0 + (s0 - bt) t
+  
   HelixParams(){}
   HelixParams(double _R0, double _a, double _s0, double _b) : R0(_R0), a(_a), s0(_s0), b(_b) {}
   double R0; // initial radius
@@ -24,9 +29,6 @@ struct HelixParams
 class Helix
 {
 public:
-  /// Default constructor
-  Helix();
-  
   /// Constructor taking as an input origin and momentum vector (will be automatically shifted to begin in the origin point)
   /// \param _origin Helix origin point (e.g. chargino decay point)
   /// \param _momentum  Momentum of the particle that creates a helix
@@ -34,6 +36,12 @@ public:
   Helix(const Point &_origin,
         const unique_ptr<Point> &_momentum,
         int _charge);
+  
+  Helix(const HelixParams &_params,
+        const Point &_decayVertex,
+        const Point &_origin,
+        const vector<shared_ptr<Point>> &_points,
+        const Track &_track);
   
   /// Copy constructor
   Helix(const Helix &h);
@@ -47,100 +55,74 @@ public:
   /// Prints basic information about the helix
   void Print();
   
-  /// It will pick only points that are on the helix (within its thickness)
-  /// and count how many of them are pion points
-  void SetPoints(const vector<shared_ptr<Point>> &_points);
-  
-  void SetCharge(int val){charge = val;}
-  
-  // Getters
-  vector<shared_ptr<Point>>  GetPoints() const {return points;}
-  
-  inline Point  GetOrigin() const {return origin;}
-  inline unique_ptr<Point>  GetMomentum() const {return make_unique<Point>(*momentum);}
-  inline double   GetRadius() const {return radius;}
-  inline double   GetSlope() const {return slope;}
-  inline int      GetCharge() const {return charge;}
-  
-  inline double   GetTmin() const {return tShift;}
-  inline double   GetTmax() const {return tMax;}
-  inline double   GetTstep() const {return tStep;}
-  inline uint     GetNpoints() const {return (uint)points.size();}
-  inline int      GetNpionPoints() const {return nPionPoints;}
-  inline int      GetNregularPoints() const {return nRegularPoints;}
-  
-  inline double   GetNcycles() const {return sgn(momentum->GetZ())*((sgn(momentum->GetZ())*trackerZsize) - origin.GetZ())/(fabs(slope)*2*TMath::Pi());}
-  
-  // limit params
-  // x = L cos(φ) + (R0 - at) cos(t)
-  // y = L sin(φ) + (R0 - at) sin(t)
-  // z = L ctg(φ) + (s0 - bt) t
-  
-  int iCycles;
-  bool isFinished = false;
-  uint64_t seedID;
-  uint64_t uniqueID;
-  
-  unique_ptr<Point> GetVertex() const {return make_unique<Point>(*vertex);}
-  shared_ptr<Point> GetLastPoint() const {return points[points.size()-1];}
-  
-  //------------------------------------------------------------------------
-  // Another approach
-  //
-  
-  Helix(const HelixParams &_params,
-        const Point &_decayVertex,
-        const Point &_origin,
-        const vector<shared_ptr<Point>> &_points,
-        const Track &_track);
-  
-  HelixParams helixParams;
-  
-  
-  double GetRadius(double t) const { return (helixParams.R0 - helixParams.a*t); }
-  double GetSlope(double t) const { return (helixParams.s0 - helixParams.b*t); }
-  
+  /// Adds point to the collection of helix's points, sets correct t for this point and updates tMax
   void AddPoint(const shared_ptr<Point> &point);
   
-  void SetTmin(double _tMin){ tShift = _tMin; }
-  void SetTmax(double _tMax){ tMax = _tMax; }
-  void SetMomentum(const Point &_momentum){momentum = make_unique<Point>(_momentum);}
-  
+  /// Sets new origin, recalculates t params for all point on helix and updates tShift and tMax
   void UpdateOrigin(const Point &_origin);
   
-  void SetVertex(const Point &_vertex){
-    points[0] = make_shared<Point>(_vertex);
-    vertex = make_unique<Point>(_vertex);
-  }
-  double chi2;
-  bool increasing = false;
+  // Setters
+  inline void   SetCharge(int val)            { charge = val; }
+  inline void   SetTmin(double val)           { tShift = val; }
+  inline void   SetTmax(double val)           { tMax = val; }
+  inline void   SetMomentum(const Point &val) { momentum = make_unique<Point>(val); }
+  inline void   SetPoints(vector<shared_ptr<Point>> &val){ points = val; }
+  void          SetVertex(const Point &_vertex);
+  inline void   SetShouldRefit(bool val) { shouldRefit = val; }
+  inline void   SetIncreasing(bool val) { increasing = val; }
+  inline void   SetChi2(double val) { chi2 = val; }
+  inline void   SetIsFinished(bool val) { isFinished = val; }
+  inline void   SetParams(HelixParams val) { helixParams = val; }
   
-  void ReplacePoints(vector<shared_ptr<Point>> &_points){
-    points = _points;
-  }
-  bool shouldRefit=false;
+  // Getters
+  inline int                  GetCharge()   const {return charge; }
+  inline uint64_t             GetUniqueID() const {return uniqueID; }
+  
+  inline double               GetTmin()     const {return tShift;}
+  inline double               GetTmax()     const {return tMax;}
+  inline double               GetTstep()    const {return tStep;}
+  
+  double                      GetRadius(double t) const;
+  inline double               GetRadiusFactor()   const {return helixParams.a; }
+  double                      GetSlope(double t)  const;
+  inline double               GetSlopeFactor()    const {return helixParams.b; }
+  
+  inline Point                GetOrigin()   const {return origin;}
+  inline unique_ptr<Point>    GetVertex()   const {return make_unique<Point>(*vertex);}
+  inline unique_ptr<Point>    GetMomentum() const {return make_unique<Point>(*momentum);}
+  
+  vector<shared_ptr<Point>>   GetPoints()   const {return points;}
+  shared_ptr<Point>           GetLastPoint()const {return points[points.size()-1];}
+  inline uint                 GetNpoints()  const {return (uint)points.size();}
+  
+  double                      GetNcycles()  const;
+  
+  inline bool GetShouldRefit() const { return shouldRefit; }
+  inline double GetChi2() const { return chi2; }
+  inline bool GetIsFinished() const { return isFinished; }
+  inline bool GetIncreasing() const { return increasing; }
   
 private:
   unique_ptr<Point> vertex;         ///< Decay point (beginning) of the helix
   Point origin;                     ///< Center of the helix
   vector<shared_ptr<Point>> points; ///< Vector of points laying on the helix
   
-  double radius;                ///< Radius of the helix
-  double slope;                 ///< Slope of the helix in Z direction
-  double slopeAbs;              ///< Absolute value of the slope (to speed up the calculation)
   double tShift;  ///< Angle by which beginning of the helix is shifted due to the shift of its origin
   double tMax;    ///< Max angle (taking into account number of cycles
   double tStep;   ///< Step determining drawing precision
-  
-  int nRegularPoints = 0; ///< Number of points that are distributed regularly along Z axis
-  int nPionPoints = 0;    ///< Number of points along the helix that are true pion hits
   
   unique_ptr<Point> momentum;   ///< Pion's momentum vector
   Track track;
   int charge;                ///< Charge of the particle (determines helix direction)
   
-  Point GetClosestPoint(const Point &p) const;
-  Point eventVertex;
+  int iCycles;
+  bool isFinished;
+  uint64_t seedID;
+  uint64_t uniqueID;
+  HelixParams helixParams;
+  double chi2;
+  bool increasing;
+  bool shouldRefit;
   
   friend class HelixProcessor;
 };

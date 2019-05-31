@@ -28,15 +28,6 @@ public:
   /// \return Returns zero if identical, otherwise returns failure reason code
   vector<int> AreIdentical(const Helix &h1, const Helix &h2);
   
-  /// Returns vector of points along helix trajectory that hit the tracker
-  vector<shared_ptr<Point>> GetPointsHittingSilicon(const Helix &helix);
-  
-  /// Generates random helix starting on the track (withing the decay region)
-  /// \param track Track on which the helix will be generated
-  /// \param pionHelix Returns generated helix
-  void GetRandomPionHelix(const shared_ptr<Track> &track, Helix &pionHelix);
-  
-  
   /// Link class variables to branches of a specified tree
   /// \param tree Tree from which fitted helix parameters will be read
   void SetupBranchesForReading(TTree *tree);
@@ -50,10 +41,6 @@ public:
   
   /// Writes all fitted helices in the vector to the tree previously set with SetupBranchesForWriting(...)
   void SaveHelicesToTree(vector<shared_ptr<Helix>> helices);
-  
-  double GetHelixToPointDistance(const unique_ptr<Helix> &helix, const shared_ptr<Point> &point);
-  
-  double GetChi2toPoints(const unique_ptr<Helix> &helix, const vector<shared_ptr<Point>> &points);
   
 private:
   static const int maxNhelices = 1000;   ///< Maximum supported number of helices per event

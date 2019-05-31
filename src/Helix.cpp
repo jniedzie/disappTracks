@@ -7,13 +7,6 @@
 #include "Helix.hpp"
 #include "Fitter.hpp"
 
-Helix::Helix() :
-origin(0,0,0),
-eventVertex(0,0,0)
-{
-  
-}
-
 Helix::Helix(const Point &_origin,
              const unique_ptr<Point> &_momentum,
              int _charge) :
@@ -21,16 +14,21 @@ vertex(make_unique<Point>(_origin)),
 origin(_origin),
 momentum(make_unique<Point>(*_momentum)),
 charge(_charge),
-eventVertex(0,0,0)
+iCycles(0),
+isFinished(false),
+helixParams(HelixParams()),
+chi2(inf),
+increasing(true),
+shouldRefit(false)
 {
-  radius = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
-  slope = radius * charge * momentum->GetVectorSlopeC();
-  slopeAbs = fabs(slope);
-  tStep = 0.01;
+  seedID = uniqueID = reinterpret_cast<uint64_t>(this);
+  
+  helixParams.R0 = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
+  helixParams.s0 = GetRadius(0) * charge * momentum->GetVectorSlopeC();
   
   // take a vector perpendicular to the pion's momentum vector
   Point v = Point(charge * momentum->GetY(),charge * -momentum->GetX(), 0.0);
-  const double scale = radius/sqrt(pow(v.GetX(),2)+pow(v.GetY(),2));
+  const double scale = GetRadius(0)/sqrt(pow(v.GetX(),2)+pow(v.GetY(),2));
   
   v.SetX(scale * v.GetX());
   v.SetY(scale * v.GetY());
@@ -46,9 +44,42 @@ eventVertex(0,0,0)
     if(charge > 0) tShift = TMath::Pi() - atan2(-v.GetY(), v.GetX());
     if(charge < 0) tShift = TMath::Pi() - atan2(-v.GetX(), v.GetY());
   }
-  origin.SetZ(origin.GetZ() - fabs(tShift)*fabs(slope));
+  origin.SetZ(origin.GetZ() - fabs(tShift)*fabs(GetSlope(0)));
   
   tMax = GetNcycles()*2*TMath::Pi();
+  tStep = 0.01;
+}
+
+Helix::Helix(const HelixParams &_params,
+             const Point &_decayVertex,
+             const Point &_origin,
+             const vector<shared_ptr<Point>> &_points,
+             const Track &_track) :
+origin(_origin),
+vertex(make_unique<Point>(_decayVertex)),
+helixParams(_params),
+track(_track),
+iCycles(0),
+isFinished(false),
+chi2(inf),
+increasing(true),
+shouldRefit(false)
+{
+  seedID = uniqueID = reinterpret_cast<uint64_t>(this);
+  charge = track.GetCharge();
+  
+  points.push_back(make_shared<Point>(_decayVertex));
+  for(auto &p : _points) points.push_back(p);
+  
+  // this only gives approximate direction of the momentum vector
+  momentum = make_unique<Point>(points[1]->GetX() - vertex->GetX(),
+                                points[1]->GetY() - vertex->GetY(),
+                                points[1]->GetZ() - vertex->GetZ());
+  
+  
+  tShift  = points.front()->GetT();
+  tMax    = points.back()->GetT();
+  tStep   = 0.01;
 }
 
 Helix::Helix(const Helix &h) :
@@ -59,24 +90,17 @@ points(h.points),
 tShift(h.tShift),
 tMax(h.tMax),
 tStep(h.tStep),
-nRegularPoints(h.nRegularPoints),
-nPionPoints(h.nPionPoints),
 vertex(make_unique<Point>(*h.vertex)),
 origin(h.origin),
 momentum(make_unique<Point>(*h.momentum)),
 track(h.track),
-radius(h.radius),
-slope(h.slope),
-slopeAbs(h.slopeAbs),
 charge(h.charge),
-eventVertex(h.eventVertex),
 helixParams(h.helixParams),
 chi2(h.chi2),
 increasing(h.increasing),
 shouldRefit(h.shouldRefit)
 {
-  uniqueID = h.uniqueID;
-//  uniqueID = reinterpret_cast<uint64_t>(this);
+  uniqueID = reinterpret_cast<uint64_t>(this);
 }
 
 Helix& Helix::operator=(const Helix &h)
@@ -85,8 +109,7 @@ Helix& Helix::operator=(const Helix &h)
   momentum = make_unique<Point>(*h.momentum);
   charge = h.charge;
   
-  uniqueID = h.uniqueID;
-//  uniqueID = reinterpret_cast<uint64_t>(this);
+  uniqueID = reinterpret_cast<uint64_t>(this);
 
   iCycles        = h.iCycles;
   isFinished     = h.isFinished;
@@ -95,15 +118,8 @@ Helix& Helix::operator=(const Helix &h)
   tShift         = h.tShift;
   tMax           = h.tMax;
   tStep          = h.tStep;
-  nRegularPoints = h.nRegularPoints;
-  nPionPoints    = h.nPionPoints;
   vertex         = make_unique<Point>(*h.vertex);
   track          = h.track;
-  radius         = h.radius;
-  slope          = h.slope;
-  slopeAbs       = h.slopeAbs;
-  eventVertex    = h.eventVertex;
-  
   helixParams    = h.helixParams;
   chi2           = h.chi2;
   increasing     = h.increasing;
@@ -132,89 +148,32 @@ void Helix::Print()
   cout<<"\tVertex:("<<vertex->GetX()<<","<<vertex->GetY()<<","<<vertex->GetZ()<<")\n";
   cout<<"\tOrigin:("<<origin.GetX()<<","<<origin.GetY()<<","<<origin.GetZ()<<")\n";
   cout<<"\tMomentum:("<<momentum->GetX()<<","<<momentum->GetY()<<","<<momentum->GetZ()<<")\n";
-  cout<<"\tCharge: "<<charge<<"\tR:"<<radius<<"\tc:"<<slope<<"\n";
+  cout<<"\tCharge: "<<charge<<"\n";
   cout<<"\ts0: "<<helixParams.s0<<"\tb: "<<helixParams.b<<"\tR0: "<<helixParams.R0<<"\t a: "<<helixParams.a<<endl;
-  cout<<"\tnPoints:"<<points.size()<<"\tnPionPoints:"<<nPionPoints<<"\tnRegularPoints:"<<nRegularPoints<<"\n";
+  cout<<"\tnPoints:"<<points.size()<<"\n";
   cout<<"\tt min:"<<tShift<<"\tt max:"<<tMax<<endl;
   cout<<"\tchi2:"<<chi2<<endl;
 }
 
-void Helix::SetPoints(const vector<shared_ptr<Point>> &_points)
+void Helix::SetVertex(const Point &_vertex)
 {
-  nPionPoints = 0;
-  points.clear();
-  
-  for(auto &p : _points){
-    Point q = GetClosestPoint(*p);
-    if(pointsProcessor.distance(*p,q) < config.helixThickness){
-      if(p->IsPionHit()) nPionPoints++;
-      points.push_back(p);
-    }
-  }
+  points[0] = make_shared<Point>(_vertex);
+  vertex    = make_unique<Point>(_vertex);
 }
 
-Point Helix::GetClosestPoint(const Point &p) const
+double Helix::GetNcycles() const
 {
-  int zSign = sgn(momentum->GetZ());
-  
-//  if(   (zSign > 0 && p.GetZ() < origin->GetZ())
-//     || (zSign < 0 && p.GetZ() > origin->GetZ())){
-//    return Point(origin->GetX(), origin->GetY(), origin->GetZ());
-//  }
-  double t = atan2((p.GetY()-origin.GetY()),(p.GetX()-origin.GetX()));
-  
-  if(charge < 0) t = TMath::Pi()/2. - t;
-  
-  double x = origin.GetX();
-  double y = origin.GetY();
-  double z = origin.GetZ() + slopeAbs*t;
-  
-  if(charge > 0){
-    x += radius*cos(t);
-    y += radius*sin(t);
-  }
-  else{
-    x += radius*sin(t);
-    y += radius*cos(t);
-  }
-  
-  int nCycles = round(fabs(p.GetZ() - z) / (slopeAbs * 2 * TMath::Pi()));
-  z += zSign * nCycles * slopeAbs * 2 * TMath::Pi();
-
-  return Point(x,y,z);
+  return sgn(momentum->GetZ())*((sgn(momentum->GetZ())*trackerZsize) - origin.GetZ())/(fabs(GetSlope(0))*2*TMath::Pi());
 }
 
-
-//------------------------------------------------------------------------------------------------
-// Annother approach
-//
-
-Helix::Helix(const HelixParams &_params,
-             const Point &_decayVertex,
-             const Point &_origin,
-             const vector<shared_ptr<Point>> &_points,
-             const Track &_track) :
-origin(_origin),
-vertex(make_unique<Point>(_decayVertex)),
-helixParams(_params),
-track(_track)
+double Helix::GetRadius(double t) const
 {
-  seedID = uniqueID = reinterpret_cast<uint64_t>(this);
-  charge = track.GetCharge();
- 
-  points.push_back(make_shared<Point>(_decayVertex));
-  for(auto &p : _points) points.push_back(p);
-  
-  // this only gives approximate direction of the momentum vector
-  momentum = make_unique<Point>(points[1]->GetX() - vertex->GetX(),
-                                points[1]->GetY() - vertex->GetY(),
-                                points[1]->GetZ() - vertex->GetZ());
-  
-  
-  tShift  = points.front()->GetT();
-  tMax    = points.back()->GetT();
-  tStep   = 0.01;
-  iCycles =0;
+  return (helixParams.R0 - helixParams.a*t);
+}
+
+double Helix::GetSlope(double t) const
+{
+  return (helixParams.s0 - helixParams.b*t);
 }
 
 void Helix::AddPoint(const shared_ptr<Point> &point)
@@ -237,7 +196,6 @@ void Helix::UpdateOrigin(const Point &_origin)
   }
   
   sort(points.begin(), points.end(), PointsProcessor::ComparePointByLayer());
-//  sort(points.begin(), points.end(), PointsProcessor::ComparePointByT());
 
   // this should be fixed:
   for(int iPoint=0; iPoint<points.size()-1; iPoint++){

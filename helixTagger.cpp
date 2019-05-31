@@ -17,28 +17,6 @@ uint searchRun = 297100;
 uint searchLumi = 136;
 unsigned long long searchEvent = 245000232;
 
-void InjectPion(vector<shared_ptr<Point>> trackerPoints,
-                shared_ptr<Track> track){
-  double theta = track->GetTheta();
-  double phi = track->GetPhi();
-
-  int lastBarrelLayer = track->GetLastBarrelLayer();
-  
-  double minR = layerR[lastBarrelLayer-1];
-  double maxR = layerR[lastBarrelLayer];
-  double decayR = RandDouble(minR, maxR);
-  
-  double x = decayR*cos(phi);
-  double y = decayR*sin(phi);
-  double z = decayR/sin(theta)*cos(theta);
-  
-  track->SetDecayPoint(Point(x,y,z));
-  Helix pionHelix;
-  helixProcessor.GetRandomPionHelix(track, pionHelix);
-  pionHelix.Print();
-  trackerPoints.insert(trackerPoints.end(),pionHelix.GetPoints().begin(), pionHelix.GetPoints().end());
-}
-
 int main(int argc, char* argv[])
 {
   config = ConfigManager(configPath);
@@ -68,8 +46,6 @@ int main(int argc, char* argv[])
     for(int iTrack=0; iTrack<event->GetNtracks(); iTrack++){
       cout<<"helixTagger -- fitting helix for track:"<<iTrack<<endl;
       auto track = event->GetTrack(iTrack);
-      
-      if(config.injectPionHits) InjectPion(trackerPoints, track);
       
       unique_ptr<Helix> fittedHelix = nullptr;//fitter->FitHelix(trackerPoints, *track, *event->GetVertex());
       if(fittedHelix){

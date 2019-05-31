@@ -89,15 +89,15 @@ void Display::DrawHelix(const Helix &helix, const map<string,any> options)
   auto fillPointForT = [&](double t){
     double x = helix.GetOrigin().GetX();
     double y = helix.GetOrigin().GetY();
-    double z = helix.GetOrigin().GetZ() + fabs(helix.GetSlope())*t;
+    double z = helix.GetOrigin().GetZ() + fabs(helix.GetSlope(0))*t;
     
     if(helix.GetCharge()*zSign < 0){
-      x += helix.GetRadius()*cos(t);
-      y += helix.GetRadius()*sin(t);
+      x += helix.GetRadius(0)*cos(t);
+      y += helix.GetRadius(0)*sin(t);
     }
     else{
-      x += helix.GetRadius()*sin(t);
-      y += helix.GetRadius()*cos(t);
+      x += helix.GetRadius(0)*sin(t);
+      y += helix.GetRadius(0)*cos(t);
     }
     helixPoints->Fill(scale*x,scale*y,scale*z, 0);
   };

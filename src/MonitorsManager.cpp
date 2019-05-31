@@ -11,8 +11,6 @@ MonitorsManager::MonitorsManager()
   const vector<tuple<const char*,int,double,double>> monitors1Dparams = {
     {"nPointsOnHelix",100 ,0,100},
     {"chi2ofHelix",   50  ,0,50 },
-    {"nPionPoints",   100, 0,1.2},
-    {"nFakeHits",     1000,0,10 },
     {"failReason",    10,  0,10 },
   };
 
@@ -157,9 +155,6 @@ void MonitorsManager::FillMonitors(const unique_ptr<Helix> &fittedHelix,
   monitors2D["pyResponse"]->Fill(trueHelix.GetMomentum()->GetY(), fittedHelix->GetMomentum()->GetY());
   monitors2D["pzResponse"]->Fill(trueHelix.GetMomentum()->GetZ(), fittedHelix->GetMomentum()->GetZ());
   monitors1D["nPointsOnHelix"]->Fill(fittedHelix->GetNpoints());
-  monitors1D["nPionPoints"]->Fill(fittedHelix->GetNpionPoints()/(double)trueHelix.GetNpionPoints());
-
-  monitors1D["nFakeHits"]->Fill((fittedHelix->GetNpoints()-fittedHelix->GetNpionPoints())/(double)fittedHelix->GetNpoints());
   
   vector<int> failureCodes = helixProcessor.AreIdentical(*fittedHelix, trueHelix);
   
