@@ -54,7 +54,7 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   
   // Merge similar candidates
   cout<<"Merging overlapping helices...";
-  while(MergeHelices2(longHelices));
+  while(MergeHelices(longHelices));
   cout<<" merged down to: "<<longHelices.size()<<endl;
   
   // Remove helices that are too short
@@ -90,6 +90,12 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
   int nPairs=0;
   for(auto &middlePoint : possibleMiddlePoints){
     
+//    if(fabs(middlePoint->GetX() + 18) < 1.0 &&
+//       fabs(middlePoint->GetY() + 275) < 1.0 &&
+//       fabs(middlePoint->GetZ() - 75) < 1.0){
+//      cout<<"this"<<endl;
+//    }
+    
     double middleHitDeltaPhi = pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMid, *middlePoint);
     if(middleHitDeltaPhi > config.seedMiddleHitMaxDeltaPhi){
       cout<<"middle hit phi"<<endl;
@@ -102,7 +108,15 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
       continue;
     }
     
+    
+    
     for(auto &lastPoint : possibleLastPoints){
+      
+//      if(fabs(lastPoint->GetX() -5) < 1.0 &&
+//         fabs(lastPoint->GetY() + 323) < 1.0 &&
+//         fabs(lastPoint->GetZ() - 29) < 1.0){
+//        cout<<"this"<<endl;
+//      }
       
       double lastHitDeltaPhi = pointsProcessor.GetPointingAngleXY(trackPointMid, *middlePoint, *lastPoint);
       if(lastHitDeltaPhi > config.seedLastHitMaxDeltaPhi){
@@ -329,59 +343,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
   while(!finished);
 }
 
-void Fitter::MergeHelices(vector<Helix> &helices)
-{
-  // Merge helices that are very similar to each other
-  bool merged = true;
-  int nPasses = 0;
-  
-  while(merged){
-    merged=false;
-//    cout<<"Merging pass "<<nPasses<<", n helices: "<<helices.size()<<endl;
-    
-    for(int iHelix1=0; iHelix1<helices.size(); iHelix1++){
-      Helix &helix1 = helices[iHelix1];
-      vector<shared_ptr<Point>> points1 = helix1.GetPoints();
-      sort(points1.begin(), points1.end());
-      
-      for(int iHelix2=iHelix1+1; iHelix2<helices.size(); iHelix2++){
-        
-        Helix &helix2 = helices[iHelix2];
-        vector<shared_ptr<Point>> points2 = helix2.GetPoints();
-        sort(points2.begin(), points2.end());
-        
-        vector<shared_ptr<Point>> samePoints;
-        set_intersection(points1.begin(), points1.end(),
-                         points2.begin(), points2.end(),
-                         back_inserter(samePoints));
-        
-        size_t nDifferentPoints = max(points1.size()-samePoints.size(),
-                                      points2.size()-samePoints.size());
-        
-        if(nDifferentPoints <= config.mergingMaxDifferentPoints){
-          // update first helix
-          unordered_set<shared_ptr<Point>> uniquePoints;
-          for(auto &p : points1) uniquePoints.insert(p);
-          for(auto &p : points2) uniquePoints.insert(p);
-          vector<shared_ptr<Point>> allPoints(uniquePoints.begin(), uniquePoints.end());
-          helix1.ReplacePoints(allPoints);
-          helix1.shouldRefit = true;
-          
-          // remove second helix
-          helices.erase(helices.begin() + iHelix2);
-          iHelix2--;
-          merged=true;
-//          break;
-        }
-      }
-      
-//      if(merged) break;
-    }
-    nPasses++;
-  }
-}
-
-bool Fitter::MergeHelices2(vector<Helix> &helices)
+bool Fitter::MergeHelices(vector<Helix> &helices)
 {
   // Merge helices that are very similar to each other
   bool merged = false;
@@ -455,8 +417,6 @@ bool Fitter::MergeHelices2(vector<Helix> &helices)
     
     if(helix1Copy.chi2 < config.trackMaxChi2){
       helix1 = helix1Copy;
-//      helix1.ReplacePoints(allPoints);
-//      helix1.shouldRefit = true;
     }
     else{
       // if merged helix had very bad chi2, cancel the whole merging operation
@@ -552,10 +512,6 @@ void Fitter::RefitHelix(Helix &helix)
       distX /= fabs(p->GetX());
       distY /= fabs(p->GetY());
       distZ /= fabs(p->GetZ());
-      
-//      distX /= p->GetXerr() > 0 ? pow(p->GetXerr(), 2) : fabs(p->GetX());
-//      distY /= p->GetYerr() > 0 ? pow(p->GetYerr(), 2) : fabs(p->GetY());
-//      distZ /= p->GetZerr() > 0 ? pow(p->GetZerr(), 2) : fabs(p->GetZ());
       
       f += distX + distY + distZ;
     }

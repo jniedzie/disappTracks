@@ -13,7 +13,6 @@
 #include "Track.hpp"
 
 #include "Helix.hpp"
-#include "Circle.hpp"
 #include "Point.hpp"
 
 /// Display class creates an event display window and allows to visualize vector of points, a helix of a complete event

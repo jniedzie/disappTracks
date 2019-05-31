@@ -67,7 +67,11 @@ void Display::AddStripCluster(TEveElementList *stripClusters,
   stripBox->SetMainColor(any_cast<EColor>(options["color"]));
   stripBox->SetRnrSelf(true);
   stripBox->SetPickable(true);
-  stripBox->SetTitle(("Layer:"+to_string(point->GetLayer())).c_str());
+  
+  string tooltipInfo = "Layer:" + to_string(point->GetLayer()) +
+  "\n x: " + to_string(point->GetX()) + "\ty:" + to_string(point->GetY()) + "\tz:" + to_string(point->GetZ());
+  
+  stripBox->SetTitle(tooltipInfo.c_str());
   
   stripClusters->AddElement(stripBox);
 }

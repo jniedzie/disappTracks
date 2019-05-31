@@ -9,7 +9,6 @@
 
 #include "Helpers.hpp"
 #include "PointsProcessor.hpp"
-#include "CircleProcessor.hpp"
 #include "HelixProcessor.hpp"
 #include "ConfigManager.hpp"
 #include "Track.hpp"
@@ -27,8 +26,6 @@ public:
                            const Track &_track,
                            const Point &_eventVertex);
   
-  Point trueOrigin;
-  
 private:
   vector<shared_ptr<Point>> points;
   Track track;
@@ -45,8 +42,7 @@ private:
                    const vector<vector<shared_ptr<Point>>> &pointsByLayer);
   
   ///
-  void MergeHelices(vector<Helix> &helices);
-  bool MergeHelices2(vector<Helix> &helices);
+  bool MergeHelices(vector<Helix> &helices);
   
   ///
   void RefitHelix(Helix &helix);

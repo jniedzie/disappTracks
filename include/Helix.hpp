@@ -8,7 +8,6 @@
 #include "Helpers.hpp"
 #include "Point.hpp"
 #include "PointsProcessor.hpp"
-#include "CircleProcessor.hpp"
 #include "ConfigManager.hpp"
 #include "Track.hpp"
 

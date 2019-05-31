@@ -16,37 +16,9 @@ string cutLevel = "after_L2/4layers/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 41;
+int iEvent = 37;
 
 // "after_L2/4layers/":
-
-// q+, z+
-// 37 - ok
-// 38 -
-
-// q+, z-
-// 3  - ok
-// 13 - ok track chi2 <= 1e-3
-// 19 - ok
-// 22 - no, track chi2: 1e-2
-// 26 -
-// 28 - ok
-// 31 - ok
-// 33 - ok
-// 34 - ok track chi2 <= 1e-2
-// 39 - ok
-
-// q-, z+
-// 11 - pion doesn't really follow the chargino
-// 30 - ok
-// 43 - ok
-// 44 - somehow this is special
-
-// q-, z-
-// 7  - ok-ish
-// 18 - missing hit in the middle?
-// 27 - ok
-// 41 -
 
 // 0 - bad hits
 // 1 - bad hits
@@ -330,25 +302,7 @@ int main(int argc, char* argv[])
 		cout<<"Fitting best helix"<<endl;
 		auto fitter = make_unique<Fitter>();
     
-    
-    for(auto &helix : event->GetGenPionHelices()){
-      if(helix.GetCharge() == track->GetCharge()){
-        fitter->trueOrigin = helix.GetOrigin();
-      }
-    }
-    
-    auto pionClustersTmp = event->GetPionClusters();
-
-    vector<shared_ptr<Point>> pionClusters;
-    
-    for(int iCluster=0; iCluster<pionClustersTmp.size(); iCluster++){
-//      if(   iCluster == 0
-//         || iCluster == 2
-////         || iCluster == 13
-//         )
-      pionClusters.push_back(pionClustersTmp[iCluster]);
-    }
-    
+    auto pionClusters = event->GetPionClusters();
     auto pointsByLayer = pointsProcessor.SortByLayer(allSimplePoints);
   
 //    for(auto &point : pointsByLayer[track->GetNtrackerLayers()]){
@@ -359,7 +313,6 @@ int main(int argc, char* argv[])
 //      }
 //    }
     
-  
     map<string,any> pionClustersOptions = {
       {"title", "Layer 4"},
       {"binsMin" , 0},
@@ -369,12 +322,6 @@ int main(int argc, char* argv[])
       {"color", kCyan}
     };
 
-    
-//    display->DrawSimplePoints(pointsByLayer[4], pionClustersOptions);
-    pionClustersOptions["title"] = "Layer 5";
-//    display->DrawSimplePoints(pointsByLayer[5], pionClustersOptions);
-    pionClustersOptions["title"] = "Pion clusters";
-    
     vector<int> rndIndices = {};
     
     vector<shared_ptr<Point>> pointsNoEndcaps;
@@ -404,12 +351,12 @@ int main(int argc, char* argv[])
     auto start = now();
 //    vector<Helix> fittedHelices = fitter->FitHelices(allSimplePoints, *track, *event->GetVertex());
 
-//    display->DrawSimplePoints(pointsNoEndcaps, pionClustersOptions);
-//    vector<Helix> fittedHelices = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
+    display->DrawSimplePoints(pointsNoEndcaps, pionClustersOptions);
+    vector<Helix> fittedHelices = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
     
-    pointsProcessor.SetPointsLayers(pionClusters);
-    display->DrawSimplePoints(pionClusters, pionClustersOptions);
-    vector<Helix> fittedHelices = fitter->FitHelices(pionClusters, *track, *event->GetVertex());
+//    pointsProcessor.SetPointsLayers(pionClusters);
+//    display->DrawSimplePoints(pionClusters, pionClustersOptions);
+//    vector<Helix> fittedHelices = fitter->FitHelices(pionClusters, *track, *event->GetVertex());
     
     auto end = now();
     
