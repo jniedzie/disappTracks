@@ -1,6 +1,6 @@
 **General settings**
 ### Add hits coming from random pion to the collection of all hits (0 - false, 1 - true):
-inject_pion_hits: 1
+inject_pion_hits: 0
 
 ### Number of events to generate and process:
 n_tests:  20
@@ -12,7 +12,7 @@ output_path: helixFittingResults/tests.root
 n_noise_hits: 0
 
 ### Number of available tracker layers (this is used to calculate hits on silicon and generate noise):
-n_tracker_layers: 10
+n_tracker_layers: 4
 
 **Helix tagger options**
 
@@ -38,6 +38,9 @@ do_1000_20:   0
 
 do_2017:         0
 
+### Do we need additional information stored in the friend trees
+load_friend_tree: 1
+
 **Pion's parameters**
 
 ### Minimum and maximum allowed momentum:
@@ -60,10 +63,25 @@ n_track_hits: 2
 **Fitter parameters**
 
 ### Determines how far points can be from helix to be assigned to it (in mm):
-helix_thickness:  0.3
+helix_thickness:  0.0
 
-### Determines how far points can be from circle to be assigned to it (in mm):
-circle_thickness: 0.4
+### Constraints on seeds parameters:
+seed_max_chi2:                            10
+seed_middle_hit_max_delta_phi:  0.5
+seed_middle_hit_max_delta_z:     100
+
+seed_last_hit_max_delta_phi:       0.5
+seed_last_hit_max_delta_z:          100
+
+### Constrains on pion track parameters:
+track_max_chi2:                             1e-2
+next_point_max_delta_phi:             0.5
+next_point_max_delta_z:                700
+track_min_n_points:                       3
+
+### Max number of different points and min number of points to merge two helices:
+merging_max_different_point:        2
+candidate_min_n_points:               3
 
 **Benchmark parameters**
 

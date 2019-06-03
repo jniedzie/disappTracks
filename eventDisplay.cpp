@@ -16,7 +16,7 @@ string cutLevel = "after_L2/4layers/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 37;
+int iEvent = 13;
 
 // "after_L2/4layers/":
 
@@ -337,14 +337,28 @@ int main(int argc, char* argv[])
       {"color", kYellow}
     };
     
-    for(int iHelix=0; iHelix<fittedHelices.size(); iHelix++){
+    for(auto helix : fittedHelices){
 
-      bestHelixOptions["title"] = ("Helix "+to_string(fittedHelices[iHelix].GetUniqueID())).c_str();
-      display->DrawShrinkingHelix(fittedHelices[iHelix], bestHelixOptions);
-      fittedHelices[iHelix].Print();
+      auto helixPoints = helix.GetPoints();
+      
+      int nPionPoints = 0;
+      for(auto &pionPoint : pionClusters){
+        for(auto &helixPoint : helixPoints){
+          if(*pionPoint == *helixPoint) nPionPoints++;
+        }
+      }
+      
+      int nFakePoints = (int)helixPoints.size()-1 - nPionPoints;
+      
+      cout<<"Helix pion points:"<<nPionPoints<<endl;
+      cout<<"\tfake points:"<<nFakePoints<<endl;
+      
+      bestHelixOptions["title"] = ("Helix "+to_string(helix.GetUniqueID())).c_str();
+      display->DrawShrinkingHelix(helix, bestHelixOptions);
+      helix.Print();
       
       helixVertexOptions["markerStyle"] = 20;
-      vector<shared_ptr<Point>> helixVertex = fittedHelices[iHelix].GetPoints();
+      vector<shared_ptr<Point>> helixVertex = helix.GetPoints();
       display->DrawSimplePoints(helixVertex, helixVertexOptions);
     }
   }

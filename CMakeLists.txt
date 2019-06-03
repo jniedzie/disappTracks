@@ -34,7 +34,6 @@ add_executable(analyzeClusters analyzeClusters.cpp)
 add_executable(runAnalysis runAnalysis.cpp)
 add_executable(drawDistributions drawDistributions.cpp)
 add_executable(helixTagger helixTagger.cpp)
-add_executable(helixFitter helixFitter.cpp)
 add_executable(eventDisplay eventDisplay.cpp)
 add_executable(getFfactor getFfactor.cpp)
 add_executable(scanCuts scanCuts.cpp)
@@ -45,7 +44,6 @@ set_property(TARGET analyzeClusters PROPERTY CXX_STANDARD 17)
 set_property(TARGET runAnalysis PROPERTY CXX_STANDARD 17)
 set_property(TARGET drawDistributions PROPERTY CXX_STANDARD 17)
 set_property(TARGET helixTagger PROPERTY CXX_STANDARD 17)
-set_property(TARGET helixFitter PROPERTY CXX_STANDARD 17)
 set_property(TARGET eventDisplay PROPERTY CXX_STANDARD 17)
 set_property(TARGET getFfactor PROPERTY CXX_STANDARD 17)
 set_property(TARGET scanCuts PROPERTY CXX_STANDARD 17)
@@ -67,8 +65,6 @@ add_library(libAnalysis src/Track.cpp
                         src/EventCut.cpp
                         src/EventProcessor.cpp
                         src/EventSet.cpp
-                        src/Circle.cpp
-                        src/CircleProcessor.cpp
                         src/ConfigManager.cpp
                         src/CutsManager.cpp
                         src/Display.cpp
@@ -87,7 +83,6 @@ target_link_libraries(analyzeClusters libAnalysis ${ROOT_LIBRARIES})
 target_link_libraries(runAnalysis libAnalysis ${ROOT_LIBRARIES})
 target_link_libraries(drawDistributions libAnalysis ${ROOT_LIBRARIES})
 target_link_libraries(helixTagger libAnalysis ${ROOT_LIBRARIES})
-target_link_libraries(helixFitter libAnalysis ${ROOT_LIBRARIES})
 target_link_libraries(eventDisplay libAnalysis ${ROOT_LIBRARIES})
 target_link_libraries(getFfactor libAnalysis ${ROOT_LIBRARIES})
 target_link_libraries(scanCuts libAnalysis ${ROOT_LIBRARIES})

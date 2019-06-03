@@ -108,8 +108,5 @@ bool Point::operator==(const Point &p) const
      fabs(z - p.z) > 0.000001 ||
      fabs(value - p.value) > 0.000001) theSame = false;
   
-  if(isPionHit != p.isPionHit ||
-     subDetName != p.subDetName) theSame = false;
-  
   return theSame;
 }

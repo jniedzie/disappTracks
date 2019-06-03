@@ -4,7 +4,7 @@
 cuts_level: 2
 
 ### Analysis category ( 2-tracks | 3-layers | 4-layers ):
-analysis_category:  4-layers
+analysis_category:  3-layers
 
 scan_MET_binning: 0
 do_MET_binning: 0

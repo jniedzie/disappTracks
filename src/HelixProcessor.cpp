@@ -22,7 +22,6 @@ HelixProcessor::HelixProcessor()
   arrayNamesInt = {
     "helix_charge"
   };
-  
 }
 
 HelixProcessor::~HelixProcessor()

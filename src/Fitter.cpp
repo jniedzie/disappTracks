@@ -93,13 +93,13 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
     
     double middleHitDeltaPhi = pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMid, *middlePoint);
     if(middleHitDeltaPhi > config.seedMiddleHitMaxDeltaPhi){
-      cout<<"middle hit phi"<<endl;
+//      cout<<"middle hit phi"<<endl;
       continue;
     }
     
     double middleHitDeltaZ = fabs(middlePoint->GetZ() - trackPointMid.GetZ());
     if(middleHitDeltaZ > config.seedMiddleHitMaxDeltaZ){
-      cout<<"middle hit z"<<endl;
+//      cout<<"middle hit z"<<endl;
       continue;
     }
     
@@ -115,13 +115,13 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
       
       double lastHitDeltaPhi = pointsProcessor.GetPointingAngleXY(trackPointMid, *middlePoint, *lastPoint);
       if(lastHitDeltaPhi > config.seedLastHitMaxDeltaPhi){
-        cout<<"last hit phi"<<endl;
+//        cout<<"last hit phi"<<endl;
         continue;
       }
       
       double lastPointDeltaZ = fabs(middlePoint->GetZ() - lastPoint->GetZ());
       if(lastPointDeltaZ > config.seedLastHitMaxDeltaZ){
-        cout<<"last hit z"<<endl;
+//        cout<<"last hit z"<<endl;
         continue;
       }
       
@@ -133,7 +133,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
         helix->SetIncreasing(true); // add decreasing later
         if(helix->GetChi2() < config.seedMaxChi2) seeds.push_back(*helix);
         else{
-          cout<<"Seed chi2 out of limits"<<endl;
+//          cout<<"Seed chi2 out of limits"<<endl;
         }
       }
     }
@@ -253,8 +253,6 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points, int c
   resultHelix->SetCharge(charge);
   resultHelix->UpdateOrigin(origin);
   resultHelix->SetChi2(result.MinFcnValue());
-  
-  cout<<"Final chi2:"<<resultHelix->GetChi2()<<endl;
   
   return resultHelix;
 }
