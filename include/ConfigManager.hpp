@@ -69,18 +69,21 @@ struct ConfigManager {
   double helixThickness;
   double circleThickness;
   double seedMaxChi2;
-  double seedMiddleHitMaxDeltaPhi;
+  range<double> seedMiddleHitDeltaPhi;
   double seedMiddleHitMaxDeltaZ;
-  double seedLastHitMaxDeltaPhi;
+  range<double> seedLastHitDeltaPhi;
   double seedLastHitMaxDeltaZ;
-  
-  double trackMaxChi2;
-  double nextPointMaxDeltaPhi;
+  range<double> nextPointDeltaPhi;
   double nextPointMaxDeltaZ;
   
+  double trackMaxChi2;
   int mergingMaxDifferentPoints;
   int trackMinNpoints;
   int candidateMinNpoints;
+  int maxNmissingHits;
+  int maxNmissingHitsInRow;
+  
+  bool doAsymmetricConstraints;
   
   // Random chargino's track parameters
   double maxEta;
