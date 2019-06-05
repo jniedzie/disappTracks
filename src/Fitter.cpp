@@ -85,46 +85,28 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
   int nPairs=0;
   for(auto &middlePoint : possibleMiddlePoints){
     
-//    if(fabs(middlePoint->GetX() + 18) < 1.0 &&
-//       fabs(middlePoint->GetY() + 275) < 1.0 &&
-//       fabs(middlePoint->GetZ() - 75) < 1.0){
-//      cout<<"this"<<endl;
-//    }
-    
     double middleHitDeltaPhi = pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMid, *middlePoint);
-    if(middleHitDeltaPhi > config.seedMiddleHitMaxDeltaPhi){
-//      cout<<"middle hit phi"<<endl;
-      continue;
-    }
     
+    if(config.doAsymmetricConstraints)  middleHitDeltaPhi = track.GetCharge()*middleHitDeltaPhi;
+    else                                middleHitDeltaPhi = fabs(middleHitDeltaPhi);
+    
+    if(config.seedMiddleHitDeltaPhi.IsOutside(middleHitDeltaPhi)) continue;
+
     double middleHitDeltaZ = fabs(middlePoint->GetZ() - trackPointMid.GetZ());
-    if(middleHitDeltaZ > config.seedMiddleHitMaxDeltaZ){
-//      cout<<"middle hit z"<<endl;
-      continue;
-    }
-    
-    
+    if(middleHitDeltaZ > config.seedMiddleHitMaxDeltaZ) continue;
     
     for(auto &lastPoint : possibleLastPoints){
       
-//      if(fabs(lastPoint->GetX() -5) < 1.0 &&
-//         fabs(lastPoint->GetY() + 323) < 1.0 &&
-//         fabs(lastPoint->GetZ() - 29) < 1.0){
-//        cout<<"this"<<endl;
-//      }
-      
       double lastHitDeltaPhi = pointsProcessor.GetPointingAngleXY(trackPointMid, *middlePoint, *lastPoint);
-      if(lastHitDeltaPhi > config.seedLastHitMaxDeltaPhi){
-//        cout<<"last hit phi"<<endl;
-        continue;
-      }
       
+      if(config.doAsymmetricConstraints)  lastHitDeltaPhi = track.GetCharge()*lastHitDeltaPhi;
+      else                                lastHitDeltaPhi = fabs(lastHitDeltaPhi);
+      
+      if(config.seedLastHitDeltaPhi.IsOutside(lastHitDeltaPhi)) continue;
+
       double lastPointDeltaZ = fabs(middlePoint->GetZ() - lastPoint->GetZ());
-      if(lastPointDeltaZ > config.seedLastHitMaxDeltaZ){
-//        cout<<"last hit z"<<endl;
-        continue;
-      }
-      
+      if(lastPointDeltaZ > config.seedLastHitMaxDeltaZ) continue;
+
       nPairs++;
       auto points = { middlePoint, lastPoint };
       auto helix = FitSeed(points,  track.GetCharge());
@@ -132,9 +114,6 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
       if(helix){
         helix->SetIncreasing(true); // add decreasing later
         if(helix->GetChi2() < config.seedMaxChi2) seeds.push_back(*helix);
-        else{
-//          cout<<"Seed chi2 out of limits"<<endl;
-        }
       }
     }
   }
@@ -204,25 +183,15 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points, int c
         double distZ_2 = z - (p->GetZ() - p->GetZerr());
         distZ = min(pow(distZ_1, 2), pow(distZ_2, 2));
       }
-//      distX = pow(x-p->GetX(), 2);
-//      distY = pow(y-p->GetY(), 2);
-//      distZ = pow(z-p->GetZ(), 2);
-      
       distX /= fabs(p->GetX());
       distY /= fabs(p->GetY());
       distZ /= fabs(p->GetZ());
       
-//      distX /= p->GetXerr() > 0 ? pow(p->GetXerr(), 2) : fabs(p->GetX());
-//      distY /= p->GetYerr() > 0 ? pow(p->GetYerr(), 2) : fabs(p->GetY());
-//      distZ /= p->GetZerr() > 0 ? pow(p->GetZerr(), 2) : fabs(p->GetZ());
-   
       f += distX + distY + distZ;
     }
-    return f/(3*pointsTriplet.size()+6);
-//    return f;
+    return f/(3*pointsTriplet.size()+6); // 6 is number of free fit parameters
   };
   
-
   int nPar=8;
   auto fitFunction = ROOT::Math::Functor(chi2Function, nPar);
   double pStart[nPar];
@@ -276,12 +245,15 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
       }
       else{
         // Find points that could extend this helix
-        int lastPointLayer = helix.GetLastPoint()->GetLayer();
+        size_t nHelixPoints = helix.GetPoints().size();
+        int missingOffset = helix.IsPreviousHitMissing() ? helix.GetNmissingHitsInRow() : 0;
+        int lastPointLayer = helix.GetLastPoint()->GetLayer() + missingOffset;
+        
         vector<shared_ptr<Point>> possiblePoints;
         
         if(lastPointLayer+1 < pointsByLayer.size() && lastPointLayer-1 >= 0){
-          if(helix.GetIncreasing())  possiblePoints = pointsByLayer[lastPointLayer+1];
-          else                  possiblePoints = pointsByLayer[lastPointLayer-1];
+          if(helix.GetIncreasing())   possiblePoints = pointsByLayer[lastPointLayer+1];
+          else                        possiblePoints = pointsByLayer[lastPointLayer-1];
         }
         
         vector<Helix> extendedHelices;
@@ -290,12 +262,13 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         for(auto &point : possiblePoints){
           
           // Check if new point is within some cone
-          size_t nHelixPoints = helix.GetPoints().size();
           double deltaPhi = pointsProcessor.GetPointingAngleXY(*helix.GetPoints()[nHelixPoints-2],
                                                                *helix.GetPoints()[nHelixPoints-1],
                                                                *point);
           
-          if(deltaPhi > config.nextPointMaxDeltaPhi) continue;
+          deltaPhi = fabs(deltaPhi);
+          
+          if(config.nextPointDeltaPhi.IsOutside(deltaPhi)) continue;
           
           double deltaZ = fabs(helix.GetPoints()[nHelixPoints-1]->GetZ() - point->GetZ());
           
@@ -309,6 +282,8 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           // check if chi2 is small enough
           if(helixCopy.GetChi2() > config.trackMaxChi2) continue;
 
+          // if we reached this point, it means that this hit is not missing
+          helixCopy.SetIsPreviousHitMissing(false);
           extendedHelices.push_back(helixCopy);
         }
         // if it was possible to extend the helix
@@ -319,8 +294,62 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           finished = false;
         }
         else if(!helix.GetIsFinished()){ // if helix could not be extended
-          helix.SetIsFinished(true);
-          nextStepHelices.push_back(helix);
+          if(   helix.GetNmissingHits()       >= config.maxNmissingHits
+             || helix.GetNmissingHitsInRow()  >= config.maxNmissingHitsInRow
+             ){
+            helix.SetIsFinished(true);
+            nextStepHelices.push_back(helix);
+          }
+          else{
+            helix.IncreaseMissingHits();
+            
+//            double x,y,z;
+//            double errX, errY, errZ;
+//            double t;
+//
+//            double R = layerR[lastPointLayer+1];
+//
+//            size_t nHelixPoints = helix.GetPoints().size();
+//            auto p1 = helix.GetPoints()[nHelixPoints-2];
+//            auto p2 = helix.GetPoints()[nHelixPoints-1];
+//
+//            double x1 = p1->GetX();
+//            double y1 = p1->GetY();
+//            double z1 = p1->GetZ();
+//
+//            double x2 = p2->GetX();
+//            double y2 = p2->GetY();
+//            double z2 = p2->GetZ();
+//
+//            double sqrt_delta = sqrt(R*R*(pow(x2-x1,2)+pow(y2-y1,2))-pow(y1*(x2-x1)-x1*(y2-y1),2));
+//            double q1 = (x1*(x2-x1)+y1*(y2-y1) + sqrt_delta) / ( pow(x2-x1,2) + pow(y2-y1,2) );
+//            double q2 = (x1*(x2-x1)+y1*(y2-y1) - sqrt_delta) / ( pow(x2-x1,2) + pow(y2-y1,2) );
+//
+//            x = (x2-x1)*q1+x1;
+//            y = (y2-y1)*q1+y1;
+//            z = (z2-z1)*q1+z1;
+//
+//            auto missingHit1 = make_shared<Point>(x,y,z,0,"missing hit",errX,errY,errZ,t,lastPointLayer+1);
+//
+//            x = (x2-x1)*q2+x1;
+//            y = (y2-y1)*q2+y1;
+//            z = (z2-z1)*q2+z1;
+//
+//            auto missingHit2 = make_shared<Point>(x,y,z,0,"missing hit",errX,errY,errZ,t,lastPointLayer+1);
+//
+//            shared_ptr<Point> missingHit;
+//
+//            if(pointsProcessor.distance(p2, missingHit1) < pointsProcessor.distance(p2, missingHit2)){
+//              missingHit = missingHit1;
+//            }
+//            else{
+//              missingHit = missingHit2;
+//            }
+//            helix.AddPoint(missingHit);
+            
+            nextStepHelices.push_back(helix);
+            finished = false;
+          }
         }
       }
     }
