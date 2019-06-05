@@ -12,14 +12,14 @@
 #include "EventSet.hpp"
 
 string configPath = "configs/helixTagger.md";
-string cutLevel = "after_L1/3layers/";//after_L1/";
+string cutLevel = "after_L2/4layers/";//after_L1/";
 
-int nEvents = 50;
+int nEvents = 45;
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
 
-bool removePionClusters = false;
+bool removePionClusters = true;
 
 //vector<int> eventIndices = { 3, 7, 28, 30, 37, 43, };
 vector<int> eventIndices = { 3,7,11,13,18,19,22,26,27,28,30,31,33,34,37,38,39,41,43,44, };
@@ -36,13 +36,11 @@ int main(int argc, char* argv[])
   config = ConfigManager(configPath);
   auto fitter = make_unique<Fitter>();
   
-  cout<<"helixTagger -- events loaded"<<endl;
-  
   int nAnalyzedEvents=0;
   
 //  for(auto iEvent : eventIndices){
   for(auto iEvent=0; iEvent<nEvents; iEvent++){
-    if(iEvent==30 || iEvent==156) continue;
+//    if(iEvent==9 || iEvent==18 || iEvent==19) continue;
 
     auto event = GetEvent(iEvent);
     
@@ -55,7 +53,6 @@ int main(int argc, char* argv[])
       cout<<"helixTagger -- no tracker hits for event "<<iEvent<<endl;
       //      continue;
     }
-    cout<<"helixTagger -- tracker points loaded"<<endl;
     
     for(auto &track : event->GetTracks()){
       
@@ -85,9 +82,7 @@ int main(int argc, char* argv[])
         
         averageCorrectFraction += fractionCorrectPoints;
         averageFakeFraction += fractionFakePoints;
-        cout<<"Fraction of correctly assigned points:"<<fractionCorrectPoints<<endl;
-        cout<<"Fraction of fake points:"<<fractionFakePoints<<endl;
-        
+
         //      event->AddHelix(move(fittedHelix));
       }
       
