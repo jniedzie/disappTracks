@@ -18,6 +18,9 @@ xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
 int iEvent = 13;
 
+bool injectPion = false;
+bool fitHelix = true;
+
 // "after_L2/4layers/":
 
 // 0 - bad hits
@@ -90,10 +93,6 @@ int iEvent = 13;
 // 39 - shitty hits
 // 40 - ... Q+, Z-, no seeds, but looks good...
 
-
-bool injectPion = false;
-bool fitHelix = true;
-
 Display *display;
 shared_ptr<EventSet> events;
 
@@ -142,6 +141,7 @@ void DrawHitsOrClusters(const shared_ptr<Event> event, int pointsType)
     if(!config.drawPionClusters) return;
     
     hitsOrClusters = event->GetPionClusters();
+    pointsProcessor.SetPointsLayers(hitsOrClusters);
     drawingOptions["color"] = kBlue;
     typeName = "Pion clusters ";
   }
