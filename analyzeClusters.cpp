@@ -6,7 +6,7 @@
 #include "EventSet.hpp"
 
 string configPath  = "configs/eventDisplay.md";
-string cutLevel    = "after_L0/"; //"after_L1/4layers/";//after_L1/";
+string cutLevel    = "after_L0/";// "after_L1/4layers/"; //"after_L1/4layers/";//after_L1/";
 string outfileName = "results/tmp.root";
 
 xtracks::EDataType dataType = xtracks::kSignal;
@@ -33,13 +33,26 @@ vector<tuple<string, int, double, double, string>> histOptions1D = {
   {"pion_vertex_z"              , 50 , -1000  , 1000  , "v_{z} (mm)"              },
   {"delta_phi_pion_chargino"    , 50 , 0      , 3.2   , "#Delta #phi (#pi, #chi)" },
   {"delta_theta_pion_chargino"  , 100, -6.3   , 6.3   , "#Delta #theta(#pi, #chi)"},
+  {"pion_turning_layer"         , 20 , -1     , 19    , "Layer number"            },
   
-  {"next_point_delta_phi"       , 100, 0      , 3.2   , "#Delta #phi"             },
+  {"next_point_delta_phi"       , 100, -3.2   , 3.2   , "#Delta #phi"             },
+  {"next_point_delta_phi_plu"   , 100, -3.2   , 3.2   , "#Delta #phi"             },
+  {"next_point_delta_phi_min"   , 100, -3.2   , 3.2   , "#Delta #phi"             },
+  
   {"next_point_delta_z"         , 100, 0      , 500   , "#Delta z"                },
-  {"middle_seed_hit_delta_phi"  , 32 , 0      , 3.2   , "#Delta #phi"             },
-  {"middle_seed_hit_delta_z"    , 50 , 0      , 500   , "#Delta z"                },
-  {"last_seed_hit_delta_phi"    , 32 , 0      , 3.2   , "#Delta #phi"             },
+  
+  {"middle_seed_hit_delta_phi"      , 100 , -3.2      , 3.2   , "#Delta #phi"      },
+  {"middle_seed_hit_delta_phi_plu"  , 100 , -3.2      , 3.2   , "#Delta #phi"      },
+  {"middle_seed_hit_delta_phi_min"  , 100 , -3.2      , 3.2   , "#Delta #phi"      },
+  
+  {"middle_seed_hit_delta_z"        , 50  , 0         , 500   , "#Delta z"         },
+  
+  {"last_seed_hit_delta_phi"        , 100 , -3.2      , 3.2   , "#Delta #phi"      },
+  {"last_seed_hit_delta_phi_plu"    , 100 , -3.2      , 3.2   , "#Delta #phi"      },
+  {"last_seed_hit_delta_phi_min"    , 100 , -3.2      , 3.2   , "#Delta #phi"      },
+  
   {"last_seed_hit_delta_z"      , 50 , 0      , 500   , "#Delta z"                },
+  
   {"pion_cluster_charge_TIB"    , 100, 0      , 600   , ""                        },
   {"pion_cluster_charge_TOB"    , 100, 0      , 600   , ""                        },
   {"pion_cluster_charge_TID"    , 100, 0      , 600   , ""                        },
@@ -175,15 +188,62 @@ int main(int argc, char* argv[])
     
     double pionTheta = TMath::Pi()/2-pionHelix.GetMomentum()->GetVectorSlopeC();
     
-    for(auto &track : event->GetTracks()){
-      hists1D["delta_phi_pion_chargino"]->Fill(fabs(phiPion - track->GetPhi()));
-      hists1D["delta_theta_pion_chargino"]->Fill(track->GetTheta() - pionTheta);
-    }
+    hists1D["delta_phi_pion_chargino"]->Fill(fabs(phiPion - track->GetPhi()));
+    hists1D["delta_theta_pion_chargino"]->Fill(track->GetTheta() - pionTheta);
     
     // Fill pion sim hit histograms
+    pointsProcessor.SetPointsLayers(pionSimHits);
+//    pointsProcessor.FilterNearbyPoints(pionSimHits, 100);
+    
     sort(pionSimHits.begin(), pionSimHits.end(), PointsProcessor::ComparePointByZ());
     
-    for(int iHit=1; iHit<pionSimHits.size()-1; iHit++){
+    int turningLayer = -1;
+    
+    for(int iHit=0; iHit<pionSimHits.size()-1; iHit++){
+//      auto pionCluster = FindClusterForHit(*pionSimHits[iHit],  pionClusters);
+    
+      auto thisHit = pionSimHits[iHit];
+      auto nextHit = pionSimHits[iHit+1];
+      
+      if(thisHit->GetLayer() == thisHit->GetLayer()){
+        
+        
+        turningLayer = pionSimHits[iHit]->GetLayer();
+        break;
+      }
+    }
+    hists1D["pion_turning_layer"]->Fill(turningLayer);
+    
+    Point trackPointMid = pointsProcessor.GetPointOnTrack((layerR[track->GetNtrackerLayers()-1]+layerR[track->GetNtrackerLayers()])/2., *track, *eventVertex);
+    
+    auto middleSeedCluster = pionSimHits[0];//FindClusterForHit(*pionSimHits[0],  pionClusters);
+    auto lastSeedCluster   = pionSimHits[1];//FindClusterForHit(*pionSimHits[1],  pionClusters);
+    
+    if(!middleSeedCluster || !lastSeedCluster) continue;
+    
+    double middleHitDeltaPhi = pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMid, *middleSeedCluster);
+    double middleHitDeltaZ = fabs(middleSeedCluster->GetZ() - trackPointMid.GetZ());
+    
+    
+    double lastHitDeltaPhi = pointsProcessor.GetPointingAngleXY(trackPointMid, *middleSeedCluster, *lastSeedCluster);
+    double lastPointDeltaZ = fabs(middleSeedCluster->GetZ() - lastSeedCluster->GetZ());
+    
+    hists1D["middle_seed_hit_delta_phi"]->Fill(middleHitDeltaPhi);
+    hists1D["last_seed_hit_delta_phi"]->Fill(lastHitDeltaPhi);
+    
+    if(pionHelix.GetCharge() > 0){
+      hists1D["middle_seed_hit_delta_phi_plu"]->Fill(middleHitDeltaPhi);
+      hists1D["last_seed_hit_delta_phi_plu"]->Fill(lastHitDeltaPhi);
+    }
+    else{
+      hists1D["middle_seed_hit_delta_phi_min"]->Fill(middleHitDeltaPhi);
+      hists1D["last_seed_hit_delta_phi_min"]->Fill(lastHitDeltaPhi);
+    }
+    
+    hists1D["middle_seed_hit_delta_z"]->Fill(middleHitDeltaZ);
+    hists1D["last_seed_hit_delta_z"]->Fill(lastPointDeltaZ);
+    
+    for(int iHit=2; iHit<pionSimHits.size()-1; iHit++){
       auto previousCluster = FindClusterForHit(*pionSimHits[iHit-1],  pionClusters);
       auto thisCluster     = FindClusterForHit(*pionSimHits[iHit],    pionClusters);
       auto nextCluster     = FindClusterForHit(*pionSimHits[iHit+1],  pionClusters);
@@ -197,6 +257,9 @@ int main(int argc, char* argv[])
       double deltaZ = fabs(thisCluster->GetZ() - nextCluster->GetZ());
 
       hists1D["next_point_delta_phi"]->Fill(deltaPhi);
+      if(pionHelix.GetCharge() > 0) hists1D["next_point_delta_phi_plu"]->Fill(deltaPhi);
+      else                          hists1D["next_point_delta_phi_min"]->Fill(deltaPhi);
+      
       hists2D["next_point_delta_phi_pion_pt"]->Fill(deltaPhi, pionPt);
       hists1D["next_point_delta_z"]->Fill(deltaZ);
       hists2D["next_point_delta_z_pion_pz"]->Fill(deltaZ, pionPz);
@@ -267,28 +330,7 @@ int main(int argc, char* argv[])
     }
     
     // Fill seeds tracking histograms
-    Point decayVertexMin = pointsProcessor.GetPointOnTrack(layerR[track->GetNtrackerLayers()-1], *track, *eventVertex);
-    Point decayVertexMax = pointsProcessor.GetPointOnTrack(layerR[track->GetNtrackerLayers()],   *track, *eventVertex);
-    Point middleSeedHit  = *pionSimHits[0];
-    Point lastSeedHit    = *pionSimHits[1];
-    
-    double middleHitDeltaPhi = min( pointsProcessor.GetPointingAngleXY(Point(0,0,0), decayVertexMin, middleSeedHit),
-                                    pointsProcessor.GetPointingAngleXY(Point(0,0,0), decayVertexMax, middleSeedHit));
-    
-    double middleHitDeltaZ = min( fabs(middleSeedHit.GetZ() - decayVertexMin.GetZ()),
-                                  fabs(middleSeedHit.GetZ() - decayVertexMax.GetZ()));
-    
-    double lastHitDeltaPhi = min( pointsProcessor.GetPointingAngleXY(decayVertexMin, middleSeedHit, lastSeedHit),
-                                  pointsProcessor.GetPointingAngleXY(decayVertexMax, middleSeedHit, lastSeedHit));
-    
-    
-    double lastPointDeltaZ = fabs(middleSeedHit.GetZ() - lastSeedHit.GetZ());
-    
-    
-    hists1D["middle_seed_hit_delta_phi"]->Fill(middleHitDeltaPhi);
-    hists1D["middle_seed_hit_delta_z"]->Fill(middleHitDeltaZ);
-    hists1D["last_seed_hit_delta_phi"]->Fill(lastHitDeltaPhi);
-    hists1D["last_seed_hit_delta_z"]->Fill(lastPointDeltaZ);
+  
   
     // Fill noise clusters histograms
     for(auto &cluster : trackerClusters){
@@ -327,9 +369,10 @@ int main(int argc, char* argv[])
   genPionCanvas->cd(11);  hists1D["pion_vertex_xy"]->Draw();
   genPionCanvas->cd(12);  hists1D["delta_phi_pion_chargino"]->Draw();
   genPionCanvas->cd(13);  hists1D["delta_theta_pion_chargino"]->Draw();
+  genPionCanvas->cd(14);  hists1D["pion_turning_layer"]->Draw();
   
   TCanvas *trackingCanvas = new TCanvas("tracking", "tracking", 2880, 1800);
-  trackingCanvas->Divide(4,2);
+  trackingCanvas->Divide(4,4);
   
   trackingCanvas->cd(1);  hists1D["middle_seed_hit_delta_phi"]->Draw();
   trackingCanvas->cd(2);  hists1D["middle_seed_hit_delta_z"]->Draw();
@@ -339,6 +382,14 @@ int main(int argc, char* argv[])
   trackingCanvas->cd(6);  hists2D["next_point_delta_phi_pion_pt"]->Draw("colz");
   trackingCanvas->cd(7);  hists1D["next_point_delta_z"]->Draw();
   trackingCanvas->cd(8);  hists2D["next_point_delta_z_pion_pz"]->Draw("colz");
+  trackingCanvas->cd(9);  hists1D["next_point_delta_phi_plu"]->Draw();
+  trackingCanvas->cd(10);  hists1D["next_point_delta_phi_min"]->Draw();
+  trackingCanvas->cd(11);  hists1D["middle_seed_hit_delta_phi_plu"]->Draw();
+  trackingCanvas->cd(12);  hists1D["middle_seed_hit_delta_phi_min"]->Draw();
+  trackingCanvas->cd(13);  hists1D["last_seed_hit_delta_phi_plu"]->Draw();
+  trackingCanvas->cd(14);  hists1D["last_seed_hit_delta_phi_min"]->Draw();
+  
+  
   
   TCanvas *chargeCanvas   = new TCanvas("charge", "charge", 2880, 1800);
   TCanvas *clustersCanvas = new TCanvas("clusters", "clusters", 2880, 1800);
