@@ -73,6 +73,12 @@ public:
   inline void   SetChi2(double val) { chi2 = val; }
   inline void   SetIsFinished(bool val) { isFinished = val; }
   inline void   SetParams(HelixParams val) { helixParams = val; }
+  inline void   SetIsPreviousHitMissing(bool val){ isPreviousHitMissing = val; }
+  
+  /// Increases number of missing hits and missing hits in a row (based on isPreviousHitMissing variable, which
+  /// should be set by the user).
+  void   IncreaseMissingHits();
+  
   
   // Getters
   inline int                  GetCharge()   const {return charge; }
@@ -94,6 +100,10 @@ public:
   vector<shared_ptr<Point>>   GetPoints()   const {return points;}
   shared_ptr<Point>           GetLastPoint()const {return points[points.size()-1];}
   inline uint                 GetNpoints()  const {return (uint)points.size();}
+  
+  inline int                  GetNmissingHits() const {return nMissingHits;}
+  inline int                  GetNmissingHitsInRow() const {return nMissingHitsInRow;}
+  inline bool                 IsPreviousHitMissing() const {return isPreviousHitMissing;}
   
   double                      GetNcycles()  const;
   
@@ -123,6 +133,10 @@ private:
   double chi2;
   bool increasing;
   bool shouldRefit;
+  
+  int nMissingHits;
+  int nMissingHitsInRow;
+  bool isPreviousHitMissing;
   
   friend class HelixProcessor;
 };

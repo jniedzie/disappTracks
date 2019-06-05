@@ -19,7 +19,10 @@ isFinished(false),
 helixParams(HelixParams()),
 chi2(inf),
 increasing(true),
-shouldRefit(false)
+shouldRefit(false),
+nMissingHits(0),
+nMissingHitsInRow(0),
+isPreviousHitMissing(false)
 {
   seedID = uniqueID = reinterpret_cast<uint64_t>(this);
   
@@ -63,7 +66,10 @@ iCycles(0),
 isFinished(false),
 chi2(inf),
 increasing(true),
-shouldRefit(false)
+shouldRefit(false),
+nMissingHits(0),
+nMissingHitsInRow(0),
+isPreviousHitMissing(false)
 {
   seedID = uniqueID = reinterpret_cast<uint64_t>(this);
   charge = track.GetCharge();
@@ -98,7 +104,10 @@ charge(h.charge),
 helixParams(h.helixParams),
 chi2(h.chi2),
 increasing(h.increasing),
-shouldRefit(h.shouldRefit)
+shouldRefit(h.shouldRefit),
+nMissingHits(h.nMissingHits),
+nMissingHitsInRow(h.nMissingHitsInRow),
+isPreviousHitMissing(h.isPreviousHitMissing)
 {
   uniqueID = reinterpret_cast<uint64_t>(this);
 }
@@ -125,6 +134,10 @@ Helix& Helix::operator=(const Helix &h)
   increasing     = h.increasing;
   shouldRefit    = h.shouldRefit;
  
+  nMissingHits         = h.nMissingHits;
+  nMissingHitsInRow    = h.nMissingHitsInRow;
+  isPreviousHitMissing = h.isPreviousHitMissing;
+  
   return *this;
 }
 
@@ -150,7 +163,7 @@ void Helix::Print()
   cout<<"\tMomentum:("<<momentum->GetX()<<","<<momentum->GetY()<<","<<momentum->GetZ()<<")\n";
   cout<<"\tCharge: "<<charge<<"\n";
   cout<<"\ts0: "<<helixParams.s0<<"\tb: "<<helixParams.b<<"\tR0: "<<helixParams.R0<<"\t a: "<<helixParams.a<<endl;
-  cout<<"\tnPoints:"<<points.size()<<"\n";
+  cout<<"\tnPoints:"<<points.size()<<"\tnMissingHits: "<<nMissingHits<<"\n";
   cout<<"\tt min:"<<tShift<<"\tt max:"<<tMax<<endl;
   cout<<"\tchi2:"<<chi2<<endl;
 }
@@ -213,4 +226,12 @@ void Helix::UpdateOrigin(const Point &_origin)
   
   tShift = points.front()->GetT();
   tMax   = points.back()->GetT();
+}
+
+void Helix::IncreaseMissingHits(){
+  nMissingHits++;
+  if(isPreviousHitMissing) nMissingHitsInRow++;
+  else                     nMissingHitsInRow=1;
+  
+  isPreviousHitMissing = true;
 }
