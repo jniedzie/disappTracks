@@ -9,7 +9,7 @@ draw_tracker_clusters:      0
 draw_met:                         0
 draw_jets:                          1
 draw_pion_simhits:           0
-draw_pion_clusters:          0
+draw_pion_clusters:          1
 draw_chargino_simhits:    1
 
 **Input options**
@@ -82,26 +82,36 @@ n_track_hits: 2
 ### Determines how far points can be from helix to be assigned to it (in mm):
 helix_thickness:  0.0
 
-### Constraints on seeds parameters (delta phi for positive charge, will be flipped automaticaly):
-seed_max_chi2:                            10
+### Constraints on seeds parameters:
+seed_max_chi2:                            1e-2
+
+seed_middle_hit_min_delta_phi:   -0.75
 seed_middle_hit_max_delta_phi:  0.5
 seed_middle_hit_max_delta_z:     100
+
+seed_last_hit_min_delta_phi:       -1.0
 seed_last_hit_max_delta_phi:       0.5
 seed_last_hit_max_delta_z:          100
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             1e-2
-next_point_max_delta_phi:             0.5
+track_max_chi2:                             1e-4
+
+next_point_min_delta_phi:              0.0
+next_point_max_delta_phi:             1.0
 next_point_max_delta_z:                700
-track_min_n_points:                       3
+
+track_min_n_points:                       7
 
 ### Max number of different points and min number of points to merge two helices:
 merging_max_different_point:        2
-candidate_min_n_points:               3
+candidate_min_n_points:               5
 
 ### Max number of missing hits (total and in a row):
 max_n_missing_hits:                       0
 max_n_missing_hits_in_raw:           0
+
+### Asymmetric hits constraints:
+do_asymmetric_constraints:           0
 
 **Benchmark parameters**
 

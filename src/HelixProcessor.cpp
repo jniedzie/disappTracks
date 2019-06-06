@@ -122,3 +122,30 @@ void HelixProcessor::SetupBranchesForWriting(TTree *tree)
     tree->Branch(name.c_str(), &arrayValuesInt[name], Form("%s[nFittedHelices]/I", name.c_str()));
   }
 }
+
+bool HelixProcessor::GetIntersectionWithLayer(const Helix &helix, int layerIndex, Point &pA, Point &pB)
+{
+  auto p1 = helix.GetLastPoint();
+  
+  double Rh = helix.GetRadius(p1->GetT());
+  double Rl = layerR[layerIndex];
+  
+  double x0 = helix.GetOrigin().GetX();
+  double y0 = helix.GetOrigin().GetY();
+  
+  double R = sqrt(x0*x0+y0*y0);
+  
+  double x_a = x0/2 + (Rl*Rl-Rh*Rh)/(2*R*R)*x0 + y0/2*sqrt(2*(Rl*Rl+Rh*Rh)/(R*R)-pow((Rl*Rl-Rh*Rh)/(R*R), 2)-1);
+  double y_a = y0/2 + (Rl*Rl-Rh*Rh)/(2*R*R)*y0 - x0/2*sqrt(2*(Rl*Rl+Rh*Rh)/(R*R)-pow((Rl*Rl-Rh*Rh)/(R*R), 2)-1);
+  
+  pA = Point(x_a, y_a, 0);
+  
+  double x_b = x0/2 + (Rl*Rl-Rh*Rh)/(2*R*R)*x0 - y0/2*sqrt(2*(Rl*Rl+Rh*Rh)/(R*R)-pow((Rl*Rl-Rh*Rh)/(R*R), 2)-1);
+  double y_b = y0/2 + (Rl*Rl-Rh*Rh)/(2*R*R)*y0 + x0/2*sqrt(2*(Rl*Rl+Rh*Rh)/(R*R)-pow((Rl*Rl-Rh*Rh)/(R*R), 2)-1);
+  
+  pB = Point(x_b, y_b, 0);
+  
+  if(!isnormal(x_a) || !isnormal(x_b) || !isnormal(y_a) || !isnormal(y_b)) return false;
+  
+  return true;
+}

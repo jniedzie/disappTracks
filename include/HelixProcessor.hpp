@@ -42,6 +42,8 @@ public:
   /// Writes all fitted helices in the vector to the tree previously set with SetupBranchesForWriting(...)
   void SaveHelicesToTree(vector<shared_ptr<Helix>> helices);
   
+  bool GetIntersectionWithLayer(const Helix &helix, int layerIndex, Point &pA, Point &pB);
+  
 private:
   static const int maxNhelices = 1000;   ///< Maximum supported number of helices per event
   int nHelices;                          ///< Number of helices in the current tree entry

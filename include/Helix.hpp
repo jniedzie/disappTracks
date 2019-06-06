@@ -98,8 +98,17 @@ public:
   inline unique_ptr<Point>    GetMomentum() const {return make_unique<Point>(*momentum);}
   
   vector<shared_ptr<Point>>   GetPoints()   const {return points;}
-  shared_ptr<Point>           GetLastPoint()const {return points[points.size()-1];}
-  inline uint                 GetNpoints()  const {return (uint)points.size();}
+  vector<shared_ptr<Point>>   GetPointsAfterTurning()   const {return pointsAfterTurning;}
+  shared_ptr<Point>           GetLastPoint()const {
+    return pointsAfterTurning.size() > 0 ? pointsAfterTurning.back() : points.back();
+  }
+  shared_ptr<Point>           GetSecontToLastPoint()const {
+    if(pointsAfterTurning.size() > 1) return pointsAfterTurning[pointsAfterTurning.size()-2];
+    if(pointsAfterTurning.size() == 1) points.back();
+    return points[points.size()-2];
+  }
+  
+  inline uint                 GetNpoints()  const {return (uint)(points.size()+pointsAfterTurning.size());}
   
   inline int                  GetNmissingHits() const {return nMissingHits;}
   inline int                  GetNmissingHitsInRow() const {return nMissingHitsInRow;}
@@ -116,6 +125,7 @@ private:
   unique_ptr<Point> vertex;         ///< Decay point (beginning) of the helix
   Point origin;                     ///< Center of the helix
   vector<shared_ptr<Point>> points; ///< Vector of points laying on the helix
+  vector<shared_ptr<Point>> pointsAfterTurning; ///< Vector of points laying on the helix
   
   double tShift;  ///< Angle by which beginning of the helix is shifted due to the shift of its origin
   double tMax;    ///< Max angle (taking into account number of cycles

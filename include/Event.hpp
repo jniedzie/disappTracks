@@ -48,6 +48,9 @@ public:
   /// Returns vector of chargino(s) sim hits
   inline vector<shared_ptr<Point>> GetCharginoSimHits(){return charginoSimHits;}
   
+  /// Returns tracks of generated chargino(s)
+  inline vector<Track> GetGenCharginoTracks() const {return genCharginoTrack;}
+  
   // setters
   inline void AddTrack(shared_ptr<Track> track){tracks.push_back(track);}
   inline void AddJet(shared_ptr<Jet> jet){jets.push_back(jet);}

@@ -19,13 +19,8 @@ int nEvents = 45;
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
 
-bool removePionClusters = true;
+bool removePionClusters = false;
 
-//vector<int> eventIndices = { 3, 7, 28, 30, 37, 43, };
-vector<int> eventIndices = { 3,7,11,13,18,19,22,26,27,28,30,31,33,34,37,38,39,41,43,44, };
-
-map<int, double> correctFractions;
-map<int, double> fakeFractions;
 map<int, double> nHelixPoints;
 
 shared_ptr<Event> GetEvent(int iEvent);
@@ -58,8 +53,6 @@ int main(int argc, char* argv[])
       
       vector<Helix> fittedHelices = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
       
-      double averageCorrectFraction=0;
-      double averageFakeFraction=0;
       double averageHelixNpoints=0;
       
       for(auto helix : fittedHelices){
@@ -75,41 +68,20 @@ int main(int argc, char* argv[])
           }
         }
         
-        int nFakePoints = (int)helixPoints.size()-1 - nPionPoints;
-
-        double fractionCorrectPoints = ((double)nPionPoints) / (helixPoints.size()-1);
-        double fractionFakePoints    = ((double)nFakePoints) / (helixPoints.size()-1);
-        
-        averageCorrectFraction += fractionCorrectPoints;
-        averageFakeFraction += fractionFakePoints;
-
         //      event->AddHelix(move(fittedHelix));
       }
       
-      averageCorrectFraction  /= fittedHelices.size()>0 ? fittedHelices.size() : 1;
-      averageFakeFraction     /= fittedHelices.size()>0 ? fittedHelices.size() : 1;
       averageHelixNpoints     /= fittedHelices.size()>0 ? fittedHelices.size() : 1;
-      
-      correctFractions[iEvent] = averageCorrectFraction;
-      fakeFractions[iEvent]    = averageFakeFraction;
       nHelixPoints[iEvent]     = averageHelixNpoints;
     }
     
     nAnalyzedEvents++;
   }
-  
-//  for(auto &[iEvent, correctFraction] : correctFractions){
-//    cout<<"Event: "<<iEvent<<"\tcorrect hits fraction:"<<correctFraction<<endl;
-//  }
-//
-//  for(auto &[iEvent, fakeFraction] : fakeFractions){
-//    cout<<"Event: "<<iEvent<<"\tfake hits fraction:"<<fakeFraction<<endl;
-//  }
+
   vector<double> efficiency;
   for(int iThreshold=0; iThreshold<15; iThreshold++){efficiency.push_back(0);}
   
   for(auto &[iEvent, nPoints] : nHelixPoints){
-//    cout<<"Event: "<<iEvent<<"\tn helix points:"<<nPoints<<endl;
     for(int iThreshold=0; iThreshold<15; iThreshold++){
       if(nPoints >= iThreshold) efficiency[iThreshold]+=1;
     }

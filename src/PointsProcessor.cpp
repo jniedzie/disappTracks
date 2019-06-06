@@ -217,8 +217,8 @@ double PointsProcessor::GetPointingAngle(const Point &p0, const Point &p1, const
 
 double PointsProcessor::GetPointingAngleXY(const Point &p0, const Point &p1, const Point &p2)
 {
-  double x_v = p0.GetX();
-  double y_v = p0.GetY();
+  double x_0 = p0.GetX();
+  double y_0 = p0.GetY();
   
   double x_1 = p1.GetX();
   double y_1 = p1.GetY();
@@ -226,15 +226,23 @@ double PointsProcessor::GetPointingAngleXY(const Point &p0, const Point &p1, con
   double x_2 = p2.GetX();
   double y_2 = p2.GetY();
   
-  double v1_x = x_1-x_v;
-  double v1_y = y_1-y_v;
+  double v1_x = x_1-x_0;
+  double v1_y = y_1-y_0;
   
   double v2_x = x_2-x_1;
   double v2_y = y_2-y_1;
   
-  double num = v1_x*v2_x + v1_y*v2_y;
-  double den = sqrt(v1_x*v1_x + v1_y*v1_y) * sqrt(v2_x*v2_x + v2_y*v2_y);
-  return acos(num/den);
+  // This would give abs(alpha) in fact:
+//  double num = v1_x*v2_x + v1_y*v2_y;
+//  double den = sqrt(v1_x*v1_x + v1_y*v1_y) * sqrt(v2_x*v2_x + v2_y*v2_y);
+//  double alpha = acos(num/den);
+  
+  // This should give a signed angle
+  double alpha2 = atan2(v2_y, v2_x) - atan2(v1_y, v1_x);
+  while(alpha2 >=  TMath::Pi()) alpha2 -= 2*TMath::Pi();
+  while(alpha2 <= -TMath::Pi()) alpha2 += 2*TMath::Pi();
+  
+  return alpha2;
 }
 
 double PointsProcessor::GetPointingAngleTZ(const Point &p0, const Point &p1, const Point &p2)

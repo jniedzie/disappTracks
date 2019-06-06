@@ -114,6 +114,12 @@ public:
     }
   };
   
+  struct ComparePointByLayerInverted{
+    bool operator() (const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){
+      return (p1->GetLayer() > p2->GetLayer());
+    }
+  };
+  
   struct ComparePointByT{
     bool operator() (const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){
       return (p1->GetT() < p2->GetT());

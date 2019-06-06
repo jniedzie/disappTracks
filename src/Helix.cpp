@@ -191,7 +191,8 @@ double Helix::GetSlope(double t) const
 
 void Helix::AddPoint(const shared_ptr<Point> &point)
 {
-  points.push_back(point);
+  if(increasing)  points.push_back(point);
+  else            pointsAfterTurning.push_back(point);
   
   double t = pointsProcessor.GetTforPoint(*point, origin, charge);
   if(charge < 0) while(t < tMax) t += 2*TMath::Pi();
@@ -223,9 +224,37 @@ void Helix::UpdateOrigin(const Point &_origin)
       }
     }
   }
-  
+  if(pointsAfterTurning.size() > 0){
+    sort(pointsAfterTurning.begin(), pointsAfterTurning.end(), PointsProcessor::ComparePointByLayerInverted());
+    
+    if(charge < 0){
+      while(pointsAfterTurning.front()->GetT() < points.back()->GetT()){
+        pointsAfterTurning.front()->SetT(pointsAfterTurning.front()->GetT() + 2*TMath::Pi());
+      }
+    }
+    else{
+      while(pointsAfterTurning.front()->GetT() > points.back()->GetT()){
+        pointsAfterTurning.front()->SetT(pointsAfterTurning.front()->GetT() - 2*TMath::Pi());
+      }
+    }
+    
+    // this should be fixed:
+    for(int iPoint=0; iPoint<pointsAfterTurning.size()-1; iPoint++){
+      if(charge < 0){
+        while(pointsAfterTurning[iPoint+1]->GetT() < pointsAfterTurning[iPoint]->GetT()){
+          pointsAfterTurning[iPoint+1]->SetT(pointsAfterTurning[iPoint+1]->GetT() + 2*TMath::Pi());
+        }
+      }
+      else{
+        while(pointsAfterTurning[iPoint+1]->GetT() > pointsAfterTurning[iPoint]->GetT()){
+          pointsAfterTurning[iPoint+1]->SetT(pointsAfterTurning[iPoint+1]->GetT() - 2*TMath::Pi());
+        }
+      }
+    }
+  }
+    
   tShift = points.front()->GetT();
-  tMax   = points.back()->GetT();
+  tMax   = pointsAfterTurning.size() > 0 ?  pointsAfterTurning.back()->GetT() : points.back()->GetT();
 }
 
 void Helix::IncreaseMissingHits(){

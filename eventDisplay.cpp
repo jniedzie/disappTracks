@@ -16,7 +16,7 @@ string cutLevel = "after_L2/4layers/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 13;
+int iEvent = 30;
 
 bool injectPion = false;
 bool fitHelix = true;
@@ -50,48 +50,6 @@ bool fitHelix = true;
 // 42 - high p_z
 
 
-// "after_L1/4layers/":
-// 0 - charge mismatch
-// 1 - no gen pion
-// 2 - no valid seeds (to be checked, pion turns back from chargino)
-// 3 - track misreco
-// 4 - ... Z+, Q+, only 4 points, looks like it hits fitter limits
-// 5 - only 3 pion hits (2 of them in the same layer)
-// 6 - no valid seeds, due to high pz (650 MeV)
-// 7 - charge mismatch + only 2 layers of strip hits (then some endcap hits far away)
-// 8 - ... no valid seeds, but actually this one doesn't look bad - to investirage
-// 9 - no gen pion
-// 10 - ... Z+, Q- (wrong helix bending)
-// 11 - track misreco
-// 12 - no gen pion from the reconstructed track
-// 13 - ... Z+, Q+
-// 14 - missing (very displaced) first strip hit
-// 15 - charge mismatch
-// 16 - no pion hits
-// 17 - too high pz (790 MeV)
-// 18 - track misreco
-// 19 - too high pz (910 MeV)
-// 20 - too high pz (630 MeV)
-// 21 - high track eta, high vertex z (510 mm)
-// 22 - missing first hit (?)
-// 23 - no gen pion
-// 24 - ... Z-, Q+
-// 25 - track misreco
-// 26 - track misreco
-// 27 - OK, Z-, Q-
-// 28 - only a few pion hits, scattered a lot
-// 29 - track misreco
-// 30 - ... Z+, Q+
-// __31 - OK, Z+, Q+
-// 32 - shitty hits
-// 33 - no gen pion
-// 34 - high pz (570 MeV)
-// 35 - ... Z+, Q+, perfect case, idk why doesn't work
-// 36 - ... Z-, Q-, very nice, should work
-// 37 - ... no seeds. Just a few hits, but should work...
-// 38 - too high pz (590 MeV)
-// 39 - shitty hits
-// 40 - ... Q+, Z-, no seeds, but looks good...
 
 Display *display;
 shared_ptr<EventSet> events;
@@ -309,12 +267,12 @@ int main(int argc, char* argv[])
     auto start = now();
 //    vector<Helix> fittedHelices = fitter->FitHelices(allSimplePoints, *track, *event->GetVertex());
 
-    display->DrawSimplePoints(pointsNoEndcaps, pionClustersOptions);
-    vector<Helix> fittedHelices = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
+//    display->DrawSimplePoints(pointsNoEndcaps, pionClustersOptions);
+//    vector<Helix> fittedHelices = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
     
-//    pointsProcessor.SetPointsLayers(pionClusters);
-//    display->DrawSimplePoints(pionClusters, pionClustersOptions);
-//    vector<Helix> fittedHelices = fitter->FitHelices(pionClusters, *track, *event->GetVertex());
+    pointsProcessor.SetPointsLayers(pionClusters);
+    display->DrawSimplePoints(pionClusters, pionClustersOptions);
+    vector<Helix> fittedHelices = fitter->FitHelices(pionClusters, *track, *event->GetVertex());
     
     auto end = now();
     

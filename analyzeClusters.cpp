@@ -77,8 +77,9 @@ vector<tuple<string, int, double, double, string>> histOptions1D = {
 
 vector<tuple<string, int, double, double, string, int, double, double, string>> histOptions2D = {
   // title                        nBinsX  minX maxX    titleX nBinsY  minY maxY    titleY
-  {"next_point_delta_phi_pion_pt" , 50, 0, 3.14 , "#Delta #phi" , 50, 0, 1000, "pion p_{t} (MeV)" },
-  {"next_point_delta_z_pion_pz"   , 50, 0, 1000 , "#Delta z"    , 50, 0, 1000, "pion p_{z} (MeV)" },
+  {"next_point_delta_phi_pion_pt" , 50, 0, 3.14 , "#Delta #phi" , 50, 0, 1000 , "pion p_{t} (MeV)"  },
+  {"next_point_delta_z_pion_pz"   , 50, 0, 1000 , "#Delta z"    , 50, 0, 1000 , "pion p_{z} (MeV)"  },
+  {"charge_gen_vs_rec"            , 3 ,-1, 2    , "q_{rec}"     , 3 ,-1, 2    , "q_{gen}"           },
 };
 map<string, TH1D *> hists1D;
 map<string, TH2D *> hists2D;
@@ -156,6 +157,7 @@ int main(int argc, char* argv[])
     
     // Pick only events with one track and one gen pion and resonable number of pion clusters
     if(event->GetGenPionHelices().size() != 1) continue;
+    if(event->GetGenCharginoTracks().size() != 1) continue;
     if(event->GetNtracks() != 1) continue;
     if(event->GetPionClusters().size() < 3) continue;
     if(event->GetPionSimHits().size() < 3) continue;
@@ -167,10 +169,12 @@ int main(int argc, char* argv[])
     auto pionSimHits     = event->GetPionSimHits();
     auto pionClusters    = event->GetPionClusters();
     auto trackerClusters = event->GetTrackerClusters();
+    auto chargino        = event->GetGenCharginoTracks()[0];
     
     // Fill basic info about events
     hists1D["lumi"]->Fill(event->GetLumiSection());
     hists1D["noise_n_clusters"]->Fill(trackerClusters.size()-pionClusters.size());
+    hists2D["charge_gen_vs_rec"]->Fill(track->GetCharge(), chargino.GetCharge());
     
     // Fill gen-pion histograms
     double pionPt = sqrt(pow(pionHelix.GetMomentum()->GetX(), 2) + pow(pionHelix.GetMomentum()->GetY(), 2));
@@ -206,8 +210,6 @@ int main(int argc, char* argv[])
       auto nextHit = pionSimHits[iHit+1];
       
       if(thisHit->GetLayer() == thisHit->GetLayer()){
-        
-        
         turningLayer = pionSimHits[iHit]->GetLayer();
         break;
       }
@@ -389,7 +391,10 @@ int main(int argc, char* argv[])
   trackingCanvas->cd(13);  hists1D["last_seed_hit_delta_phi_plu"]->Draw();
   trackingCanvas->cd(14);  hists1D["last_seed_hit_delta_phi_min"]->Draw();
   
-  
+  TCanvas *charginoCanvas = new TCanvas("chargino", "chargino", 2880, 1800);
+  charginoCanvas->Divide(2,2);
+  hists2D["charge_gen_vs_rec"]->SetMarkerSize(3.0);
+  charginoCanvas->cd(1);  hists2D["charge_gen_vs_rec"]->DrawNormalized("text colz");
   
   TCanvas *chargeCanvas   = new TCanvas("charge", "charge", 2880, 1800);
   TCanvas *clustersCanvas = new TCanvas("clusters", "clusters", 2880, 1800);
@@ -430,6 +435,7 @@ int main(int argc, char* argv[])
   chargeCanvas->Update();
   clustersCanvas->Update();
   specialCanvas->Update();
+  charginoCanvas->Update();
   
   TFile *outFile = new TFile(outfileName.c_str(), "recreate");
   outFile->cd();
