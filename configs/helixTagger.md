@@ -65,6 +65,9 @@ n_track_hits: 2
 ### Determines how far points can be from helix to be assigned to it (in mm):
 helix_thickness:  0.0
 
+### Maximum distance in 3D to consider two hits as overlapping ones (in mm):
+double_hit_max_distance:            10
+
 ### Constraints on seeds parameters:
 seed_max_chi2:                            10
 
@@ -77,16 +80,16 @@ seed_last_hit_max_delta_phi:       0.5
 seed_last_hit_max_delta_z:          100
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             1e-2
+track_max_chi2:                             1e-3
 
 next_point_min_delta_phi:              0.0
 next_point_max_delta_phi:             0.5
 next_point_max_delta_z:                700
 
-track_min_n_points:                       3
+track_min_n_points:                       0
 
 ### Max number of different points and min number of points to merge two helices:
-merging_max_different_point:        2
+merging_max_different_point:        5
 candidate_min_n_points:               3
 
 ### Max number of missing hits (total and in a row):

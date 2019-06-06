@@ -85,6 +85,9 @@ public:
   Point GetPointOnTrack(double L, const Track &track, const Point &eventVertex);
   
   
+  vector<vector<shared_ptr<Point>>> RegroupNerbyPoints(const vector<shared_ptr<Point>> &points,
+                                                       double threshold);
+  
   double GetTforPoint(Point &point, Point &origin, int charge);
   
   void SetPointsLayers(vector<shared_ptr<Point>> &points);

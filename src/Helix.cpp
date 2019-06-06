@@ -195,8 +195,14 @@ void Helix::AddPoint(const shared_ptr<Point> &point)
   else            pointsAfterTurning.push_back(point);
   
   double t = pointsProcessor.GetTforPoint(*point, origin, charge);
-  if(charge < 0) while(t < tMax) t += 2*TMath::Pi();
-  else           while(t > tMax) t -= 2*TMath::Pi();
+  
+  int previousPointLayer = points.back()->GetLayer();
+  int thisPointLayer = point->GetLayer();
+  
+  if(thisPointLayer != previousPointLayer){
+    if(charge < 0) while(t < tMax) t += 2*TMath::Pi();
+    else           while(t > tMax) t -= 2*TMath::Pi();
+  }
   point->SetT(t);
   tMax = t;
 }
@@ -205,25 +211,28 @@ void Helix::UpdateOrigin(const Point &_origin)
 {
   origin = _origin;
   
-  for(auto &p : points){
-    p->SetT(pointsProcessor.GetTforPoint(*p, origin, charge));
-  }
-  
   sort(points.begin(), points.end(), PointsProcessor::ComparePointByLayer());
 
-  // this should be fixed:
-  for(int iPoint=0; iPoint<points.size()-1; iPoint++){
-    if(charge < 0){
-      while(points[iPoint+1]->GetT() < points[iPoint]->GetT()){
-        points[iPoint+1]->SetT(points[iPoint+1]->GetT() + 2*TMath::Pi());
-      }
+  int previousPointLayer = -1;
+  
+  for(int iPoint=0; iPoint<points.size(); iPoint++){
+    int thisPointLayer = points[iPoint]->GetLayer();
+    double t = pointsProcessor.GetTforPoint(*points[iPoint], origin, charge);
+    
+    if(thisPointLayer != previousPointLayer){
+      
+      double previousT = points[iPoint-1]->GetT();
+      
+      if(charge < 0)  while(t < previousT) t += 2*TMath::Pi();
+      else            while(t > previousT) t -= 2*TMath::Pi();
+
+      previousPointLayer = thisPointLayer;
+      
     }
-    else{
-      while(points[iPoint+1]->GetT() > points[iPoint]->GetT()){
-        points[iPoint+1]->SetT(points[iPoint+1]->GetT() - 2*TMath::Pi());
-      }
-    }
+    points[iPoint]->SetT(t);
   }
+  
+  // TODO: rewrite as above
   if(pointsAfterTurning.size() > 0){
     sort(pointsAfterTurning.begin(), pointsAfterTurning.end(), PointsProcessor::ComparePointByLayerInverted());
     

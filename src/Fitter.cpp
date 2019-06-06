@@ -80,35 +80,59 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
   vector<shared_ptr<Point>> possibleLastPoints   = pointsByLayer[trackLayers+1];
   Point trackPointMid = pointsProcessor.GetPointOnTrack((layerR[trackLayers-1]+layerR[trackLayers])/2., track, eventVertex);
   
+  vector<vector<shared_ptr<Point>>> middlePointsRegrouped = pointsProcessor.RegroupNerbyPoints(possibleMiddlePoints, config.doubleHitsMaxDistance);
+  vector<vector<shared_ptr<Point>>> lastPointsRegrouped   = pointsProcessor.RegroupNerbyPoints(possibleLastPoints, config.doubleHitsMaxDistance);
+  
   vector<Helix> seeds;
 
   int nPairs=0;
-  for(auto &middlePoint : possibleMiddlePoints){
-    
-    double middleHitDeltaPhi = pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMid, *middlePoint);
-    
-    if(config.doAsymmetricConstraints)  middleHitDeltaPhi = track.GetCharge()*middleHitDeltaPhi;
-    else                                middleHitDeltaPhi = fabs(middleHitDeltaPhi);
-    
-    if(config.seedMiddleHitDeltaPhi.IsOutside(middleHitDeltaPhi)) continue;
 
-    double middleHitDeltaZ = fabs(middlePoint->GetZ() - trackPointMid.GetZ());
-    if(middleHitDeltaZ > config.seedMiddleHitMaxDeltaZ) continue;
+  for(auto &middlePoints : middlePointsRegrouped){
     
-    for(auto &lastPoint : possibleLastPoints){
+    vector<shared_ptr<Point>> goodMiddlePoints;
+    
+    for(auto &point : middlePoints){
+      double middleHitDeltaPhi = pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMid, *point);
       
-      double lastHitDeltaPhi = pointsProcessor.GetPointingAngleXY(trackPointMid, *middlePoint, *lastPoint);
+      if(config.doAsymmetricConstraints)  middleHitDeltaPhi = track.GetCharge()*middleHitDeltaPhi;
+      else                                middleHitDeltaPhi = fabs(middleHitDeltaPhi);
       
-      if(config.doAsymmetricConstraints)  lastHitDeltaPhi = track.GetCharge()*lastHitDeltaPhi;
-      else                                lastHitDeltaPhi = fabs(lastHitDeltaPhi);
-      
-      if(config.seedLastHitDeltaPhi.IsOutside(lastHitDeltaPhi)) continue;
+      if(config.seedMiddleHitDeltaPhi.IsOutside(middleHitDeltaPhi)) continue;
 
-      double lastPointDeltaZ = fabs(middlePoint->GetZ() - lastPoint->GetZ());
-      if(lastPointDeltaZ > config.seedLastHitMaxDeltaZ) continue;
-
+      double middleHitDeltaZ = fabs(point->GetZ() - trackPointMid.GetZ());
+      if(middleHitDeltaZ > config.seedMiddleHitMaxDeltaZ) continue;
+    
+      goodMiddlePoints.push_back(point);
+    }
+    if(goodMiddlePoints.size()==0) continue;
+    
+    for(auto &lastPoints : lastPointsRegrouped){
+      
+      vector<shared_ptr<Point>> goodLastPoints;
+      
+      for(auto &point : lastPoints){
+        for(auto &middlePoint : goodMiddlePoints){
+          double lastHitDeltaPhi = pointsProcessor.GetPointingAngleXY(trackPointMid, *middlePoint, *point);
+          
+          if(config.doAsymmetricConstraints)  lastHitDeltaPhi = track.GetCharge()*lastHitDeltaPhi;
+          else                                lastHitDeltaPhi = fabs(lastHitDeltaPhi);
+          
+          if(config.seedLastHitDeltaPhi.IsOutside(lastHitDeltaPhi)) continue;
+          
+          double lastPointDeltaZ = fabs(middlePoint->GetZ() - point->GetZ());
+          if(lastPointDeltaZ > config.seedLastHitMaxDeltaZ) continue;
+          
+          goodLastPoints.push_back(point);
+          break;
+        }
+      }
+      if(goodLastPoints.size()==0) continue;
+      
       nPairs++;
-      auto points = { middlePoint, lastPoint };
+      vector<shared_ptr<Point>> points;
+      points.insert(points.end(), goodMiddlePoints.begin(), goodMiddlePoints.end());
+      points.insert(points.end(), goodLastPoints.begin(), goodLastPoints.end());
+
       auto helix = FitSeed(points,  track.GetCharge());
       
       if(helix){
@@ -138,21 +162,22 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points, int c
     // First add distance to the vertex
     Point origin(x0, y0, z0);
     auto vertex = make_shared<Point>(pointsProcessor.GetPointOnTrack(L, track, eventVertex));
-    vertex->SetT(pointsProcessor.GetTforPoint(*vertex, origin, charge));
+
+    vector<shared_ptr<Point>> pointsTriplet = { vertex };
+    pointsTriplet.insert(pointsTriplet.end(), points.begin(), points.end());
     
-    vector<shared_ptr<Point>> pointsTriplet = { vertex, points[0], points[1] };
-    
-    for(int iPoint=1;iPoint<pointsTriplet.size(); iPoint++){
-      if(charge < 0){
-        double t = pointsProcessor.GetTforPoint(*pointsTriplet[iPoint], origin, charge);
-        while(t < pointsTriplet[iPoint-1]->GetT()) t += 2*TMath::Pi();
-        pointsTriplet[iPoint]->SetT(t);
+    int previousPointLayer = -1;
+    for(int iPoint=0;iPoint<pointsTriplet.size(); iPoint++){
+      int thisPointLayer = pointsTriplet[iPoint]->GetLayer();
+      double t = pointsProcessor.GetTforPoint(*pointsTriplet[iPoint], origin, charge);
+      
+      if(thisPointLayer != previousPointLayer){
+        double previousT = pointsTriplet[iPoint-1]->GetT();
+        if(charge < 0)  while(t < previousT) t += 2*TMath::Pi();
+        else            while(t > previousT) t -= 2*TMath::Pi();
+        previousPointLayer = thisPointLayer;
       }
-      else{
-        double t = pointsProcessor.GetTforPoint(*pointsTriplet[iPoint], origin, charge);
-        while(t > pointsTriplet[iPoint-1]->GetT()) t -= 2*TMath::Pi();
-        pointsTriplet[iPoint]->SetT(t);
-      }
+      pointsTriplet[iPoint]->SetT(t);
     }
     
     double t, distX, distY, distZ, x, y, z;
@@ -248,11 +273,21 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         
         // Find points that could extend this helix
         size_t nHelixPoints = helix.GetNpoints();
-        auto lastPoint = helix.GetLastPoint();
-        auto secondToLastPoint = helix.GetSecontToLastPoint();
-        int missingOffset = helix.IsPreviousHitMissing() ? helix.GetNmissingHitsInRow() : 0;
         
+        auto lastPoint = helix.GetLastPoint();
+        
+        int missingOffset = helix.IsPreviousHitMissing() ? helix.GetNmissingHitsInRow() : 0;
         int lastPointLayer = lastPoint->GetLayer() + missingOffset;
+        
+        shared_ptr<Point> secondToLastPoint;
+        int secondToLastPointLayer = lastPointLayer;
+        
+        int secondLastIter = 2;
+        while(secondToLastPointLayer == lastPointLayer){
+          secondToLastPoint = helix.GetPoints()[nHelixPoints-secondLastIter];
+          secondToLastPointLayer = secondToLastPoint->GetLayer();
+          secondLastIter++;
+        }
         
         vector<shared_ptr<Point>> possiblePoints;
         
@@ -260,6 +295,8 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           if(helix.GetIncreasing())   possiblePoints = pointsByLayer[lastPointLayer+1];
           else                        possiblePoints = pointsByLayer[lastPointLayer-1];
         }
+        
+        vector<vector<shared_ptr<Point>>> possiblePointsRegrouped = pointsProcessor.RegroupNerbyPoints(possiblePoints, config.doubleHitsMaxDistance);
         
         vector<Helix> extendedHelices;
         
@@ -270,36 +307,39 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         
         // try to extend to next layer
 //        if(crossesNextLayer){
-          for(auto &point : possiblePoints){
+          for(auto &points : possiblePointsRegrouped){
             
-            // Check if new point is within some cone
-            double deltaPhi = pointsProcessor.GetPointingAngleXY(*secondToLastPoint,
-                                                                 *lastPoint,
-                                                                 *point);
+            vector<shared_ptr<Point>> goodPoints;
             
-            if(helix.GetIncreasing()){
-              if(config.nextPointDeltaPhi.IsOutside(fabs(deltaPhi))) continue;
-            }
-            else{
+            for(auto &point : points){
+              double deltaPhi = pointsProcessor.GetPointingAngleXY(*secondToLastPoint, *lastPoint, *point);
               
-//              helixProcessor.GetIntersectionWithLayer(helix, lastPointLayer-1, pA, pB);
-//
-//              Point newPointEstimated;
-//
-//              if(pointsProcessor.distanceXY(pA, *secondToLastPoint) < pointsProcessor.distanceXY(pB, *secondToLastPoint)) newPointEstimated = pB;
-//              else                                                                                                        newPointEstimated = pA;
-//
-//              double distanceXYtoPoint = pointsProcessor.distanceXY(newPointEstimated, *point);
-//              if(distanceXYtoPoint > 150) continue;
+              if(helix.GetIncreasing()){
+                if(config.nextPointDeltaPhi.IsOutside(fabs(deltaPhi))) continue;
+              }
+              else{
+                
+                //              helixProcessor.GetIntersectionWithLayer(helix, lastPointLayer-1, pA, pB);
+                //
+                //              Point newPointEstimated;
+                //
+                //              if(pointsProcessor.distanceXY(pA, *secondToLastPoint) < pointsProcessor.distanceXY(pB, *secondToLastPoint)) newPointEstimated = pB;
+                //              else                                                                                                        newPointEstimated = pA;
+                //
+                //              double distanceXYtoPoint = pointsProcessor.distanceXY(newPointEstimated, *point);
+                //              if(distanceXYtoPoint > 150) continue;
+              }
+              
+              double deltaZ = fabs(lastPoint->GetZ() - point->GetZ());
+              if(deltaZ > config.nextPointMaxDeltaZ) continue;
+              
+              goodPoints.push_back(point);
             }
-            
-            double deltaZ = fabs(helix.GetPoints()[nHelixPoints-1]->GetZ() - point->GetZ());
-            
-            if(deltaZ > config.nextPointMaxDeltaZ) continue;
+            if(goodPoints.size()==0) continue;
             
             /// Extend helix by the new point and refit its params
             Helix helixCopy(helix);
-            helixCopy.AddPoint(point);
+            for(auto &point : goodPoints) helixCopy.AddPoint(point);
             RefitHelix(helixCopy);
             
             // check if chi2 is small enough
@@ -565,17 +605,18 @@ void Fitter::RefitHelix(Helix &helix)
     vector<shared_ptr<Point>> points = helixPoints;
     points[0] = vertex;
     
-    for(int iPoint=1;iPoint<points.size(); iPoint++){
-      if(helix.GetCharge() < 0){
-        double t = pointsProcessor.GetTforPoint(*points[iPoint], origin, helix.GetCharge());
-        while(t < points[iPoint-1]->GetT()) t += 2*TMath::Pi();
-        points[iPoint]->SetT(t);
+    int previousPointLayer = -1;
+    for(int iPoint=0;iPoint<points.size(); iPoint++){
+      int thisPointLayer = points[iPoint]->GetLayer();
+      double t = pointsProcessor.GetTforPoint(*points[iPoint], origin, helix.GetCharge());
+      
+      if(thisPointLayer != previousPointLayer){
+        double previousT = points[iPoint-1]->GetT();
+        if(helix.GetCharge() < 0) while(t < previousT) t += 2*TMath::Pi();
+        else                      while(t > previousT) t -= 2*TMath::Pi();
+        previousPointLayer = thisPointLayer;
       }
-      else{
-        double t = pointsProcessor.GetTforPoint(*points[iPoint], origin, helix.GetCharge());
-        while(t > points[iPoint-1]->GetT()) t -= 2*TMath::Pi();
-        points[iPoint]->SetT(t);
-      }
+      points[iPoint]->SetT(t);
     }
     
     double t, distX, distY, distZ, x, y, z;

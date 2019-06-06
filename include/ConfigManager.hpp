@@ -83,6 +83,8 @@ struct ConfigManager {
   int maxNmissingHits;
   int maxNmissingHitsInRow;
   
+  double doubleHitsMaxDistance;
+  
   bool doAsymmetricConstraints;
   
   // Random chargino's track parameters

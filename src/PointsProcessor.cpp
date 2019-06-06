@@ -295,3 +295,31 @@ double PointsProcessor::GetTforPoint(Point &point, Point &origin, int charge)
   
   return t;
 }
+
+
+vector<vector<shared_ptr<Point>>> PointsProcessor::RegroupNerbyPoints(const vector<shared_ptr<Point>> &points,
+                                                                      double threshold)
+{
+  vector<vector<shared_ptr<Point>>> regroupedPoints;
+  vector<int> alreadyRegroupedIndices;
+  
+  for(int iPoint1=0; iPoint1<points.size(); iPoint1++){
+    if(find(alreadyRegroupedIndices.begin(), alreadyRegroupedIndices.end(), iPoint1) != alreadyRegroupedIndices.end()){
+      continue;
+    }
+    
+    vector<shared_ptr<Point>> thisPointNeighbours;
+    thisPointNeighbours.push_back(points[iPoint1]);
+    
+    for(int iPoint2=iPoint1+1; iPoint2<points.size(); iPoint2++){
+      if(pointsProcessor.distance(*points[iPoint1], *points[iPoint2]) < threshold){
+        thisPointNeighbours.push_back(points[iPoint2]);
+        alreadyRegroupedIndices.push_back(iPoint2);
+      }
+    }
+    
+    regroupedPoints.push_back(thisPointNeighbours);
+  }
+  
+  return regroupedPoints;
+}
