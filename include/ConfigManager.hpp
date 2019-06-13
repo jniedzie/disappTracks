@@ -75,6 +75,7 @@ struct ConfigManager {
   double seedLastHitMaxDeltaZ;
   range<double> nextPointDeltaPhi;
   double nextPointMaxDeltaZ;
+  double nextPointMaxDeltaXY;
   
   double trackMaxChi2;
   int mergingMaxDifferentPoints;
@@ -82,6 +83,8 @@ struct ConfigManager {
   int candidateMinNpoints;
   int maxNmissingHits;
   int maxNmissingHitsInRow;
+  
+  bool mergeAtTurnBack;
   
   double doubleHitsMaxDistance;
   

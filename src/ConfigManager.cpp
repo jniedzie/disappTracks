@@ -54,11 +54,14 @@ ConfigManager::ConfigManager(string _path)
   }
   
   nextPointMaxDeltaZ        = configFile->GetValue("next_point_max_delta_z",1000.0);
+  nextPointMaxDeltaXY       = configFile->GetValue("next_point_max_delta_xy",1000.0);
+  
   mergingMaxDifferentPoints = configFile->GetValue("merging_max_different_point", 0);
   candidateMinNpoints       = configFile->GetValue("candidate_min_n_points", 0);
   trackMinNpoints           = configFile->GetValue("track_min_n_points", 0);
   maxNmissingHits           = configFile->GetValue("max_n_missing_hits", 0);
   maxNmissingHitsInRow      = configFile->GetValue("max_n_missing_hits_in_raw", 0);
+  mergeAtTurnBack           = configFile->GetValue("merge_at_turn_back", 0);
   
   maxEta                      = configFile->GetValue("max_eta",10.0);
   nTrackHits                  = configFile->GetValue("n_track_hits",3);

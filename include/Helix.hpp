@@ -107,6 +107,8 @@ public:
   inline int                  GetNmissingHitsInRow() const {return nMissingHitsInRow;}
   inline bool                 IsPreviousHitMissing() const {return isPreviousHitMissing;}
   
+  inline int   GetFirstTurningPointIndex(){ return firstTurningPointIndex; }
+  
   double                      GetNcycles()  const;
   
   inline bool GetShouldRefit() const { return shouldRefit; }

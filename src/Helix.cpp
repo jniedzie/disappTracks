@@ -204,8 +204,8 @@ void Helix::AddPoint(const shared_ptr<Point> &point)
   }
   else{
     double previousT = previousPoint->GetT();
-    if(t < previousT)  while(fabs(t-previousT) > TMath::Pi()/4.) t += 2*TMath::Pi();
-    else               while(fabs(t-previousT) > TMath::Pi()/4.) t -= 2*TMath::Pi();
+         if(fabs(t-previousT) > fabs(t+2*TMath::Pi()-previousT)) t += 2*TMath::Pi();
+    else if(fabs(t-previousT) > fabs(t-2*TMath::Pi()-previousT)) t -= 2*TMath::Pi();
   }
   point->SetT(t);
   tMax = t;

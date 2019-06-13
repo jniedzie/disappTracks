@@ -102,12 +102,13 @@ track_max_chi2:                             1e-2
 next_point_min_delta_phi:              0.0
 next_point_max_delta_phi:             0.5
 next_point_max_delta_z:                700
+next_point_max_delta_xy:              150
 
 track_min_n_points:                       15
 
 ### Max number of different points and min number of points to merge two helices:
-merging_max_different_point:        2
-candidate_min_n_points:               5
+merging_max_different_point:        3
+candidate_min_n_points:               3
 
 ### Max number of missing hits (total and in a row):
 max_n_missing_hits:                       0

@@ -16,7 +16,7 @@ string cutLevel = "after_L2/4layers/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 30;
+int iEvent = 2;
 
 bool injectPion = false;
 bool fitHelix = true;
@@ -267,12 +267,12 @@ int main(int argc, char* argv[])
     auto start = now();
 //    vector<Helix> fittedHelices = fitter->FitHelices(allSimplePoints, *track, *event->GetVertex());
 
-//    display->DrawSimplePoints(pointsNoEndcaps, pionClustersOptions);
-//    vector<Helix> fittedHelices = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
+    display->DrawSimplePoints(pointsNoEndcaps, pionClustersOptions);
+    vector<Helix> fittedHelices = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
     
-    pointsProcessor.SetPointsLayers(pionClusters);
-    display->DrawSimplePoints(pionClusters, pionClustersOptions);
-    vector<Helix> fittedHelices = fitter->FitHelices(pionClusters, *track, *event->GetVertex());
+//    pointsProcessor.SetPointsLayers(pionClusters);
+//    display->DrawSimplePoints(pionClusters, pionClustersOptions);
+//    vector<Helix> fittedHelices = fitter->FitHelices(pionClusters, *track, *event->GetVertex());
     
     auto end = now();
     

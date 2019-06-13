@@ -75,7 +75,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
 {
   // find possible middle and last seeds' points
   int trackLayers = track.GetNtrackerLayers();
-  cout<<"Track layers:"<<trackLayers<<endl;
+  
   vector<shared_ptr<Point>> possibleMiddlePoints = pointsByLayer[trackLayers];
   vector<shared_ptr<Point>> possibleLastPoints   = pointsByLayer[trackLayers+1];
   Point trackPointMid = pointsProcessor.GetPointOnTrack((layerR[trackLayers-1]+layerR[trackLayers])/2., track, eventVertex);
@@ -263,9 +263,15 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         auto lastPoints         = helix.GetLastPoints();
         auto secondToLastPoints = helix.GetSecontToLastPoints();
         
+        shared_ptr<Point> turningPoint = nullptr;
+        if(helix.GetFirstTurningPointIndex() > 0) turningPoint = helixPoints[helix.GetFirstTurningPointIndex()];
+        int turningPointLayer = turningPoint ? turningPoint->GetLayer() : inf;
+        
         int missingOffset  = helix.IsPreviousHitMissing() ? helix.GetNmissingHitsInRow() : 0;
         int lastPointLayer = lastPoints.front()->GetLayer() + missingOffset;
 
+        if(lastPointLayer < 0) continue;
+        
         // fist, check if helix crosses next layer
         Point pA, pB;
         bool crossesNextLayer = helixProcessor.GetIntersectionWithLayer(helix,helix.IsIncreasing() ? lastPointLayer+1 : lastPointLayer-1, pA, pB);
@@ -298,7 +304,8 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             
             for(auto &point : points){
 
-              if(helix.IsIncreasing()){ // at the moment no check on phi after turning back. TODO: implement some meaningful limits on phi after turning
+              if(helix.IsIncreasing() || point->GetLayer() < turningPointLayer-1){
+                // TODO: implement some meaningful limits on phi after turning
                 if(!pointsProcessor.IsPhiGood(lastPoints, secondToLastPoints, point)) continue;
               }
               else{
@@ -365,10 +372,8 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             
             extendedHelices.push_back(helixCopy);
           }
-          
-//          cout<<"Merging"<<endl;
-//          while(MergeHelices(extendedHelices));
-//          cout<<"done"<<endl;
+        
+          if(config.mergeAtTurnBack) while(MergeHelices(extendedHelices));
         }
          
         // if it was possible to extend the helix
@@ -686,10 +691,6 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   double maxL = layerRanges[track.GetNtrackerLayers()].GetMin();
   double startL = (minL+maxL)/2.; // estimate decay vertex in between of the two above
   Point trackPoint = pointsProcessor.GetPointOnTrack(startL, track, eventVertex);
-  
-  int zSign = 0;
-  if(points.back()->GetZ() > points.front()->GetZ() > trackPoint.GetZ()) zSign =  1;
-  if(points.back()->GetZ() < points.front()->GetZ() < trackPoint.GetZ()) zSign = -1;
   
   // -- calculate where wuold the origin X and Y be for the most probable radius and average L position
   double startX0 = 0, minX0 = trackPoint.GetX(), maxX0 = trackPoint.GetX();
