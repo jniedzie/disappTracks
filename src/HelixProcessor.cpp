@@ -149,3 +149,32 @@ bool HelixProcessor::GetIntersectionWithLayer(const Helix &helix, int layerIndex
   
   return true;
 }
+
+bool HelixProcessor::IsPointCloseToHelixInLayer(const Helix &helix, const Point &point, int layer)
+{
+  auto lastPoints         = helix.GetLastPoints();
+  auto secondToLastPoints = helix.GetSecontToLastPoints();
+  
+  bool goodXY=false;
+  Point pA, pB;
+  GetIntersectionWithLayer(helix, layer, pA, pB);
+  
+  vector<Point> newPointsEstimated;
+  
+  for(auto &secondToLastPoint : secondToLastPoints){
+    
+    if(pointsProcessor.distanceXY(pA, *secondToLastPoint) <
+       pointsProcessor.distanceXY(pB, *secondToLastPoint)) newPointsEstimated.push_back(pB);
+    else                                                   newPointsEstimated.push_back(pA);
+    
+  }
+  
+  for(Point newPointEstimeted : newPointsEstimated){
+    double distanceXYtoPoint = pointsProcessor.distanceXY(newPointEstimeted, point);
+    if(distanceXYtoPoint <= 150){
+      goodXY=true;
+      break;
+    }
+  }
+  return goodXY;
+}

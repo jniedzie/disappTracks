@@ -97,6 +97,13 @@ public:
   void SetPointsT(vector<shared_ptr<Point>> &points, const Point &origin, int charge,
                   shared_ptr<Point> &lastPointBeforeTurning);
   
+  bool IsPhiGood(const vector<shared_ptr<Point>> &lastPoints,
+                 const vector<shared_ptr<Point>> &secondToLastPoints,
+                 const shared_ptr<Point> &point);
+  
+  bool IsZgood(const vector<shared_ptr<Point>> &lastPoints,
+               const shared_ptr<Point> &point);
+  
   /// Structs for sorting point
   struct ComparePointByZ{
     bool operator() (const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){

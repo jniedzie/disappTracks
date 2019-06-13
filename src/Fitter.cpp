@@ -297,56 +297,16 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             vector<shared_ptr<Point>> goodPoints;
             
             for(auto &point : points){
-              if(fabs(point->GetX()+78) < 1.0 &&
-                 fabs(point->GetY()-764) < 1.0 &&
-                 fabs(point->GetZ()-92) < 1.0){
-                cout<<"my point"<<endl;
-                
-              }
-              
-              bool goodPhi = false;
-              bool goodZ = false;
-              
+
               if(helix.IsIncreasing()){ // at the moment no check on phi after turning back. TODO: implement some meaningful limits on phi after turning
-                for(auto &lastPoint : lastPoints){
-                  for(auto &secondToLastPoint : secondToLastPoints){
-                    double deltaPhi = pointsProcessor.GetPointingAngleXY(*secondToLastPoint, *lastPoint, *point);
-                    if(config.nextPointDeltaPhi.IsOutside(fabs(deltaPhi))) continue;
-                    goodPhi = true;
-                    
-                    double deltaZ = fabs(lastPoint->GetZ() - point->GetZ());
-                    if(deltaZ > config.nextPointMaxDeltaZ) continue;
-                    goodZ = true;
-                    
-                    if(goodPhi && goodZ) break;
-                  }
-                  if(goodPhi && goodZ) break;
-                }
+                if(!pointsProcessor.IsPhiGood(lastPoints, secondToLastPoints, point)) continue;
               }
               else{
-                helixProcessor.GetIntersectionWithLayer(helix, lastPointLayer-1, pA, pB);
-                
-                vector<Point> newPointsEstimated;
-                
-                for(auto &secondToLastPoint : secondToLastPoints){
-                  
-                  if(pointsProcessor.distanceXY(pA, *secondToLastPoint) < pointsProcessor.distanceXY(pB, *secondToLastPoint)) newPointsEstimated.push_back(pB);
-                  else                                                                                                        newPointsEstimated.push_back(pA);
-                  
-                }
-                
-                for(Point newPointEstimeted : newPointsEstimated){
-                  double distanceXYtoPoint = pointsProcessor.distanceXY(newPointEstimeted, *point);
-                  if(distanceXYtoPoint <= 150){
-                    goodPhi=true;
-                    goodZ=true;
-                    break;
-                  }
-                }
+                if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, lastPointLayer-1)) continue;
               }
-              if(!goodPhi || !goodZ) continue;
               
-              
+              if(!pointsProcessor.IsZgood(lastPoints, point)) continue;
+
               goodPoints.push_back(point);
             }
             
@@ -379,52 +339,13 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           }
           vector<vector<shared_ptr<Point>>> turningBackPointsRegrouped = pointsProcessor.RegroupNerbyPoints(turningBackPoints, config.doubleHitsMaxDistance);
           
-          if(fabs(lastPoints.front()->GetX()+78) < 1.0 &&
-             fabs(lastPoints.front()->GetY()-764) < 1.0 &&
-             fabs(lastPoints.front()->GetZ()-92) < 1.0){
-            cout<<"my point"<<endl;
-            
-          }
-          
           for(auto &turningBackPoints : turningBackPointsRegrouped){
-            
-            // if not, find approximated location of point on the same layer
-            helixProcessor.GetIntersectionWithLayer(helix, lastPointLayer, pA, pB);
-            
-            Point newPointEstimated;
-            
-            if(pointsProcessor.distanceXY(pA, *lastPoints.front()) < pointsProcessor.distanceXY(pB, *lastPoints.front())) newPointEstimated = pB;
-            else                                                                                        newPointEstimated = pA;
-            
+
             vector<shared_ptr<Point>> goodTurningBackPoints;
+            
             for(auto &point : turningBackPoints){
-              
-              if(fabs(point->GetX()+334) < 1.0 &&
-                 fabs(point->GetY()-719) < 1.0 &&
-                 fabs(point->GetZ()-273) < 1.0){
-                cout<<"my point"<<endl;
-                
-              }
-              
-              double distanceXYtoPoint = pointsProcessor.distanceXY(newPointEstimated, *point);
-              if(distanceXYtoPoint > 150) continue;
-              
-              // Check if new point is within some cone
-              //          double deltaPhi = pointsProcessor.GetPointingAngleXY(*helix.GetPoints()[nHelixPoints-2],
-              //                                                               *helix.GetPoints()[nHelixPoints-1],
-              //                                                               *point);
-              //          range<double> turningBackRangePhi(1.0, 1.5);
-              //          if(turningBackRangePhi.IsOutside(fabs(deltaPhi))) continue;
-              
-              bool goodZ = false;
-              for(auto &lastPoint : lastPoints){
-                double deltaZ = fabs(lastPoint->GetZ() - point->GetZ());
-                if(deltaZ > config.nextPointMaxDeltaZ) continue;
-                goodZ = true;
-                break;
-              }
-              if(!goodZ) continue;
-              
+              if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, lastPointLayer)) continue;
+              if(!pointsProcessor.IsZgood(lastPoints, point)) continue;
               goodTurningBackPoints.push_back(point);
             }
             if(goodTurningBackPoints.size()==0) continue;

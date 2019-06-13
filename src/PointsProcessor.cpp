@@ -391,3 +391,35 @@ void PointsProcessor::SetPointsT(vector<shared_ptr<Point>> &points, const Point 
     point->SetT(thisPointT);
   }
 }
+
+bool PointsProcessor::IsPhiGood(const vector<shared_ptr<Point>> &lastPoints,
+                                const vector<shared_ptr<Point>> &secondToLastPoints,
+                                const shared_ptr<Point> &point)
+{
+  bool goodPhi=false;
+  
+  for(auto &lastPoint : lastPoints){
+    for(auto &secondToLastPoint : secondToLastPoints){
+      double deltaPhi = pointsProcessor.GetPointingAngleXY(*secondToLastPoint, *lastPoint, *point);
+      if(config.nextPointDeltaPhi.IsOutside(fabs(deltaPhi))) continue;
+      goodPhi = true;
+      break;
+    }
+    if(goodPhi) break;
+  }
+  return goodPhi;
+}
+
+bool PointsProcessor::IsZgood(const vector<shared_ptr<Point>> &lastPoints,
+                              const shared_ptr<Point> &point)
+{
+  bool goodZ = false;
+  
+  for(auto &lastPoint : lastPoints){
+    double deltaZ = fabs(lastPoint->GetZ() - point->GetZ());
+    if(deltaZ > config.nextPointMaxDeltaZ) continue;
+    goodZ = true;
+    break;
+  }
+  return goodZ;
+}
