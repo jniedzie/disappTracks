@@ -56,7 +56,7 @@ n_noise_hits: 0
 n_tracker_layers: 4
 
 ### Limit number of events loaded (-1 means load all available)
-max_N_events_signal:  2000
+max_N_events_signal:  -1
 
 **Pion's parameters**
 
@@ -100,10 +100,10 @@ seed_last_hit_max_delta_z:          100
 track_max_chi2:                             1e-2
 
 next_point_min_delta_phi:              0.0
-next_point_max_delta_phi:             1.0
+next_point_max_delta_phi:             0.5
 next_point_max_delta_z:                700
 
-track_min_n_points:                       7
+track_min_n_points:                       15
 
 ### Max number of different points and min number of points to merge two helices:
 merging_max_different_point:        2

@@ -49,13 +49,13 @@ decayPoint(Point(0,0,0))
   }
 };
 
-Track::Track(double _eta, double _phi, int _charge, int _nTrackerLayers) :
+Track::Track(double _eta, double _phi, int _charge, int _nTrackerLayers, double _pt) :
 eta(_eta),
 phi(_phi),
 charge(_charge),
 nTrackerLayers(_nTrackerLayers),
+pt(_pt),
 
-pt(inf),
 mass(inf),
 caloEmEnergy(-1.0),
 caloHadEnergy(-1.0),

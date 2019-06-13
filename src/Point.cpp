@@ -14,13 +14,14 @@ errZ(0),
 value(0),
 t(0),
 layer(-1),
-subDetName("")
+subDetName(""),
+time(-1.0)
 {
   
 }
 
 Point::Point(double _x, double _y, double _z, double _value, string _subDetName,
-             double _errX, double _errY, double _errZ, double _t, int _layer) :
+             double _errX, double _errY, double _errZ, double _t, int _layer, double _time) :
 x(_x),
 y(_y),
 z(_z),
@@ -31,39 +32,42 @@ errX(_errX),
 errY(_errY),
 errZ(_errZ),
 t(_t),
-layer(_layer)
+layer(_layer),
+time(_time)
 {
   
 }
 
 Point::Point(const Point &p)
 {
-  x = p.x;
-  y = p.y;
-  z = p.z;
-  value = p.value;
-  isPionHit = p.isPionHit;
-  errX = p.errX;
-  errY = p.errY;
-  errZ = p.errZ;
+  x          = p.x;
+  y          = p.y;
+  z          = p.z;
+  value      = p.value;
+  isPionHit  = p.isPionHit;
+  errX       = p.errX;
+  errY       = p.errY;
+  errZ       = p.errZ;
   subDetName = p.subDetName;
-  t = p.t;
-  layer = p.layer;
+  t          = p.t;
+  layer      = p.layer;
+  time       = p.time;
 }
 
 void Point::operator=(const Point &p)
 {
-  x = p.x;
-  y = p.y;
-  z = p.z;
-  value = p.value;
-  isPionHit = p.isPionHit;
-  errX = p.errX;
-  errY = p.errY;
-  errZ = p.errZ;
+  x          = p.x;
+  y          = p.y;
+  z          = p.z;
+  value      = p.value;
+  isPionHit  = p.isPionHit;
+  errX       = p.errX;
+  errY       = p.errY;
+  errZ       = p.errZ;
   subDetName = p.subDetName;
-  t = p.t;
-  layer = p.layer;
+  t          = p.t;
+  layer      = p.layer;
+  time       = p.time;
 }
 
 Point::Point(vector<Point> points)
@@ -78,6 +82,7 @@ Point::Point(vector<Point> points)
     errY += p.GetYerr();
     errZ += p.GetZerr();
     t += p.t;
+    time += p.time;
   }
   x /= points.size();
   y /= points.size();
@@ -86,6 +91,7 @@ Point::Point(vector<Point> points)
   errY /= points.size();
   errZ /= points.size();
   t /= points.size();
+  time /= points.size();
 }
 
 void Point::Print() const

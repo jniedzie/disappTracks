@@ -285,7 +285,7 @@ Point PointsProcessor::GetPointOnTrack(double L, const Track &track, const Point
   return p;
 }
 
-double PointsProcessor::GetTforPoint(Point &point, Point &origin, int charge)
+double PointsProcessor::GetTforPoint(Point &point, const Point &origin, int charge)
 {
   double t;
   if(charge < 0) t =  atan2(point.GetY() - origin.GetY(), point.GetX() - origin.GetX());
@@ -322,4 +322,72 @@ vector<vector<shared_ptr<Point>>> PointsProcessor::RegroupNerbyPoints(const vect
   }
   
   return regroupedPoints;
+}
+
+void PointsProcessor::SetPointsT(vector<shared_ptr<Point>> &points, const Point &origin, int charge)
+{
+  int previousPointLayer = -1;
+  
+  for(int iPoint=0; iPoint<points.size(); iPoint++){
+    auto point = points[iPoint];
+    double thisPointT = GetTforPoint(*point, origin, charge);
+    int thisPointLayer = point->GetLayer();
+    
+    if(thisPointLayer != previousPointLayer){ // implement corner case!
+      auto previousPoint = points[iPoint-1];
+      double previousT = previousPoint->GetT();
+      if(charge < 0)  while(thisPointT < previousT) thisPointT += 2*TMath::Pi();
+      else            while(thisPointT > previousT) thisPointT -= 2*TMath::Pi();
+      previousPointLayer = thisPointLayer;
+    }
+    else if(iPoint!=0){
+      auto previousPoint = points[iPoint-1];
+      double previousT = previousPoint->GetT();
+
+      if(thisPointT < previousT){
+        if(fabs(thisPointT+2*TMath::Pi()-previousT) < fabs(thisPointT-previousT)) thisPointT += 2*TMath::Pi();
+      }
+      else{
+        if(fabs(thisPointT-2*TMath::Pi()-previousT) < fabs(thisPointT-previousT)) thisPointT -= 2*TMath::Pi();
+      }
+    }
+    
+    point->SetT(thisPointT);
+  }
+}
+
+// this is for after turning
+void PointsProcessor::SetPointsT(vector<shared_ptr<Point>> &points, const Point &origin, int charge,
+                                 shared_ptr<Point> &lastPointBeforeTurning)
+{
+  int previousPointLayer = lastPointBeforeTurning->GetLayer();
+  
+  // skip first point as this is the reference
+  for(int iPoint=0; iPoint<points.size(); iPoint++){
+    auto point = points[iPoint];
+    double thisPointT = GetTforPoint(*point, origin, charge);
+    int thisPointLayer = point->GetLayer();
+    
+    if(thisPointLayer != previousPointLayer){ // implement corner case!
+      auto previousPoint = points[iPoint-1];
+      double previousT = previousPoint->GetT();
+      if(charge < 0)  while(thisPointT < previousT) thisPointT += 2*TMath::Pi();
+      else            while(thisPointT > previousT) thisPointT -= 2*TMath::Pi();
+      previousPointLayer = thisPointLayer;
+    }
+    else if(iPoint!=0){
+      auto previousPoint = points[iPoint-1];
+      double previousT = previousPoint->GetT();
+      if(thisPointT < previousT)  while(fabs(thisPointT-previousT) > TMath::Pi()/4.) thisPointT += 2*TMath::Pi();
+      else                        while(fabs(thisPointT-previousT) > TMath::Pi()/4.) thisPointT -= 2*TMath::Pi();
+    }
+    else{ // iPoint==0
+      auto previousPoint = lastPointBeforeTurning;
+      double previousT = previousPoint->GetT();
+      if(charge < 0)  while(thisPointT < previousT) thisPointT += 2*TMath::Pi();
+      else            while(thisPointT > previousT) thisPointT -= 2*TMath::Pi();
+    }
+    
+    point->SetT(thisPointT);
+  }
 }

@@ -18,7 +18,7 @@ public:
   Track();
   
   /// Simple track constructor
-  Track(double _eta, double _phi, int _charge, int _nTrackerLayers);
+  Track(double _eta, double _phi, int _charge, int _nTrackerLayers, double _pt);
   
   /// Copy constructor
   Track(const Track &t);

@@ -18,11 +18,11 @@ iCycles(0),
 isFinished(false),
 helixParams(HelixParams()),
 chi2(inf),
-increasing(true),
 shouldRefit(false),
 nMissingHits(0),
 nMissingHitsInRow(0),
-isPreviousHitMissing(false)
+isPreviousHitMissing(false),
+firstTurningPointIndex(-1)
 {
   seedID = uniqueID = reinterpret_cast<uint64_t>(this);
   
@@ -65,11 +65,11 @@ track(_track),
 iCycles(0),
 isFinished(false),
 chi2(inf),
-increasing(true),
 shouldRefit(false),
 nMissingHits(0),
 nMissingHitsInRow(0),
-isPreviousHitMissing(false)
+isPreviousHitMissing(false),
+firstTurningPointIndex(-1)
 {
   seedID = uniqueID = reinterpret_cast<uint64_t>(this);
   charge = track.GetCharge();
@@ -103,11 +103,11 @@ track(h.track),
 charge(h.charge),
 helixParams(h.helixParams),
 chi2(h.chi2),
-increasing(h.increasing),
 shouldRefit(h.shouldRefit),
 nMissingHits(h.nMissingHits),
 nMissingHitsInRow(h.nMissingHitsInRow),
-isPreviousHitMissing(h.isPreviousHitMissing)
+isPreviousHitMissing(h.isPreviousHitMissing),
+firstTurningPointIndex(h.firstTurningPointIndex)
 {
   uniqueID = reinterpret_cast<uint64_t>(this);
 }
@@ -131,8 +131,8 @@ Helix& Helix::operator=(const Helix &h)
   track          = h.track;
   helixParams    = h.helixParams;
   chi2           = h.chi2;
-  increasing     = h.increasing;
   shouldRefit    = h.shouldRefit;
+  firstTurningPointIndex = h.firstTurningPointIndex;
  
   nMissingHits         = h.nMissingHits;
   nMissingHitsInRow    = h.nMissingHitsInRow;
@@ -191,79 +191,36 @@ double Helix::GetSlope(double t) const
 
 void Helix::AddPoint(const shared_ptr<Point> &point)
 {
-  if(increasing)  points.push_back(point);
-  else            pointsAfterTurning.push_back(point);
+  shared_ptr<Point> previousPoint = points.back();
+  
+  int previousPointLayer = previousPoint->GetLayer();
   
   double t = pointsProcessor.GetTforPoint(*point, origin, charge);
-  
-  int previousPointLayer = points.back()->GetLayer();
   int thisPointLayer = point->GetLayer();
   
-  if(thisPointLayer != previousPointLayer){
+  if((thisPointLayer != previousPointLayer) || (points.size()==firstTurningPointIndex)){
     if(charge < 0) while(t < tMax) t += 2*TMath::Pi();
     else           while(t > tMax) t -= 2*TMath::Pi();
   }
+  else{
+    double previousT = previousPoint->GetT();
+    if(t < previousT)  while(fabs(t-previousT) > TMath::Pi()/4.) t += 2*TMath::Pi();
+    else               while(fabs(t-previousT) > TMath::Pi()/4.) t -= 2*TMath::Pi();
+  }
   point->SetT(t);
   tMax = t;
+  
+  points.push_back(point);
 }
 
 void Helix::UpdateOrigin(const Point &_origin)
 {
   origin = _origin;
   
-  sort(points.begin(), points.end(), PointsProcessor::ComparePointByLayer());
-
-  int previousPointLayer = -1;
+  pointsProcessor.SetPointsT(points, origin, charge);
   
-  for(int iPoint=0; iPoint<points.size(); iPoint++){
-    int thisPointLayer = points[iPoint]->GetLayer();
-    double t = pointsProcessor.GetTforPoint(*points[iPoint], origin, charge);
-    
-    if(thisPointLayer != previousPointLayer){
-      
-      double previousT = points[iPoint-1]->GetT();
-      
-      if(charge < 0)  while(t < previousT) t += 2*TMath::Pi();
-      else            while(t > previousT) t -= 2*TMath::Pi();
-
-      previousPointLayer = thisPointLayer;
-      
-    }
-    points[iPoint]->SetT(t);
-  }
-  
-  // TODO: rewrite as above
-  if(pointsAfterTurning.size() > 0){
-    sort(pointsAfterTurning.begin(), pointsAfterTurning.end(), PointsProcessor::ComparePointByLayerInverted());
-    
-    if(charge < 0){
-      while(pointsAfterTurning.front()->GetT() < points.back()->GetT()){
-        pointsAfterTurning.front()->SetT(pointsAfterTurning.front()->GetT() + 2*TMath::Pi());
-      }
-    }
-    else{
-      while(pointsAfterTurning.front()->GetT() > points.back()->GetT()){
-        pointsAfterTurning.front()->SetT(pointsAfterTurning.front()->GetT() - 2*TMath::Pi());
-      }
-    }
-    
-    // this should be fixed:
-    for(int iPoint=0; iPoint<pointsAfterTurning.size()-1; iPoint++){
-      if(charge < 0){
-        while(pointsAfterTurning[iPoint+1]->GetT() < pointsAfterTurning[iPoint]->GetT()){
-          pointsAfterTurning[iPoint+1]->SetT(pointsAfterTurning[iPoint+1]->GetT() + 2*TMath::Pi());
-        }
-      }
-      else{
-        while(pointsAfterTurning[iPoint+1]->GetT() > pointsAfterTurning[iPoint]->GetT()){
-          pointsAfterTurning[iPoint+1]->SetT(pointsAfterTurning[iPoint+1]->GetT() - 2*TMath::Pi());
-        }
-      }
-    }
-  }
-    
   tShift = points.front()->GetT();
-  tMax   = pointsAfterTurning.size() > 0 ?  pointsAfterTurning.back()->GetT() : points.back()->GetT();
+  tMax   = points.back()->GetT();
 }
 
 void Helix::IncreaseMissingHits(){
@@ -272,4 +229,44 @@ void Helix::IncreaseMissingHits(){
   else                     nMissingHitsInRow=1;
   
   isPreviousHitMissing = true;
+}
+
+vector<shared_ptr<Point>> Helix::GetLastPoints() const
+{
+  vector<shared_ptr<Point>> resultPoints;
+  int lastPointLayer = points.back()->GetLayer();
+  
+  for(int iPoint=0; iPoint<points.size(); iPoint++){
+    auto point = points[iPoint];
+    
+    if((point->GetLayer() == lastPointLayer) &&
+       (iPoint>=firstTurningPointIndex)){
+      resultPoints.push_back(point);
+    }
+  }
+  
+  return resultPoints;
+}
+
+vector<shared_ptr<Point>> Helix::GetSecontToLastPoints() const
+{
+  vector<shared_ptr<Point>> resultPoints;
+  
+  int lastPointLayer = points.back()->GetLayer();
+  
+  for(int iPoint=0; iPoint<points.size(); iPoint++){
+    auto point = points[iPoint];
+    
+    if(firstTurningPointIndex<0){
+      if((point->GetLayer() == lastPointLayer-1)) resultPoints.push_back(point);
+    }
+    else if(iPoint<firstTurningPointIndex){
+      if((point->GetLayer() == lastPointLayer)) resultPoints.push_back(point);
+    }
+    else{
+      if((point->GetLayer() == lastPointLayer+1)) resultPoints.push_back(point);
+    }
+  }
+  
+  return resultPoints;
 }

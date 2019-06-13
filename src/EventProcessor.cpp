@@ -77,6 +77,7 @@ EventProcessor::EventProcessor()
     "pion_simHits_x",
     "pion_simHits_y",
     "pion_simHits_z",
+    "pion_simHits_t",
     "chargino_simHits_x",
     "chargino_simHits_y",
     "chargino_simHits_z",
@@ -96,7 +97,8 @@ EventProcessor::EventProcessor()
     "pionCluster_ey",
     "pionCluster_ez",
     "chargino_eta",
-    "chargino_phi"
+    "chargino_phi",
+    "chargino_pt"
   };
   
 }
@@ -487,7 +489,9 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
                                                     10*arrayValuesFriendFloat["pion_simHits_y"]->at(i),
                                                     10*arrayValuesFriendFloat["pion_simHits_z"]->at(i),
                                              0,
-                                             subDetMap[arrayValuesFriendInt["pion_simHits_subDet"]->at(i)]));
+                                             subDetMap[arrayValuesFriendInt["pion_simHits_subDet"]->at(i)],
+                                                    0,0,0,0,-1,
+                                                    arrayValuesFriendFloat["pion_simHits_t"]->at(i)));
   }
   
   for(uint i=0;i<arrayValuesFriendFloat["chargino_simHits_x"]->size();i++){
@@ -539,7 +543,9 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
     event->genCharginoTrack.push_back(Track(arrayValuesFriendFloat["chargino_eta"]->at(i),
                                             arrayValuesFriendFloat["chargino_phi"]->at(i),
                                             arrayValuesFriendInt["chargino_charge"]->at(i),
-                                            arrayValuesFriendInt["chargino_nTrackerLayers"]->at(i)));
+                                            arrayValuesFriendInt["chargino_nTrackerLayers"]->at(i),
+                                            arrayValuesFriendFloat["chargino_pt"]->at(i)));
+    
   }
   
   return event;

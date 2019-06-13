@@ -66,6 +66,12 @@ vector<tuple<string, int, double, double, string>> histOptions1D = {
   {"tracker_cluster_charge_P1PXB" , 100, 0      , 600   , ""                        },
   {"tracker_cluster_charge_P1PXE" , 100, 0      , 600   , ""                        },
   
+  {"num_chargino_q_efficiency_vs_gen_pt"  , 100, 0      , 1000  , "p_T (GeV)"           },
+  {"den_chargino_q_efficiency_vs_gen_pt"  , 100, 0      , 1000  , "p_T (GeV)"           },
+  
+  {"num_chargino_q_efficiency_vs_track_pt"  , 100, 0      , 1000  , "p_T (GeV)"           },
+  {"den_chargino_q_efficiency_vs_track_pt"  , 100, 0      , 1000  , "p_T (GeV)"           },
+  
   // special hists
   {"pion_pz_noTIB"              , 50 , 0      , 2000  , "|p_{z}| (MeV)"           },
   {"pion_pt_noTIB"              , 50 , 0      , 1000  , " p_{t}  (MeV)"           },
@@ -80,6 +86,8 @@ vector<tuple<string, int, double, double, string, int, double, double, string>> 
   {"next_point_delta_phi_pion_pt" , 50, 0, 3.14 , "#Delta #phi" , 50, 0, 1000 , "pion p_{t} (MeV)"  },
   {"next_point_delta_z_pion_pz"   , 50, 0, 1000 , "#Delta z"    , 50, 0, 1000 , "pion p_{z} (MeV)"  },
   {"charge_gen_vs_rec"            , 3 ,-1, 2    , "q_{rec}"     , 3 ,-1, 2    , "q_{gen}"           },
+  {"layers_gen_vs_rec"            ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
+  {"pt_gen_vs_rec"                ,100 ,0 , 1000   , "pt_{rec}", 100 , 0, 1000, "pt_{gen}" },
 };
 map<string, TH1D *> hists1D;
 map<string, TH2D *> hists2D;
@@ -170,11 +178,32 @@ int main(int argc, char* argv[])
     auto pionClusters    = event->GetPionClusters();
     auto trackerClusters = event->GetTrackerClusters();
     auto chargino        = event->GetGenCharginoTracks()[0];
+    auto charginoSimHits = event->GetCharginoSimHits();
+    
+    int nCharginoLayers = -1;
+    
+    auto charginoSimHitsByLayer = pointsProcessor.SortByLayer(charginoSimHits);
+    for(auto &hits : charginoSimHitsByLayer){
+      for(auto &hit : hits){
+        if(hit->GetLayer() > nCharginoLayers) nCharginoLayers = hit->GetLayer();
+      }
+    }
+    
     
     // Fill basic info about events
     hists1D["lumi"]->Fill(event->GetLumiSection());
     hists1D["noise_n_clusters"]->Fill(trackerClusters.size()-pionClusters.size());
     hists2D["charge_gen_vs_rec"]->Fill(track->GetCharge(), chargino.GetCharge());
+    hists2D["layers_gen_vs_rec"]->Fill(track->GetNtrackerLayers(), nCharginoLayers);
+    hists2D["pt_gen_vs_rec"]->Fill(track->GetPt(), chargino.GetPt());
+    
+    if(track->GetCharge()==chargino.GetCharge()){
+      hists1D["num_chargino_q_efficiency_vs_gen_pt"]->Fill(chargino.GetPt());
+      hists1D["num_chargino_q_efficiency_vs_track_pt"]->Fill(track->GetPt());
+    }
+    
+    hists1D["den_chargino_q_efficiency_vs_gen_pt"]->Fill(chargino.GetPt());
+    hists1D["den_chargino_q_efficiency_vs_track_pt"]->Fill(track->GetPt());
     
     // Fill gen-pion histograms
     double pionPt = sqrt(pow(pionHelix.GetMomentum()->GetX(), 2) + pow(pionHelix.GetMomentum()->GetY(), 2));
@@ -392,9 +421,19 @@ int main(int argc, char* argv[])
   trackingCanvas->cd(14);  hists1D["last_seed_hit_delta_phi_min"]->Draw();
   
   TCanvas *charginoCanvas = new TCanvas("chargino", "chargino", 2880, 1800);
-  charginoCanvas->Divide(2,2);
+  charginoCanvas->Divide(2,3);
   hists2D["charge_gen_vs_rec"]->SetMarkerSize(3.0);
   charginoCanvas->cd(1);  hists2D["charge_gen_vs_rec"]->DrawNormalized("text colz");
+  hists2D["layers_gen_vs_rec"]->SetMarkerSize(3.0);
+  charginoCanvas->cd(2);  hists2D["layers_gen_vs_rec"]->DrawNormalized("text colz");
+  
+  hists1D["num_chargino_q_efficiency_vs_gen_pt"]->Divide(hists1D["den_chargino_q_efficiency_vs_gen_pt"]);
+  charginoCanvas->cd(3);  hists1D["num_chargino_q_efficiency_vs_gen_pt"]->Draw();
+  
+  hists1D["num_chargino_q_efficiency_vs_track_pt"]->Divide(hists1D["den_chargino_q_efficiency_vs_track_pt"]);
+  charginoCanvas->cd(4);  hists1D["num_chargino_q_efficiency_vs_track_pt"]->Draw();
+  
+  charginoCanvas->cd(5); hists2D["pt_gen_vs_rec"]->DrawNormalized("colz");
   
   TCanvas *chargeCanvas   = new TCanvas("charge", "charge", 2880, 1800);
   TCanvas *clustersCanvas = new TCanvas("clusters", "clusters", 2880, 1800);

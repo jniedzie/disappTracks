@@ -88,9 +88,14 @@ public:
   vector<vector<shared_ptr<Point>>> RegroupNerbyPoints(const vector<shared_ptr<Point>> &points,
                                                        double threshold);
   
-  double GetTforPoint(Point &point, Point &origin, int charge);
+  double GetTforPoint(Point &point, const Point &origin, int charge);
   
   void SetPointsLayers(vector<shared_ptr<Point>> &points);
+  
+  void SetPointsT(vector<shared_ptr<Point>> &points, const Point &origin, int charge);
+  
+  void SetPointsT(vector<shared_ptr<Point>> &points, const Point &origin, int charge,
+                  shared_ptr<Point> &lastPointBeforeTurning);
   
   /// Structs for sorting point
   struct ComparePointByZ{

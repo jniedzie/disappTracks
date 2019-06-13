@@ -69,11 +69,11 @@ public:
   inline void   SetPoints(vector<shared_ptr<Point>> &val){ points = val; }
   void          SetVertex(const Point &_vertex);
   inline void   SetShouldRefit(bool val) { shouldRefit = val; }
-  inline void   SetIncreasing(bool val) { increasing = val; }
   inline void   SetChi2(double val) { chi2 = val; }
   inline void   SetIsFinished(bool val) { isFinished = val; }
   inline void   SetParams(HelixParams val) { helixParams = val; }
   inline void   SetIsPreviousHitMissing(bool val){ isPreviousHitMissing = val; }
+  inline void   SetFirstTurningPointIndex(int val){ firstTurningPointIndex = val; }
   
   /// Increases number of missing hits and missing hits in a row (based on isPreviousHitMissing variable, which
   /// should be set by the user).
@@ -98,17 +98,10 @@ public:
   inline unique_ptr<Point>    GetMomentum() const {return make_unique<Point>(*momentum);}
   
   vector<shared_ptr<Point>>   GetPoints()   const {return points;}
-  vector<shared_ptr<Point>>   GetPointsAfterTurning()   const {return pointsAfterTurning;}
-  shared_ptr<Point>           GetLastPoint()const {
-    return pointsAfterTurning.size() > 0 ? pointsAfterTurning.back() : points.back();
-  }
-  shared_ptr<Point>           GetSecontToLastPoint()const {
-    if(pointsAfterTurning.size() > 1) return pointsAfterTurning[pointsAfterTurning.size()-2];
-    if(pointsAfterTurning.size() == 1) points.back();
-    return points[points.size()-2];
-  }
+  vector<shared_ptr<Point>>   GetLastPoints() const;
+  vector<shared_ptr<Point>>   GetSecontToLastPoints() const;
   
-  inline uint                 GetNpoints()  const {return (uint)(points.size()+pointsAfterTurning.size());}
+  inline uint                 GetNpoints()  const {return (uint)(points.size());}
   
   inline int                  GetNmissingHits() const {return nMissingHits;}
   inline int                  GetNmissingHitsInRow() const {return nMissingHitsInRow;}
@@ -119,13 +112,12 @@ public:
   inline bool GetShouldRefit() const { return shouldRefit; }
   inline double GetChi2() const { return chi2; }
   inline bool GetIsFinished() const { return isFinished; }
-  inline bool GetIncreasing() const { return increasing; }
+  inline bool IsIncreasing() const { return firstTurningPointIndex<0; }
   
 private:
   unique_ptr<Point> vertex;         ///< Decay point (beginning) of the helix
   Point origin;                     ///< Center of the helix
   vector<shared_ptr<Point>> points; ///< Vector of points laying on the helix
-  vector<shared_ptr<Point>> pointsAfterTurning; ///< Vector of points laying on the helix
   
   double tShift;  ///< Angle by which beginning of the helix is shifted due to the shift of its origin
   double tMax;    ///< Max angle (taking into account number of cycles
@@ -141,8 +133,9 @@ private:
   uint64_t uniqueID;
   HelixParams helixParams;
   double chi2;
-  bool increasing;
   bool shouldRefit;
+  
+  int firstTurningPointIndex;
   
   int nMissingHits;
   int nMissingHitsInRow;

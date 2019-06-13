@@ -125,7 +125,7 @@ void HelixProcessor::SetupBranchesForWriting(TTree *tree)
 
 bool HelixProcessor::GetIntersectionWithLayer(const Helix &helix, int layerIndex, Point &pA, Point &pB)
 {
-  auto p1 = helix.GetLastPoint();
+  auto p1 = helix.GetLastPoints().front(); // here taking any element, probably doesn't matter which one
   
   double Rh = helix.GetRadius(p1->GetT());
   double Rl = layerR[layerIndex];

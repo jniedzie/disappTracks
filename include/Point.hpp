@@ -15,7 +15,7 @@ public:
   
   /// Constructor taking XYZ coordinates and optionally a value in this point, sub-detector name and errors
   Point(double _x, double _y, double _z, double _value=0, string _subDetName="",
-        double _errX=0, double _errY=0, double _errZ=0, double _t=0, int _layer=-1);
+        double _errX=0, double _errY=0, double _errZ=0, double _t=0, int _layer=-1, double _time=-1.0);
   
   /// Copy constructor
   Point(const Point &p);
@@ -48,6 +48,7 @@ public:
   inline double GetZerr() const {return errZ;}
   inline double GetValue() const {return value;}
   inline double GetT() const {return t;}
+  inline double GetTime() const {return time;}
   inline string GetSubDetName() const {return subDetName;}
   inline int    GetLayer() const {return layer;}
   
@@ -63,8 +64,9 @@ private:
   double x,y,z;             ///< XYZ coordinates of the point
   double errX, errY, errZ;  ///< coordinates uncertainties
   double value;             ///< Value at this point
-  double t;
+  double t;                 ///< Parameter of the helix equation
   int layer;                ///< INdex of tracker layer in which the points is located
+  double time;              ///< Timing informatino for the hit
   string subDetName;        ///< Can store name of the sub-detector
   
   bool isPionHit; ///< Flag saying whether or not this point belongs to a true pion's helix

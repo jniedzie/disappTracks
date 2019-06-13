@@ -56,7 +56,7 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   cout<<"Removing very short merged helices...";
   vector<Helix> longMergedHelices;
   for(int iHelix=0; iHelix<longHelices.size(); iHelix++){
-    if(longHelices[iHelix].GetPoints().size() >= config.trackMinNpoints){
+    if(longHelices[iHelix].GetNpoints() >= config.trackMinNpoints){
       longMergedHelices.push_back(longHelices[iHelix]);
     }
   }
@@ -136,7 +136,6 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
       auto helix = FitSeed(points,  track.GetCharge());
       
       if(helix){
-        helix->SetIncreasing(true); // add decreasing later
         if(helix->GetChi2() < config.seedMaxChi2) seeds.push_back(*helix);
       }
     }
@@ -165,20 +164,7 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points, int c
 
     vector<shared_ptr<Point>> pointsTriplet = { vertex };
     pointsTriplet.insert(pointsTriplet.end(), points.begin(), points.end());
-    
-    int previousPointLayer = -1;
-    for(int iPoint=0;iPoint<pointsTriplet.size(); iPoint++){
-      int thisPointLayer = pointsTriplet[iPoint]->GetLayer();
-      double t = pointsProcessor.GetTforPoint(*pointsTriplet[iPoint], origin, charge);
-      
-      if(thisPointLayer != previousPointLayer){
-        double previousT = pointsTriplet[iPoint-1]->GetT();
-        if(charge < 0)  while(t < previousT) t += 2*TMath::Pi();
-        else            while(t > previousT) t -= 2*TMath::Pi();
-        previousPointLayer = thisPointLayer;
-      }
-      pointsTriplet[iPoint]->SetT(t);
-    }
+    pointsProcessor.SetPointsT(pointsTriplet, origin, charge);
     
     double t, distX, distY, distZ, x, y, z;
     double f=0;
@@ -263,78 +249,107 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
     vector<Helix> nextStepHelices;
     
     // for all helices from previous step
-    for(Helix &helix : helices){
+    for(Helix &helix : helices)
+//    Helix helix = helices.front();
+    {
       
       if(helix.GetIsFinished()){
         nextStepHelices.push_back(helix);
       }
       else{
-        
-        
-        // Find points that could extend this helix
-        size_t nHelixPoints = helix.GetNpoints();
-        
-        auto lastPoint = helix.GetLastPoint();
-        
-        int missingOffset = helix.IsPreviousHitMissing() ? helix.GetNmissingHitsInRow() : 0;
-        int lastPointLayer = lastPoint->GetLayer() + missingOffset;
-        
-        shared_ptr<Point> secondToLastPoint;
-        int secondToLastPointLayer = lastPointLayer;
-        
-        int secondLastIter = 2;
-        while(secondToLastPointLayer == lastPointLayer){
-          secondToLastPoint = helix.GetPoints()[nHelixPoints-secondLastIter];
-          secondToLastPointLayer = secondToLastPoint->GetLayer();
-          secondLastIter++;
-        }
-        
-        vector<shared_ptr<Point>> possiblePoints;
-        
-        if(lastPointLayer+1 < pointsByLayer.size() && lastPointLayer-1 >= 0){
-          if(helix.GetIncreasing())   possiblePoints = pointsByLayer[lastPointLayer+1];
-          else                        possiblePoints = pointsByLayer[lastPointLayer-1];
-        }
-        
-        vector<vector<shared_ptr<Point>>> possiblePointsRegrouped = pointsProcessor.RegroupNerbyPoints(possiblePoints, config.doubleHitsMaxDistance);
-        
         vector<Helix> extendedHelices;
         
-        // fist, check if helix crosses next layer
+        auto helixPoints        = helix.GetPoints();
+        auto lastPoints         = helix.GetLastPoints();
+        auto secondToLastPoints = helix.GetSecontToLastPoints();
         
-//        Point pA, pB;
-//        bool crossesNextLayer = helixProcessor.GetIntersectionWithLayer(helix,helix.GetIncreasing() ? lastPointLayer+1 : lastPointLayer-1, pA, pB);
+        int missingOffset  = helix.IsPreviousHitMissing() ? helix.GetNmissingHitsInRow() : 0;
+        int lastPointLayer = lastPoints.front()->GetLayer() + missingOffset;
+
+        // fist, check if helix crosses next layer
+        Point pA, pB;
+        bool crossesNextLayer = helixProcessor.GetIntersectionWithLayer(helix,helix.IsIncreasing() ? lastPointLayer+1 : lastPointLayer-1, pA, pB);
         
         // try to extend to next layer
-//        if(crossesNextLayer){
+        if(crossesNextLayer){
+          
+          // Find points that could extend this helix
+          vector<shared_ptr<Point>> possiblePointsAll;
+          if(lastPointLayer+1 < pointsByLayer.size() && lastPointLayer-1 >= 0){
+            if(helix.IsIncreasing())   possiblePointsAll = pointsByLayer[lastPointLayer+1];
+            else{
+              possiblePointsAll = pointsByLayer[lastPointLayer-1];
+            }
+          }
+          vector<shared_ptr<Point>> possiblePoints;
+          
+          // remove points that are already on helix
+          for(auto &pointCandidate : possiblePointsAll){
+            if(find(helixPoints.begin(), helixPoints.end(), pointCandidate) == helixPoints.end()){
+              possiblePoints.push_back(pointCandidate);
+            }
+          }
+          
+          vector<vector<shared_ptr<Point>>> possiblePointsRegrouped = pointsProcessor.RegroupNerbyPoints(possiblePoints, config.doubleHitsMaxDistance);
+          
           for(auto &points : possiblePointsRegrouped){
             
             vector<shared_ptr<Point>> goodPoints;
             
             for(auto &point : points){
-              double deltaPhi = pointsProcessor.GetPointingAngleXY(*secondToLastPoint, *lastPoint, *point);
+              if(fabs(point->GetX()+78) < 1.0 &&
+                 fabs(point->GetY()-764) < 1.0 &&
+                 fabs(point->GetZ()-92) < 1.0){
+                cout<<"my point"<<endl;
+                
+              }
               
-              if(helix.GetIncreasing()){
-                if(config.nextPointDeltaPhi.IsOutside(fabs(deltaPhi))) continue;
+              bool goodPhi = false;
+              bool goodZ = false;
+              
+              if(helix.IsIncreasing()){ // at the moment no check on phi after turning back. TODO: implement some meaningful limits on phi after turning
+                for(auto &lastPoint : lastPoints){
+                  for(auto &secondToLastPoint : secondToLastPoints){
+                    double deltaPhi = pointsProcessor.GetPointingAngleXY(*secondToLastPoint, *lastPoint, *point);
+                    if(config.nextPointDeltaPhi.IsOutside(fabs(deltaPhi))) continue;
+                    goodPhi = true;
+                    
+                    double deltaZ = fabs(lastPoint->GetZ() - point->GetZ());
+                    if(deltaZ > config.nextPointMaxDeltaZ) continue;
+                    goodZ = true;
+                    
+                    if(goodPhi && goodZ) break;
+                  }
+                  if(goodPhi && goodZ) break;
+                }
               }
               else{
+                helixProcessor.GetIntersectionWithLayer(helix, lastPointLayer-1, pA, pB);
                 
-                //              helixProcessor.GetIntersectionWithLayer(helix, lastPointLayer-1, pA, pB);
-                //
-                //              Point newPointEstimated;
-                //
-                //              if(pointsProcessor.distanceXY(pA, *secondToLastPoint) < pointsProcessor.distanceXY(pB, *secondToLastPoint)) newPointEstimated = pB;
-                //              else                                                                                                        newPointEstimated = pA;
-                //
-                //              double distanceXYtoPoint = pointsProcessor.distanceXY(newPointEstimated, *point);
-                //              if(distanceXYtoPoint > 150) continue;
+                vector<Point> newPointsEstimated;
+                
+                for(auto &secondToLastPoint : secondToLastPoints){
+                  
+                  if(pointsProcessor.distanceXY(pA, *secondToLastPoint) < pointsProcessor.distanceXY(pB, *secondToLastPoint)) newPointsEstimated.push_back(pB);
+                  else                                                                                                        newPointsEstimated.push_back(pA);
+                  
+                }
+                
+                for(Point newPointEstimeted : newPointsEstimated){
+                  double distanceXYtoPoint = pointsProcessor.distanceXY(newPointEstimeted, *point);
+                  if(distanceXYtoPoint <= 150){
+                    goodPhi=true;
+                    goodZ=true;
+                    break;
+                  }
+                }
               }
+              if(!goodPhi || !goodZ) continue;
               
-              double deltaZ = fabs(lastPoint->GetZ() - point->GetZ());
-              if(deltaZ > config.nextPointMaxDeltaZ) continue;
               
               goodPoints.push_back(point);
             }
+            
             if(goodPoints.size()==0) continue;
             
             /// Extend helix by the new point and refit its params
@@ -349,38 +364,75 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             helixCopy.SetIsPreviousHitMissing(false);
             extendedHelices.push_back(helixCopy);
           }
-//        }
-//        else{
-/*
+        }
+        else{
+
             // try to extend to the same layer (turning back)
-          vector<shared_ptr<Point>> turningBackPoints = pointsByLayer[lastPointLayer-1];
-          for(auto &point : turningBackPoints){
+          vector<shared_ptr<Point>> turningBackPointsAll = pointsByLayer[lastPointLayer];
+          vector<shared_ptr<Point>> turningBackPoints;
+          
+          // remove points that are already on helix
+          for(auto &pointCandidate : turningBackPointsAll){
+            if(find(helixPoints.begin(), helixPoints.end(), pointCandidate) == helixPoints.end()){
+              turningBackPoints.push_back(pointCandidate);
+            }
+          }
+          vector<vector<shared_ptr<Point>>> turningBackPointsRegrouped = pointsProcessor.RegroupNerbyPoints(turningBackPoints, config.doubleHitsMaxDistance);
+          
+          if(fabs(lastPoints.front()->GetX()+78) < 1.0 &&
+             fabs(lastPoints.front()->GetY()-764) < 1.0 &&
+             fabs(lastPoints.front()->GetZ()-92) < 1.0){
+            cout<<"my point"<<endl;
+            
+          }
+          
+          for(auto &turningBackPoints : turningBackPointsRegrouped){
             
             // if not, find approximated location of point on the same layer
             helixProcessor.GetIntersectionWithLayer(helix, lastPointLayer, pA, pB);
             
             Point newPointEstimated;
             
-            if(pointsProcessor.distanceXY(pA, *lastPoint) < pointsProcessor.distanceXY(pB, *lastPoint)) newPointEstimated = pB;
+            if(pointsProcessor.distanceXY(pA, *lastPoints.front()) < pointsProcessor.distanceXY(pB, *lastPoints.front())) newPointEstimated = pB;
             else                                                                                        newPointEstimated = pA;
             
-            double distanceXYtoPoint = pointsProcessor.distanceXY(newPointEstimated, *point);
-            if(distanceXYtoPoint > 150) continue;
-            
-            // Check if new point is within some cone
-            //          double deltaPhi = pointsProcessor.GetPointingAngleXY(*helix.GetPoints()[nHelixPoints-2],
-            //                                                               *helix.GetPoints()[nHelixPoints-1],
-            //                                                               *point);
-            //          range<double> turningBackRangePhi(1.0, 1.5);
-            //          if(turningBackRangePhi.IsOutside(fabs(deltaPhi))) continue;
-            
-            double deltaZ = fabs(lastPoint->GetZ() - point->GetZ());
-            if(deltaZ > config.nextPointMaxDeltaZ) continue;
+            vector<shared_ptr<Point>> goodTurningBackPoints;
+            for(auto &point : turningBackPoints){
+              
+              if(fabs(point->GetX()+334) < 1.0 &&
+                 fabs(point->GetY()-719) < 1.0 &&
+                 fabs(point->GetZ()-273) < 1.0){
+                cout<<"my point"<<endl;
+                
+              }
+              
+              double distanceXYtoPoint = pointsProcessor.distanceXY(newPointEstimated, *point);
+              if(distanceXYtoPoint > 150) continue;
+              
+              // Check if new point is within some cone
+              //          double deltaPhi = pointsProcessor.GetPointingAngleXY(*helix.GetPoints()[nHelixPoints-2],
+              //                                                               *helix.GetPoints()[nHelixPoints-1],
+              //                                                               *point);
+              //          range<double> turningBackRangePhi(1.0, 1.5);
+              //          if(turningBackRangePhi.IsOutside(fabs(deltaPhi))) continue;
+              
+              bool goodZ = false;
+              for(auto &lastPoint : lastPoints){
+                double deltaZ = fabs(lastPoint->GetZ() - point->GetZ());
+                if(deltaZ > config.nextPointMaxDeltaZ) continue;
+                goodZ = true;
+                break;
+              }
+              if(!goodZ) continue;
+              
+              goodTurningBackPoints.push_back(point);
+            }
+            if(goodTurningBackPoints.size()==0) continue;
             
             /// Extend helix by the new point and refit its params
             Helix helixCopy(helix);
-            helixCopy.SetIncreasing(false);
-            helixCopy.AddPoint(point);
+            helixCopy.SetFirstTurningPointIndex(helixCopy.GetNpoints());
+            for(auto &point : goodTurningBackPoints) helixCopy.AddPoint(point);
             RefitHelix(helixCopy);
             
             // check if chi2 is small enough
@@ -393,13 +445,10 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             extendedHelices.push_back(helixCopy);
           }
           
-          cout<<"Merging"<<endl;
-          while(MergeHelices(extendedHelices));
-          cout<<"done"<<endl;
- 
- */
-//        }
-        
+//          cout<<"Merging"<<endl;
+//          while(MergeHelices(extendedHelices));
+//          cout<<"done"<<endl;
+        }
          
         // if it was possible to extend the helix
         if(extendedHelices.size() != 0){
@@ -491,15 +540,12 @@ bool Fitter::MergeHelices(vector<Helix> &helices)
   for(int iHelix1=0; iHelix1<helixLinks.size(); iHelix1++){
     Helix &helix1 = helixLinks[iHelix1].first;
     vector<shared_ptr<Point>> points1 = helix1.GetPoints();
-    points1.insert(points1.end(), helix1.GetPointsAfterTurning().begin(), helix1.GetPointsAfterTurning().end());
     
     sort(points1.begin(), points1.end());
       
     for(int iHelix2=iHelix1+1; iHelix2<helixLinks.size(); iHelix2++){
       Helix &helix2 = helixLinks[iHelix2].first;
       vector<shared_ptr<Point>> points2 = helix2.GetPoints();
-      points2.insert(points2.end(), helix2.GetPointsAfterTurning().begin(), helix2.GetPointsAfterTurning().end());
-      
       sort(points2.begin(), points2.end());
         
       vector<shared_ptr<Point>> samePoints;
@@ -544,12 +590,13 @@ bool Fitter::MergeHelices(vector<Helix> &helices)
       Helix &helix2 = helices[iChild];
       vector<shared_ptr<Point>> points2 = helix2.GetPoints();
       for(auto &p : points2) uniquePoints.insert(p);
+      
       toRemove.push_back(iChild);
       childIndices.push_back(iChild);
     }
     vector<shared_ptr<Point>> allPoints(uniquePoints.begin(), uniquePoints.end());
-    
     helix1Copy.SetPoints(allPoints);
+    
     RefitHelix(helix1Copy);
     
     if(helix1Copy.GetChi2() < config.trackMaxChi2){
@@ -584,8 +631,7 @@ bool Fitter::MergeHelices(vector<Helix> &helices)
 void Fitter::RefitHelix(Helix &helix)
 {
   vector<shared_ptr<Point>> helixPoints = helix.GetPoints();
-  vector<shared_ptr<Point>> helixPointsAfterTurning = helix.GetPointsAfterTurning();
-  helixPoints.insert(helixPoints.end(), helixPointsAfterTurning.begin(), helixPointsAfterTurning.end());
+
   double ht = config.helixThickness;
   
   auto chi2Function = [&](const double *par) {
@@ -598,26 +644,17 @@ void Fitter::RefitHelix(Helix &helix)
     double y0 = par[6];
     double z0 = par[7];
     
-    // First add distance to the new vertex
+    
+    // Create new origin
     Point origin(x0, y0, z0);
+    
+    // Create new vertex
     auto vertex = make_shared<Point>(pointsProcessor.GetPointOnTrack(L, track, eventVertex));
-    vertex->SetT(pointsProcessor.GetTforPoint(*vertex, origin, helix.GetCharge()));
+    
+    // Copy points before turning, set new vertex and update T params
     vector<shared_ptr<Point>> points = helixPoints;
     points[0] = vertex;
-    
-    int previousPointLayer = -1;
-    for(int iPoint=0;iPoint<points.size(); iPoint++){
-      int thisPointLayer = points[iPoint]->GetLayer();
-      double t = pointsProcessor.GetTforPoint(*points[iPoint], origin, helix.GetCharge());
-      
-      if(thisPointLayer != previousPointLayer){
-        double previousT = points[iPoint-1]->GetT();
-        if(helix.GetCharge() < 0) while(t < previousT) t += 2*TMath::Pi();
-        else                      while(t > previousT) t -= 2*TMath::Pi();
-        previousPointLayer = thisPointLayer;
-      }
-      points[iPoint]->SetT(t);
-    }
+    pointsProcessor.SetPointsT(points, origin, helix.GetCharge());
     
     double t, distX, distY, distZ, x, y, z;
     double f=0;
@@ -670,7 +707,7 @@ void Fitter::RefitHelix(Helix &helix)
   SetParameter(fitter, 0, "R0", helix.GetRadius(0), 0, 1000); // from MC
   SetParameter(fitter, 1, "a" , helix.GetRadiusFactor() , 0, 10000);
   SetParameter(fitter, 2, "s0", helix.GetSlope(0), -10000, 10000);
-  SetParameter(fitter, 3, "b" , helix.GetSlopeFactor() , -10000, 10000);
+  SetParameter(fitter, 3, "b" , helix.GetSlopeFactor() , -10000, 0);
   SetParameter(fitter, 4, "L" , (helix.GetVertex()->GetX()-10*eventVertex.GetX())/cos(track.GetPhi()),
                Lmin, Lmax);
   SetParameter(fitter, 5, "x0", helix.GetOrigin().GetX(), -1000 , 1000);
