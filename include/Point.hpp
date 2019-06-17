@@ -59,6 +59,7 @@ public:
   inline void SetIsPionHit(bool val){isPionHit = val;}
   inline void SetT(double val){t = val;}
   inline void SetLayer(int val){layer = val;}
+  inline void SetSubDetName(string val){subDetName = val;}
 private:
   
   double x,y,z;             ///< XYZ coordinates of the point

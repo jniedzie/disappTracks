@@ -178,3 +178,19 @@ bool HelixProcessor::IsPointCloseToHelixInLayer(const Helix &helix, const Point 
   }
   return goodXY;
 }
+
+shared_ptr<Point> HelixProcessor::GetPointCloseToHelixInLayer(const Helix &helix, int layer)
+{
+  Point pA, pB;
+  GetIntersectionWithLayer(helix, layer, pA, pB);
+  
+  auto lastPoint = helix.GetLastPoints().front();
+  shared_ptr<Point> newPoint;
+  
+  if(pointsProcessor.distanceXY(pA, *lastPoint) < pointsProcessor.distanceXY(pB, *lastPoint)) newPoint = make_shared<Point>(pA);
+  else                                                                                        newPoint = make_shared<Point>(pB);
+  
+  newPoint->SetLayer(layer);
+  
+  return newPoint;
+}

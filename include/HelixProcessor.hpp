@@ -46,6 +46,8 @@ public:
   
   bool IsPointCloseToHelixInLayer(const Helix &helix, const Point &point, int layer);
   
+  shared_ptr<Point> GetPointCloseToHelixInLayer(const Helix &helix, int layer);
+  
 private:
   static const int maxNhelices = 1000;   ///< Maximum supported number of helices per event
   int nHelices;                          ///< Number of helices in the current tree entry

@@ -94,9 +94,9 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
     vector<shared_ptr<Point>> goodMiddlePoints;
     
     for(auto &point : middlePoints){
-      if(fabs(point->GetX()+78) < 1 &&
-         fabs(point->GetY()-221) < 1 &&
-         fabs(point->GetZ()+36) < 1){
+      if(fabs(point->GetX()-271) < 1 &&
+         fabs(point->GetY()+42) < 1 &&
+         fabs(point->GetZ()-75) < 1){
         
       }
       
@@ -275,18 +275,13 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         if(helix.GetFirstTurningPointIndex() > 0) turningPoint = helixPoints[helix.GetFirstTurningPointIndex()];
         int turningPointLayer = turningPoint ? turningPoint->GetLayer() : inf;
         
-        int missingOffset  = helix.IsPreviousHitMissing() ? helix.GetNmissingHitsInRow() : 0;
-        int lastPointLayer = lastPoints.front()->GetLayer() + missingOffset;
-
+        int lastPointLayer = lastPoints.front()->GetLayer();
         if(lastPointLayer < 0) continue;
         
         // fist, check if helix crosses next layer
         Point pA, pB;
-        if(!helix.IsIncreasing()){
-          
-        }
-        
         bool crossesNextLayer = helixProcessor.GetIntersectionWithLayer(helix,helix.IsIncreasing() ? lastPointLayer+1 : lastPointLayer-1, pA, pB);
+        
         
         // try to extend to next layer
         if(crossesNextLayer || !config.allowTurningBack){
@@ -321,10 +316,10 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
               }
               
               if(helix.IsIncreasing() || (point->GetLayer() < turningPointLayer-1)){
-                // TODO: implement some meaningful limits on phi after turning
                 if(!pointsProcessor.IsPhiGood(lastPoints, secondToLastPoints, point, track.GetCharge())) continue;
               }
               else{
+                // TODO: implement some meaningful limits on phi after turning
                 if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, lastPointLayer-1)) continue;
               }
               
@@ -350,11 +345,11 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         }
         else{
 
-//          if(fabs(lastPoints.front()->GetX()-130) < 1 &&
-//             fabs(lastPoints.front()->GetY()-666) < 1 &&
-//             fabs(lastPoints.front()->GetZ()+94) < 1){
+          if(fabs(lastPoints.front()->GetX()-130) < 1 &&
+             fabs(lastPoints.front()->GetY()-666) < 1 &&
+             fabs(lastPoints.front()->GetZ()+94) < 1){
           
-//          }
+          }
           
             // try to extend to the same layer (turning back)
           vector<shared_ptr<Point>> turningBackPointsAll = pointsByLayer[lastPointLayer];
@@ -406,58 +401,30 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           finished = false;
         }
         else{ // if helix could not be extended
-          if(   helix.GetNmissingHits()       >= config.maxNmissingHits
-             || helix.GetNmissingHitsInRow()  >= config.maxNmissingHitsInRow
-             ){
+          
+          // if not missing hits are allowed
+          if(helix.GetNmissingHits()       >= config.maxNmissingHits ||
+             helix.GetNmissingHitsInRow()  >= config.maxNmissingHitsInRow){
+            
+            // if last hit was a missing hit, remove it
+            if(helix.GetLastPoints().size()==1 && helix.GetLastPoints().front()->GetSubDetName()=="missing"){
+              helix.RemoveLastPoint();
+              RefitHelix(helix);
+            }
+            
             helix.SetIsFinished(true);
             nextStepHelices.push_back(helix);
           }
+          // add a missing hit
           else{
+            int missingHitLayer = helix.GetFirstTurningPointIndex() > 0 ? lastPointLayer-1 : lastPointLayer+1;
+            shared_ptr<Point> missingHit = helixProcessor.GetPointCloseToHelixInLayer(helix, missingHitLayer);
+
+            helix.AddPoint(missingHit); // this will set missing hit's T
+            double t = missingHit->GetT();
+            missingHit->SetZ(-helix.GetCharge()*helix.GetOrigin().GetZ() + helix.GetSlope(t)*t + 10*eventVertex.GetZ());
+            missingHit->SetSubDetName("missing");
             helix.IncreaseMissingHits();
-            
-//            double x,y,z;
-//            double errX, errY, errZ;
-//            double t;
-//
-//            double R = layerR[lastPointLayer+1];
-//
-//            size_t nHelixPoints = helix.GetPoints().size();
-//            auto p1 = helix.GetPoints()[nHelixPoints-2];
-//            auto p2 = helix.GetPoints()[nHelixPoints-1];
-//
-//            double x1 = p1->GetX();
-//            double y1 = p1->GetY();
-//            double z1 = p1->GetZ();
-//
-//            double x2 = p2->GetX();
-//            double y2 = p2->GetY();
-//            double z2 = p2->GetZ();
-//
-//            double sqrt_delta = sqrt(R*R*(pow(x2-x1,2)+pow(y2-y1,2))-pow(y1*(x2-x1)-x1*(y2-y1),2));
-//            double q1 = (x1*(x2-x1)+y1*(y2-y1) + sqrt_delta) / ( pow(x2-x1,2) + pow(y2-y1,2) );
-//            double q2 = (x1*(x2-x1)+y1*(y2-y1) - sqrt_delta) / ( pow(x2-x1,2) + pow(y2-y1,2) );
-//
-//            x = (x2-x1)*q1+x1;
-//            y = (y2-y1)*q1+y1;
-//            z = (z2-z1)*q1+z1;
-//
-//            auto missingHit1 = make_shared<Point>(x,y,z,0,"missing hit",errX,errY,errZ,t,lastPointLayer+1);
-//
-//            x = (x2-x1)*q2+x1;
-//            y = (y2-y1)*q2+y1;
-//            z = (z2-z1)*q2+z1;
-//
-//            auto missingHit2 = make_shared<Point>(x,y,z,0,"missing hit",errX,errY,errZ,t,lastPointLayer+1);
-//
-//            shared_ptr<Point> missingHit;
-//
-//            if(pointsProcessor.distance(p2, missingHit1) < pointsProcessor.distance(p2, missingHit2)){
-//              missingHit = missingHit1;
-//            }
-//            else{
-//              missingHit = missingHit2;
-//            }
-//            helix.AddPoint(missingHit);
             
             nextStepHelices.push_back(helix);
             finished = false;
@@ -594,7 +561,6 @@ void Fitter::RefitHelix(Helix &helix)
     double x0 = par[5];
     double y0 = par[6];
     double z0 = par[7];
-    
     
     // Create new origin
     Point origin(x0, y0, z0);

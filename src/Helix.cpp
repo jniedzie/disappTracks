@@ -231,6 +231,11 @@ void Helix::IncreaseMissingHits(){
   isPreviousHitMissing = true;
 }
 
+void Helix::RemoveLastPoint()
+{
+  points.pop_back();
+}
+
 vector<shared_ptr<Point>> Helix::GetLastPoints() const
 {
   vector<shared_ptr<Point>> resultPoints;

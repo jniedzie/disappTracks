@@ -107,14 +107,14 @@ next_point_max_delta_xy:              200
 track_min_n_points:                       4
 
 ### Max number of different points and min number of points to merge two helices:
-merging_max_different_point:         1
+merging_max_different_point:         2
 candidate_min_n_points:                3
 merge_at_turn_back:                      0
-merge_final_helices:                        0
+merge_final_helices:                        1
 
 ### Max number of missing hits (total and in a row):
-max_n_missing_hits:                       0
-max_n_missing_hits_in_raw:           0
+max_n_missing_hits:                       1
+max_n_missing_hits_in_raw:           1
 
 ### Asymmetric hits constraints:
 do_asymmetric_constraints:           1

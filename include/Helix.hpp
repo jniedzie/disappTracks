@@ -78,6 +78,7 @@ public:
   /// Increases number of missing hits and missing hits in a row (based on isPreviousHitMissing variable, which
   /// should be set by the user).
   void   IncreaseMissingHits();
+  void   RemoveLastPoint();
   
   
   // Getters

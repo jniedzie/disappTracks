@@ -16,7 +16,7 @@ string cutLevel = "after_L2/4layers/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 33;
+int iEvent = 42;
 
 bool injectPion = false;
 bool fitHelix = true;
@@ -26,38 +26,16 @@ bool pionHitsOnly = true;
 // "after_L2/4layers/":
 
 // to improve:
-// missing hits: 18, 19, 26, 28, 33
-// turns back to previous layer: 22
-// special cases: 34 (turns back to the same layer, but probably missing hits in the next one
+// turns back to previous layer: 11, 22
+// maybe different s(t) and r(t): 26
+// seeds fitting issues: 0
+// maybe with endcaps: 1, 21, 24, 29, 36
+// missing seed hits: 6, 8 (+ endcaps needed), 12, 14
+// special cases:
+// - 34: turns back to the same layer, but probably missing hits in the next one
+// - 2: this one is a mess and a bless, soo many hits that we have a huge number of possible helices
 
-// "no way" events: 8, 9, 10, 16, 17, 20, 23, 24, 32
-// maybe with endcaps: 21, 29
-
-// 0 - bad hits
-// 1 - bad hits
-// 2 - missing second hit
-// 4 - not enough hits
-// 5 - scattered
-// 6 - missing second hit
-// 8 - high p_z (820)
-// 9 - scattered
-// 10 - not enough hits
-// 11 - first hit in 4-th layer
-// 12 - scattered
-// 14 - missing (very scattered) first pion hit
-// 16 - no hits
-// 17 - only one hit
-// 20 - scattered
-// 21 - high p_z (1700 MeV)
-// 23 - no hits
-// 24 - high p_z
-// 29 - high p_z
-// 32 - no hits
-// 35 - missing first hit
-// 36 - high p_z/small R
-// 40 - no hits
-// 42 - high p_z
-
+// "no way" events: 4, 5, 9, 10, 16, 17, 20, 23, 32, 40
 
 
 Display *display;
