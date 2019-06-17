@@ -16,12 +16,22 @@ string cutLevel = "after_L2/4layers/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 2;
+int iEvent = 33;
 
 bool injectPion = false;
 bool fitHelix = true;
 
+bool pionHitsOnly = true;
+
 // "after_L2/4layers/":
+
+// to improve:
+// missing hits: 18, 19, 26, 28, 33
+// turns back to previous layer: 22
+// special cases: 34 (turns back to the same layer, but probably missing hits in the next one
+
+// "no way" events: 8, 9, 10, 16, 17, 20, 23, 24, 32
+// maybe with endcaps: 21, 29
 
 // 0 - bad hits
 // 1 - bad hits
@@ -32,16 +42,15 @@ bool fitHelix = true;
 // 8 - high p_z (820)
 // 9 - scattered
 // 10 - not enough hits
+// 11 - first hit in 4-th layer
 // 12 - scattered
 // 14 - missing (very scattered) first pion hit
-// 15 - almost ok
 // 16 - no hits
-// 17 - bad hits
+// 17 - only one hit
 // 20 - scattered
 // 21 - high p_z (1700 MeV)
 // 23 - no hits
 // 24 - high p_z
-// 25 - high p_z
 // 29 - high p_z
 // 32 - no hits
 // 35 - missing first hit
@@ -230,7 +239,7 @@ int main(int argc, char* argv[])
 //    }
     
     map<string,any> pionClustersOptions = {
-      {"title", "Layer 4"},
+      {"title", "Pion hits"},
       {"binsMin" , 0},
       {"binsMax" , 100000},
       {"markerStyle", 20},
@@ -265,15 +274,19 @@ int main(int argc, char* argv[])
 //    pionClusters = pointsProcessor.FilterNearbyPoints(pionClusters, 50);
     
     auto start = now();
-//    vector<Helix> fittedHelices = fitter->FitHelices(allSimplePoints, *track, *event->GetVertex());
-
-    display->DrawSimplePoints(pointsNoEndcaps, pionClustersOptions);
-    vector<Helix> fittedHelices = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
+    vector<Helix> fittedHelices;
     
-//    pointsProcessor.SetPointsLayers(pionClusters);
-//    display->DrawSimplePoints(pionClusters, pionClustersOptions);
-//    vector<Helix> fittedHelices = fitter->FitHelices(pionClusters, *track, *event->GetVertex());
-    
+    if(pionHitsOnly){
+      pointsProcessor.SetPointsLayers(pionClusters);
+      display->DrawSimplePoints(pionClusters, pionClustersOptions);
+      fittedHelices = fitter->FitHelices(pionClusters, *track, *event->GetVertex());
+    }
+    else{
+      display->DrawSimplePoints(pointsNoEndcaps, pionClustersOptions);
+      fittedHelices = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
+//    fittedHelices = fitter->FitHelices(allSimplePoints, *track, *event->GetVertex());
+    }
+      
     auto end = now();
     
     cout<<"Fitting time: "<<duration(start, end)<<endl;
@@ -286,7 +299,7 @@ int main(int argc, char* argv[])
       {"color", kRed}
     };
     
-    map<string,any> helixVertexOptions = {
+    map<string,any> helixPointsOptions = {
       {"title", "Helix vertex"},
       {"binsMin" , 0},
       {"binsMax" , 100000},
@@ -296,28 +309,12 @@ int main(int argc, char* argv[])
     };
     
     for(auto helix : fittedHelices){
-
-      auto helixPoints = helix.GetPoints();
+      cout<<endl; helix.Print();
       
-      int nPionPoints = 0;
-      for(auto &pionPoint : pionClusters){
-        for(auto &helixPoint : helixPoints){
-          if(*pionPoint == *helixPoint) nPionPoints++;
-        }
-      }
+      bestHelixOptions["title"] = ("Helix "+to_string(helix.GetSeedID())).c_str();
       
-      int nFakePoints = (int)helixPoints.size()-1 - nPionPoints;
-      
-      cout<<"Helix pion points:"<<nPionPoints<<endl;
-      cout<<"\tfake points:"<<nFakePoints<<endl;
-      
-      bestHelixOptions["title"] = ("Helix "+to_string(helix.GetUniqueID())).c_str();
       display->DrawShrinkingHelix(helix, bestHelixOptions);
-      helix.Print();
-      
-      helixVertexOptions["markerStyle"] = 20;
-      vector<shared_ptr<Point>> helixVertex = helix.GetPoints();
-      display->DrawSimplePoints(helixVertex, helixVertexOptions);
+      display->DrawSimplePoints(helix.GetPoints(), helixPointsOptions);
     }
   }
   

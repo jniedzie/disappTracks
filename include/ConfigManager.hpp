@@ -85,6 +85,8 @@ struct ConfigManager {
   int maxNmissingHitsInRow;
   
   bool mergeAtTurnBack;
+  bool mergeFinalHelices;
+  bool allowTurningBack;
   
   double doubleHitsMaxDistance;
   

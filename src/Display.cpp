@@ -68,8 +68,8 @@ void Display::AddStripCluster(TEveElementList *stripClusters,
   stripBox->SetRnrSelf(true);
   stripBox->SetPickable(true);
   
-  string tooltipInfo = "Layer:" + to_string(point->GetLayer()) +
-  "\n x: " + to_string(point->GetX()) + "\ty:" + to_string(point->GetY()) + "\tz:" + to_string(point->GetZ());
+  string tooltipInfo = "Layer: " + to_string(point->GetLayer()) + "\tt: " + to_string(point->GetT()) +
+  "\n x: " + to_string(point->GetX()) + "\ty: " + to_string(point->GetY()) + "\tz: " + to_string(point->GetZ());
   
   stripBox->SetTitle(tooltipInfo.c_str());
   

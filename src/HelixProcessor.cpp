@@ -128,7 +128,7 @@ bool HelixProcessor::GetIntersectionWithLayer(const Helix &helix, int layerIndex
   auto p1 = helix.GetLastPoints().front(); // here taking any element, probably doesn't matter which one
   
   double Rh = helix.GetRadius(p1->GetT());
-  double Rl = layerR[layerIndex];
+  double Rl = layerRanges[layerIndex].GetMin();
   
   double x0 = helix.GetOrigin().GetX();
   double y0 = helix.GetOrigin().GetY();

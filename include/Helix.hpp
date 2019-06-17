@@ -83,6 +83,7 @@ public:
   // Getters
   inline int                  GetCharge()   const {return charge; }
   inline uint64_t             GetUniqueID() const {return uniqueID; }
+  inline uint64_t             GetSeedID()   const {return seedID; }
   
   inline double               GetTmin()     const {return tShift;}
   inline double               GetTmax()     const {return tMax;}
@@ -94,7 +95,7 @@ public:
   inline double               GetSlopeFactor()    const {return helixParams.b; }
   
   inline Point                GetOrigin()   const {return origin;}
-  inline unique_ptr<Point>    GetVertex()   const {return make_unique<Point>(*vertex);}
+  inline shared_ptr<Point>    GetVertex()   const {return points.front();}
   inline unique_ptr<Point>    GetMomentum() const {return make_unique<Point>(*momentum);}
   
   vector<shared_ptr<Point>>   GetPoints()   const {return points;}
@@ -117,7 +118,6 @@ public:
   inline bool IsIncreasing() const { return firstTurningPointIndex<0; }
   
 private:
-  unique_ptr<Point> vertex;         ///< Decay point (beginning) of the helix
   Point origin;                     ///< Center of the helix
   vector<shared_ptr<Point>> points; ///< Vector of points laying on the helix
   

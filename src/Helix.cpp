@@ -10,7 +10,6 @@
 Helix::Helix(const Point &_origin,
              const unique_ptr<Point> &_momentum,
              int _charge) :
-vertex(make_unique<Point>(_origin)),
 origin(_origin),
 momentum(make_unique<Point>(*_momentum)),
 charge(_charge),
@@ -59,7 +58,6 @@ Helix::Helix(const HelixParams &_params,
              const vector<shared_ptr<Point>> &_points,
              const Track &_track) :
 origin(_origin),
-vertex(make_unique<Point>(_decayVertex)),
 helixParams(_params),
 track(_track),
 iCycles(0),
@@ -78,9 +76,9 @@ firstTurningPointIndex(-1)
   for(auto &p : _points) points.push_back(p);
   
   // this only gives approximate direction of the momentum vector
-  momentum = make_unique<Point>(points[1]->GetX() - vertex->GetX(),
-                                points[1]->GetY() - vertex->GetY(),
-                                points[1]->GetZ() - vertex->GetZ());
+  momentum = make_unique<Point>(points[1]->GetX() - points[0]->GetX(),
+                                points[1]->GetY() - points[0]->GetY(),
+                                points[1]->GetZ() - points[0]->GetZ());
   
   
   tShift  = points.front()->GetT();
@@ -96,7 +94,6 @@ points(h.points),
 tShift(h.tShift),
 tMax(h.tMax),
 tStep(h.tStep),
-vertex(make_unique<Point>(*h.vertex)),
 origin(h.origin),
 momentum(make_unique<Point>(*h.momentum)),
 track(h.track),
@@ -127,7 +124,6 @@ Helix& Helix::operator=(const Helix &h)
   tShift         = h.tShift;
   tMax           = h.tMax;
   tStep          = h.tStep;
-  vertex         = make_unique<Point>(*h.vertex);
   track          = h.track;
   helixParams    = h.helixParams;
   chi2           = h.chi2;
@@ -148,8 +144,7 @@ bool Helix::operator==(const Helix &h)
      fabs(helixParams.s0 - h.helixParams.s0) < 0.00001 &&
      fabs(helixParams.a - h.helixParams.a) < 0.00001 &&
      fabs(helixParams.b - h.helixParams.b) < 0.00001 &&
-     origin == h.origin &&
-     vertex == h.vertex) return true;
+     origin == h.origin) return true;
   
   return false;
 }
@@ -158,7 +153,7 @@ void Helix::Print()
 {
   cout<<"\tseedID: "<<seedID<<endl;
   cout<<"\tuniqueID: "<<uniqueID<<endl;
-  cout<<"\tVertex:("<<vertex->GetX()<<","<<vertex->GetY()<<","<<vertex->GetZ()<<")\n";
+  if(points.size()>0){ cout<<"\tVertex: "; points.front()->Print(); cout<<"\n";}
   cout<<"\tOrigin:("<<origin.GetX()<<","<<origin.GetY()<<","<<origin.GetZ()<<")\n";
   cout<<"\tMomentum:("<<momentum->GetX()<<","<<momentum->GetY()<<","<<momentum->GetZ()<<")\n";
   cout<<"\tCharge: "<<charge<<"\n";
@@ -171,7 +166,6 @@ void Helix::Print()
 void Helix::SetVertex(const Point &_vertex)
 {
   points[0] = make_shared<Point>(_vertex);
-  vertex    = make_unique<Point>(_vertex);
 }
 
 double Helix::GetNcycles() const
@@ -192,7 +186,6 @@ double Helix::GetSlope(double t) const
 void Helix::AddPoint(const shared_ptr<Point> &point)
 {
   shared_ptr<Point> previousPoint = points.back();
-  
   int previousPointLayer = previousPoint->GetLayer();
   
   double t = pointsProcessor.GetTforPoint(*point, origin, charge);
@@ -204,12 +197,19 @@ void Helix::AddPoint(const shared_ptr<Point> &point)
   }
   else{
     double previousT = previousPoint->GetT();
-         if(fabs(t-previousT) > fabs(t+2*TMath::Pi()-previousT)) t += 2*TMath::Pi();
-    else if(fabs(t-previousT) > fabs(t-2*TMath::Pi()-previousT)) t -= 2*TMath::Pi();
+    
+    if(fabs(previousPoint->GetX()+122) < 1 &&
+       fabs(previousPoint->GetY()-330) < 1 &&
+       fabs(previousPoint->GetZ()+82) < 1){
+      
+    }
+    
+    while(fabs(t-previousT) > fabs(t+2*TMath::Pi()-previousT)) t += 2*TMath::Pi();
+    while(fabs(t-previousT) > fabs(t-2*TMath::Pi()-previousT)) t -= 2*TMath::Pi();
   }
+  
   point->SetT(t);
   tMax = t;
-  
   points.push_back(point);
 }
 

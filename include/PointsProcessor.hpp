@@ -99,7 +99,8 @@ public:
   
   bool IsPhiGood(const vector<shared_ptr<Point>> &lastPoints,
                  const vector<shared_ptr<Point>> &secondToLastPoints,
-                 const shared_ptr<Point> &point);
+                 const shared_ptr<Point> &point,
+                 int charge);
   
   bool IsZgood(const vector<shared_ptr<Point>> &lastPoints,
                const shared_ptr<Point> &point);

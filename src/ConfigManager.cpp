@@ -39,18 +39,18 @@ ConfigManager::ConfigManager(string _path)
     seedLastHitDeltaPhi       = range<double>(configFile->GetValue("seed_last_hit_min_delta_phi",-3.14),
                                               configFile->GetValue("seed_last_hit_max_delta_phi", 3.14));
     
-    nextPointDeltaPhi         = range<double>(configFile->GetValue("next_point_min_delta_phi",0),
-                                              configFile->GetValue("next_point_max_delta_phi",3.14));
+    nextPointDeltaPhi         = range<double>(configFile->GetValue("next_point_min_delta_phi",-3.14),
+                                              configFile->GetValue("next_point_max_delta_phi", 3.14));
   }
   else{
     seedMiddleHitDeltaPhi     = range<double>(0,
-                                              configFile->GetValue("seed_middle_hit_max_delta_phi", 3.14));
+                                              fabs(configFile->GetValue("seed_middle_hit_max_delta_phi", 3.14)));
     
     seedLastHitDeltaPhi       = range<double>(0,
-                                              configFile->GetValue("seed_last_hit_max_delta_phi", 3.14));
+                                              fabs(configFile->GetValue("seed_last_hit_max_delta_phi", 3.14)));
     
     nextPointDeltaPhi         = range<double>(0,
-                                              configFile->GetValue("next_point_max_delta_phi",3.14));
+                                              fabs(configFile->GetValue("next_point_max_delta_phi",3.14)));
   }
   
   nextPointMaxDeltaZ        = configFile->GetValue("next_point_max_delta_z",1000.0);
@@ -62,6 +62,9 @@ ConfigManager::ConfigManager(string _path)
   maxNmissingHits           = configFile->GetValue("max_n_missing_hits", 0);
   maxNmissingHitsInRow      = configFile->GetValue("max_n_missing_hits_in_raw", 0);
   mergeAtTurnBack           = configFile->GetValue("merge_at_turn_back", 0);
+  mergeFinalHelices         = configFile->GetValue("merge_final_helices", 0);
+  
+  allowTurningBack          = configFile->GetValue("allow_turning_back", 0);
   
   maxEta                      = configFile->GetValue("max_eta",10.0);
   nTrackHits                  = configFile->GetValue("n_track_hits",3);

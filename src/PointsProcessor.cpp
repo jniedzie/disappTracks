@@ -329,79 +329,52 @@ void PointsProcessor::SetPointsT(vector<shared_ptr<Point>> &points, const Point 
   int previousPointLayer = -1;
   
   for(int iPoint=0; iPoint<points.size(); iPoint++){
-    auto point = points[iPoint];
-    double thisPointT = GetTforPoint(*point, origin, charge);
-    int thisPointLayer = point->GetLayer();
     
-    if(thisPointLayer != previousPointLayer){ // implement corner case!
+    auto point = points[iPoint];
+    double t   = GetTforPoint(*point, origin, charge);
+    
+    if(iPoint!=0){
       auto previousPoint = points[iPoint-1];
-      double previousT = previousPoint->GetT();
-      if(charge < 0)  while(thisPointT < previousT) thisPointT += 2*TMath::Pi();
-      else            while(thisPointT > previousT) thisPointT -= 2*TMath::Pi();
-      previousPointLayer = thisPointLayer;
-    }
-    else if(iPoint!=0){
-      auto previousPoint = points[iPoint-1];
-      double previousT = previousPoint->GetT();
-
-      if(thisPointT < previousT){
-        if(fabs(thisPointT+2*TMath::Pi()-previousT) < fabs(thisPointT-previousT)) thisPointT += 2*TMath::Pi();
+      double previousT   = previousPoint->GetT();
+      
+      int thisPointLayer = point->GetLayer();
+      
+      if(thisPointLayer != previousPointLayer){
+        if(charge < 0)  while(t < previousT) t += 2*TMath::Pi();
+        else            while(t > previousT) t -= 2*TMath::Pi();
+        previousPointLayer = thisPointLayer;
       }
       else{
-        if(fabs(thisPointT-2*TMath::Pi()-previousT) < fabs(thisPointT-previousT)) thisPointT -= 2*TMath::Pi();
+        if(fabs(previousPoint->GetX()+122) < 1 &&
+           fabs(previousPoint->GetY()-330) < 1 &&
+           fabs(previousPoint->GetZ()+82) < 1){
+          
+        }
+        
+        while(fabs(t+2*TMath::Pi()-previousT) < fabs(t-previousT)) t += 2*TMath::Pi();
+        while(fabs(t-2*TMath::Pi()-previousT) < fabs(t-previousT)) t -= 2*TMath::Pi();
       }
     }
     
-    point->SetT(thisPointT);
-  }
-}
-
-// this is for after turning
-void PointsProcessor::SetPointsT(vector<shared_ptr<Point>> &points, const Point &origin, int charge,
-                                 shared_ptr<Point> &lastPointBeforeTurning)
-{
-  int previousPointLayer = lastPointBeforeTurning->GetLayer();
-  
-  // skip first point as this is the reference
-  for(int iPoint=0; iPoint<points.size(); iPoint++){
-    auto point = points[iPoint];
-    double thisPointT = GetTforPoint(*point, origin, charge);
-    int thisPointLayer = point->GetLayer();
-    
-    if(thisPointLayer != previousPointLayer){ // implement corner case!
-      auto previousPoint = points[iPoint-1];
-      double previousT = previousPoint->GetT();
-      if(charge < 0)  while(thisPointT < previousT) thisPointT += 2*TMath::Pi();
-      else            while(thisPointT > previousT) thisPointT -= 2*TMath::Pi();
-      previousPointLayer = thisPointLayer;
-    }
-    else if(iPoint!=0){
-      auto previousPoint = points[iPoint-1];
-      double previousT = previousPoint->GetT();
-      if(thisPointT < previousT)  while(fabs(thisPointT-previousT) > TMath::Pi()/4.) thisPointT += 2*TMath::Pi();
-      else                        while(fabs(thisPointT-previousT) > TMath::Pi()/4.) thisPointT -= 2*TMath::Pi();
-    }
-    else{ // iPoint==0
-      auto previousPoint = lastPointBeforeTurning;
-      double previousT = previousPoint->GetT();
-      if(charge < 0)  while(thisPointT < previousT) thisPointT += 2*TMath::Pi();
-      else            while(thisPointT > previousT) thisPointT -= 2*TMath::Pi();
-    }
-    
-    point->SetT(thisPointT);
+    point->SetT(t);
   }
 }
 
 bool PointsProcessor::IsPhiGood(const vector<shared_ptr<Point>> &lastPoints,
                                 const vector<shared_ptr<Point>> &secondToLastPoints,
-                                const shared_ptr<Point> &point)
+                                const shared_ptr<Point> &point,
+                                int charge)
 {
   bool goodPhi=false;
   
   for(auto &lastPoint : lastPoints){
     for(auto &secondToLastPoint : secondToLastPoints){
       double deltaPhi = pointsProcessor.GetPointingAngleXY(*secondToLastPoint, *lastPoint, *point);
-      if(config.nextPointDeltaPhi.IsOutside(fabs(deltaPhi))) continue;
+      
+      if(config.doAsymmetricConstraints)  deltaPhi = charge*deltaPhi;
+      else                                deltaPhi = fabs(deltaPhi);
+      
+      if(config.nextPointDeltaPhi.IsOutside(deltaPhi)) continue;
       goodPhi = true;
       break;
     }

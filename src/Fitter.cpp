@@ -48,9 +48,11 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   cout<<" Candidates left:"<<longHelices.size()<<endl;
   
   // Merge similar candidates
-  cout<<"Merging overlapping helices...";
-  while(MergeHelices(longHelices));
-  cout<<" merged down to: "<<longHelices.size()<<endl;
+  if(config.mergeFinalHelices){
+    cout<<"Merging overlapping helices...";
+    while(MergeHelices(longHelices));
+    cout<<" merged down to: "<<longHelices.size()<<endl;
+  }
   
   // Remove helices that are too short
   cout<<"Removing very short merged helices...";
@@ -92,6 +94,12 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
     vector<shared_ptr<Point>> goodMiddlePoints;
     
     for(auto &point : middlePoints){
+      if(fabs(point->GetX()+78) < 1 &&
+         fabs(point->GetY()-221) < 1 &&
+         fabs(point->GetZ()+36) < 1){
+        
+      }
+      
       double middleHitDeltaPhi = pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMid, *point);
       
       if(config.doAsymmetricConstraints)  middleHitDeltaPhi = track.GetCharge()*middleHitDeltaPhi;
@@ -274,10 +282,14 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         
         // fist, check if helix crosses next layer
         Point pA, pB;
+        if(!helix.IsIncreasing()){
+          
+        }
+        
         bool crossesNextLayer = helixProcessor.GetIntersectionWithLayer(helix,helix.IsIncreasing() ? lastPointLayer+1 : lastPointLayer-1, pA, pB);
         
         // try to extend to next layer
-        if(crossesNextLayer){
+        if(crossesNextLayer || !config.allowTurningBack){
           
           // Find points that could extend this helix
           vector<shared_ptr<Point>> possiblePointsAll;
@@ -303,10 +315,14 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             vector<shared_ptr<Point>> goodPoints;
             
             for(auto &point : points){
-
-              if(helix.IsIncreasing() || point->GetLayer() < turningPointLayer-1){
+              
+              if(point->GetLayer()==9){
+                
+              }
+              
+              if(helix.IsIncreasing() || (point->GetLayer() < turningPointLayer-1)){
                 // TODO: implement some meaningful limits on phi after turning
-                if(!pointsProcessor.IsPhiGood(lastPoints, secondToLastPoints, point)) continue;
+                if(!pointsProcessor.IsPhiGood(lastPoints, secondToLastPoints, point, track.GetCharge())) continue;
               }
               else{
                 if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, lastPointLayer-1)) continue;
@@ -334,6 +350,12 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         }
         else{
 
+//          if(fabs(lastPoints.front()->GetX()-130) < 1 &&
+//             fabs(lastPoints.front()->GetY()-666) < 1 &&
+//             fabs(lastPoints.front()->GetZ()+94) < 1){
+          
+//          }
+          
             // try to extend to the same layer (turning back)
           vector<shared_ptr<Point>> turningBackPointsAll = pointsByLayer[lastPointLayer];
           vector<shared_ptr<Point>> turningBackPoints;
@@ -501,9 +523,11 @@ bool Fitter::MergeHelices(vector<Helix> &helices)
     
     vector<shared_ptr<Point>> points1 = helix1.GetPoints();
     
-    unordered_set<shared_ptr<Point>> uniquePoints;
-    for(auto &p : points1) uniquePoints.insert(p);
-    
+    unordered_set<shared_ptr<Point>> uniquePoints = { make_shared<Point>(0,0,0) }; // add dummy decay vertex (layer=-1)
+    for(auto &p : points1){
+      if(p->GetLayer()<0) continue; // don't merge in the decay vertex
+      uniquePoints.insert(p);
+    }
     alreadyUsedHelices.push_back(iHelix);
     
     vector<int> childIndices;
@@ -515,7 +539,10 @@ bool Fitter::MergeHelices(vector<Helix> &helices)
       
       Helix &helix2 = helices[iChild];
       vector<shared_ptr<Point>> points2 = helix2.GetPoints();
-      for(auto &p : points2) uniquePoints.insert(p);
+      for(auto &p : points2){
+        if(p->GetLayer()<0) continue; // don't merge in the decay vertex
+        uniquePoints.insert(p);
+      }
       
       toRemove.push_back(iChild);
       childIndices.push_back(iChild);
@@ -557,8 +584,6 @@ bool Fitter::MergeHelices(vector<Helix> &helices)
 void Fitter::RefitHelix(Helix &helix)
 {
   vector<shared_ptr<Point>> helixPoints = helix.GetPoints();
-
-  double ht = config.helixThickness;
   
   auto chi2Function = [&](const double *par) {
     double R0 = par[0];
@@ -596,14 +621,14 @@ void Fitter::RefitHelix(Helix &helix)
       // calculate distance between helix and point's boundary (taking into account its errors)
       distX = distY = distZ = 0;
       
-      if(fabs(x-p->GetX()) > p->GetXerr()+ht){
-        double distX_1 = x - (p->GetX() + p->GetXerr() + ht);
-        double distX_2 = x - (p->GetX() - p->GetXerr() - ht);
+      if(fabs(x-p->GetX()) > p->GetXerr()){
+        double distX_1 = x - (p->GetX() + p->GetXerr());
+        double distX_2 = x - (p->GetX() - p->GetXerr());
         distX = min(pow(distX_1, 2), pow(distX_2, 2));
       }
-      if(fabs(y-p->GetY()) > p->GetYerr()+ht){
-        double distY_1 = y - (p->GetY() + p->GetYerr() + ht);
-        double distY_2 = y - (p->GetY() - p->GetYerr() - ht);
+      if(fabs(y-p->GetY()) > p->GetYerr()){
+        double distY_1 = y - (p->GetY() + p->GetYerr());
+        double distY_2 = y - (p->GetY() - p->GetYerr());
         distY = min(pow(distY_1, 2), pow(distY_2, 2));
       }
       if(fabs(z-p->GetZ()) > p->GetZerr()){
