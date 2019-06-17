@@ -66,31 +66,23 @@ n_track_hits: 2
 helix_thickness:  0.0
 
 ### Maximum distance in 3D to consider two hits as overlapping ones (in mm):
-double_hit_max_distance:            16
+double_hit_max_distance:            10
 
 ### Constraints on seeds parameters:
-seed_max_chi2:                            3
+seed_max_chi2:                            0.05
 
-#### -0.4/-0.4/-0.8
 seed_middle_hit_min_delta_phi:   -0.4
-#### 0.1/0.1/0.9
 seed_middle_hit_max_delta_phi:  0.1
-#### 40/60/60
 seed_middle_hit_max_delta_z:     60
 
-#### -0.6/-0.4/-0.4
 seed_last_hit_min_delta_phi:       -0.4
-#### -0.2/0.1/0.1
 seed_last_hit_max_delta_phi:       0.1
-#### 140-180/220/140-180
 seed_last_hit_max_delta_z:          180
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             1e-4
+track_max_chi2:                             0.05
 
-#### -1.6- -0.2/-0.2/-0.2
 next_point_min_delta_phi:              -0.2
-#### -0.1/-0.1/-0.1
 next_point_max_delta_phi:             -0.1
 next_point_max_delta_z:                220
 next_point_max_delta_xy:              200

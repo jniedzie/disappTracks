@@ -73,6 +73,7 @@ add_library(libAnalysis src/Track.cpp
                         src/HelixProcessor.cpp
                         src/HistSet.cpp
                         src/MonitorsManager.cpp
+                        src/PerformanceMonitor.cpp
                         src/Point.cpp
                         src/PointsProcessor.cpp
 )
