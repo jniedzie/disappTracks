@@ -13,7 +13,7 @@ string configPath = "../configs/helixTagger_maxHits.md";
 string outFilePrefix = "L2_4layers";
 string cutLevel = "after_L2/4layers/";//after_L1/";
 
-int nEvents = 2;
+int nEvents = 45;
 
 int nAnalyzedEvents = 0;
 
@@ -180,28 +180,28 @@ int main(int argc, char* argv[])
   bool dontFix = false;
   
 //                     i    name                            start  min     max   step  fix
-  SetParameter(fitter, 0 , "double_hit_max_distance"       ,  16.0,  5.0  , 20  , 1.0, fix);
-  SetParameter(fitter, 1 , "seed_max_chi2"                 ,  0   ,  -10  , 1   , 1  , fix);
+  SetParameter(fitter, 0 , "double_hit_max_distance"       ,  16.0,  5.0  , 20  , 1.0, dontFix);
+  SetParameter(fitter, 1 , "seed_max_chi2"                 ,  0   ,  -10  , 1   , 1  , dontFix);
   SetParameter(fitter, 2 , "seed_middle_hit_min_delta_phi" , -0.82, -1.0  , 0.0 , 0.1, dontFix);
   SetParameter(fitter, 3 , "seed_middle_hit_max_delta_phi" ,  0.47,  0.0  , 1.0 , 0.1, dontFix);
-  SetParameter(fitter, 4 , "seed_middle_hit_max_delta_z"   ,  60  ,  0.0  , 300 , 10 , fix);
-  SetParameter(fitter, 5 , "seed_last_hit_min_delta_phi"   , -0.8 , -1.0  ,-0.0 , 0.1, fix);
-  SetParameter(fitter, 6 , "seed_last_hit_max_delta_phi"   ,  0.1 ,  0.0  , 1.0 , 0.1, fix);
-  SetParameter(fitter, 7 , "seed_last_hit_max_delta_z"     ,  180 ,  0.0  , 300 , 10 , fix);
-  SetParameter(fitter, 8 , "track_max_chi2"                ,  -3  ,  -10  , -3  , 1  , fix);
+  SetParameter(fitter, 4 , "seed_middle_hit_max_delta_z"   ,  60  ,  0.0  , 300 , 10 , dontFix);
+  SetParameter(fitter, 5 , "seed_last_hit_min_delta_phi"   , -0.8 , -1.0  ,-0.0 , 0.1, dontFix);
+  SetParameter(fitter, 6 , "seed_last_hit_max_delta_phi"   ,  0.1 ,  0.0  , 1.0 , 0.1, dontFix);
+  SetParameter(fitter, 7 , "seed_last_hit_max_delta_z"     ,  180 ,  0.0  , 300 , 10 , dontFix);
+  SetParameter(fitter, 8 , "track_max_chi2"                ,  -3  ,  -10  , -3  , 1  , dontFix);
   SetParameter(fitter, 9 , "next_point_min_delta_phi"      , -0.5 , -1.0  , 0.0 , 0.1, fix);
   SetParameter(fitter, 10, "next_point_max_delta_phi"      ,  0.5 ,  0.0  , 1.0 , 0.1, fix);
-  SetParameter(fitter, 11, "next_point_max_delta_z"        ,  220 ,  0.0  , 300 , 10 , fix);
-  SetParameter(fitter, 12, "next_point_max_delta_xy"       ,  20  ,  0.0  , 300 , 10 , fix);
-  SetParameter(fitter, 13, "track_min_n_points"            ,  3   ,  3    , 20  , 1  , fix);
-  SetParameter(fitter, 14, "merging_max_different_point"   ,  2   ,  0    , 20  , 1  , fix);
+  SetParameter(fitter, 11, "next_point_max_delta_z"        ,  220 ,  0.0  , 300 , 10 , dontFix);
+  SetParameter(fitter, 12, "next_point_max_delta_xy"       ,  20  ,  0.0  , 300 , 10 , dontFix);
+  SetParameter(fitter, 13, "track_min_n_points"            ,  3   ,  3    , 20  , 1  , dontFix);
+  SetParameter(fitter, 14, "merging_max_different_point"   ,  2   ,  0    , 20  , 1  , dontFix);
   SetParameter(fitter, 15, "max_n_missing_hits"            ,  1   ,  0    , 5   , 1  , fix);
   SetParameter(fitter, 16, "max_n_missing_hits_in_raw"     ,  1   ,  0    , 5   , 1  , fix);
   SetParameter(fitter, 17, "merge_at_turn_back"            ,  0   ,  0    , 2   , 1  , fix);
   SetParameter(fitter, 18, "merge_final_helices"           ,  0   ,  0    , 2   , 1  , fix);
   SetParameter(fitter, 19, "do_asymmetric_constraints"     ,  1   ,  0    , 2   , 1  , fix);
   SetParameter(fitter, 20, "allow_turning_back"            ,  1   ,  0    , 2   , 1  , fix);
-  SetParameter(fitter, 21, "candidate_min_n_points"        ,  3   ,  3    , 10  , 1  , fix);
+  SetParameter(fitter, 21, "candidate_min_n_points"        ,  3   ,  3    , 10  , 1  , dontFix);
   
   double args = 0; // put to 0 for results only, or to -1 for no garbage
   fitter->ExecuteCommand( "SET PRINTOUT"  , &args, 1);
@@ -311,6 +311,13 @@ void WriteOutputToFile(const TFitter *fitter, string outPath)
 {
   ofstream outFile(outPath);
   outFile << "Output for data: " << cutLevel << "\t monitor: "<<monitorType<<"\toptimizing: "<<optimizationParam<<endl;
+  
+  double chi2, edm, errdef;
+  int nvpar, nparx;
+  
+  fitter->GetStats(chi2, edm, errdef, nvpar, nparx);
+  
+  outFile << "chi2: " << chi2 <<"\tedm: "<<edm<<endl;
   
   outFile << endl;
   outFile << "double_hit_max_distance: "        << fitter->GetParameter(0)  << endl;
