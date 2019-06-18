@@ -58,7 +58,6 @@
 #include <numeric>
 #include <algorithm>
 #include <memory>
-//#include <any>
 #include <utility>
 #include <unordered_set>
 
@@ -66,10 +65,11 @@ using namespace std;
 
 #define inf 99999999
 
-template<typename T, typename... Args>
-std::unique_ptr<T> make_unique(Args&&... args) {
-  return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
+#include <any>
+//template<typename T, typename... Args>
+//std::unique_ptr<T> make_unique(Args&&... args) {
+//  return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+//}
 
 enum EHelixParams
 {

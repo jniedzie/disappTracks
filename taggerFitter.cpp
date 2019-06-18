@@ -32,6 +32,8 @@ int    GetMaxNlayers(vector<Helix> helices);
 double GetAvgLength(vector<Helix> helices);
 double GetMaxLength(vector<Helix> helices);
 
+shared_ptr<Event> GetEvent(int iEvent);
+
 void WriteOutputToFile(const TFitter *fitter, string outPath);
 
 void SetParameter(TFitter *fitter, int i,
@@ -156,15 +158,9 @@ int main(int argc, char* argv[])
   optimizationParam = argv[2];
   
   config = ConfigManager(configPath);
-  EventSet eventsSet;
   
   for(auto iEvent=0; iEvent<nEvents; iEvent++){
-    eventsSet.LoadEventFromFiles(dataType, setIter, iEvent, cutLevel);
-    auto event = eventsSet.At(dataType, setIter, 0);
-    if(!event){
-      cout<<"event not found"<<endl;
-      exit(0);
-    }
+    auto event = GetEvent(iEvent);
     events.push_back(event);
     pointsNoEndcapsSignal.push_back(GetClustersNoEndcaps(event, false));
     pointsNoEndcapsBackground.push_back(GetClustersNoEndcaps(event, true));
@@ -217,6 +213,21 @@ int main(int argc, char* argv[])
   
   return 0;
 }
+
+shared_ptr<Event> GetEvent(int iEvent)
+{
+  EventSet events;
+  events.LoadEventFromFiles(dataType, setIter, iEvent, cutLevel);
+  auto event = events.At(dataType, setIter, 0);
+  
+  if(!event){
+    cout<<"helixTagger -- event not found"<<endl;
+    exit(0);
+  }
+  
+  return event;
+}
+
 
 vector<shared_ptr<Point>> GetClustersNoEndcaps(const shared_ptr<Event> &event, bool removePionClusters)
 {
