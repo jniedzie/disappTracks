@@ -277,11 +277,11 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         
         int lastPointLayer = lastPoints.front()->GetLayer();
         if(lastPointLayer < 0) continue;
+        int nextPointLayer = helix.IsIncreasing() ? lastPointLayer+1 : lastPointLayer-1;
         
         // fist, check if helix crosses next layer
         Point pA, pB;
-        bool crossesNextLayer = helixProcessor.GetIntersectionWithLayer(helix,helix.IsIncreasing() ? lastPointLayer+1 : lastPointLayer-1, pA, pB);
-        
+        bool crossesNextLayer = helixProcessor.GetIntersectionWithLayer(helix, nextPointLayer, pA, pB);
         
         // try to extend to next layer
         if(crossesNextLayer || !config.allowTurningBack){
@@ -289,10 +289,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           // Find points that could extend this helix
           vector<shared_ptr<Point>> possiblePointsAll;
           if(lastPointLayer+1 < pointsByLayer.size() && lastPointLayer-1 >= 0){
-            if(helix.IsIncreasing())   possiblePointsAll = pointsByLayer[lastPointLayer+1];
-            else{
-              possiblePointsAll = pointsByLayer[lastPointLayer-1];
-            }
+            possiblePointsAll = pointsByLayer[nextPointLayer];
           }
           vector<shared_ptr<Point>> possiblePoints;
           
@@ -310,18 +307,15 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             vector<shared_ptr<Point>> goodPoints;
             
             for(auto &point : points){
+              if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, nextPointLayer)) continue;
               
-              if(point->GetLayer()==9){
-                
-              }
-              
-              if(helix.IsIncreasing() || (point->GetLayer() < turningPointLayer-1)){
-                if(!pointsProcessor.IsPhiGood(lastPoints, secondToLastPoints, point, track.GetCharge())) continue;
-              }
-              else{
-                // TODO: implement some meaningful limits on phi after turning
-                if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, lastPointLayer-1)) continue;
-              }
+//              if(helix.IsIncreasing() || (point->GetLayer() < turningPointLayer-1)){
+//                if(!pointsProcessor.IsPhiGood(lastPoints, secondToLastPoints, point, track.GetCharge())) continue;
+//              }
+//              else{
+//                // TODO: implement some meaningful limits on phi after turning
+//                if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, lastPointLayer-1)) continue;
+//              }
               
               if(!pointsProcessor.IsZgood(lastPoints, point)) continue;
 

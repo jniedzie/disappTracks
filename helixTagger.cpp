@@ -11,12 +11,11 @@
 #include "PerformanceMonitor.hpp"
 #include "EventSet.hpp"
 
-string configPath = "configs/helixTagger_maxLength.md";
+string configPath = "configs/helixTagger_maxHits.md";
 string cutLevel = "after_L2/4layers/";//after_L1/";
 
-int nEvents = 45;
-const int nTests = 10;
-
+int nEvents = 5;
+const int nTests = 5;
 
 int nAnalyzedEvents = 0;
 
@@ -34,16 +33,16 @@ double SetParamValue(int iTest){
 //  double paramValue = 0.01+iTest*0.01;//pow(10, 1-iTest);
 //  config.seedMaxChi2 = paramValue;
 
-//  double paramValue = -2.0+iTest*0.2;
-//  config.seedMiddleHitDeltaPhi = range<double>(paramValue, config.seedMiddleHitDeltaPhi.GetMax());
-//  double paramValue = -0.3+iTest*0.1;
+  double paramValue = -1.0+iTest*0.2;
+  config.seedMiddleHitDeltaPhi = range<double>(paramValue, config.seedMiddleHitDeltaPhi.GetMax());
+//  double paramValue = -0.5+iTest*0.2;
 //  config.seedMiddleHitDeltaPhi = range<double>(config.seedMiddleHitDeltaPhi.GetMin(), paramValue);
 //  double paramValue = iTest*20;
 //  config.seedMiddleHitMaxDeltaZ = paramValue;
   
-//  double paramValue = -1.6+iTest*0.2;
+//  double paramValue = -1.0+iTest*0.2;
 //  config.seedLastHitDeltaPhi = range<double>(paramValue, config.seedLastHitDeltaPhi.GetMax());
-//  double paramValue = -0.3+iTest*0.1;
+//  double paramValue = -0.5+iTest*0.2;
 //  config.seedLastHitDeltaPhi = range<double>(config.seedLastHitDeltaPhi.GetMin(), paramValue);
 //  double paramValue = iTest*20;
 //  config.seedLastHitMaxDeltaZ = paramValue;
@@ -51,12 +50,12 @@ double SetParamValue(int iTest){
   //-------
   // tracks
   
-//  double paramValue = 0.01+iTest*0.01;// pow(10, -7+iTest);
+//  double paramValue =  pow(10, -7+iTest); // 0.01+iTest*0.01;//
 //  config.trackMaxChi2 = paramValue;
   
-//  double paramValue = -1.6+iTest*0.2;
+//  double paramValue = -1.5+iTest*0.2;
 //  config.nextPointDeltaPhi = range<double>(paramValue, config.nextPointDeltaPhi.GetMax());
-//  double paramValue = -0.2+iTest*0.1;
+//  double paramValue = -0.5+iTest*0.2;
 //  config.nextPointDeltaPhi = range<double>(config.nextPointDeltaPhi.GetMin(), paramValue);
 //  double paramValue = iTest*20;
 //  config.nextPointMaxDeltaZ = paramValue;
@@ -68,9 +67,9 @@ double SetParamValue(int iTest){
   //-------
   // merging
   
-  double paramValue = iTest;
-  config.mergingMaxDifferentPoints = paramValue;
-//  double paramValue = iTest+3;
+//  double paramValue = 5+iTest;
+//  config.mergingMaxDifferentPoints = paramValue;
+//  double paramValue = iTest;
 //  config.candidateMinNpoints = paramValue;
 
   //-------
@@ -104,38 +103,52 @@ int main(int argc, char* argv[])
   TCanvas *canvas = new TCanvas("ROC", "ROC", 2880,1800);
   canvas->Divide(4,3);
   
-  map<string, PerformanceMonitor> monitors;
+  vector<map<string, PerformanceMonitor>> monitors;// [iTest][name]
   
-//  monitors["n_helices"]  = PerformanceMonitor("N helices",  20, 0, 20 , nTests, nEvents);
-//  monitors["avg_hits"]   = PerformanceMonitor("Avg hits",   20, 0, 20 , nTests, nEvents);
-//  monitors["max_hits"]   = PerformanceMonitor("Max hits",   20, 0, 20 , nTests, nEvents);
-//  monitors["max_layers"] = PerformanceMonitor("Max layers", 20, 0, 20 , nTests, nEvents);
-//  monitors["avg_length"] = PerformanceMonitor("Avg length", 20, 0, 2  , nTests, nEvents);
-  monitors["max_length"] = PerformanceMonitor("Max length", 20, 0, 2  , nTests, nEvents);
+  for(int iTest=0; iTest<nTests; iTest++){
+    map<string, PerformanceMonitor> mapForTest = {
+//      {"n_helices" , PerformanceMonitor("N helices",  20, 0, 20 , nEvents)},
+//      {"avg_hits"  , PerformanceMonitor("Avg hits",   20, 0, 20 , nEvents)},
+      {"max_hits"  , PerformanceMonitor("Max hits",   20, 0, 20 , nEvents)},
+//      {"max_layers", PerformanceMonitor("Max layers", 20, 0, 20 , nEvents)},
+//      {"avg_length", PerformanceMonitor("Avg length", 20, 0, 2  , nEvents)},
+//      {"max_length", PerformanceMonitor("Max length", 20, 0, 6  , nEvents)},
+    };
+    monitors.push_back(mapForTest);
+  }
+  
+  vector<shared_ptr<Event>> events;
+  vector<vector<shared_ptr<Point>>> pointsNoEndcapsSignal;
+  vector<vector<shared_ptr<Point>>> pointsNoEndcapsBackground;
   
   for(auto iEvent=0; iEvent<nEvents; iEvent++){
     auto event = GetEvent(iEvent);
+    events.push_back(event);
+    pointsNoEndcapsSignal.push_back(GetClustersNoEndcaps(event, false));
+    pointsNoEndcapsBackground.push_back(GetClustersNoEndcaps(event, true));
+  }
+  
+  
+  for(int iTest=0; iTest<nTests; iTest++){
+    cout<<"\n\nparam: "<<SetParamValue(iTest)<<"\n\n"<<endl;
+    nAnalyzedEvents=0;
     
-    auto pointsNoEndcapsSignal     = GetClustersNoEndcaps(event, false);
-    auto pointsNoEndcapsBackground = GetClustersNoEndcaps(event, true);
+    for(auto iEvent=0; iEvent<nEvents; iEvent++){
     
-    if(pointsNoEndcapsSignal.size()==0 || pointsNoEndcapsBackground.size()==0){
-      cout<<"helixTagger -- no tracker hits for event "<<iEvent<<endl;
-      //      continue;
-    }
-    
-    cout<<"\n\n=================================================================\n"<<endl;
-    cout<<"helixTagger -- processing event "<<iEvent<<endl;
-    
-    for(int iTest=0; iTest<nTests; iTest++){
-      SetParamValue(iTest);
+      if(pointsNoEndcapsSignal[iEvent].size()==0 || pointsNoEndcapsBackground[iEvent].size()==0){
+        cout<<"helixTagger -- no tracker hits for event "<<iEvent<<endl;
+        //      continue;
+      }
+      cout<<"\n\n=================================================================\n"<<endl;
+      cout<<"helixTagger -- processing event "<<iEvent<<endl;
+      
+      auto event = events[iEvent];
       
       for(auto &track : event->GetTracks()){
         
-        vector<Helix> fittedHelicesSignal     = fitter->FitHelices(pointsNoEndcapsSignal, *track, *event->GetVertex());
-        vector<Helix> fittedHelicesBackground = fitter->FitHelices(pointsNoEndcapsBackground, *track, *event->GetVertex());
-        
-        
+        vector<Helix> fittedHelicesSignal     = fitter->FitHelices(pointsNoEndcapsSignal[iEvent], *track, *event->GetVertex());
+        vector<Helix> fittedHelicesBackground = fitter->FitHelices(pointsNoEndcapsBackground[iEvent], *track, *event->GetVertex());
+
         // for(auto helix : fittedHelicesSignal) event->AddHelix(move(fittedHelix));
         
         
@@ -147,10 +160,9 @@ int main(int argc, char* argv[])
 //                                       GetAvgNhits(fittedHelicesSignal),
 //                                       GetAvgNhits(fittedHelicesBackground));
 //
-//        monitors["max_hits"].SetValues(iTest, iEvent,
-//                                       GetMaxNhits(fittedHelicesSignal),
-//                                       GetMaxNhits(fittedHelicesBackground));
-//
+        monitors[iTest]["max_hits"].SetValues(iEvent,
+                                              GetMaxNhits(fittedHelicesSignal),
+                                              GetMaxNhits(fittedHelicesBackground));
 //
 //        monitors["max_layers"].SetValues(iTest, iEvent,
 //                                         GetMaxNlayers(fittedHelicesSignal),
@@ -160,29 +172,46 @@ int main(int argc, char* argv[])
 //                                         GetAvgLength(fittedHelicesSignal),
 //                                         GetAvgLength(fittedHelicesBackground));
         
-        monitors["max_length"].SetValues(iTest, iEvent,
-                                         GetMaxLength(fittedHelicesSignal),
-                                         GetMaxLength(fittedHelicesBackground));
+//        monitors["max_length"].SetValues(iTest, iEvent,
+//                                         GetMaxLength(fittedHelicesSignal),
+//                                         GetMaxLength(fittedHelicesBackground));
       }
+      nAnalyzedEvents++;
     }
-    nAnalyzedEvents++;
+  
+    int iPad=1;
+    for(auto &[name, monitor] : monitors[iTest]){
+      monitor.CalcEfficiency(nAnalyzedEvents);
+      canvas->cd(iPad++);
+      monitor.DrawRocGraph(iTest==0);
+      canvas->cd(iPad++);
+      monitor.DrawHists();
+    }
+    
+  }
+  
+  
+  for(auto &[name, monitor] : monitors[0]){
+    cout<<"\n\n============================================================"<<endl;
+    cout<<"Monitor: "<<name<<endl;
+
+    for(int iTest=0; iTest<nTests; iTest++){
+      double param = SetParamValue(iTest);
+      cout<<"Param: "<<param<<endl;
+      monitors[iTest][name].PrintFakesEfficiency();
+    }
+    for(int iTest=0; iTest<nTests; iTest++){
+      double param = SetParamValue(iTest);
+      cout<<"Param: "<<param<<"\t";
+      monitors[iTest][name].PrintParams();
+    }
   }
   
   //  cout<<"helixTagger -- saving events"<<endl;
   //  events.SaveEventsToFiles("afterHelixTagging/");
   //  cout<<"helixTagger -- finished"<<endl;
   
-  int iPad=1;
-  for(auto &[name, monitor] : monitors){
-    monitor.CalcEfficiency(SetParamValue, nAnalyzedEvents);
-    canvas->cd(iPad++);
-    monitor.DrawRocGraphs();
-  }
   
-  for(auto &[name, monitor] : monitors){
-    canvas->cd(iPad++);
-    monitor.DrawHists();
-  }
   
   canvas->Update();
   theApp.Run();

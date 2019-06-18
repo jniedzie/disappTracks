@@ -66,17 +66,17 @@ n_track_hits: 2
 helix_thickness:  0.0
 
 ### Maximum distance in 3D to consider two hits as overlapping ones (in mm):
-double_hit_max_distance:            10
+double_hit_max_distance:            16
 
 ### Constraints on seeds parameters:
-seed_max_chi2:                            10
+seed_max_chi2:                            3
 
-seed_middle_hit_min_delta_phi:   -0.3
-seed_middle_hit_max_delta_phi:  0.8
-seed_middle_hit_max_delta_z:     100
+seed_middle_hit_min_delta_phi:   -0.1
+seed_middle_hit_max_delta_phi:  0.1
+seed_middle_hit_max_delta_z:     60
 
-seed_last_hit_min_delta_phi:       -0.5
-seed_last_hit_max_delta_phi:       0.5
+seed_last_hit_min_delta_phi:       -0.8
+seed_last_hit_max_delta_phi:       0.1
 seed_last_hit_max_delta_z:          180
 
 ### Constrains on pion track parameters:
@@ -85,13 +85,13 @@ track_max_chi2:                             0.001
 next_point_min_delta_phi:              -0.5
 next_point_max_delta_phi:             0.5
 next_point_max_delta_z:                220
-next_point_max_delta_xy:              200
+next_point_max_delta_xy:              20
 
 track_min_n_points:                       3
 
 ### Max number of different points and min number of points to merge two helices:
-merging_max_different_point:         10
-candidate_min_n_points:                4
+merging_max_different_point:         2
+candidate_min_n_points:                3
 merge_at_turn_back:                      0
 merge_final_helices:                        1
 

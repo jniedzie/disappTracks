@@ -12,40 +12,44 @@ class PerformanceMonitor
 public:
   PerformanceMonitor();
   
-  PerformanceMonitor(string _name, int _nBins, double min, double max,
-                     int _nTests, int nEvents);
+  PerformanceMonitor(string _name, int _nBins, double min, double max, int nEvents);
   
   void operator=(const PerformanceMonitor &pm);
   
-  void SetValues(int iTest, int iEvent, double valueSignal, double valueBackground);
+  void SetValues(int iEvent, double valueSignal, double valueBackground);
   
-  void CalcEfficiency(function<double(int)> SetParamValue, int nAnalyzedEvents);
+  void CalcEfficiency(int nAnalyzedEvents);
   
-  void DrawRocGraphs();
+  void DrawRocGraph(bool first);
   void DrawHists();
   
-private:
-  int nTests;
+  void PrintFakesEfficiency();
+  void PrintParams();
   
+private:
   double thresholdMin;
   double thresholdMax;
   double thresholdStep;
   int nBins;
   
-  vector<vector<double>> valuesSignal;// [iTest][iEvent]
-  vector<vector<double>> valuesBackground;
-  
-  vector<double> efficiency;
-  vector<double> fakeRate;
+  vector<double> valuesSignal;// [iEvent]
+  vector<double> valuesBackground;
   
   TH1D *histSignal;
   TH1D *histBackground;
   
-  vector<TF1*> rocFun;
-  vector<TGraph*> rocGraph;
+  TF1* rocFun;
+  TGraph* rocGraph;
   
   string name;
   
+  vector<double> efficiency;  ///< efficiency for given threshold
+  vector<double> fakeRate;    ///< fake rate for given threshold
+  
+  double auc;                 ///< area under ROC curve
+  double maxEfficiency;       ///< maximum efficiency lower than 1.0
+  double significanceInitial; ///< max significance assuming initial N_sig and N_bck, only when fake rate !=0
+  double significanceAfterL0; ///< max significance assuming L0 N_sig and N_bck, only when fake rate !=0
   
   TF1* GetRocFunction();
 };
