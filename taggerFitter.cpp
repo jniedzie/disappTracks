@@ -12,7 +12,7 @@
 string configPath = "configs/helixTagger_maxHits.md";
 string cutLevel = "after_L2/4layers/";//after_L1/";
 
-int nEvents = 10;
+int nEvents = 20;
 
 int nAnalyzedEvents = 0;
 
@@ -29,18 +29,11 @@ int    GetMaxNlayers(vector<Helix> helices);
 double GetAvgLength(vector<Helix> helices);
 double GetMaxLength(vector<Helix> helices);
 
-void SetParameter(ROOT::Fit::Fitter *fitter, int i, string name, double start, double min, double max, bool fix=false)
+void SetParameter(TFitter *fitter, int i,
+                  string name, double start, double min, double max, double step,
+                  bool fix=false)
 {
-  fitter->Config().ParSettings(i).SetName(name);
-  fitter->Config().ParSettings(i).SetValue(start);
-  fitter->Config().ParSettings(i).SetLimits((min < max) ? min : max,(min < max) ? max : min);
-  fitter->Config().ParSettings(i).SetStepSize(0.0001);
-  if(fix) fitter->Config().ParSettings(i).Fix();
-}
-
-void SetParameter(TFitter *fitter, int i, string name, double start, double min, double max, bool fix=false)
-{
-  fitter->SetParameter(i, name.c_str(), start, 0.1, min, max);
+  fitter->SetParameter(i, name.c_str(), start, step, min, max);
   if(fix) fitter->FixParameter(i);
 }
 
@@ -53,12 +46,12 @@ vector<vector<shared_ptr<Point>>> pointsNoEndcapsBackground;
 void chi2Function(Int_t&, Double_t*, Double_t &f, Double_t *par, Int_t)
 {
   config.doubleHitsMaxDistance     = par[0];
-  config.seedMaxChi2               = par[1];
+  config.seedMaxChi2               = pow(10, par[1]);
   config.seedMiddleHitDeltaPhi     = range<double>(par[2], par[3]);
   config.seedMiddleHitMaxDeltaZ    = par[4];
   config.seedLastHitDeltaPhi       = range<double>(par[5], par[6]);
   config.seedLastHitMaxDeltaZ      = par[7];
-  config.trackMaxChi2              = par[8];
+  config.trackMaxChi2              = pow(10, par[8]);
   config.nextPointDeltaPhi         = range<double>(par[9], par[10]);
   config.nextPointMaxDeltaZ        = par[11];
   config.nextPointMaxDeltaXY       = par[12];
@@ -119,34 +112,35 @@ int main(int argc, char* argv[])
   bool fix = true;
   bool dontFix = false;
   
-  SetParameter(fitter, 0 , "double_hit_max_distance"       ,  16.0,  5.0  , 20  , fix);
-  SetParameter(fitter, 1 , "seed_max_chi2"                 ,  3   ,  1e-10, 20  , fix);
-  SetParameter(fitter, 2 , "seed_middle_hit_min_delta_phi" , -0.1 , -1.0  , 0.0 , dontFix);
-  SetParameter(fitter, 3, "seed_middle_hit_max_delta_phi" ,  0.1 ,  0.0  , 1.0  , fix);
-  SetParameter(fitter, 4 , "seed_middle_hit_max_delta_z"   ,  60  ,  0.0  , 300 , fix);
-  SetParameter(fitter, 5 , "seed_last_hit_min_delta_phi"   , -0.8 , -1.0  ,-0.00001 , fix);
-  SetParameter(fitter, 6 , "seed_last_hit_max_delta_phi"   ,  0.1 ,  0.0  , 1.0 , fix);
-  SetParameter(fitter, 7 , "seed_last_hit_max_delta_z"     ,  180 ,  0.0  , 300 , fix);
-  SetParameter(fitter, 8 , "track_max_chi2"                ,  1e-3,  1e-10, 2e-3, fix);
-  SetParameter(fitter, 9 , "next_point_min_delta_phi"      , -0.5 , -1.0  , 0.0 , fix);
-  SetParameter(fitter, 10, "next_point_max_delta_phi"      ,  0.5 ,  0.0  , 1.0 , fix);
-  SetParameter(fitter, 11, "next_point_max_delta_z"        ,  220 ,  0.0  , 300 , fix);
-  SetParameter(fitter, 12, "next_point_max_delta_xy"       ,  20  ,  0.0  , 300 , fix);
-  SetParameter(fitter, 13, "track_min_n_points"            ,  3   ,  3    , 20  , fix);
-  SetParameter(fitter, 14, "merging_max_different_point"   ,  2   ,  0    , 20  , fix);
+//                     i    name                            start  min     max   step  fix
+  SetParameter(fitter, 0 , "double_hit_max_distance"       ,  16.0,  5.0  , 20  , 1.0, fix);
+  SetParameter(fitter, 1 , "seed_max_chi2"                 ,  0   ,  -10  , 1   , 1  , dontFix);
+  SetParameter(fitter, 2 , "seed_middle_hit_min_delta_phi" , -0.82, -1.0  , 0.0 , 0.1, dontFix);
+  SetParameter(fitter, 3 , "seed_middle_hit_max_delta_phi" ,  0.47,  0.0  , 1.0 , 0.1, dontFix);
+  SetParameter(fitter, 4 , "seed_middle_hit_max_delta_z"   ,  60  ,  0.0  , 300 , 10 , dontFix);
+  SetParameter(fitter, 5 , "seed_last_hit_min_delta_phi"   , -0.8 , -1.0  ,-0.0 , 0.1, fix);
+  SetParameter(fitter, 6 , "seed_last_hit_max_delta_phi"   ,  0.1 ,  0.0  , 1.0 , 0.1, fix);
+  SetParameter(fitter, 7 , "seed_last_hit_max_delta_z"     ,  180 ,  0.0  , 300 , 10 , fix);
+  SetParameter(fitter, 8 , "track_max_chi2"                ,  -3  ,  -10  , -3  , 1  , fix);
+  SetParameter(fitter, 9 , "next_point_min_delta_phi"      , -0.5 , -1.0  , 0.0 , 0.1, fix);
+  SetParameter(fitter, 10, "next_point_max_delta_phi"      ,  0.5 ,  0.0  , 1.0 , 0.1, fix);
+  SetParameter(fitter, 11, "next_point_max_delta_z"        ,  220 ,  0.0  , 300 , 10 , fix);
+  SetParameter(fitter, 12, "next_point_max_delta_xy"       ,  20  ,  0.0  , 300 , 10 , fix);
+  SetParameter(fitter, 13, "track_min_n_points"            ,  3   ,  3    , 20  , 1  , fix);
+  SetParameter(fitter, 14, "merging_max_different_point"   ,  2   ,  0    , 20  , 1  , fix);
   
-  SetParameter(fitter, 15, "max_n_missing_hits"            ,  1   ,  0    , 5   , fix);
-  SetParameter(fitter, 16, "max_n_missing_hits_in_raw"     ,  1   ,  0    , 5   , fix);
-  SetParameter(fitter, 17, "merge_at_turn_back"            ,  0   ,  0    , 2   , fix);
-  SetParameter(fitter, 18, "merge_final_helices"           ,  0   ,  0    , 2   , fix);
-  SetParameter(fitter, 19, "do_asymmetric_constraints"     ,  1   ,  0    , 2   , fix);
-  SetParameter(fitter, 20, "allow_turning_back"            ,  1   ,  0    , 2   , fix);
+  SetParameter(fitter, 15, "max_n_missing_hits"            ,  1   ,  0    , 5   , 1  , fix);
+  SetParameter(fitter, 16, "max_n_missing_hits_in_raw"     ,  1   ,  0    , 5   , 1  , fix);
+  SetParameter(fitter, 17, "merge_at_turn_back"            ,  0   ,  0    , 2   , 1  , fix);
+  SetParameter(fitter, 18, "merge_final_helices"           ,  0   ,  0    , 2   , 1  , fix);
+  SetParameter(fitter, 19, "do_asymmetric_constraints"     ,  1   ,  0    , 2   , 1  , fix);
+  SetParameter(fitter, 20, "allow_turning_back"            ,  1   ,  0    , 2   , 1  , fix);
   
   double args = 0; // put to 0 for results only, or to -1 for no garbage
   fitter->ExecuteCommand( "SET PRINTOUT"  , &args, 1);
   fitter->ExecuteCommand( "SET PRINT"     , &args, 1);
-  double strategyLevel[1] = {2};
-  fitter->ExecuteCommand( "SET STR", strategyLevel, 1);
+//  double strategyLevel[1] = {2};
+//  fitter->ExecuteCommand( "SET STR", strategyLevel, 1);
   double arglist[1] = {0};
   fitter->ExecuteCommand("MIGRAD", arglist, 0);
 

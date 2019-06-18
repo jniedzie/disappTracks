@@ -26,6 +26,12 @@ public:
   void PrintFakesEfficiency();
   void PrintParams();
   
+  // trivial getters
+  inline double GetAUC(){ return auc; }
+  inline double GetMaxEfficiency(){ return maxEfficiency; }
+  inline double GetSignificanceInitial(){ return significanceInitial; }
+  inline double GetSignificanceAfterL0(){ return significanceAfterL0; }
+  
 private:
   double thresholdMin;
   double thresholdMax;
