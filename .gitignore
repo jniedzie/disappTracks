@@ -24,3 +24,4 @@ signalAfterL1.txt
 buildTaggerFitter/Makefile
 buildTaggerFitter/taggerFitter
 pionSignal/
+buildTaggerFitter/taggerFitterOutput*
