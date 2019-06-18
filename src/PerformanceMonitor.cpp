@@ -19,8 +19,12 @@ maxEfficiency(0),
 significanceInitial(0),
 significanceAfterL0(0)
 {
-  histSignal     = new TH1D(Form("%s", name.c_str()), Form("%s", name.c_str()), nBins, min, max);
-  histBackground = new TH1D(Form("%s bck", name.c_str()), Form("%s bck", name.c_str()), nBins, min, max);
+  histSignal     = new TH1D(Form("%s%i", name.c_str(), RandInt(0, inf)),
+                            Form("%s%i", name.c_str(), RandInt(0, inf)),
+                            nBins, min, max);
+  histBackground = new TH1D(Form("%s%i", name.c_str(), RandInt(0, inf)),
+                            Form("%s%i", name.c_str(), RandInt(0, inf)),
+                            nBins, min, max);
   
   histSignal->SetFillColorAlpha(kGreen+1, 0.3);
   histBackground->SetFillColorAlpha(kRed, 0.3);
@@ -108,7 +112,6 @@ void PerformanceMonitor::CalcEfficiency(int nAnalyzedEvents)
     
     rocGraph->SetPoint(iThreshold, fakeRate[iThreshold], efficiency[iThreshold]);
   }
-  
   rocGraph->Fit(rocFun,"Q");
   auc = rocFun->Integral(0,1);
 }
