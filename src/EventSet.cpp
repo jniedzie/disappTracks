@@ -371,9 +371,9 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
     
     sort(lumi_event.begin(), lumi_event.end());
     
-    for(auto &[lumi, event] : lumi_event){
+//    for(auto &[lumi, event] : lumi_event){
 //      cout<<lumi<<":"<<event<<endl;
-    }
+//    }
   }
   
   

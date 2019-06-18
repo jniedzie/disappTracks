@@ -21,3 +21,5 @@ helixFittingResults/
 liblibAnalysis.a
 results/
 signalAfterL1.txt
+buildTaggerFitter/Makefile
+buildTaggerFitter/taggerFitter

@@ -58,13 +58,18 @@
 #include <numeric>
 #include <algorithm>
 #include <memory>
-#include <any>
+//#include <any>
 #include <utility>
 #include <unordered_set>
 
 using namespace std;
 
 #define inf 99999999
+
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args) {
+  return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
 
 enum EHelixParams
 {
@@ -458,64 +463,64 @@ inline int DataColor(EData data){
 // title, nBins, min, max, logY
 const map<EVar, tuple<string, int, double, double, bool>> settings =
 {
-  {kNvertices,    {"N good vertices",           20,   0,  80,   false}},
-  {kNjets,        {"N jets",                    10,   0,  10,   false}},
-  {kNisoTracks,   {"N iso tracks",              5,    0,  5,    false}},
-  {kMetPt,        {"MET p_{T}",                 25,  200, 1000, true}},
-  {kMetJetDphi,   {"#Delta#phi (jet, MET)",    25, -3.5, 3.5,  false}},
-  {kTrackMetDphi, {"#Delta#phi (track, MET)",  25, -3.5, 3.5,  false}},
-  
-  {kMetSumEt,   {"MET sum Et",100,-20,5000, false}},
-  {kMetMass,    {"MET mass",100,-10e-6,10e6, false}},
-  {kMetEta,     {"MET eta",100,-3.5,3.5, false}},
-  {kMetPhi,     {"MET phi",100,-3.5,3.5, false}},
-  {kNhelices,   {"N fitted helices",10,0,10, false}},
-  {kNjets30,    {"N jets with pt > 30, |eta|<2.4",15,0.0,15, false}},
-  {kNjets30a,   {"N jets with pt > 30, |eta|<4.7",15,0.0,15, false}},
-  
-  {kTrackPt,                      {"Track p_{T} (GeV)",   25,  0,   1000, true}},
-  {kTrackTrackerLayers,           {"N tracker layers",    20,  0,   20,   false}},
-  {kTrackRelativeIsolation,       {"Relative isolation",  50,  0,   0.5,  true}},
-  {kTrackDedxPerHit,              {"dE/dx per hit",       50,  0,   10,   false}},
-  {kTrackCaloEm,                  {"EM calo energy",      50,  0,   10,   true}},
-  {kTrackCaloHad,                 {"Hadron calo energy",  50,  0,   10,   true}},
-  
-  {kTrackEta,                     {"Track #eta",                    50, -3.0, 3.0,  false}},
-  {kTrackPhi,                     {"Track #phi",50,-3.5,3.5, false}},
-  {kTrackDxy,                     {"Displacement in XY",100,-0.02,0.02, false}},
-  {kTrackDz,                      {"Displacement in Z",100,-0.02,0.02, false}},
-  {kTrackCharge,                  {"Charge dist",100,-10,10, false}},
-  {kTrackMass,                    {"Mass dist",500,0.0,0.25, false}},
-  {kTrackPid,                     {"PDG PID",441,-220,220, false}},
-  {kTrackMissingOuterTrackerHits, {"Missing outer tracker hits",20,0,20, false}},
-  {kTrackPixelHits,               {"N pixel hits",10,0,10, false}},
-  {kTrackTrackerHits,             {"N tracker hits",40,0,40, false}},
-  {kTrackAbsoluteIsolation,       {"Absolute isolation in dR=0.3",50,0,1, false}},
-  {kTrackNclusters,               {"N detIDs per track",  20,0,22, false}},
-  {kTrackTotalDedx,               {"total dedx per track",50,0,140, false}},
-  {kTrackDedxPerCluster,          {"total dedx per track / n clusters",50,0,14, false}},
-  
-  {kHelixX , {"Helix origin X",600,-300,300, false}},
-  {kHelixY , {"Helix origin Y",600,-300,300, false}},
-  {kHelixZ , {"Helix origin Z",600,-300,300, false}},
-  
-  {kHelixPx , {"Helix momentum X",2000,-1000,1000, false}},
-  {kHelixPy , {"Helix momentum Y",2000,-1000,1000, false}},
-  {kHelixPz , {"Helix momentum Z",2000,-1000,1000, false}},
-  
-  {kHelixCharge , {"Helix charge",3,-1,1, false}},
-  
-  {kJetPt       , {"Jet p_{T} (GeV)",       50,  0.0, 1000, true}},
-  {kJetEta      , {"Jet #eta",              50, -3.0, 3.0,  false}},
-  {kJetPhi      , {"Jet #phi",              50, -3.5, 3.5,  false}},
-  {kJetTrackDr  , {"#DeltaR (jet, track)",  100, 0,   8,    true}},
-  {kJetCHF      , {"Jet f_{CH}",            100, 0,   1.0,  true}},
-  {kJetNHF      , {"Jet f_{NH}",            100, 0,   1.0,  true}},
-  
-  
-  {kDedx , {"dedx",50,0,13, false}},
-  {kSizeX , {"sizeX",10,0,13, false}},
-  {kSizeY , {"sizeY",10,0,13, false}},
+  {kNvertices,    make_tuple("N good vertices",           20,   0,  80,   false)},
+  {kNjets,        make_tuple("N jets",                    10,   0,  10,   false)},
+  {kNisoTracks,   make_tuple("N iso tracks",              5,    0,  5,    false)},
+  {kMetPt,        make_tuple("MET p_{T}",                 25,  200, 1000, true)},
+  {kMetJetDphi,   make_tuple("#Delta#phi (jet, MET)",    25, -3.5, 3.5,  false)},
+  {kTrackMetDphi, make_tuple("#Delta#phi (track, MET)",  25, -3.5, 3.5,  false)},
+
+  {kMetSumEt,   make_tuple("MET sum Et",100,-20,5000, false)},
+  {kMetMass,    make_tuple("MET mass",100,-10e-6,10e6, false)},
+  {kMetEta,     make_tuple("MET eta",100,-3.5,3.5, false)},
+  {kMetPhi,     make_tuple("MET phi",100,-3.5,3.5, false)},
+  {kNhelices,   make_tuple("N fitted helices",10,0,10, false)},
+  {kNjets30,    make_tuple("N jets with pt > 30, |eta|<2.4",15,0.0,15, false)},
+  {kNjets30a,   make_tuple("N jets with pt > 30, |eta|<4.7",15,0.0,15, false)},
+
+  {kTrackPt,                      make_tuple("Track p_{T} (GeV)",   25,  0,   1000, true)},
+  {kTrackTrackerLayers,           make_tuple("N tracker layers",    20,  0,   20,   false)},
+  {kTrackRelativeIsolation,       make_tuple("Relative isolation",  50,  0,   0.5,  true)},
+  {kTrackDedxPerHit,              make_tuple("dE/dx per hit",       50,  0,   10,   false)},
+  {kTrackCaloEm,                  make_tuple("EM calo energy",      50,  0,   10,   true)},
+  {kTrackCaloHad,                 make_tuple("Hadron calo energy",  50,  0,   10,   true)},
+
+  {kTrackEta,                     make_tuple("Track #eta",                    50, -3.0, 3.0,  false)},
+  {kTrackPhi,                     make_tuple("Track #phi",50,-3.5,3.5, false)},
+  {kTrackDxy,                     make_tuple("Displacement in XY",100,-0.02,0.02, false)},
+  {kTrackDz,                      make_tuple("Displacement in Z",100,-0.02,0.02, false)},
+  {kTrackCharge,                  make_tuple("Charge dist",100,-10,10, false)},
+  {kTrackMass,                    make_tuple("Mass dist",500,0.0,0.25, false)},
+  {kTrackPid,                     make_tuple("PDG PID",441,-220,220, false)},
+  {kTrackMissingOuterTrackerHits, make_tuple("Missing outer tracker hits",20,0,20, false)},
+  {kTrackPixelHits,               make_tuple("N pixel hits",10,0,10, false)},
+  {kTrackTrackerHits,             make_tuple("N tracker hits",40,0,40, false)},
+  {kTrackAbsoluteIsolation,       make_tuple("Absolute isolation in dR=0.3",50,0,1, false)},
+  {kTrackNclusters,               make_tuple("N detIDs per track",  20,0,22, false)},
+  {kTrackTotalDedx,               make_tuple("total dedx per track",50,0,140, false)},
+  {kTrackDedxPerCluster,          make_tuple("total dedx per track / n clusters",50,0,14, false)},
+
+  {kHelixX , make_tuple("Helix origin X",600,-300,300, false)},
+  {kHelixY , make_tuple("Helix origin Y",600,-300,300, false)},
+  {kHelixZ , make_tuple("Helix origin Z",600,-300,300, false)},
+
+  {kHelixPx , make_tuple("Helix momentum X",2000,-1000,1000, false)},
+  {kHelixPy , make_tuple("Helix momentum Y",2000,-1000,1000, false)},
+  {kHelixPz , make_tuple("Helix momentum Z",2000,-1000,1000, false)},
+
+  {kHelixCharge , make_tuple("Helix charge",3,-1,1, false)},
+
+  {kJetPt       , make_tuple("Jet p_{T} (GeV)",       50,  0.0, 1000, true)},
+  {kJetEta      , make_tuple("Jet #eta",              50, -3.0, 3.0,  false)},
+  {kJetPhi      , make_tuple("Jet #phi",              50, -3.5, 3.5,  false)},
+  {kJetTrackDr  , make_tuple("#DeltaR (jet, track)",  100, 0,   8,    true)},
+  {kJetCHF      , make_tuple("Jet f_{CH}",            100, 0,   1.0,  true)},
+  {kJetNHF      , make_tuple("Jet f_{NH}",            100, 0,   1.0,  true)},
+
+
+  {kDedx , make_tuple("dedx",50,0,13, false)},
+  {kSizeX , make_tuple("sizeX",10,0,13, false)},
+  {kSizeY , make_tuple("sizeY",10,0,13, false)}
 };
 
 inline bool IsPerEventVariable(EVar var)
@@ -623,29 +628,5 @@ inline std::chrono::time_point<std::chrono::steady_clock> now()
 {
   return std::chrono::steady_clock::now();
 }
-
-inline map<int, string> subDetMap = {
-  {0,  "PixelBarrel"},
-  {1,  "PixelEndcap"},
-  {2,  "TIB"},
-  {3,  "TOB"},
-  {4,  "TID"},
-  {5,  "TEC"},
-  {6,  "CSC"},
-  {7,  "DT"},
-  {8,  "RPCBarrel"},
-  {9,  "RPCEndcap"},
-  {10, "GEM"},
-  {11, "ME0"},
-  {12, "P2OTB"},
-  {13, "P2OTEC"},
-  {14, "P1PXB"},
-  {15, "P1PXEC"},
-  {16, "P2PXB"},
-  {17, "P2PXEC"},
-  {18, "TimingBarrel"},
-  {19, "TimingEndcap"},
-  {20, "invalidDet"}
-};
 
 #endif /* Helpers_h */

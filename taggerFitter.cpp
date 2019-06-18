@@ -9,7 +9,7 @@
 #include "PerformanceMonitor.hpp"
 #include "EventSet.hpp"
 
-string configPath = "configs/helixTagger_maxHits.md";
+string configPath = "../configs/helixTagger_maxHits.md";
 string cutLevel = "after_L2/4layers/";//after_L1/";
 
 int nEvents = 20;
@@ -93,11 +93,18 @@ void chi2Function(Int_t&, Double_t*, Double_t &f, Double_t *par, Int_t)
 
 int main(int argc, char* argv[])
 {
-  TApplication theApp("App", &argc, argv);
   config = ConfigManager(configPath);
   
+  EventSet eventsSet;
+  
+  
   for(auto iEvent=0; iEvent<nEvents; iEvent++){
-    auto event = GetEvent(iEvent);
+    eventsSet.LoadEventFromFiles(dataType, setIter, iEvent, cutLevel);
+    auto event = eventsSet.At(dataType, setIter, 0);
+    if(!event){
+      cout<<"event not found"<<endl;
+      exit(0);
+    }
     events.push_back(event);
     pointsNoEndcapsSignal.push_back(GetClustersNoEndcaps(event, false));
     pointsNoEndcapsBackground.push_back(GetClustersNoEndcaps(event, true));
@@ -114,10 +121,10 @@ int main(int argc, char* argv[])
   
 //                     i    name                            start  min     max   step  fix
   SetParameter(fitter, 0 , "double_hit_max_distance"       ,  16.0,  5.0  , 20  , 1.0, fix);
-  SetParameter(fitter, 1 , "seed_max_chi2"                 ,  0   ,  -10  , 1   , 1  , dontFix);
+  SetParameter(fitter, 1 , "seed_max_chi2"                 ,  0   ,  -10  , 1   , 1  , fix);
   SetParameter(fitter, 2 , "seed_middle_hit_min_delta_phi" , -0.82, -1.0  , 0.0 , 0.1, dontFix);
   SetParameter(fitter, 3 , "seed_middle_hit_max_delta_phi" ,  0.47,  0.0  , 1.0 , 0.1, dontFix);
-  SetParameter(fitter, 4 , "seed_middle_hit_max_delta_z"   ,  60  ,  0.0  , 300 , 10 , dontFix);
+  SetParameter(fitter, 4 , "seed_middle_hit_max_delta_z"   ,  60  ,  0.0  , 300 , 10 , fix);
   SetParameter(fitter, 5 , "seed_last_hit_min_delta_phi"   , -0.8 , -1.0  ,-0.0 , 0.1, fix);
   SetParameter(fitter, 6 , "seed_last_hit_max_delta_phi"   ,  0.1 ,  0.0  , 1.0 , 0.1, fix);
   SetParameter(fitter, 7 , "seed_last_hit_max_delta_z"     ,  180 ,  0.0  , 300 , 10 , fix);
@@ -146,21 +153,6 @@ int main(int argc, char* argv[])
 
   return 0;
 }
-
-shared_ptr<Event> GetEvent(int iEvent)
-{
-  EventSet events;
-  events.LoadEventFromFiles(dataType, setIter, iEvent, cutLevel);
-  auto event = events.At(dataType, setIter, 0);
-  
-  if(!event){
-    cout<<"helixTagger -- event not found"<<endl;
-    exit(0);
-  }
-  
-  return event;
-}
-
 
 vector<shared_ptr<Point>> GetClustersNoEndcaps(const shared_ptr<Event> &event, bool removePionClusters)
 {

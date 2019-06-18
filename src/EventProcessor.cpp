@@ -373,9 +373,9 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
 
 shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, int setIter, TTree *friendTree)
 {
-  for(auto &[name, val] : singleValuesInt ){
-    if(val < -999999){
-      cout<<"ERROR -- branch "<<name<<" was not read correctly!"<<endl;
+  for(auto &name_val : singleValuesInt ){
+    if(name_val.second < -999999){
+      cout<<"ERROR -- branch "<<name_val.first<<" was not read correctly!"<<endl;
     }
   }
   
@@ -470,6 +470,30 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   delete hist;
   friendTree->GetEntry(iEntry);
   // end of uberhack
+  
+  map<int, string> subDetMap = {
+    {0,  "PixelBarrel"},
+    {1,  "PixelEndcap"},
+    {2,  "TIB"},
+    {3,  "TOB"},
+    {4,  "TID"},
+    {5,  "TEC"},
+    {6,  "CSC"},
+    {7,  "DT"},
+    {8,  "RPCBarrel"},
+    {9,  "RPCEndcap"},
+    {10, "GEM"},
+    {11, "ME0"},
+    {12, "P2OTB"},
+    {13, "P2OTEC"},
+    {14, "P1PXB"},
+    {15, "P1PXEC"},
+    {16, "P2PXB"},
+    {17, "P2PXEC"},
+    {18, "TimingBarrel"},
+    {19, "TimingEndcap"},
+    {20, "invalidDet"}
+  };
   
   for(uint i=0;i<arrayValuesFriendFloat["pion_vx"]->size();i++){
     // change units from cm to mm and from GeV to MeV
