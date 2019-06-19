@@ -28,3 +28,6 @@ Makefile
 analyzeClusters
 genPionHists
 taggerFitter
+buildTaggerFitter/error/
+buildTaggerFitter/log/
+buildTaggerFitter/output/
