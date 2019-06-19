@@ -166,6 +166,8 @@ int main(int argc, char* argv[])
   monitorType = argv[1];
   optimizationParam = argv[2];
   
+  cout<<"Starting fitting for monitor: "<<monitorType<<"\tand optimization parameter: "<<optimizationParam<<endl;
+  
   config = ConfigManager(configPath);
   
   for(auto iEvent=0; iEvent<nEvents; iEvent++){
