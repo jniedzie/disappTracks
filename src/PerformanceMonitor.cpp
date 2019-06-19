@@ -115,16 +115,16 @@ void PerformanceMonitor::CalcEfficiency(int nAnalyzedEvents)
     rocGraph->SetPoint(iThreshold, fakeRate[iThreshold], efficiency[iThreshold]);
     rocXY.insert(make_pair(fakeRate[iThreshold], efficiency[iThreshold]));
   }
-  rocGraph->Fit(rocFun,"Q");
+//  rocGraph->Fit(rocFun,"Q");
   
-//  double aucXY=0;
-//
-//  for(auto &xy : rocXY){
-//    aucXY += xy.second-xy.first;
-//  }
+  double aucXY=0;
+
+  for(auto &xy : rocXY){
+    aucXY += xy.second-xy.first;
+  }
   
-  auc = rocFun->Integral(0,1);
-//  auc = aucXY;
+//  auc = rocFun->Integral(0,1);
+  auc = aucXY;
 }
 
 

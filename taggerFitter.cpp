@@ -9,7 +9,7 @@
 #include "PerformanceMonitor.hpp"
 #include "EventSet.hpp"
 
-string configPath = "../configs/helixTagger_maxHits.md";
+string configPath = "../configs/helixTagger_maxLayers_auc.md";
 string outFilePrefix = "L2_4layers";
 string cutLevel = "after_L2/4layers/";//after_L1/";
 
@@ -48,6 +48,8 @@ auto helixFitter = make_unique<Fitter>();
 vector<shared_ptr<Event>> events;
 vector<vector<shared_ptr<Point>>> pointsNoEndcapsSignal;
 vector<vector<shared_ptr<Point>>> pointsNoEndcapsBackground;
+
+int nFreeParams=0;
 
 //auto chi2Function = [&](const double *par) {
 void chi2Function(Int_t&, Double_t*, Double_t &f, Double_t *par, Int_t)
@@ -124,7 +126,7 @@ void chi2Function(Int_t&, Double_t*, Double_t &f, Double_t *par, Int_t)
   
   if(optimizationParam=="auc"){
     optValue = monitor.GetAUC();
-    chi2 = pow(1-optValue, 2)/optValue;
+    chi2 = pow(10-optValue, 2)/optValue;
   }
   else if(optimizationParam=="max_eff"){
     optValue = monitor.GetMaxEfficiency();
@@ -132,11 +134,11 @@ void chi2Function(Int_t&, Double_t*, Double_t &f, Double_t *par, Int_t)
   }
   else if(optimizationParam=="sigma_init"){
     optValue = monitor.GetSignificanceInitial();
-    chi2 = pow(20-optValue, 2)/optValue;
+    chi2 = pow(5-optValue, 2)/optValue;
   }
   else if(optimizationParam=="sigma_L0"){
     optValue = monitor.GetSignificanceAfterL0();
-    chi2 = pow(20-optValue, 2)/optValue;
+    chi2 = pow(10-optValue, 2)/optValue;
   }
   else{
     cout<<"Unknown optimization param: "<<optimizationParam<<endl;
@@ -145,7 +147,7 @@ void chi2Function(Int_t&, Double_t*, Double_t &f, Double_t *par, Int_t)
   }
 
   cout<<"chi2: "<<chi2<<"\t"<<optimizationParam<<": "<<optValue<<endl;
-  f = chi2;
+  f = chi2/nFreeParams;
 };
 
 int main(int argc, char* argv[])
@@ -198,6 +200,8 @@ int main(int argc, char* argv[])
   SetParameter(fitter, 19, "do_asymmetric_constraints"     ,  1   ,  0    , 2   , 1  , fix);
   SetParameter(fitter, 20, "allow_turning_back"            ,  1   ,  0    , 2   , 1  , fix);
   SetParameter(fitter, 21, "candidate_min_n_points"        ,  3   ,  3    , 10  , 1  , dontFix);
+  
+  nFreeParams = fitter->GetNumberFreeParameters();
   
   double args = 0; // put to 0 for results only, or to -1 for no garbage
   fitter->ExecuteCommand( "SET PRINTOUT"  , &args, 1);
