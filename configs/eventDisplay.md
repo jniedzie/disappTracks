@@ -9,7 +9,7 @@ draw_tracker_clusters:      0
 draw_met:                         0
 draw_jets:                          1
 draw_pion_simhits:           0
-draw_pion_clusters:          0
+draw_pion_clusters:          1
 draw_chargino_simhits:    1
 
 **Input options**
@@ -97,12 +97,12 @@ seed_last_hit_max_delta_phi:       0.5
 seed_last_hit_max_delta_z:          140
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             2e-1
+track_max_chi2:                             1e-2
 
 next_point_min_delta_phi:              -1.1
 next_point_max_delta_phi:             0.8
 next_point_max_delta_z:                300
-next_point_max_delta_xy:              200
+next_point_max_delta_xy:              1000
 
 track_min_n_points:                       4
 

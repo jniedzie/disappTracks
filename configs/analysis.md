@@ -1,9 +1,9 @@
 **Analysis settings**
 
 ### Which level of cuts to apply:
-cuts_level: 1
+cuts_level: 2
 
-### Analysis category ( 2-tracks | 3-layers | 4-layers | all):
+### Analysis category ( 2-tracks | 3-layers | 4-layers | all ):
 analysis_category:  all
 
 scan_MET_binning: 0
