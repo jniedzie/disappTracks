@@ -45,6 +45,7 @@ public:
   inline double  GetTotalDedx(){return accumulate(dedx.begin(),dedx.end(),0.0);}
   double         GetAverageDedx();
   double         GetDedxInSubDet(int det);
+  double         GetDedxInBarrelLayer(int iLayer);
   
   inline int     GetSubDetIdForHit(int iHit){return iHit < subDetId.size() ? subDetId[iHit] : 0;}
 	inline int     GetSizeXforHit(int iHit){return iHit < sizeX.size() ? sizeX[iHit] : 0;}

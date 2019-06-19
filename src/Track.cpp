@@ -151,6 +151,24 @@ double Track::GetDedxInSubDet(int det)
   return dedxSum;
 }
 
+double Track::GetDedxInBarrelLayer(int iLayer)
+{
+  double totalDedx=0;
+
+  for(int iHit=0; iHit<dedx.size(); iHit++){
+    
+    if(detType[iHit] == 1){ // pixel barrel
+      if(layer[iHit] != iLayer) continue; // check that it's the correct layer
+      totalDedx += dedx[iHit];
+    }
+    else if(detType[iHit] == 0){
+      if(layer[iHit]+4 != iLayer) continue;
+      totalDedx += dedx[iHit];
+    }
+  }
+  return totalDedx;
+}
+
 void Track::Print()
 {
   cout<<"PID:"<<pid<<"\trel iso:"<<relativeIsolation<<endl;
@@ -179,7 +197,7 @@ int Track::GetLastBarrelLayer()
   int shift = 0; // shift layer index for strips
   
   for(int iHit=0;iHit<GetNdEdxHits();iHit++){
-    if(detType[iHit] == 2) continue; // Endcaps, we don't care
+    if(detType[iHit] == 2 || layer[iHit]==0) continue; // Endcaps, we don't care
     if(detType[iHit] == 0) shift = 4; // Strips, shift layer number by 4 pixel layers
     if(detType[iHit] == 1) shift = 0; // Pixel, don't shift
     

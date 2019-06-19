@@ -79,6 +79,8 @@ vector<tuple<string, int, double, double, string>> histOptions1D = {
   {"pion_vertex_z_noTIB"        , 50 , -1000  , 1000  , "v_{z} (mm)"              },
   {"noise_n_clusters"           , 100, 0      , 10000 , "# clusters"              },
   {"tracker_clusters_r"         , 1100,0      , 1500  , "R (mm)"                  },
+  
+  {"last_to_avg_dedx_ratio"     , 500 ,0      , 10    , "dE/dx last / dE/dx avg"  },
 };
 
 vector<tuple<string, int, double, double, string, int, double, double, string>> histOptions2D = {
@@ -86,7 +88,19 @@ vector<tuple<string, int, double, double, string, int, double, double, string>> 
   {"next_point_delta_phi_pion_pt" , 50, 0, 3.14 , "#Delta #phi" , 50, 0, 1000 , "pion p_{t} (MeV)"  },
   {"next_point_delta_z_pion_pz"   , 50, 0, 1000 , "#Delta z"    , 50, 0, 1000 , "pion p_{z} (MeV)"  },
   {"charge_gen_vs_rec"            , 3 ,-1, 2    , "q_{rec}"     , 3 ,-1, 2    , "q_{gen}"           },
-  {"layers_gen_vs_rec"            ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
+  {"layers_gen_vs_rec_0_0"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
+  {"layers_gen_vs_rec_0_5"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
+  {"layers_gen_vs_rec_0_7"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
+  {"layers_gen_vs_rec_0_8"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
+  {"layers_gen_vs_rec_0_9"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
+  {"layers_gen_vs_rec_1_0"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
+  {"layers_gen_vs_rec_1_2"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
+  {"layers_gen_vs_rec_2_0"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
+  {"layers_gen_vs_rec_3_0"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
+  {"layers_gen_vs_rec_4_0"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
+  {"layers_gen_vs_rec_5_0"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
+  {"layers_gen_vs_rec_6_0"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
+  {"layers_gen_vs_rec_7_0"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
   {"pt_gen_vs_rec"                ,100 ,0 , 1000   , "pt_{rec}", 100 , 0, 1000, "pt_{gen}" },
 };
 map<string, TH1D *> hists1D;
@@ -182,6 +196,19 @@ int main(int argc, char* argv[])
     
     int nCharginoLayers = -1;
     
+    vector<double> trackDedx;
+    
+    double avgTrackDedxWithoutLast=0;
+    
+    for(int iLayer=1; iLayer<(track->GetLastBarrelLayer()+1); iLayer++){
+      avgTrackDedxWithoutLast += track->GetDedxInBarrelLayer(iLayer);
+    }
+    avgTrackDedxWithoutLast /= (track->GetNtrackerLayers()-1);
+    
+    double lastToAvgTrackDedxRatio = track->GetDedxInBarrelLayer((track->GetLastBarrelLayer()+1)) / avgTrackDedxWithoutLast;
+    
+    hists1D["last_to_avg_dedx_ratio"]->Fill(lastToAvgTrackDedxRatio);
+    
     auto charginoSimHitsByLayer = pointsProcessor.SortByLayer(charginoSimHits);
     for(auto &hits : charginoSimHitsByLayer){
       for(auto &hit : hits){
@@ -194,7 +221,21 @@ int main(int argc, char* argv[])
     hists1D["lumi"]->Fill(event->GetLumiSection());
     hists1D["noise_n_clusters"]->Fill(trackerClusters.size()-pionClusters.size());
     hists2D["charge_gen_vs_rec"]->Fill(track->GetCharge(), chargino.GetCharge());
-    hists2D["layers_gen_vs_rec"]->Fill(track->GetNtrackerLayers(), nCharginoLayers);
+    
+    hists2D["layers_gen_vs_rec_0_0"]->Fill(track->GetNtrackerLayers(), nCharginoLayers);
+    hists2D["layers_gen_vs_rec_0_5"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 0.5 ? 1 : 0), nCharginoLayers);
+    hists2D["layers_gen_vs_rec_0_7"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 0.7 ? 1 : 0), nCharginoLayers);
+    hists2D["layers_gen_vs_rec_0_8"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 0.8 ? 1 : 0), nCharginoLayers);
+    hists2D["layers_gen_vs_rec_0_9"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 0.9 ? 1 : 0), nCharginoLayers);
+    hists2D["layers_gen_vs_rec_1_0"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 1.0 ? 1 : 0), nCharginoLayers);
+    hists2D["layers_gen_vs_rec_1_2"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 1.2 ? 1 : 0), nCharginoLayers);
+    hists2D["layers_gen_vs_rec_2_0"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 2.0 ? 1 : 0), nCharginoLayers);
+    hists2D["layers_gen_vs_rec_3_0"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 2.0 ? 1 : 0), nCharginoLayers);
+    hists2D["layers_gen_vs_rec_4_0"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 2.0 ? 1 : 0), nCharginoLayers);
+    hists2D["layers_gen_vs_rec_5_0"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 2.0 ? 1 : 0), nCharginoLayers);
+    hists2D["layers_gen_vs_rec_6_0"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 2.0 ? 1 : 0), nCharginoLayers);
+    hists2D["layers_gen_vs_rec_7_0"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 2.0 ? 1 : 0), nCharginoLayers);
+
     hists2D["pt_gen_vs_rec"]->Fill(track->GetPt(), chargino.GetPt());
     
     if(track->GetCharge()==chargino.GetCharge()){
@@ -424,8 +465,8 @@ int main(int argc, char* argv[])
   charginoCanvas->Divide(2,3);
   hists2D["charge_gen_vs_rec"]->SetMarkerSize(3.0);
   charginoCanvas->cd(1);  hists2D["charge_gen_vs_rec"]->DrawNormalized("text colz");
-  hists2D["layers_gen_vs_rec"]->SetMarkerSize(3.0);
-  charginoCanvas->cd(2);  hists2D["layers_gen_vs_rec"]->DrawNormalized("text colz");
+  hists2D["layers_gen_vs_rec_0_0"]->SetMarkerSize(3.0);
+  charginoCanvas->cd(2);  hists2D["layers_gen_vs_rec_0_0"]->DrawNormalized("text colz");
   
   hists1D["num_chargino_q_efficiency_vs_gen_pt"]->Divide(hists1D["den_chargino_q_efficiency_vs_gen_pt"]);
   charginoCanvas->cd(3);  hists1D["num_chargino_q_efficiency_vs_gen_pt"]->Draw();
@@ -460,7 +501,7 @@ int main(int argc, char* argv[])
   }
   
   TCanvas *specialCanvas = new TCanvas("specialCanvas", "specialCanvas", 2880, 1800);
-  specialCanvas->Divide(4,3);
+  specialCanvas->Divide(3,3);
 
   specialCanvas->cd(1);  hists1D["pion_pt_noTIB"]->Draw();
   specialCanvas->cd(2);  hists1D["pion_pz_noTIB"]->Draw();
@@ -468,6 +509,7 @@ int main(int argc, char* argv[])
   specialCanvas->cd(4);  hists1D["pion_vertex_z_noTIB"]->Draw();
   specialCanvas->cd(5);  hists1D["noise_n_clusters"]->Draw();
   specialCanvas->cd(6);  hists1D["tracker_clusters_r"]->Draw();
+  specialCanvas->cd(7);  hists1D["last_to_avg_dedx_ratio"]->Draw();
   
   genPionCanvas->Update();
   trackingCanvas->Update();

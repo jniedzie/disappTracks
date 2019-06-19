@@ -30,10 +30,10 @@ class Helix
 {
 public:
   /// Constructor taking as an input origin and momentum vector (will be automatically shifted to begin in the origin point)
-  /// \param _origin Helix origin point (e.g. chargino decay point)
+  /// \param _decayVertex Helix starting point (e.g. chargino decay vertex)
   /// \param _momentum  Momentum of the particle that creates a helix
   /// \param _charge Charge of the particle (determines helix direction)
-  Helix(const Point &_origin,
+  Helix(const Point &_decayVertex,
         const unique_ptr<Point> &_momentum,
         int _charge);
   

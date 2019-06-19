@@ -7,10 +7,10 @@
 #include "Helix.hpp"
 #include "Fitter.hpp"
 
-Helix::Helix(const Point &_origin,
+Helix::Helix(const Point &_decayVertex,
              const unique_ptr<Point> &_momentum,
              int _charge) :
-origin(_origin),
+origin(_decayVertex),
 momentum(make_unique<Point>(*_momentum)),
 charge(_charge),
 iCycles(0),
@@ -23,6 +23,8 @@ nMissingHitsInRow(0),
 isPreviousHitMissing(false),
 firstTurningPointIndex(-1)
 {
+  points.push_back(make_shared<Point>(_decayVertex));
+  
   seedID = uniqueID = reinterpret_cast<uint64_t>(this);
   
   helixParams.R0 = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);

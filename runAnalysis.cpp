@@ -109,6 +109,7 @@ int main(int argc, char* argv[])
     if(config.category == "2-tracks") initPrefix = "after_L1/2tracks/";
     if(config.category == "3-layers") initPrefix = "after_L1/3layers/";
     if(config.category == "4-layers") initPrefix = "after_L1/4layers/";
+    if(config.category == "all")      initPrefix = "after_L1/all/";
   }
   if(config.performCutsLevel==20) initPrefix = "afterHelixTagging/";
   
@@ -256,6 +257,7 @@ int main(int argc, char* argv[])
       if(config.category == "2-tracks") suffix = "2tracks";
       if(config.category == "3-layers") suffix = "3layers";
       if(config.category == "4-layers") suffix = "4layers";
+      if(config.category == "all")      suffix = "all";
       ProcessCuts(events, eventCut, trackCut, jetCut, leptonCut, suffix);
     }
   }
@@ -265,6 +267,7 @@ int main(int argc, char* argv[])
     if(config.category == "2-tracks") suffix = "2tracks";
     if(config.category == "3-layers") suffix = "3layers";
     if(config.category == "4-layers") suffix = "4layers";
+    if(config.category == "all")      suffix = "all";
     ProcessCuts(events, eventCut, trackCut, jetCut, leptonCut, suffix);
   }
   
