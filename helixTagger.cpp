@@ -11,16 +11,16 @@
 #include "PerformanceMonitor.hpp"
 #include "EventSet.hpp"
 
-string configPath = "configs/helixTagger_maxHits.md";
+string configPath = "configs/helixTagger_maxLength_maxEff.md";
 string cutLevel = "after_L2/4layers/";//after_L1/";
 
-int nEvents = 5;
-const int nTests = 5;
+int nEvents = 45;
+const int nTests = 1;
 
 int nAnalyzedEvents = 0;
 
 double SetParamValue(int iTest){
-//  return 0;
+  return 0;
   // here put a way to calculate param value based on the test iter:
   // then assign the value to the correct config parameter:
 
@@ -107,12 +107,12 @@ int main(int argc, char* argv[])
   
   for(int iTest=0; iTest<nTests; iTest++){
     map<string, PerformanceMonitor> mapForTest = {
-//      {"n_helices" , PerformanceMonitor("N helices",  20, 0, 20 , nEvents)},
-//      {"avg_hits"  , PerformanceMonitor("Avg hits",   20, 0, 20 , nEvents)},
+      {"n_helices" , PerformanceMonitor("N helices",  20, 0, 20 , nEvents)},
+      {"avg_hits"  , PerformanceMonitor("Avg hits",   20, 0, 20 , nEvents)},
       {"max_hits"  , PerformanceMonitor("Max hits",   20, 0, 20 , nEvents)},
-//      {"max_layers", PerformanceMonitor("Max layers", 20, 0, 20 , nEvents)},
-//      {"avg_length", PerformanceMonitor("Avg length", 20, 0, 2  , nEvents)},
-//      {"max_length", PerformanceMonitor("Max length", 20, 0, 6  , nEvents)},
+      {"max_layers", PerformanceMonitor("Max layers", 20, 0, 20 , nEvents)},
+      {"avg_length", PerformanceMonitor("Avg length", 20, 0, 2  , nEvents)},
+      {"max_length", PerformanceMonitor("Max length", 20, 0, 6  , nEvents)},
     };
     monitors.push_back(mapForTest);
   }
@@ -152,29 +152,29 @@ int main(int argc, char* argv[])
         // for(auto helix : fittedHelicesSignal) event->AddHelix(move(fittedHelix));
         
         
-//        monitors["n_helices"].SetValues(iTest, iEvent,
-//                                        fittedHelicesSignal.size(),
-//                                        fittedHelicesBackground.size());
-//
-//        monitors["avg_hits"].SetValues(iTest, iEvent,
-//                                       GetAvgNhits(fittedHelicesSignal),
-//                                       GetAvgNhits(fittedHelicesBackground));
-//
+        monitors[iTest]["n_helices"].SetValues(iEvent,
+                                               fittedHelicesSignal.size(),
+                                               fittedHelicesBackground.size());
+        
+        monitors[iTest]["avg_hits"].SetValues(iEvent,
+                                              GetAvgNhits(fittedHelicesSignal),
+                                              GetAvgNhits(fittedHelicesBackground));
+        
         monitors[iTest]["max_hits"].SetValues(iEvent,
                                               GetMaxNhits(fittedHelicesSignal),
                                               GetMaxNhits(fittedHelicesBackground));
-//
-//        monitors["max_layers"].SetValues(iTest, iEvent,
-//                                         GetMaxNlayers(fittedHelicesSignal),
-//                                         GetMaxNlayers(fittedHelicesBackground));
         
-//        monitors["avg_length"].SetValues(iTest, iEvent,
-//                                         GetAvgLength(fittedHelicesSignal),
-//                                         GetAvgLength(fittedHelicesBackground));
+        monitors[iTest]["max_layers"].SetValues(iEvent,
+                                                GetMaxNlayers(fittedHelicesSignal),
+                                                GetMaxNlayers(fittedHelicesBackground));
         
-//        monitors["max_length"].SetValues(iTest, iEvent,
-//                                         GetMaxLength(fittedHelicesSignal),
-//                                         GetMaxLength(fittedHelicesBackground));
+        monitors[iTest]["avg_length"].SetValues(iEvent,
+                                                GetAvgLength(fittedHelicesSignal),
+                                                GetAvgLength(fittedHelicesBackground));
+        
+        monitors[iTest]["max_length"].SetValues(iEvent,
+                                                GetMaxLength(fittedHelicesSignal),
+                                                GetMaxLength(fittedHelicesBackground));
       }
       nAnalyzedEvents++;
     }

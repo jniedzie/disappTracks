@@ -176,21 +176,21 @@ int main(int argc, char* argv[])
   bool dontFix = false;
   
 //                     i    name                            start  min     max   step  fix
-  SetParameter(fitter, 0 , "double_hit_max_distance"       ,  16.0,  5.0  , 20  , 1.0, dontFix);
-  SetParameter(fitter, 1 , "seed_max_chi2"                 ,  0   ,  -10  , 1   , 1  , dontFix);
-  SetParameter(fitter, 2 , "seed_middle_hit_min_delta_phi" , -0.82, -1.0  , 0.0 , 0.1, dontFix);
-  SetParameter(fitter, 3 , "seed_middle_hit_max_delta_phi" ,  0.47,  0.0  , 1.0 , 0.1, dontFix);
-  SetParameter(fitter, 4 , "seed_middle_hit_max_delta_z"   ,  60  ,  0.0  , 300 , 10 , dontFix);
-  SetParameter(fitter, 5 , "seed_last_hit_min_delta_phi"   , -0.8 , -1.0  ,-0.0 , 0.1, dontFix);
-  SetParameter(fitter, 6 , "seed_last_hit_max_delta_phi"   ,  0.1 ,  0.0  , 1.0 , 0.1, dontFix);
-  SetParameter(fitter, 7 , "seed_last_hit_max_delta_z"     ,  180 ,  0.0  , 300 , 10 , dontFix);
-  SetParameter(fitter, 8 , "track_max_chi2"                ,  -3  ,  -10  , -3  , 1  , dontFix);
+  SetParameter(fitter, 0 , "double_hit_max_distance"       ,  10.0,  5.0  , 20  , 1.0, dontFix);
+  SetParameter(fitter, 1 , "seed_max_chi2"                 ,  -1  ,  -10  , 1   , 1  , dontFix);
+  SetParameter(fitter, 2 , "seed_middle_hit_min_delta_phi" , -0.5 , -2.0  ,-0.0 , 0.1, dontFix);
+  SetParameter(fitter, 3 , "seed_middle_hit_max_delta_phi" ,  0.1 ,  0.0  , 1.0 , 0.1, dontFix);
+  SetParameter(fitter, 4 , "seed_middle_hit_max_delta_z"   ,  20  ,  0.0  , 300 , 10 , dontFix);
+  SetParameter(fitter, 5 , "seed_last_hit_min_delta_phi"   , -0.5 , -2.0  ,-0.1 , 0.1, dontFix);
+  SetParameter(fitter, 6 , "seed_last_hit_max_delta_phi"   ,  0.0 , -0.1  , 2.0 , 0.1, dontFix);
+  SetParameter(fitter, 7 , "seed_last_hit_max_delta_z"     ,  20  ,  0.0  , 300 , 10 , dontFix);
+  SetParameter(fitter, 8 , "track_max_chi2"                ,  -2  ,  -6   , -3  , 1  , dontFix);
   SetParameter(fitter, 9 , "next_point_min_delta_phi"      , -0.5 , -1.0  , 0.0 , 0.1, fix);
   SetParameter(fitter, 10, "next_point_max_delta_phi"      ,  0.5 ,  0.0  , 1.0 , 0.1, fix);
-  SetParameter(fitter, 11, "next_point_max_delta_z"        ,  220 ,  0.0  , 300 , 10 , dontFix);
-  SetParameter(fitter, 12, "next_point_max_delta_xy"       ,  20  ,  0.0  , 300 , 10 , dontFix);
-  SetParameter(fitter, 13, "track_min_n_points"            ,  3   ,  3    , 20  , 1  , dontFix);
-  SetParameter(fitter, 14, "merging_max_different_point"   ,  2   ,  0    , 20  , 1  , dontFix);
+  SetParameter(fitter, 11, "next_point_max_delta_z"        ,  20  ,  0.0  , 300 , 10 , dontFix);
+  SetParameter(fitter, 12, "next_point_max_delta_xy"       ,  5   ,  0.0  , 200 , 10 , dontFix);
+  SetParameter(fitter, 13, "track_min_n_points"            ,  5   ,  0    , 20  , 1  , dontFix);
+  SetParameter(fitter, 14, "merging_max_different_point"   ,  5   ,  0    , 20  , 1  , dontFix);
   SetParameter(fitter, 15, "max_n_missing_hits"            ,  1   ,  0    , 5   , 1  , fix);
   SetParameter(fitter, 16, "max_n_missing_hits_in_raw"     ,  1   ,  0    , 5   , 1  , fix);
   SetParameter(fitter, 17, "merge_at_turn_back"            ,  0   ,  0    , 2   , 1  , fix);
