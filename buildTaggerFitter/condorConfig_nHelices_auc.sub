@@ -1,0 +1,8 @@
+executable 		= run_fitter.sh
+arguments		= n_helices auc
+output                	= output/taggerFitter.$(ClusterId).$(ProcId).out
+error                 	= error/taggerFitter.$(ClusterId).$(ProcId).err
+log                   	= log/taggerFitter.$(ClusterId).log
+requirements 		= (OpSysAndVer =?= "CentOS7")
++JobFlavour = "tomorrow"
+queue
