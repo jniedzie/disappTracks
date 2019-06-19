@@ -92,6 +92,7 @@ void PerformanceMonitor::CalcEfficiency(int nAnalyzedEvents)
   maxEfficiency = -inf;
   significanceInitial = -inf;
   significanceAfterL0 = -inf;
+  significanceAfterL1 = -inf;
   
   set<pair<double, double>> rocXY;
   
@@ -111,6 +112,11 @@ void PerformanceMonitor::CalcEfficiency(int nAnalyzedEvents)
     
     if(sigmaApproxL0all > significanceAfterL0 && fakeRate[iThreshold] > 0)
       significanceAfterL0 = sigmaApproxL0all;
+    
+    double sigmaApproxL1all = 1166*efficiency[iThreshold]/sqrt(1166*efficiency[iThreshold]+6573*fakeRate[iThreshold]);
+    
+    if(sigmaApproxL1all > significanceAfterL1 && fakeRate[iThreshold] > 0)
+      significanceAfterL1 = sigmaApproxL1all;
     
     rocGraph->SetPoint(iThreshold, fakeRate[iThreshold], efficiency[iThreshold]);
     rocXY.insert(make_pair(fakeRate[iThreshold], efficiency[iThreshold]));

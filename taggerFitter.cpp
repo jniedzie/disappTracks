@@ -9,11 +9,11 @@
 #include "PerformanceMonitor.hpp"
 #include "EventSet.hpp"
 
-string configPath = "../configs/helixTagger_maxLayers_auc.md";
+string configPath = "configs/helixTagger_maxLayers_auc.md";
 string outFilePrefix = "L2_4layers";
 string cutLevel = "after_L2/4layers/";//after_L1/";
 
-int nEvents = 45;
+int nEvents = 10;
 
 int nAnalyzedEvents = 0;
 
@@ -134,11 +134,15 @@ void chi2Function(Int_t&, Double_t*, Double_t &f, Double_t *par, Int_t)
   }
   else if(optimizationParam=="sigma_init"){
     optValue = monitor.GetSignificanceInitial();
-    chi2 = pow(5-optValue, 2)/optValue;
+    chi2 = pow(2-optValue, 2)/optValue;
   }
   else if(optimizationParam=="sigma_L0"){
     optValue = monitor.GetSignificanceAfterL0();
     chi2 = pow(10-optValue, 2)/optValue;
+  }
+  else if(optimizationParam=="sigma_L1"){
+    optValue = monitor.GetSignificanceAfterL1();
+    chi2 = pow(30-optValue, 2)/optValue;
   }
   else{
     cout<<"Unknown optimization param: "<<optimizationParam<<endl;
@@ -146,14 +150,17 @@ void chi2Function(Int_t&, Double_t*, Double_t &f, Double_t *par, Int_t)
     exit(0);
   }
 
+  chi2/=nFreeParams;
   cout<<"chi2: "<<chi2<<"\t"<<optimizationParam<<": "<<optValue<<endl;
-  f = chi2/nFreeParams;
+  
+  f = chi2;
 };
 
 int main(int argc, char* argv[])
 {
   if(argc!=3){
-    cout<<"Usage: ./taggerFitter [avg_hits/max_hits/max_layers/n_helices/avg_length/max_length] [auc/max_eff/sigma_init/sigma_L0]"<<endl;
+    cout<<"Usage: ./taggerFitter [avg_hits/max_hits/max_layers/n_helices/avg_length/max_length] ";
+    cout<<"[auc/max_eff/sigma_init/sigma_L0/sigma_L1]"<<endl;
     exit(0);
   }
   monitorType = argv[1];
@@ -178,15 +185,15 @@ int main(int argc, char* argv[])
   bool dontFix = false;
   
 //                     i    name                            start  min     max   step  fix
-  SetParameter(fitter, 0 , "double_hit_max_distance"       ,  10.0,  5.0  , 20  , 1.0, dontFix);
-  SetParameter(fitter, 1 , "seed_max_chi2"                 ,  -1  ,  -10  , 1   , 1  , dontFix);
-  SetParameter(fitter, 2 , "seed_middle_hit_min_delta_phi" , -0.5 , -2.0  ,-0.0 , 0.1, dontFix);
+  SetParameter(fitter, 0 , "double_hit_max_distance"       ,  16.0,  5.0  , 20  , 1.0, dontFix); // 10
+  SetParameter(fitter, 1 , "seed_max_chi2"                 ,  0.0 ,  -10  , 1   , 1  , dontFix); // -1
+  SetParameter(fitter, 2 , "seed_middle_hit_min_delta_phi" , -0.8 , -2.0  ,-0.0 , 0.1, dontFix); // -0.5
   SetParameter(fitter, 3 , "seed_middle_hit_max_delta_phi" ,  0.1 ,  0.0  , 1.0 , 0.1, dontFix);
   SetParameter(fitter, 4 , "seed_middle_hit_max_delta_z"   ,  20  ,  0.0  , 300 , 10 , dontFix);
   SetParameter(fitter, 5 , "seed_last_hit_min_delta_phi"   , -0.5 , -2.0  ,-0.1 , 0.1, dontFix);
   SetParameter(fitter, 6 , "seed_last_hit_max_delta_phi"   ,  0.0 , -0.1  , 2.0 , 0.1, dontFix);
   SetParameter(fitter, 7 , "seed_last_hit_max_delta_z"     ,  20  ,  0.0  , 300 , 10 , dontFix);
-  SetParameter(fitter, 8 , "track_max_chi2"                ,  -2  ,  -6   , -3  , 1  , dontFix);
+  SetParameter(fitter, 8 , "track_max_chi2"                ,  -3  ,  -6   , -2  , 1  , dontFix); // -2
   SetParameter(fitter, 9 , "next_point_min_delta_phi"      , -0.5 , -1.0  , 0.0 , 0.1, fix);
   SetParameter(fitter, 10, "next_point_max_delta_phi"      ,  0.5 ,  0.0  , 1.0 , 0.1, fix);
   SetParameter(fitter, 11, "next_point_max_delta_z"        ,  20  ,  0.0  , 300 , 10 , dontFix);

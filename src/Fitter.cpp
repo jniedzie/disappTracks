@@ -7,7 +7,8 @@
 #include "Fitter.hpp"
 
 Fitter::Fitter() :
-eventVertex(Point(0, 0, 0))
+eventVertex(Point(0, 0, 0)),
+verbose(false)
 {
 
 }
@@ -28,47 +29,47 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   vector<vector<shared_ptr<Point>>> pointsByLayer = pointsProcessor.SortByLayer(points);
   
   // Find seeds
-//  cout<<"Looking for seeds..."<<endl;
+  if(verbose) cout<<"Looking for seeds..."<<endl;
   vector<Helix> fittedHelices = GetSeeds(pointsByLayer);
-//  cout<<"Number of valid seeds: "<<fittedHelices.size()<<endl;
+  if(verbose) cout<<"Number of valid seeds: "<<fittedHelices.size()<<endl;
   
   // Extend seeds
-//  cout<<"Extending seeds..."<<endl;
+  if(verbose) cout<<"Extending seeds..."<<endl;
   ExtendSeeds(fittedHelices, pointsByLayer);
-//  cout<<"Candidates found: "<<fittedHelices.size()<<endl;
+  if(verbose) cout<<"Candidates found: "<<fittedHelices.size()<<endl;
   
   // Remove very short candidates which should not even be merged with others
-//  cout<<"Removing short candidates...";
+  if(verbose) cout<<"Removing short candidates...";
   vector<Helix> longHelices;
   for(int iHelix=0; iHelix<fittedHelices.size(); iHelix++){
     if(fittedHelices[iHelix].GetNpoints() >= config.candidateMinNpoints){
       longHelices.push_back(fittedHelices[iHelix]);
     }
   }
-//  cout<<" Candidates left:"<<longHelices.size()<<endl;
+  if(verbose) cout<<" Candidates left:"<<longHelices.size()<<endl;
   
   // Merge similar candidates
   if(config.mergeFinalHelices){
-//    cout<<"Merging overlapping helices...";
+    if(verbose) cout<<"Merging overlapping helices...";
     while(MergeHelices(longHelices));
-//    cout<<" merged down to: "<<longHelices.size()<<endl;
+    if(verbose) cout<<" merged down to: "<<longHelices.size()<<endl;
   }
   
   // Remove helices that are too short
-//  cout<<"Removing very short merged helices...";
+  if(verbose) cout<<"Removing very short merged helices...";
   vector<Helix> longMergedHelices;
   for(int iHelix=0; iHelix<longHelices.size(); iHelix++){
     if(longHelices[iHelix].GetNpoints() >= config.trackMinNpoints){
       longMergedHelices.push_back(longHelices[iHelix]);
     }
   }
-//  cout<<" long merged helices: "<<longMergedHelices.size()<<endl;
+  if(verbose) cout<<" long merged helices: "<<longMergedHelices.size()<<endl;
   
-//  cout<<"Refitting surviving helices...";
+  if(verbose) cout<<"Refitting surviving helices...";
   for(auto &helix : longMergedHelices){
     if(helix.GetShouldRefit()) RefitHelix(helix);
   }
-//  cout<<" done."<<endl;
+  if(verbose) cout<<" done."<<endl;
   
   return longMergedHelices;
 }
@@ -148,7 +149,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
       }
     }
   }
-//  cout<<"Tested pairs: "<<nPairs<<endl;
+  if(verbose) cout<<"Tested pairs: "<<nPairs<<endl;
   return seeds;
 }
 
@@ -251,15 +252,13 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
   bool finished;
   int nSteps=0;
   do{
-//    cout<<"Helices before "<<nSteps<<" step: "<<helices.size()<<endl;
+    if(verbose) cout<<"Helices before "<<nSteps<<" step: "<<helices.size()<<endl;
     
     finished = true;
     vector<Helix> nextStepHelices;
     
     // for all helices from previous step
-    for(Helix &helix : helices)
-//    Helix helix = helices.front();
-    {
+    for(Helix &helix : helices){
       
       if(helix.GetIsFinished()){
         nextStepHelices.push_back(helix);
@@ -273,7 +272,6 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         
         shared_ptr<Point> turningPoint = nullptr;
         if(helix.GetFirstTurningPointIndex() > 0) turningPoint = helixPoints[helix.GetFirstTurningPointIndex()];
-        int turningPointLayer = turningPoint ? turningPoint->GetLayer() : inf;
         
         int lastPointLayer = lastPoints.front()->GetLayer();
         if(lastPointLayer < 0) continue;

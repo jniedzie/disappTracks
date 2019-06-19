@@ -84,7 +84,8 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
     trackCut.SetDedxPerCluster(range<double>(3.0,inf));
   }
   else if(config.category == "all"){
-    trackCut.SetCaloEmEnergy(range<double>(0.0,8.0));
+    eventCut.SetNtracks(range<int>(1,1));
+    trackCut.SetCaloEmEnergy(range<double>(0.0,2.0));
   }
   
   if(config.performCutsLevel == 1) return;
@@ -93,9 +94,9 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
   // Level 2 cuts (gen info)
   //----------------------------------------------------------------------------
   
-  trackCut.SetRequireCorrectNlayers(true);
-  trackCut.SetRequireCorrectCharge(true);
   eventCut.SetNgenPions(range<int>(1,2));
+  trackCut.SetRequireCorrectCharge(true);
+  trackCut.SetRequireCorrectNlayers(true);
   
   if(config.performCutsLevel == 2) return;
   

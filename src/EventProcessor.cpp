@@ -563,11 +563,22 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
                                                      10*arrayValuesFriendFloat["pionCluster_ez"]->at(i)));
   }
   
+  
+  auto charginoSimHitsByLayer = pointsProcessor.SortByLayer(event->charginoSimHits);
+  int maxCharginoLayer = -1;
+  for(auto &hits : charginoSimHitsByLayer){
+    for(auto &hit : hits){
+      if(hit->GetLayer() > maxCharginoLayer) maxCharginoLayer = hit->GetLayer();
+    }
+  }
+  int nCharginoLayers = maxCharginoLayer+1;
+  
   for(uint i=0;i<arrayValuesFriendFloat["chargino_eta"]->size();i++){
     event->genCharginoTrack.push_back(Track(arrayValuesFriendFloat["chargino_eta"]->at(i),
                                             arrayValuesFriendFloat["chargino_phi"]->at(i),
                                             arrayValuesFriendInt["chargino_charge"]->at(i),
-                                            arrayValuesFriendInt["chargino_nTrackerLayers"]->at(i),
+                                            nCharginoLayers, // works only if there's one chargino in the event!!
+                                            /*arrayValuesFriendInt["chargino_nTrackerLayers"]->at(i),*/
                                             arrayValuesFriendFloat["chargino_pt"]->at(i)));
     
   }

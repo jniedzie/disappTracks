@@ -6,7 +6,7 @@
 #include "EventSet.hpp"
 
 string configPath  = "configs/eventDisplay.md";
-string cutLevel    = "after_L0/";// "after_L1/4layers/"; //"after_L1/4layers/";//after_L1/";
+string cutLevel    = "after_L1/all/";// "after_L1/4layers/"; //"after_L1/4layers/";//after_L1/";
 string outfileName = "results/tmp.root";
 
 xtracks::EDataType dataType = xtracks::kSignal;
@@ -194,7 +194,7 @@ int main(int argc, char* argv[])
     auto chargino        = event->GetGenCharginoTracks()[0];
     auto charginoSimHits = event->GetCharginoSimHits();
     
-    int nCharginoLayers = -1;
+    
     
     vector<double> trackDedx;
     
@@ -210,12 +210,13 @@ int main(int argc, char* argv[])
     hists1D["last_to_avg_dedx_ratio"]->Fill(lastToAvgTrackDedxRatio);
     
     auto charginoSimHitsByLayer = pointsProcessor.SortByLayer(charginoSimHits);
+    int maxCharginoLayer = -1;
     for(auto &hits : charginoSimHitsByLayer){
       for(auto &hit : hits){
-        if(hit->GetLayer() > nCharginoLayers) nCharginoLayers = hit->GetLayer();
+        if(hit->GetLayer() > maxCharginoLayer) maxCharginoLayer = hit->GetLayer();
       }
     }
-    
+    int nCharginoLayers = maxCharginoLayer+1;
     
     // Fill basic info about events
     hists1D["lumi"]->Fill(event->GetLumiSection());

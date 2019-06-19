@@ -12,16 +12,20 @@ uint searchLumi = 1;
 unsigned long long searchEvent = 2662;
 
 string configPath = "configs/eventDisplay.md";
-string cutLevel = "after_L2/4layers/";//after_L1/";
+string cutLevel = "after_L2/all/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 42;
+int iEvent = 2;
 
 bool injectPion = false;
 bool fitHelix = true;
 
 bool pionHitsOnly = true;
+
+// "after_L2/all/":
+// ok: 1, 2
+// no hits: 0
 
 // "after_L2/4layers/":
 
@@ -92,6 +96,30 @@ void DrawHitsOrClusters(const shared_ptr<Event> event, int pointsType)
   }
   
   map<string, vector<shared_ptr<Point>>> hitsOrClustersBySubDet;
+  
+  map<int, string> subDetMap = {
+    {0,  "PixelBarrel"},
+    {1,  "PixelEndcap"},
+    {2,  "TIB"},
+    {3,  "TOB"},
+    {4,  "TID"},
+    {5,  "TEC"},
+    {6,  "CSC"},
+    {7,  "DT"},
+    {8,  "RPCBarrel"},
+    {9,  "RPCEndcap"},
+    {10, "GEM"},
+    {11, "ME0"},
+    {12, "P2OTB"},
+    {13, "P2OTEC"},
+    {14, "P1PXB"},
+    {15, "P1PXEC"},
+    {16, "P2PXB"},
+    {17, "P2PXEC"},
+    {18, "TimingBarrel"},
+    {19, "TimingEndcap"},
+    {20, "invalidDet"}
+  };
   
   for(auto &[iter, name] : subDetMap){
     hitsOrClustersBySubDet[name] = vector<shared_ptr<Point>>();

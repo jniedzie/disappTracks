@@ -11,10 +11,10 @@
 #include "PerformanceMonitor.hpp"
 #include "EventSet.hpp"
 
-string configPath = "configs/helixTagger_maxLength_maxEff.md";
-string cutLevel = "after_L2/4layers/";//after_L1/";
+string configPath = "configs/helixTagger_maxHits_auc.md";
+string cutLevel = "after_L2/all/";//after_L1/";
 
-int nEvents = 45;
+int nEvents = 50; // max: 1287
 const int nTests = 1;
 
 int nAnalyzedEvents = 0;
