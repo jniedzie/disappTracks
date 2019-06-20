@@ -85,7 +85,8 @@ track_max_chi2:
 next_point_min_delta_phi:             
 next_point_max_delta_phi:            
 next_point_max_delta_z:               
-next_point_max_delta_xy:             
+next_point_max_delta_xy:
+next_point_max_delta_t:                1.0
 
 track_min_n_points:                       3
 

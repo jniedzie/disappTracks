@@ -86,6 +86,7 @@ next_point_min_delta_phi:              -0.5
 next_point_max_delta_phi:             0.5
 next_point_max_delta_z:                220
 next_point_max_delta_xy:              20
+next_point_max_delta_t:                1.0
 
 track_min_n_points:                       3
 
