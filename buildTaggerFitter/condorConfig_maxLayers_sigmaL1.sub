@@ -1,5 +1,5 @@
 executable 		= run_fitter.sh
-arguments		= max_layers sigma_L0
+arguments		= max_layers sigma_L1
 output                	= output/taggerFitter.$(ClusterId).$(ProcId).out
 error                 	= error/taggerFitter.$(ClusterId).$(ProcId).err
 log                   	= log/taggerFitter.$(ClusterId).log
