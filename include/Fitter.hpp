@@ -31,7 +31,7 @@ private:
   Track track;
   Point eventVertex;
   
-  bool verbose;
+  int verbose;
   
   ///
   vector<Helix> GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer);

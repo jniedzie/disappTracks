@@ -24,33 +24,33 @@ double SetParamValue(int iTest){
   // here put a way to calculate param value based on the test iter:
   // then assign the value to the correct config parameter:
 
-//  double paramValue = iTest+5;
-//  config.doubleHitsMaxDistance = paramValue;
+  double paramValue = iTest+5;
+  config.doubleHitsMaxDistance = paramValue;
   
   //-------
   // seeds
   
-//  double paramValue = 0.01+iTest*0.01;//pow(10, 1-iTest);
+//  double paramValue = 0.1+iTest*0.1;//pow(10, -3+iTest);
 //  config.seedMaxChi2 = paramValue;
 
-  double paramValue = -1.0+iTest*0.2;
-  config.seedMiddleHitDeltaPhi = range<double>(paramValue, config.seedMiddleHitDeltaPhi.GetMax());
+//  double paramValue = -1.0+iTest*0.2;
+//  config.seedMiddleHitDeltaPhi = range<double>(paramValue, config.seedMiddleHitDeltaPhi.GetMax());
 //  double paramValue = -0.5+iTest*0.2;
 //  config.seedMiddleHitDeltaPhi = range<double>(config.seedMiddleHitDeltaPhi.GetMin(), paramValue);
-//  double paramValue = iTest*20;
+//  double paramValue = iTest*30;
 //  config.seedMiddleHitMaxDeltaZ = paramValue;
   
-//  double paramValue = -1.0+iTest*0.2;
+//  double paramValue = -1.0+iTest*0.1;
 //  config.seedLastHitDeltaPhi = range<double>(paramValue, config.seedLastHitDeltaPhi.GetMax());
-//  double paramValue = -0.5+iTest*0.2;
+//  double paramValue = -0.2+iTest*0.1;
 //  config.seedLastHitDeltaPhi = range<double>(config.seedLastHitDeltaPhi.GetMin(), paramValue);
-//  double paramValue = iTest*20;
+//  double paramValue = iTest*30;
 //  config.seedLastHitMaxDeltaZ = paramValue;
 
   //-------
   // tracks
   
-//  double paramValue =  pow(10, -7+iTest); // 0.01+iTest*0.01;//
+//  double paramValue =  pow(10, -5+iTest*0.5); // 0.01+iTest*0.01;//
 //  config.trackMaxChi2 = paramValue;
   
 //  double paramValue = -1.5+iTest*0.2;
@@ -61,6 +61,9 @@ double SetParamValue(int iTest){
 //  config.nextPointMaxDeltaZ = paramValue;
 //  double paramValue = iTest*20;
 //  config.nextPointMaxDeltaXY = paramValue;
+//  double paramValue = iTest*0.1;
+//  config.nextPointMaxDeltaT = paramValue;
+  
 //  double paramValue = iTest+3;
 //  config.trackMinNpoints = paramValue;
   
@@ -93,6 +96,8 @@ int    GetMaxNhits(vector<Helix> helices);
 int    GetMaxNlayers(vector<Helix> helices);
 double GetAvgLength(vector<Helix> helices);
 double GetMaxLength(vector<Helix> helices);
+double GetMinChi2(vector<Helix> helices);
+double GetMinChi2overNhits(vector<Helix> helices);
 
 int main(int argc, char* argv[])
 {
@@ -101,7 +106,7 @@ int main(int argc, char* argv[])
   config = ConfigManager(configPath);
   auto fitter = make_unique<Fitter>();
   TCanvas *canvas = new TCanvas("ROC", "ROC", 2880,1800);
-  canvas->Divide(4,3);
+  canvas->Divide(4,4);
   
   vector<map<string, PerformanceMonitor>> monitors;// [iTest][name]
   
@@ -111,8 +116,10 @@ int main(int argc, char* argv[])
       {"avg_hits"  , PerformanceMonitor("Avg hits",   20, 0, 20 , nEvents)},
       {"max_hits"  , PerformanceMonitor("Max hits",   20, 0, 20 , nEvents)},
       {"max_layers", PerformanceMonitor("Max layers", 20, 0, 20 , nEvents)},
-      {"avg_length", PerformanceMonitor("Avg length", 20, 0, 2  , nEvents)},
-      {"max_length", PerformanceMonitor("Max length", 20, 0, 6  , nEvents)},
+      {"avg_length", PerformanceMonitor("Avg length", 20, 0, 20 , nEvents)},
+      {"max_length", PerformanceMonitor("Max length", 30, 0, 3   , nEvents)},
+      {"min_chi2"  , PerformanceMonitor("Min chi2"  , 10000, 0, 0.01 , nEvents)},
+      {"min_chi2_per_hit"  , PerformanceMonitor("Min chi2 per hit"  , 10000, 0, 0.001 , nEvents)},
     };
     monitors.push_back(mapForTest);
   }
@@ -175,6 +182,16 @@ int main(int argc, char* argv[])
         monitors[iTest]["max_length"].SetValues(iEvent,
                                                 GetMaxLength(fittedHelicesSignal),
                                                 GetMaxLength(fittedHelicesBackground));
+        
+        monitors[iTest]["min_chi2"].SetValues(iEvent,
+                                              GetMinChi2(fittedHelicesSignal),
+                                              GetMinChi2(fittedHelicesBackground));
+        
+        monitors[iTest]["min_chi2_per_hit"].SetValues(iEvent,
+                                                      GetMinChi2overNhits(fittedHelicesSignal),
+                                                      GetMinChi2overNhits(fittedHelicesBackground));
+        
+        
       }
       nAnalyzedEvents++;
     }
@@ -320,4 +337,27 @@ double GetMaxLength(vector<Helix> helices)
     if(length > maxLength) maxLength = length;
   }
   return maxLength;
+}
+
+double GetMinChi2(vector<Helix> helices)
+{
+  if(helices.size()==0) return 0;
+  double minChi2 = inf;
+  
+  for(auto helix : helices){
+    if(helix.GetChi2() < minChi2) minChi2 = helix.GetChi2();
+  }
+  return minChi2;
+}
+
+double GetMinChi2overNhits(vector<Helix> helices)
+{
+  if(helices.size()==0) return 0;
+  double minChi2 = inf;
+  
+  for(auto helix : helices){
+    if(helix.GetChi2()/helix.GetNpoints() < minChi2) minChi2 = helix.GetChi2()/helix.GetNpoints();
+  }
+  
+  return minChi2;
 }

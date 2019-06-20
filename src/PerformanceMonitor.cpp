@@ -128,6 +128,7 @@ void PerformanceMonitor::CalcEfficiency(int nAnalyzedEvents)
   for(auto &xy : rocXY){
     aucXY += xy.second-xy.first;
   }
+  aucXY /= rocXY.size();
   
 //  auc = rocFun->Integral(0,1);
   auc = aucXY;

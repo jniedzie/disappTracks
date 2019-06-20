@@ -66,35 +66,43 @@ n_track_hits: 2
 helix_thickness:  0.0
 
 ### Maximum distance in 3D to consider two hits as overlapping ones (in mm):
-double_hit_max_distance:            10.0
+double_hit_max_distance:            15.0
 
 ### Constraints on seeds parameters:
-seed_max_chi2:                            1
+seed_max_chi2:                            1.0
 
-seed_middle_hit_min_delta_phi:   -0.6
-seed_middle_hit_max_delta_phi:  0.6
+#### -1.2
+seed_middle_hit_min_delta_phi:   -1.2
+#### 0.5
+seed_middle_hit_max_delta_phi:   0.9
+#### 200
 seed_middle_hit_max_delta_z:     200
 
-seed_last_hit_min_delta_phi:       -0.6
-seed_last_hit_max_delta_phi:       0.6
+#### -0.5
+seed_last_hit_min_delta_phi:       -0.5
+#### 0.3
+seed_last_hit_max_delta_phi:       0.3
+#### 200
 seed_last_hit_max_delta_z:          200
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             1e-3
+#### 1e-1.9
+track_max_chi2:                             1e-2.5
 
-next_point_min_delta_phi:              -0.6
-next_point_max_delta_phi:             0.6
-next_point_max_delta_z:                200
-next_point_max_delta_xy:              300
-next_point_max_delta_t:                1.0
+#### 400
+next_point_max_delta_z:                400
+#### 100
+next_point_max_delta_xy:              100
+#### 0.6
+next_point_max_delta_t:                0.6
 
-track_min_n_points:                       4
+track_min_n_points:                       3
 
 ### Max number of different points and min number of points to merge two helices:
 merging_max_different_point:         2
 candidate_min_n_points:                3
 merge_at_turn_back:                      0
-merge_final_helices:                        1
+merge_final_helices:                        0
 
 ### Max number of missing hits (total and in a row):
 max_n_missing_hits:                       1
@@ -116,3 +124,17 @@ tolerance_z:  10
 tolerance_px:  10
 tolerance_py:  10
 tolerance_pz:  10
+
+**Event display options**
+
+show_geometry_pixel:  1
+show_geometry_strip:  0
+show_geometry_ecal:  0
+show_geometry_hcal:  0
+
+draw_tracker_clusters:      0
+draw_met:                         0
+draw_jets:                          1
+draw_pion_simhits:           0
+draw_pion_clusters:          0
+draw_chargino_simhits:    1

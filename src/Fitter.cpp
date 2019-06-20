@@ -8,7 +8,7 @@
 
 Fitter::Fitter() :
 eventVertex(Point(0, 0, 0)),
-verbose(true)
+verbose(0)
 {
 
 }
@@ -29,47 +29,47 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   vector<vector<shared_ptr<Point>>> pointsByLayer = pointsProcessor.SortByLayer(points);
   
   // Find seeds
-  if(verbose) cout<<"Looking for seeds..."<<endl;
+  if(verbose>0) cout<<"Looking for seeds..."<<endl;
   vector<Helix> fittedHelices = GetSeeds(pointsByLayer);
-  if(verbose) cout<<"Number of valid seeds: "<<fittedHelices.size()<<endl;
+  if(verbose>0) cout<<"Number of valid seeds: "<<fittedHelices.size()<<endl;
   
   // Extend seeds
-  if(verbose) cout<<"Extending seeds..."<<endl;
+  if(verbose>0) cout<<"Extending seeds..."<<endl;
   ExtendSeeds(fittedHelices, pointsByLayer);
-  if(verbose) cout<<"Candidates found: "<<fittedHelices.size()<<endl;
+  if(verbose>0) cout<<"Candidates found: "<<fittedHelices.size()<<endl;
   
   // Remove very short candidates which should not even be merged with others
-  if(verbose) cout<<"Removing short candidates...";
+  if(verbose>0) cout<<"Removing short candidates...";
   vector<Helix> longHelices;
   for(int iHelix=0; iHelix<fittedHelices.size(); iHelix++){
     if(fittedHelices[iHelix].GetNpoints() >= config.candidateMinNpoints){
       longHelices.push_back(fittedHelices[iHelix]);
     }
   }
-  if(verbose) cout<<" Candidates left:"<<longHelices.size()<<endl;
+  if(verbose>0) cout<<" Candidates left:"<<longHelices.size()<<endl;
   
   // Merge similar candidates
   if(config.mergeFinalHelices){
-    if(verbose) cout<<"Merging overlapping helices...";
+    if(verbose>0) cout<<"Merging overlapping helices...";
     while(MergeHelices(longHelices));
-    if(verbose) cout<<" merged down to: "<<longHelices.size()<<endl;
+    if(verbose>0) cout<<" merged down to: "<<longHelices.size()<<endl;
   }
   
   // Remove helices that are too short
-  if(verbose) cout<<"Removing very short merged helices...";
+  if(verbose>0) cout<<"Removing very short merged helices...";
   vector<Helix> longMergedHelices;
   for(int iHelix=0; iHelix<longHelices.size(); iHelix++){
     if(longHelices[iHelix].GetNpoints() >= config.trackMinNpoints){
       longMergedHelices.push_back(longHelices[iHelix]);
     }
   }
-  if(verbose) cout<<" long merged helices: "<<longMergedHelices.size()<<endl;
+  if(verbose>0) cout<<" long merged helices: "<<longMergedHelices.size()<<endl;
   
-  if(verbose) cout<<"Refitting surviving helices...";
+  if(verbose>0) cout<<"Refitting surviving helices...";
   for(auto &helix : longMergedHelices){
     if(helix.GetShouldRefit()) RefitHelix(helix);
   }
-  if(verbose) cout<<" done."<<endl;
+  if(verbose>0) cout<<" done."<<endl;
   
   return longMergedHelices;
 }
@@ -102,13 +102,13 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
       else                                middleHitDeltaPhi = fabs(middleHitDeltaPhi);
       
       if(config.seedMiddleHitDeltaPhi.IsOutside(middleHitDeltaPhi)){
-        if(verbose) cout<<"Seed middle hit Δφ too large"<<endl;
+        if(verbose>1) cout<<"Seed middle hit Δφ too large"<<endl;
         continue;
       }
 
       double middleHitDeltaZ = fabs(point->GetZ() - trackPointMid.GetZ());
       if(middleHitDeltaZ > config.seedMiddleHitMaxDeltaZ){
-        if(verbose) cout<<"Seed middle hit Δz too large"<<endl;
+        if(verbose>1) cout<<"Seed middle hit Δz too large"<<endl;
         continue;
       }
         
@@ -128,13 +128,13 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
           else                                lastHitDeltaPhi = fabs(lastHitDeltaPhi);
           
           if(config.seedLastHitDeltaPhi.IsOutside(lastHitDeltaPhi)){
-            if(verbose) cout<<"Seed last hit Δφ too large"<<endl;
+            if(verbose>1) cout<<"Seed last hit Δφ too large"<<endl;
             continue;
           }
           
           double lastPointDeltaZ = fabs(middlePoint->GetZ() - point->GetZ());
           if(lastPointDeltaZ > config.seedLastHitMaxDeltaZ){
-            if(verbose) cout<<"Seed last hit Δz too large"<<endl;
+            if(verbose>1) cout<<"Seed last hit Δz too large"<<endl;
             continue;
           }
           
@@ -156,7 +156,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
       }
     }
   }
-  if(verbose) cout<<"Tested pairs: "<<nPairs<<endl;
+  if(verbose>0) cout<<"Tested pairs: "<<nPairs<<endl;
   return seeds;
 }
 
@@ -259,7 +259,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
   bool finished;
   int nSteps=0;
   do{
-    if(verbose) cout<<"Helices before "<<nSteps<<" step: "<<helices.size()<<endl;
+    if(verbose>0) cout<<"Helices before "<<nSteps<<" step: "<<helices.size()<<endl;
     
     finished = true;
     vector<Helix> nextStepHelices;
@@ -340,14 +340,13 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           }
         }
         else{
-          if(fabs(lastPoints.front()->GetX()-130) < 1 &&
-             fabs(lastPoints.front()->GetY()-666) < 1 &&
-             fabs(lastPoints.front()->GetZ()+94) < 1){
+          // try to extend to the same layer (turning back)
           
+          vector<shared_ptr<Point>> turningBackPointsAll;
+          
+          if(lastPointLayer<pointsByLayer.size()){
+            turningBackPointsAll = pointsByLayer[lastPointLayer];
           }
-          
-            // try to extend to the same layer (turning back)
-          vector<shared_ptr<Point>> turningBackPointsAll = pointsByLayer[lastPointLayer];
           vector<shared_ptr<Point>> turningBackPoints;
           
           // remove points that are already on helix
