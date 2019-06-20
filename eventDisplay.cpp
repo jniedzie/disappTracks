@@ -16,7 +16,7 @@ string cutLevel = "after_L2/all/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 2;
+int iEvent = 20;
 
 bool injectPion = false;
 bool fitHelix = true;
@@ -24,8 +24,22 @@ bool fitHelix = true;
 bool pionHitsOnly = true;
 
 // "after_L2/all/":
-// ok: 1, 2
-// no hits: 0
+// ok: 1, 2, 4, 8, 14, 15, 17, 19
+//
+// ok, but could be improved:
+// 5: poor chi2
+// 16: touches next layer at turn back, so missing hit is added and prevents turning back
+//
+// no way:
+// not enough hits: 0, 9
+// missing seed hits: 3, 11, 12, 13
+// endcaps only: 18, 20
+//
+// other:
+// 6: chargino goes to endcaps
+// 7: those hits got crazy
+// 10: missing hit poorly placed, as it's the first one after the seed. Then cannot extend from there.
+
 
 // "after_L2/4layers/":
 
@@ -236,13 +250,13 @@ int main(int argc, char* argv[])
     auto pionClusters = event->GetPionClusters();
     auto pointsByLayer = pointsProcessor.SortByLayer(allSimplePoints);
   
-//    for(auto &point : pointsByLayer[track->GetNtrackerLayers()]){
-//      auto trackPoint = pointsProcessor.GetPointOnTrack(layerR[track->GetNtrackerLayers()], *track, *event->GetVertex());
-//
-//      if(pointsProcessor.distance(make_shared<Point>(trackPoint), point) < 100){
-//        pionClusters.push_back(point);
-//      }
-//    }
+    for(auto &point : pointsByLayer[track->GetNtrackerLayers()]){
+      auto trackPoint = pointsProcessor.GetPointOnTrack(layerR[track->GetNtrackerLayers()], *track, *event->GetVertex());
+
+      if(pointsProcessor.distance(make_shared<Point>(trackPoint), point) < 100){
+        pionClusters.push_back(point);
+      }
+    }
     
     map<string,any> pionClustersOptions = {
       {"title", "Pion hits"},

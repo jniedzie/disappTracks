@@ -55,6 +55,7 @@ ConfigManager::ConfigManager(string _path)
   
   nextPointMaxDeltaZ        = configFile->GetValue("next_point_max_delta_z",1000.0);
   nextPointMaxDeltaXY       = configFile->GetValue("next_point_max_delta_xy",1000.0);
+  nextPointMaxDeltaT        = configFile->GetValue("next_point_max_delta_t",1000.0);
   
   mergingMaxDifferentPoints = configFile->GetValue("merging_max_different_point", 0);
   candidateMinNpoints       = configFile->GetValue("candidate_min_n_points", 0);

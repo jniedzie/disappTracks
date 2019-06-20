@@ -18,22 +18,27 @@ Display::~Display()
 
 void Display::DrawSimplePoints(const vector<shared_ptr<Point>> points, map<string,any> options)
 {
-  TEvePointSetArray *simplePoints = PreparePointsEventDisplay(options);
+//  TEvePointSetArray *simplePoints = PreparePointsEventDisplay(options);
+  auto pixelClusters = new TEveElementList(any_cast<const char*>(options["title"]));
   auto stripClusters = new TEveElementList(any_cast<const char*>(options["title"]));
   
   for(auto &p : points){
     if(p->GetSubDetName() != "TOB" &&
        p->GetSubDetName() != "TIB"){
-      simplePoints->Fill(scale*p->GetX(),scale*p->GetY(),scale*p->GetZ(), p->GetValue());
+//      simplePoints->Fill(scale*p->GetX(),scale*p->GetY(),scale*p->GetZ(), p->GetValue());
+      
+      AddStripCluster(pixelClusters, p, options);
+      
     }
     else{
       AddStripCluster(stripClusters, p, options);
     }
   }
   
-  simplePoints->SetRnrSelf(kTRUE);
+//  simplePoints->SetRnrSelf(kTRUE);
   
-  gEve->AddElement(simplePoints);
+//  gEve->AddElement(simplePoints);
+  gEve->AddElement(pixelClusters);
   gEve->AddElement(stripClusters);
   gEve->Redraw3D();
 }

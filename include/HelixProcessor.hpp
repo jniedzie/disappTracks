@@ -44,7 +44,7 @@ public:
   
   bool GetIntersectionWithLayer(const Helix &helix, int layerIndex, Point &pA, Point &pB);
   
-  bool IsPointCloseToHelixInLayer(const Helix &helix, const Point &point, int layer);
+  bool IsPointCloseToHelixInLayer(const Helix &helix, const Point &point, int layer, bool closeToPoint);
   
   shared_ptr<Point> GetPointCloseToHelixInLayer(const Helix &helix, int layer);
   

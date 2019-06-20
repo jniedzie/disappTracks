@@ -345,12 +345,6 @@ void PointsProcessor::SetPointsT(vector<shared_ptr<Point>> &points, const Point 
         previousPointLayer = thisPointLayer;
       }
       else{
-        if(fabs(previousPoint->GetX()+122) < 1 &&
-           fabs(previousPoint->GetY()-330) < 1 &&
-           fabs(previousPoint->GetZ()+82) < 1){
-          
-        }
-        
         while(fabs(t+2*TMath::Pi()-previousT) < fabs(t-previousT)) t += 2*TMath::Pi();
         while(fabs(t-2*TMath::Pi()-previousT) < fabs(t-previousT)) t -= 2*TMath::Pi();
       }
@@ -395,4 +389,18 @@ bool PointsProcessor::IsZgood(const vector<shared_ptr<Point>> &lastPoints,
     break;
   }
   return goodZ;
+}
+
+bool PointsProcessor::IsTgood(const vector<shared_ptr<Point>> &lastPoints,
+                              const shared_ptr<Point> &point)
+{
+  bool goodT = false;
+  
+  for(auto &lastPoint : lastPoints){
+    double deltaT = fabs(lastPoint->GetT() - point->GetT());
+    if(deltaT > config.nextPointMaxDeltaT) continue;
+    goodT = true;
+    break;
+  }
+  return goodT;
 }

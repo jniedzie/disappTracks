@@ -1,6 +1,6 @@
 **Event display options**
 
-show_geometry_pixel:  0
+show_geometry_pixel:  1
 show_geometry_strip:  0
 show_geometry_ecal:  0
 show_geometry_hcal:  0
@@ -9,7 +9,7 @@ draw_tracker_clusters:      0
 draw_met:                         0
 draw_jets:                          1
 draw_pion_simhits:           0
-draw_pion_clusters:          1
+draw_pion_clusters:          0
 draw_chargino_simhits:    1
 
 **Input options**
@@ -83,26 +83,27 @@ n_track_hits: 2
 helix_thickness:  0.0
 
 ### Maximum distance in 3D to consider two hits as overlapping ones (in mm):
-double_hit_max_distance:            8
+double_hit_max_distance:            16
 
 ### Constraints on seeds parameters:
-seed_max_chi2:                            10
+seed_max_chi2:                            1
 
-seed_middle_hit_min_delta_phi:   -0.9
-seed_middle_hit_max_delta_phi:  1.0
+seed_middle_hit_min_delta_phi:   -2.0
+seed_middle_hit_max_delta_phi:  2.0
 seed_middle_hit_max_delta_z:     300
 
-seed_last_hit_min_delta_phi:       -1.0
-seed_last_hit_max_delta_phi:       0.5
-seed_last_hit_max_delta_z:          140
+seed_last_hit_min_delta_phi:       -2.0
+seed_last_hit_max_delta_phi:       2.0
+seed_last_hit_max_delta_z:          300
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             1e-2
+track_max_chi2:                             1.0
 
-next_point_min_delta_phi:              -1.1
-next_point_max_delta_phi:             0.8
-next_point_max_delta_z:                300
-next_point_max_delta_xy:              1000
+next_point_min_delta_phi:              -1.5
+next_point_max_delta_phi:             1.5
+next_point_max_delta_z:                1000
+next_point_max_delta_xy:              300
+next_point_max_delta_t:                1.0
 
 track_min_n_points:                       4
 
@@ -110,7 +111,8 @@ track_min_n_points:                       4
 merging_max_different_point:         2
 candidate_min_n_points:                3
 merge_at_turn_back:                      0
-merge_final_helices:                        1
+##### Merging final helices breaks T calculation!! May cause other problems...
+merge_final_helices:                        0
 
 ### Max number of missing hits (total and in a row):
 max_n_missing_hits:                       1

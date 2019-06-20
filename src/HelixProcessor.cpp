@@ -150,10 +150,10 @@ bool HelixProcessor::GetIntersectionWithLayer(const Helix &helix, int layerIndex
   return true;
 }
 
-bool HelixProcessor::IsPointCloseToHelixInLayer(const Helix &helix, const Point &point, int layer)
+bool HelixProcessor::IsPointCloseToHelixInLayer(const Helix &helix, const Point &point, int layer,
+                                                bool closeToPoint)
 {
-  auto lastPoints         = helix.GetLastPoints();
-  auto secondToLastPoints = helix.GetSecontToLastPoints();
+  auto lastPoints = helix.GetLastPoints();
   
   bool goodXY=false;
   Point pA, pB;
@@ -161,12 +161,18 @@ bool HelixProcessor::IsPointCloseToHelixInLayer(const Helix &helix, const Point 
   
   vector<Point> newPointsEstimated;
   
-  for(auto &secondToLastPoint : secondToLastPoints){
+  for(auto &lastPoint : lastPoints){
     
-    if(pointsProcessor.distanceXY(pA, *secondToLastPoint) <
-       pointsProcessor.distanceXY(pB, *secondToLastPoint)) newPointsEstimated.push_back(pB);
-    else                                                   newPointsEstimated.push_back(pA);
+    bool pAcloser = pointsProcessor.distanceXY(pA, *lastPoint) < pointsProcessor.distanceXY(pB, *lastPoint);
     
+    if(closeToPoint){
+      if(pAcloser) newPointsEstimated.push_back(pA);
+      else         newPointsEstimated.push_back(pB);
+    }
+    else{
+      if(pAcloser) newPointsEstimated.push_back(pB);
+      else         newPointsEstimated.push_back(pA);
+    }
   }
   
   for(Point newPointEstimeted : newPointsEstimated){
@@ -187,8 +193,10 @@ shared_ptr<Point> HelixProcessor::GetPointCloseToHelixInLayer(const Helix &helix
   auto lastPoint = helix.GetLastPoints().front();
   shared_ptr<Point> newPoint;
   
-  if(pointsProcessor.distanceXY(pA, *lastPoint) < pointsProcessor.distanceXY(pB, *lastPoint)) newPoint = make_shared<Point>(pA);
-  else                                                                                        newPoint = make_shared<Point>(pB);
+  bool pAcloser = pointsProcessor.distanceXY(pA, *lastPoint) < pointsProcessor.distanceXY(pB, *lastPoint);
+  
+  if(pAcloser) newPoint = make_shared<Point>(pA);
+  else         newPoint = make_shared<Point>(pB);
   
   newPoint->SetLayer(layer);
   

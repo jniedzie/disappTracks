@@ -8,7 +8,7 @@
 
 Fitter::Fitter() :
 eventVertex(Point(0, 0, 0)),
-verbose(false)
+verbose(true)
 {
 
 }
@@ -95,22 +95,23 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
     vector<shared_ptr<Point>> goodMiddlePoints;
     
     for(auto &point : middlePoints){
-      if(fabs(point->GetX()-271) < 1 &&
-         fabs(point->GetY()+42) < 1 &&
-         fabs(point->GetZ()-75) < 1){
-        
-      }
       
       double middleHitDeltaPhi = pointsProcessor.GetPointingAngleXY(Point(0,0,0), trackPointMid, *point);
       
       if(config.doAsymmetricConstraints)  middleHitDeltaPhi = track.GetCharge()*middleHitDeltaPhi;
       else                                middleHitDeltaPhi = fabs(middleHitDeltaPhi);
       
-      if(config.seedMiddleHitDeltaPhi.IsOutside(middleHitDeltaPhi)) continue;
+      if(config.seedMiddleHitDeltaPhi.IsOutside(middleHitDeltaPhi)){
+        if(verbose) cout<<"Seed middle hit Δφ too large"<<endl;
+        continue;
+      }
 
       double middleHitDeltaZ = fabs(point->GetZ() - trackPointMid.GetZ());
-      if(middleHitDeltaZ > config.seedMiddleHitMaxDeltaZ) continue;
-    
+      if(middleHitDeltaZ > config.seedMiddleHitMaxDeltaZ){
+        if(verbose) cout<<"Seed middle hit Δz too large"<<endl;
+        continue;
+      }
+        
       goodMiddlePoints.push_back(point);
     }
     if(goodMiddlePoints.size()==0) continue;
@@ -126,10 +127,16 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
           if(config.doAsymmetricConstraints)  lastHitDeltaPhi = track.GetCharge()*lastHitDeltaPhi;
           else                                lastHitDeltaPhi = fabs(lastHitDeltaPhi);
           
-          if(config.seedLastHitDeltaPhi.IsOutside(lastHitDeltaPhi)) continue;
+          if(config.seedLastHitDeltaPhi.IsOutside(lastHitDeltaPhi)){
+            if(verbose) cout<<"Seed last hit Δφ too large"<<endl;
+            continue;
+          }
           
           double lastPointDeltaZ = fabs(middlePoint->GetZ() - point->GetZ());
-          if(lastPointDeltaZ > config.seedLastHitMaxDeltaZ) continue;
+          if(lastPointDeltaZ > config.seedLastHitMaxDeltaZ){
+            if(verbose) cout<<"Seed last hit Δz too large"<<endl;
+            continue;
+          }
           
           goodLastPoints.push_back(point);
           break;
@@ -304,19 +311,16 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             
             vector<shared_ptr<Point>> goodPoints;
             
+            // Set T of possible new pionts like if they were laying on this helix
+            vector<shared_ptr<Point>> tmpPoints;
+            tmpPoints.insert(tmpPoints.end(), helixPoints.begin(), helixPoints.end());
+            tmpPoints.insert(tmpPoints.end(), points.begin(), points.end());
+            pointsProcessor.SetPointsT(tmpPoints, helix.GetOrigin(), helix.GetCharge());
+            
             for(auto &point : points){
-              if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, nextPointLayer)) continue;
-              
-//              if(helix.IsIncreasing() || (point->GetLayer() < turningPointLayer-1)){
-//                if(!pointsProcessor.IsPhiGood(lastPoints, secondToLastPoints, point, track.GetCharge())) continue;
-//              }
-//              else{
-//                // TODO: implement some meaningful limits on phi after turning
-//                if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, lastPointLayer-1)) continue;
-//              }
-              
+              if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, nextPointLayer, true)) continue;
               if(!pointsProcessor.IsZgood(lastPoints, point)) continue;
-
+              if(!pointsProcessor.IsTgood(lastPoints, point)) continue;
               goodPoints.push_back(point);
             }
             
@@ -336,7 +340,6 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           }
         }
         else{
-
           if(fabs(lastPoints.front()->GetX()-130) < 1 &&
              fabs(lastPoints.front()->GetY()-666) < 1 &&
              fabs(lastPoints.front()->GetZ()+94) < 1){
@@ -360,7 +363,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             vector<shared_ptr<Point>> goodTurningBackPoints;
             
             for(auto &point : turningBackPoints){
-              if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, lastPointLayer)) continue;
+              if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, lastPointLayer, false)) continue;
               if(!pointsProcessor.IsZgood(lastPoints, point)) continue;
               goodTurningBackPoints.push_back(point);
             }
@@ -570,6 +573,8 @@ void Fitter::RefitHelix(Helix &helix)
     
     // Then add distances to all other points
     for(auto &p : points){
+      if(p->GetSubDetName()=="missing") continue;
+      
       // find helix point for this point's t
       t = p->GetT();
       x = x0 + (R0 - a*t)*cos(t);

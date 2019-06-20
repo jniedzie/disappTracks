@@ -76,6 +76,7 @@ struct ConfigManager {
   range<double> nextPointDeltaPhi;
   double nextPointMaxDeltaZ;
   double nextPointMaxDeltaXY;
+  double nextPointMaxDeltaT;
   
   double trackMaxChi2;
   int mergingMaxDifferentPoints;

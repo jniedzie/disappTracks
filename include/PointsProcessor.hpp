@@ -105,6 +105,9 @@ public:
   bool IsZgood(const vector<shared_ptr<Point>> &lastPoints,
                const shared_ptr<Point> &point);
   
+  bool IsTgood(const vector<shared_ptr<Point>> &lastPoints,
+               const shared_ptr<Point> &point);
+  
   /// Structs for sorting point
   struct ComparePointByZ{
     bool operator() (const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){
