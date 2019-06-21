@@ -9,11 +9,11 @@
 #include "PerformanceMonitor.hpp"
 #include "EventSet.hpp"
 
-string configPath = "configs/helixTagger_maxLayers_auc.md";
-string outFilePrefix = "L2_4layers";
-string cutLevel = "after_L2/4layers/";//after_L1/";
+string configPath = "../configs/helixTagger_maxHits_auc.md";
+string outFilePrefix = "L2_all";
+string cutLevel = "after_L2/all/";//after_L1/";
 
-int nEvents = 20;
+int nEvents = 2;
 
 int nAnalyzedEvents = 0;
 
@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
   
   // seed chi2
   double bestSeedChi2 = config.seedMaxChi2;
-  for(double exponent=-10; exponent<1; exponent+=1){
+  for(double exponent=-6; exponent<2; exponent+=1){
     config.seedMaxChi2 = pow(10, exponent);
     double currentAUC = GetAUCforCurrentConfig("max_length");
     cout<<"seed_max_chi2: "<<config.seedMaxChi2<<"\tAUC: "<<currentAUC<<endl;
@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
   
   // seed middle min Δφ
   double bestMiddleMinPhi = config.seedMiddleHitDeltaPhi.GetMin();
-  for(double min = 0.0; min >= -2.0; min-=0.1){
+  for(double min = 0.0; min >= -1.5; min-=0.1){
     config.seedMiddleHitDeltaPhi = range<double>(min, config.seedMiddleHitDeltaPhi.GetMax());
     
     double currentAUC = GetAUCforCurrentConfig("max_length");
@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
   // seed middle Δz
   double bestMiddleZ = config.seedMiddleHitMaxDeltaZ;
   for(config.seedMiddleHitMaxDeltaZ  = 0;
-      config.seedMiddleHitMaxDeltaZ <= 300;
+      config.seedMiddleHitMaxDeltaZ <= 250;
       config.seedMiddleHitMaxDeltaZ += 10){
     double currentAUC = GetAUCforCurrentConfig("max_length");
     cout<<"seed_middle_hit_max_delta_z: "<<config.seedMiddleHitMaxDeltaZ<<"\tAUC: "<<currentAUC<<endl;
@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
   
   // track chi2
   double bestTrackChi2 = config.trackMaxChi2;
-  for(double exponent=-6; exponent<-2; exponent+=1){
+  for(double exponent=-3.0; exponent<-1.9; exponent+=0.1){
     config.trackMaxChi2 = pow(10, exponent);
     double currentAUC = GetAUCforCurrentConfig("max_length");
     cout<<"track_max_chi2: "<<config.trackMaxChi2<<"\tAUC: "<<currentAUC<<endl;
@@ -255,7 +255,7 @@ int main(int argc, char* argv[])
   // next point Δxy
   double bestTrackXY = config.nextPointMaxDeltaXY;
   for(config.nextPointMaxDeltaXY  = 0;
-      config.nextPointMaxDeltaXY <= 300;
+      config.nextPointMaxDeltaXY <= 100;
       config.nextPointMaxDeltaXY += 10){
     double currentAUC = GetAUCforCurrentConfig("max_length");
     cout<<"next_point_max_delta_xy: "<<config.nextPointMaxDeltaXY<<"\tAUC: "<<currentAUC<<endl;
@@ -266,6 +266,21 @@ int main(int argc, char* argv[])
     }
   }
   config.nextPointMaxDeltaXY = bestTrackXY;
+  
+  // next point Δxy
+  double bestTrackT = config.nextPointMaxDeltaT;
+  for(config.nextPointMaxDeltaT  = 0;
+      config.nextPointMaxDeltaT <= 1.5;
+      config.nextPointMaxDeltaT += 0.1){
+    double currentAUC = GetAUCforCurrentConfig("max_length");
+    cout<<"next_point_max_delta_t: "<<config.nextPointMaxDeltaT<<"\tAUC: "<<currentAUC<<endl;
+    
+    if(currentAUC > maxAUC){
+      maxAUC = currentAUC;
+      bestTrackT = config.nextPointMaxDeltaT;
+    }
+  }
+  config.nextPointMaxDeltaT = bestTrackT;
 
 //  SetParameter(fitter, 13, "track_min_n_points"            ,  5   ,  0    , 20  , 1  , dontFix);
 //  SetParameter(fitter, 14, "merging_max_different_point"   ,  5   ,  0    , 20  , 1  , dontFix);
@@ -289,6 +304,7 @@ int main(int argc, char* argv[])
   cout<<"track_max_chi2: "<<bestTrackChi2<<endl;
   cout<<"next_point_max_delta_z: "<<bestTrackZ<<endl;
   cout<<"next_point_max_delta_xy: "<<bestTrackXY<<endl;
+  cout<<"next_point_max_delta_t: "<<bestTrackT<<endl;
   
   return 0;
 }
