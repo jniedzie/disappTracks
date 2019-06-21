@@ -493,11 +493,10 @@ bool Fitter::MergeHelices(vector<Helix> &helices)
     Helix helix1Copy(helix1);
     
     vector<shared_ptr<Point>> points1 = helix1.GetPoints();
+    vector<shared_ptr<Point>> allPoints;
     
-    unordered_set<shared_ptr<Point>> uniquePoints = { make_shared<Point>(0,0,0) }; // add dummy decay vertex (layer=-1)
     for(auto &p : points1){
-      if(p->GetLayer()<0) continue; // don't merge in the decay vertex
-      uniquePoints.insert(p);
+      allPoints.push_back(p);
     }
     alreadyUsedHelices.push_back(iHelix);
     
@@ -510,15 +509,22 @@ bool Fitter::MergeHelices(vector<Helix> &helices)
       
       Helix &helix2 = helices[iChild];
       vector<shared_ptr<Point>> points2 = helix2.GetPoints();
+      
       for(auto &p : points2){
         if(p->GetLayer()<0) continue; // don't merge in the decay vertex
-        uniquePoints.insert(p);
+        if(find(allPoints.begin(), allPoints.end(), p) != allPoints.end()) continue; // don't add the same point twice
+        allPoints.push_back(p);
       }
       
       toRemove.push_back(iChild);
       childIndices.push_back(iChild);
     }
-    vector<shared_ptr<Point>> allPoints(uniquePoints.begin(), uniquePoints.end());
+    
+    if(helix1Copy.GetCharge() > 0)
+      sort(allPoints.begin(), allPoints.end(), PointsProcessor::ComparePointByTinverted());
+    else
+      sort(allPoints.begin(), allPoints.end(), PointsProcessor::ComparePointByT());
+    
     helix1Copy.SetPoints(allPoints);
     
     RefitHelix(helix1Copy);

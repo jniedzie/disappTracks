@@ -102,7 +102,7 @@ track_min_n_points:                       3
 merging_max_different_point:         2
 candidate_min_n_points:                3
 merge_at_turn_back:                      0
-merge_final_helices:                        0
+merge_final_helices:                        1
 
 ### Max number of missing hits (total and in a row):
 max_n_missing_hits:                       1
@@ -130,7 +130,7 @@ tolerance_pz:  10
 
 **Event display options**
 
-show_geometry_pixel:  1
+show_geometry_pixel:  0
 show_geometry_strip:  0
 show_geometry_ecal:  0
 show_geometry_hcal:  0

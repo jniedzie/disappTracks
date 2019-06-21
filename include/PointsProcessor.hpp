@@ -145,6 +145,11 @@ public:
     }
   };
   
+  struct ComparePointByTinverted{
+    bool operator() (const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){
+      return (p1->GetT() > p2->GetT());
+    }
+  };
 };
 
 #endif /* PointsProcessor_hpp */
