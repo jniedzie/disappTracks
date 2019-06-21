@@ -57,6 +57,24 @@ private:
   
   /// Sets and fixes a value for a ROOT fitter's parameter
   void FixParameter(ROOT::Fit::Fitter *fitter, int i, string name, double val);
+  
+  double minR0 = 0;
+  double maxR0 = 1000;
+  double minRslope = 0;  // to be verified
+  double maxRslope = 10000;
+  
+  double minS0 = -10000;  // to be verified
+  double maxS0 =  10000;
+  double minSslope = -10000;  // to be verified
+  double maxSslope = 0;
+  
+  double minX0 = -2000;
+  double maxX0 =  2000;
+  double minY0 = -2000;
+  double maxY0 =  2000;
+  double minZ0 = -2000;
+  double maxZ0 =  2000;
+  
 };
 
 #endif /* Fitter_hpp */

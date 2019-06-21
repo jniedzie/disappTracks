@@ -114,8 +114,8 @@ int main(int argc, char* argv[])
       {"avg_hits"  , PerformanceMonitor("Avg hits",   20, 0, 20 , nEvents)},
       {"max_hits"  , PerformanceMonitor("Max hits",   20, 0, 20 , nEvents)},
       {"max_layers", PerformanceMonitor("Max layers", 20, 0, 20 , nEvents)},
-      {"avg_length", PerformanceMonitor("Avg length", 20, 0, 20 , nEvents)},
-      {"max_length", PerformanceMonitor("Max length", 30, 0, 3   , nEvents)},
+      {"avg_length", PerformanceMonitor("Avg length", 20, 0, 2  , nEvents)},
+      {"max_length", PerformanceMonitor("Max length", 20, 0, 6   , nEvents)},
       {"min_chi2"  , PerformanceMonitor("Min chi2"  , 10000, 0, 0.01 , nEvents)},
       {"min_chi2_per_hit"  , PerformanceMonitor("Min chi2 per hit"  , 10000, 0, 0.001 , nEvents)},
     };

@@ -11,18 +11,18 @@ uint searchRun = 1;
 uint searchLumi = 1;
 unsigned long long searchEvent = 2662;
 
-//string configPath = "configs/eventDisplay.md";
-string configPath = "configs/helixTagger_maxHits_auc.md";
+string configPath = "configs/eventDisplay.md";
+//string configPath = "configs/helixTagger_maxHits_auc.md";
 string cutLevel = "after_L2/all/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 37;
+int iEvent = 38;
 
 bool injectPion = false;
 bool fitHelix = true;
 
-bool pionHitsOnly = false;
+bool pionHitsOnly = true;
 
 // "after_L2/all/":
 // ok: 1, 2, 4, 8, 14, 15, 17, 19

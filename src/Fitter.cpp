@@ -628,18 +628,18 @@ void Fitter::RefitHelix(Helix &helix)
   double pStart[nPar];
   fitter->SetFCN(fitFunction, pStart);
   
-  double Lmin = layerRanges[track.GetNtrackerLayers()-1].GetMax();
-  double Lmax = layerRanges[track.GetNtrackerLayers()].GetMin();
+  double startL = (helix.GetVertex()->GetX()-10*eventVertex.GetX())/cos(track.GetPhi());
+  double Lmin = layerRanges[track.GetNtrackerLayers()-1].GetMin();
+  double Lmax = layerRanges[track.GetNtrackerLayers()].GetMax();
   
-  SetParameter(fitter, 0, "R0", helix.GetRadius(0)      , 0       , 1000); // from MC
-  SetParameter(fitter, 1, "a" , helix.GetRadiusFactor() , 0       , 10000); // to be verified
-  SetParameter(fitter, 2, "s0", helix.GetSlope(0)       , -10000  , 10000); // to be verified
-  SetParameter(fitter, 3, "b" , helix.GetSlopeFactor()  , -10000  , 0);
-  SetParameter(fitter, 4, "L" , (helix.GetVertex()->GetX()-10*eventVertex.GetX())/cos(track.GetPhi()),
-               Lmin, Lmax);
-  SetParameter(fitter, 5, "x0", helix.GetOrigin().GetX(), -2000 , 2000);
-  SetParameter(fitter, 6, "y0", helix.GetOrigin().GetY(), -2000 , 2000);
-  SetParameter(fitter, 7, "z0", helix.GetOrigin().GetZ(), -2000 , 2000);
+  SetParameter(fitter, 0, "R0", helix.GetRadius(0)      , minR0     , maxR0);
+  SetParameter(fitter, 1, "a" , helix.GetRadiusFactor() , minRslope , maxRslope);
+  SetParameter(fitter, 2, "s0", helix.GetSlope(0)       , minS0     , maxS0);
+  SetParameter(fitter, 3, "b" , helix.GetSlopeFactor()  , minSslope , maxSslope);
+  SetParameter(fitter, 4, "L" , startL                  , Lmin      , Lmax);
+  SetParameter(fitter, 5, "x0", helix.GetOrigin().GetX(), minX0     , maxX0);
+  SetParameter(fitter, 6, "y0", helix.GetOrigin().GetY(), minY0     , maxY0);
+  SetParameter(fitter, 7, "z0", helix.GetOrigin().GetZ(), minZ0     , maxZ0);
   
   for(int i=0; i<nPar; i++) pStart[i] = fitter->Config().ParSettings(i).Value();
   
@@ -684,18 +684,16 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   
   
   // Calculate initial parameters as good as we can at this point.
-  double minR = 0;
-  double maxR = 1000;
   double startR = 320; // mm, from MC
   
-  if(startR < minR || startR > maxR){
-    cout<<"ERROR -- R:"<<startR<<"\tmin:"<<minR<<"\tmax:"<<maxR<<endl;
+  if(startR < minR0 || startR > maxR0){
+    cout<<"ERROR -- R:"<<startR<<"\tmin:"<<minR0<<"\tmax:"<<maxR0<<endl;
     if(config.requireGoodStartingValues) return nullptr;
   }
   
   // -- decay vertex must be after last track layer and before the next one
-  double minL = layerRanges[track.GetNtrackerLayers()-1].GetMax();
-  double maxL = layerRanges[track.GetNtrackerLayers()].GetMin();
+  double minL = layerRanges[track.GetNtrackerLayers()-1].GetMin();
+  double maxL = layerRanges[track.GetNtrackerLayers()].GetMax();
   double startL = (minL+maxL)/2.; // estimate decay vertex in between of the two above
   Point trackPoint = pointsProcessor.GetPointOnTrack(startL, track, eventVertex);
   
@@ -705,45 +703,42 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   
   if(trackPoint.GetX() >= 0 && trackPoint.GetY() > 0){
     startX0 = trackPoint.GetX() + track.GetCharge() * startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
-    minX0 -= track.GetCharge() > 0 ? 0 : maxR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
-    maxX0 += track.GetCharge() > 0 ? maxR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1) : 0;
+    minX0 -= track.GetCharge() > 0 ? 0 : maxR0/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
+    maxX0 += track.GetCharge() > 0 ? maxR0/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1) : 0;
     
     startY0 = trackPoint.GetY() - track.GetCharge() * startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
-    minY0 -= track.GetCharge() > 0 ? maxR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1) : 0;
-    maxY0 += track.GetCharge() > 0 ? 0 : maxR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
+    minY0 -= track.GetCharge() > 0 ? maxR0/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1) : 0;
+    maxY0 += track.GetCharge() > 0 ? 0 : maxR0/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
   }
   if(trackPoint.GetX() < 0 && trackPoint.GetY() > 0){
     startX0 = trackPoint.GetX() + track.GetCharge() * startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
-    minX0 -= track.GetCharge() > 0 ? 0 : maxR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
-    maxX0 += track.GetCharge() > 0 ? maxR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1) : 0;
+    minX0 -= track.GetCharge() > 0 ? 0 : maxR0/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
+    maxX0 += track.GetCharge() > 0 ? maxR0/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1) : 0;
     
     startY0 = trackPoint.GetY() + track.GetCharge() * startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
-    minY0 -= track.GetCharge() > 0 ? 0 : maxR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
-    maxY0 += track.GetCharge() > 0 ? maxR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1) : 0;
+    minY0 -= track.GetCharge() > 0 ? 0 : maxR0/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
+    maxY0 += track.GetCharge() > 0 ? maxR0/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1) : 0;
   }
   if(trackPoint.GetX() >= 0 && trackPoint.GetY() <= 0){
     startX0 = trackPoint.GetX() - track.GetCharge() * startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
-    minX0 -= track.GetCharge() > 0 ? maxR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1) : 0;
-    maxX0 += track.GetCharge() > 0 ? 0 : maxR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
+    minX0 -= track.GetCharge() > 0 ? maxR0/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1) : 0;
+    maxX0 += track.GetCharge() > 0 ? 0 : maxR0/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
 
     startY0 = trackPoint.GetY() - track.GetCharge() * startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
-    minY0 -= track.GetCharge() > 0 ? maxR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1) : 0;
-    maxY0 += track.GetCharge() > 0 ? 0 : maxR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
+    minY0 -= track.GetCharge() > 0 ? maxR0/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1) : 0;
+    maxY0 += track.GetCharge() > 0 ? 0 : maxR0/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
   }
   if(trackPoint.GetX() < 0 && trackPoint.GetY() <= 0){
     startX0 = trackPoint.GetX() - track.GetCharge() * startR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
-    minX0 -= track.GetCharge() > 0 ? maxR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1) : 0;
-    maxX0 += track.GetCharge() > 0 ? 0 : maxR/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
+    minX0 -= track.GetCharge() > 0 ? maxR0/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1) : 0;
+    maxX0 += track.GetCharge() > 0 ? 0 : maxR0/sqrt(pow(trackPoint.GetX()/trackPoint.GetY(), 2)+1);
     
     startY0 = trackPoint.GetY() + track.GetCharge() * startR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
-    minY0 -= track.GetCharge() > 0 ? 0 : maxR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
-    maxY0 += track.GetCharge() > 0 ? maxR/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1) : 0;
+    minY0 -= track.GetCharge() > 0 ? 0 : maxR0/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1);
+    maxY0 += track.GetCharge() > 0 ? maxR0/sqrt(pow(trackPoint.GetY()/trackPoint.GetX(), 2)+1) : 0;
   }
   
   // -- calculate slope from the track momentum direction (pion usually follows this direction)
-  double minS0 = -10000;
-  double maxS0 =  10000;
-  
   double startS0 = startR * trackPoint.GetVectorSlopeC();
   
   if(startS0 < minS0 || startS0 > maxS0){
@@ -757,8 +752,6 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   
   // -- calculate Z position of the vertex
   double startZ0 = -track.GetCharge() * (trackPoint.GetZ() - startS0 * tTrack);
-  double minZ0 = -2000; // to be adjusted from math of MC
-  double maxZ0 =  2000;
   
   if(startX0 < minX0 || startX0 > maxX0){
     cout<<"ERROR -- x0:"<<startX0<<"\tmin:"<<minX0<<"\tmax:"<<maxX0<<endl;
@@ -774,7 +767,7 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   }
   
   // Set calculated initial param values
-  SetParameter(fitter, 0, "R0", startR  , minR    , maxR  ); // limits from MC
+  SetParameter(fitter, 0, "R0", startR  , minR0   , maxR0 ); // limits from MC
   SetParameter(fitter, 2, "s0", startS0 , minS0   , maxS0 );
   SetParameter(fitter, 4, "L" , startL  , minL    , maxL  );
   SetParameter(fitter, 5, "x0", startX0 , minX0   , maxX0 );
