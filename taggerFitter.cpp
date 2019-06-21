@@ -9,7 +9,7 @@
 #include "PerformanceMonitor.hpp"
 #include "EventSet.hpp"
 
-string configPath = "configs/helixTagger_maxLayers_auc.md";
+string configPath = "../configs/helixTagger_maxLayers_auc.md";
 string outFilePrefix = "L2_all";
 string cutLevel = "after_L2/all/";//after_L1/";
 
@@ -72,6 +72,7 @@ void chi2Function(Int_t&, Double_t*, Double_t &f, Double_t *par, Int_t)
   config.doAsymmetricConstraints   = par[19];
   config.allowTurningBack          = par[20];
   config.candidateMinNpoints       = par[21];
+  config.nextPointMaxDeltaT        = par[22];
   
   nAnalyzedEvents=0;
   int max = 20;
@@ -177,7 +178,7 @@ int main(int argc, char* argv[])
   }
   
 
-  const int nPar = 22;
+  const int nPar = 23;
   TVirtualFitter::SetDefaultFitter("Minuit");
   TFitter *fitter = new TFitter(nPar);
   fitter->SetFCN(chi2Function);
@@ -186,28 +187,29 @@ int main(int argc, char* argv[])
   bool dontFix = false;
   
 //                     i    name                            start  min     max   step  fix
-  SetParameter(fitter, 0 , "double_hit_max_distance"       ,  16.0,  5.0  , 20  , 1.0, dontFix); // 10
+  SetParameter(fitter, 0 , "double_hit_max_distance"       ,  15.0,  5.0  , 20  , 1.0, dontFix); // 10
   SetParameter(fitter, 1 , "seed_max_chi2"                 ,  0.0 ,  -10  , 1   , 1  , dontFix); // -1
-  SetParameter(fitter, 2 , "seed_middle_hit_min_delta_phi" , -0.8 , -2.0  ,-0.0 , 0.1, dontFix); // -0.5
-  SetParameter(fitter, 3 , "seed_middle_hit_max_delta_phi" ,  0.5 ,  0.0  , 1.0 , 0.1, dontFix);
-  SetParameter(fitter, 4 , "seed_middle_hit_max_delta_z"   ,  60  ,  0.0  , 300 , 10 , dontFix);
-  SetParameter(fitter, 5 , "seed_last_hit_min_delta_phi"   , -0.8 , -2.0  ,-0.1 , 0.1, dontFix);
-  SetParameter(fitter, 6 , "seed_last_hit_max_delta_phi"   ,  0.1 , -0.1  , 2.0 , 0.1, dontFix);
-  SetParameter(fitter, 7 , "seed_last_hit_max_delta_z"     ,  180  ,  0.0  , 300 , 10 , dontFix);
-  SetParameter(fitter, 8 , "track_max_chi2"                ,  -3  ,  -6   , -2  , 1  , dontFix); // -2
+  SetParameter(fitter, 2 , "seed_middle_hit_min_delta_phi" , -1.2 , -2.0  ,-0.0 , 0.1, dontFix); // -0.5
+  SetParameter(fitter, 3 , "seed_middle_hit_max_delta_phi" ,  0.9 ,  0.0  , 1.0 , 0.1, dontFix);
+  SetParameter(fitter, 4 , "seed_middle_hit_max_delta_z"   ,  200  ,  0.0  , 300 , 10 , dontFix);
+  SetParameter(fitter, 5 , "seed_last_hit_min_delta_phi"   , -0.5 , -2.0  ,-0.1 , 0.1, dontFix);
+  SetParameter(fitter, 6 , "seed_last_hit_max_delta_phi"   ,  0.3 , -0.1  , 2.0 , 0.1, dontFix);
+  SetParameter(fitter, 7 , "seed_last_hit_max_delta_z"     ,  200  ,  0.0  , 300 , 10 , dontFix);
+  SetParameter(fitter, 8 , "track_max_chi2"                ,  -2.5  ,  -6   , -2  , 1  , dontFix); // -2
   SetParameter(fitter, 9 , "next_point_min_delta_phi"      , -0.5 , -1.0  , 0.0 , 0.1, fix);
   SetParameter(fitter, 10, "next_point_max_delta_phi"      ,  0.5 ,  0.0  , 1.0 , 0.1, fix);
-  SetParameter(fitter, 11, "next_point_max_delta_z"        ,  20  ,  0.0  , 300 , 10 , dontFix);
-  SetParameter(fitter, 12, "next_point_max_delta_xy"       ,  200 ,  0.0  , 200 , 10 , dontFix);
-  SetParameter(fitter, 13, "track_min_n_points"            ,  3   ,  0    , 20  , 1  , dontFix);
-  SetParameter(fitter, 14, "merging_max_different_point"   ,  2   ,  0    , 20  , 1  , dontFix);
+  SetParameter(fitter, 11, "next_point_max_delta_z"        ,  400  ,  0.0  , 300 , 10 , dontFix);
+  SetParameter(fitter, 12, "next_point_max_delta_xy"       ,  100 ,  0.0  , 200 , 10 , dontFix);
+  SetParameter(fitter, 13, "track_min_n_points"            ,  3   ,  0    , 20  , 1  , fix);
+  SetParameter(fitter, 14, "merging_max_different_point"   ,  2   ,  0    , 20  , 1  , fix);
   SetParameter(fitter, 15, "max_n_missing_hits"            ,  1   ,  0    , 5   , 1  , fix);
   SetParameter(fitter, 16, "max_n_missing_hits_in_raw"     ,  1   ,  0    , 5   , 1  , fix);
   SetParameter(fitter, 17, "merge_at_turn_back"            ,  0   ,  0    , 2   , 1  , fix);
   SetParameter(fitter, 18, "merge_final_helices"           ,  0   ,  0    , 2   , 1  , fix);
   SetParameter(fitter, 19, "do_asymmetric_constraints"     ,  1   ,  0    , 2   , 1  , fix);
   SetParameter(fitter, 20, "allow_turning_back"            ,  1   ,  0    , 2   , 1  , fix);
-  SetParameter(fitter, 21, "candidate_min_n_points"        ,  4   ,  3    , 10  , 1  , dontFix);
+  SetParameter(fitter, 21, "candidate_min_n_points"        ,  4   ,  3    , 10  , 1  , fix);
+  SetParameter(fitter, 22, "next_point_max_delta_t"        ,  0.6 ,  0.0  , 2.0  , 0.1  , dontFix);
   
   nFreeParams = fitter->GetNumberFreeParameters();
   
@@ -361,6 +363,7 @@ void WriteOutputToFile(const TFitter *fitter, string outPath)
   outFile << "next_point_max_delta_phi: "       << fitter->GetParameter(10) << endl;
   outFile << "next_point_max_delta_z: "         << fitter->GetParameter(11) << endl;
   outFile << "next_point_max_delta_xy: "        << fitter->GetParameter(12) << endl;
+  outFile << "next_point_max_delta_t: "         << fitter->GetParameter(22) << endl;
   outFile << endl;
   outFile << "track_min_n_points: "             << fitter->GetParameter(13) << endl;
   outFile << endl;
