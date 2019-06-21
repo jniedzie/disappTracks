@@ -1,8 +1,6 @@
-//
 //  Fitter.cpp
 //
 //  Created by Jeremi Niedziela on 14/12/2018.
-//
 
 #include "Fitter.hpp"
 

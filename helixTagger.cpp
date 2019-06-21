@@ -1,8 +1,6 @@
-//
 //  helixTagger.cpp
 //
 //  Created by Jeremi Niedziela on 25/01/2019.
-//
 
 #include "Helpers.hpp"
 #include "Fitter.hpp"
@@ -212,10 +210,12 @@ int main(int argc, char* argv[])
     cout<<"\n\n============================================================"<<endl;
     cout<<"Monitor: "<<name<<endl;
 
-    for(int iTest=0; iTest<nTests; iTest++){
-      double param = SetParamValue(iTest);
-      cout<<"Param: "<<param<<endl;
-      monitors[iTest][name].PrintFakesEfficiency();
+    if(name!="min_chi2" && name!="min_chi2_per_hit"){
+      for(int iTest=0; iTest<nTests; iTest++){
+        double param = SetParamValue(iTest);
+        cout<<"Param: "<<param<<endl;
+        monitors[iTest][name].PrintFakesEfficiency();
+      }
     }
     for(int iTest=0; iTest<nTests; iTest++){
       double param = SetParamValue(iTest);

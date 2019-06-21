@@ -24,7 +24,6 @@ string monitorType = "";
 string optimizationParam = "";
 
 vector<shared_ptr<Point>> GetClustersNoEndcaps(const shared_ptr<Event> &event, bool removePionClusters);
-TF1* GetRocFunction();
 
 double GetAvgNhits(vector<Helix> helices);
 int    GetMaxNhits(vector<Helix> helices);
