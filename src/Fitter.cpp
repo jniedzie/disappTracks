@@ -559,6 +559,7 @@ bool Fitter::MergeHelices(vector<Helix> &helices)
 void Fitter::RefitHelix(Helix &helix)
 {
   vector<shared_ptr<Point>> helixPoints = helix.GetPoints();
+  helix.SetChi2(inf);
   
   auto chi2Function = [&](const double *par) {
     double R0 = par[0];
@@ -628,22 +629,40 @@ void Fitter::RefitHelix(Helix &helix)
   double pStart[nPar];
   fitter->SetFCN(fitFunction, pStart);
   
-  double startL = (helix.GetVertex()->GetX()-10*eventVertex.GetX())/cos(track.GetPhi());
-  double Lmin = layerRanges[track.GetNtrackerLayers()-1].GetMin();
-  double Lmax = layerRanges[track.GetNtrackerLayers()].GetMax();
+  double startR0     = helix.GetRadius(0);
+  double startRslope = helix.GetRadiusFactor();
+  double startS0     = helix.GetSlope(0);
+  double startSslope = helix.GetSlopeFactor();
+  double startL      = (helix.GetVertex()->GetX()-10*eventVertex.GetX())/cos(track.GetPhi());
+  double minL        = layerRanges[track.GetNtrackerLayers()-1].GetMin();
+  double maxL        = layerRanges[track.GetNtrackerLayers()].GetMax();
+  double startX0     = helix.GetOrigin().GetX();
+  double startY0     = helix.GetOrigin().GetY();
+  double startZ0     = helix.GetOrigin().GetZ();
   
-  SetParameter(fitter, 0, "R0", helix.GetRadius(0)      , minR0     , maxR0);
-  SetParameter(fitter, 1, "a" , helix.GetRadiusFactor() , minRslope , maxRslope);
-  SetParameter(fitter, 2, "s0", helix.GetSlope(0)       , minS0     , maxS0);
-  SetParameter(fitter, 3, "b" , helix.GetSlopeFactor()  , minSslope , maxSslope);
-  SetParameter(fitter, 4, "L" , startL                  , Lmin      , Lmax);
-  SetParameter(fitter, 5, "x0", helix.GetOrigin().GetX(), minX0     , maxX0);
-  SetParameter(fitter, 6, "y0", helix.GetOrigin().GetY(), minY0     , maxY0);
-  SetParameter(fitter, 7, "z0", helix.GetOrigin().GetZ(), minZ0     , maxZ0);
+  if(startR0      < minR0      || startR0     > maxR0     ||
+     startRslope  < minRslope  || startRslope > maxRslope ||
+     startS0      < minS0      || startS0     > maxS0     ||
+     startSslope  < minSslope  || startSslope > maxSslope ||
+     startL       < minL       || startL      > maxL      ||
+     startX0      < minX0      || startX0     > maxX0     ||
+     startY0      < minY0      || startY0     > maxY0     ||
+     startZ0      < minZ0      || startZ0     > maxZ0){
+    cout<<"ERROR -- wrong params in RefitHelix, which should never happen..."<<endl;
+    return;
+  }
   
+  SetParameter(fitter, 0, "R0", startR0     , minR0     , maxR0);
+  SetParameter(fitter, 1, "a" , startRslope , minRslope , maxRslope);
+  SetParameter(fitter, 2, "s0", startS0     , minS0     , maxS0);
+  SetParameter(fitter, 3, "b" , startSslope , minSslope , maxSslope);
+  SetParameter(fitter, 4, "L" , startL      , minL      , maxL);
+  SetParameter(fitter, 5, "x0", startX0     , minX0     , maxX0);
+  SetParameter(fitter, 6, "y0", startY0     , minY0     , maxY0);
+  SetParameter(fitter, 7, "z0", startZ0     , minZ0     , maxZ0);
+
   for(int i=0; i<nPar; i++) pStart[i] = fitter->Config().ParSettings(i).Value();
   
-//  if(fitter->FitFCN()) {
   fitter->FitFCN();
   auto result = fitter->Result();
   
@@ -666,7 +685,6 @@ void Fitter::RefitHelix(Helix &helix)
   helix.SetVertex(vertex);
   helix.UpdateOrigin(origin);
   helix.SetChi2(result.MinFcnValue());
-  
 }
 
 ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points)
@@ -775,8 +793,8 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   SetParameter(fitter, 7, "z0", startZ0 , minZ0   , maxZ0 );
   
   // With 3 points we don't know how fast will radius and slope decrease:
-  FixParameter(fitter, 1, "a" , 0);
-  FixParameter(fitter, 3, "b" , 0);
+  FixParameter(fitter, 1, "a" ,  0.0000001);
+  FixParameter(fitter, 3, "b" , -0.0000001);
   
   return fitter;
 }

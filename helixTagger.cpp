@@ -12,7 +12,7 @@
 string configPath = "configs/helixTagger_maxHits_auc.md";
 string cutLevel = "after_L2/all/";//after_L1/";
 
-int nEvents = 50; // max: 1287
+int nEvents = 20; // max: 1287
 const int nTests = 1;
 
 int nAnalyzedEvents = 0;

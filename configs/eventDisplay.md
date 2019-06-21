@@ -88,21 +88,19 @@ double_hit_max_distance:            16
 ### Constraints on seeds parameters:
 seed_max_chi2:                            1
 
-seed_middle_hit_min_delta_phi:   -2.0
-seed_middle_hit_max_delta_phi:  2.0
-seed_middle_hit_max_delta_z:     300
+seed_middle_hit_min_delta_phi:   -1.0
+seed_middle_hit_max_delta_phi:  0.0
+seed_middle_hit_max_delta_z:     200
 
-seed_last_hit_min_delta_phi:       -2.0
-seed_last_hit_max_delta_phi:       2.0
-seed_last_hit_max_delta_z:          300
+seed_last_hit_min_delta_phi:       -1.0
+seed_last_hit_max_delta_phi:       0.0
+seed_last_hit_max_delta_z:          200
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             1.0
+track_max_chi2:                             0.01
 
-next_point_min_delta_phi:              -1.5
-next_point_max_delta_phi:             1.5
-next_point_max_delta_z:                1000
-next_point_max_delta_xy:              300
+next_point_max_delta_z:                500
+next_point_max_delta_xy:              100
 next_point_max_delta_t:                1.0
 
 track_min_n_points:                       4
