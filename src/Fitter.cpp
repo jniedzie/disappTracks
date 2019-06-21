@@ -631,14 +631,14 @@ void Fitter::RefitHelix(Helix &helix)
   double Lmin = layerRanges[track.GetNtrackerLayers()-1].GetMax();
   double Lmax = layerRanges[track.GetNtrackerLayers()].GetMin();
   
-  SetParameter(fitter, 0, "R0", helix.GetRadius(0), 0, 1000); // from MC
-  SetParameter(fitter, 1, "a" , helix.GetRadiusFactor() , 0, 10000);
-  SetParameter(fitter, 2, "s0", helix.GetSlope(0), -10000, 10000);
-  SetParameter(fitter, 3, "b" , helix.GetSlopeFactor() , -10000, 0);
+  SetParameter(fitter, 0, "R0", helix.GetRadius(0)      , 0       , 1000); // from MC
+  SetParameter(fitter, 1, "a" , helix.GetRadiusFactor() , 0       , 10000); // to be verified
+  SetParameter(fitter, 2, "s0", helix.GetSlope(0)       , -10000  , 10000); // to be verified
+  SetParameter(fitter, 3, "b" , helix.GetSlopeFactor()  , -10000  , 0);
   SetParameter(fitter, 4, "L" , (helix.GetVertex()->GetX()-10*eventVertex.GetX())/cos(track.GetPhi()),
                Lmin, Lmax);
-  SetParameter(fitter, 5, "x0", helix.GetOrigin().GetX(), -1000 , 1000);
-  SetParameter(fitter, 6, "y0", helix.GetOrigin().GetY(), -1000 , 1000);
+  SetParameter(fitter, 5, "x0", helix.GetOrigin().GetX(), -2000 , 2000);
+  SetParameter(fitter, 6, "y0", helix.GetOrigin().GetY(), -2000 , 2000);
   SetParameter(fitter, 7, "z0", helix.GetOrigin().GetZ(), -2000 , 2000);
   
   for(int i=0; i<nPar; i++) pStart[i] = fitter->Config().ParSettings(i).Value();
