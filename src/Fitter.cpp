@@ -310,7 +310,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           
           // remove points that are already on helix
           for(auto &pointCandidate : possiblePointsAll){
-            if(find(helixPoints.begin(), helixPoints.end(), pointCandidate) == helixPoints.end()){
+            if(find_if(helixPoints.begin(), helixPoints.end(), [&](const shared_ptr<Point> &p){ return *pointCandidate == *p;}) == helixPoints.end()){
               possiblePoints.push_back(pointCandidate);
             }
           }
@@ -361,7 +361,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           
           // remove points that are already on helix
           for(auto &pointCandidate : turningBackPointsAll){
-            if(find(helixPoints.begin(), helixPoints.end(), pointCandidate) == helixPoints.end()){
+            if(find_if(helixPoints.begin(), helixPoints.end(), [&](const shared_ptr<Point> &p){ return *pointCandidate == *p;}) == helixPoints.end()){
               turningBackPoints.push_back(pointCandidate);
             }
           }
@@ -512,7 +512,7 @@ bool Fitter::MergeHelices(vector<Helix> &helices)
       
       for(auto &p : points2){
         if(p->GetLayer()<0) continue; // don't merge in the decay vertex
-        if(find(allPoints.begin(), allPoints.end(), p) != allPoints.end()) continue; // don't add the same point twice
+        if(find_if(allPoints.begin(), allPoints.end(), [&](const shared_ptr<Point> &p1){return *p == *p1;}) != allPoints.end()) continue; // don't add the same point twice
         allPoints.push_back(p);
       }
       

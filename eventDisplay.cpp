@@ -251,11 +251,13 @@ int main(int argc, char* argv[])
     auto pionClusters = event->GetPionClusters();
     auto pointsByLayer = pointsProcessor.SortByLayer(allSimplePoints);
   
-    for(auto &point : pointsByLayer[track->GetNtrackerLayers()]){
+    for(shared_ptr<Point> point : pointsByLayer[track->GetNtrackerLayers()]){
       auto trackPoint = pointsProcessor.GetPointOnTrack(layerR[track->GetNtrackerLayers()], *track, *event->GetVertex());
 
       if(pointsProcessor.distance(make_shared<Point>(trackPoint), point) < 100){
-        pionClusters.push_back(point);
+        if(find_if(pionClusters.begin(), pionClusters.end(), [&](const shared_ptr<Point> &p) {return *p == *point;}) == pionClusters.end()){
+          pionClusters.push_back(point);
+        }
       }
     }
     
@@ -281,18 +283,6 @@ int main(int argc, char* argv[])
       
       pointsNoEndcaps.push_back(point);
     }
-    
-    for(int i=0; i<0; i++){
-//      int r = rndIndices[i];
-      int r = RandInt(0, (int)allSimplePoints.size()-1);
-      auto point = allSimplePoints[r];
-
-      if(find(pionClusters.begin(), pionClusters.end(), point) == pionClusters.end()) pionClusters.push_back(point);
-      else                                                                            i--;
-    }
-    cout<<endl;
-    
-//    pionClusters = pointsProcessor.FilterNearbyPoints(pionClusters, 50);
     
     auto start = now();
     vector<Helix> fittedHelices;
