@@ -151,6 +151,15 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
 
       auto helix = FitSeed(points,  track.GetCharge());
       
+//      bool isGoodT = true;
+//      for(int iPoint=1; iPoint<helix->GetNpoints(); iPoint++){
+//        isGoodT = pointsProcessor.IsTgood({helix->GetPoints()[iPoint-1]}, helix->GetPoints()[iPoint]);
+//        if(!isGoodT){
+//          helix=nullptr;
+//          break;
+//        }
+//      }
+      
       if(helix){
         if(helix->GetChi2() < config.seedMaxChi2) seeds.push_back(*helix);
       }
@@ -163,6 +172,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
 unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points, int charge)
 {
   auto fitter = GetSeedFitter(points);
+  if(!fitter) return nullptr;
   
   auto chi2Function = [&](const double *par) {
     double R0 = par[0];
@@ -625,7 +635,7 @@ void Fitter::RefitHelix(Helix &helix)
                Lmin, Lmax);
   SetParameter(fitter, 5, "x0", helix.GetOrigin().GetX(), -1000 , 1000);
   SetParameter(fitter, 6, "y0", helix.GetOrigin().GetY(), -1000 , 1000);
-  SetParameter(fitter, 7, "z0", helix.GetOrigin().GetZ(), -1000 , 1000);
+  SetParameter(fitter, 7, "z0", helix.GetOrigin().GetZ(), -2000 , 2000);
   
   for(int i=0; i<nPar; i++) pStart[i] = fitter->Config().ParSettings(i).Value();
   
@@ -670,8 +680,14 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   
   
   // Calculate initial parameters as good as we can at this point.
-  double startR = 320; // mm, from MC
+  double minR = 0;
   double maxR = 1000;
+  double startR = 320; // mm, from MC
+  
+  if(startR < minR || startR > maxR){
+    cout<<"ERROR -- R:"<<startR<<"\tmin:"<<minR<<"\tmax:"<<maxR<<endl;
+    if(config.requireGoodStartingValues) return nullptr;
+  }
   
   // -- decay vertex must be after last track layer and before the next one
   double minL = layerRanges[track.GetNtrackerLayers()-1].GetMax();
@@ -721,7 +737,15 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   }
   
   // -- calculate slope from the track momentum direction (pion usually follows this direction)
+  double minS0 = -10000;
+  double maxS0 =  10000;
+  
   double startS0 = startR * trackPoint.GetVectorSlopeC();
+  
+  if(startS0 < minS0 || startS0 > maxS0){
+    cout<<"ERROR -- S0:"<<startS0<<"\tmin:"<<minS0<<"\tmax:"<<maxS0<<endl;
+    if(config.requireGoodStartingValues) return nullptr;
+  }
   
   // -- get t param of the track point
   Point origin(startX0, startY0, 0);
@@ -729,26 +753,29 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   
   // -- calculate Z position of the vertex
   double startZ0 = -track.GetCharge() * (trackPoint.GetZ() - startS0 * tTrack);
-  double minZ0 = -1000; // to be adjusted from math of MC
-  double maxZ0 = 1000;
+  double minZ0 = -2000; // to be adjusted from math of MC
+  double maxZ0 =  2000;
   
   if(startX0 < minX0 || startX0 > maxX0){
     cout<<"ERROR -- x0:"<<startX0<<"\tmin:"<<minX0<<"\tmax:"<<maxX0<<endl;
+    if(config.requireGoodStartingValues) return nullptr;
   }
   if(startY0 < minY0 || startY0 > maxY0){
     cout<<"ERROR -- y0:"<<startY0<<"\tmin:"<<minY0<<"\tmax:"<<maxY0<<endl;
+    if(config.requireGoodStartingValues) return nullptr;
   }
   if(startZ0 < minZ0 || startZ0 > maxZ0){
     cout<<"ERROR -- z0:"<<startZ0<<"\tmin:"<<minZ0<<"\tmax:"<<maxZ0<<endl;
+    if(config.requireGoodStartingValues) return nullptr;
   }
   
   // Set calculated initial param values
-  SetParameter(fitter, 0, "R0", startR  ,  0      , maxR  ); // limits from MC
-  SetParameter(fitter, 2, "s0", startS0 , -10000  , 10000 );
-  SetParameter(fitter, 4, "L" , startL  ,  minL   , maxL  );
+  SetParameter(fitter, 0, "R0", startR  , minR    , maxR  ); // limits from MC
+  SetParameter(fitter, 2, "s0", startS0 , minS0   , maxS0 );
+  SetParameter(fitter, 4, "L" , startL  , minL    , maxL  );
   SetParameter(fitter, 5, "x0", startX0 , minX0   , maxX0 );
   SetParameter(fitter, 6, "y0", startY0 , minY0   , maxY0 );
-  SetParameter(fitter, 7, "z0", startZ0 , minZ0   , maxZ0  );
+  SetParameter(fitter, 7, "z0", startZ0 , minZ0   , maxZ0 );
   
   // With 3 points we don't know how fast will radius and slope decrease:
   FixParameter(fitter, 1, "a" , 0);

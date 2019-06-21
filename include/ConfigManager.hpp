@@ -88,6 +88,7 @@ struct ConfigManager {
   bool mergeAtTurnBack;
   bool mergeFinalHelices;
   bool allowTurningBack;
+  bool requireGoodStartingValues;
   
   double doubleHitsMaxDistance;
   

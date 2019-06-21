@@ -64,6 +64,7 @@ ConfigManager::ConfigManager(string _path)
   maxNmissingHitsInRow      = configFile->GetValue("max_n_missing_hits_in_raw", 0);
   mergeAtTurnBack           = configFile->GetValue("merge_at_turn_back", 0);
   mergeFinalHelices         = configFile->GetValue("merge_final_helices", 0);
+  requireGoodStartingValues = configFile->GetValue("require_good_starting_values", 0);
   
   allowTurningBack          = configFile->GetValue("allow_turning_back", 0);
   
