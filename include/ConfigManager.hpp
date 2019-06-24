@@ -64,6 +64,7 @@ struct ConfigManager {
   int nTests;
   int nNoiseHits;
   int nTrackerLayers;
+  int verbosity;
   
   // Fitter parameters
   double helixThickness;

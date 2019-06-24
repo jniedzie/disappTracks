@@ -297,8 +297,7 @@ double PointsProcessor::GetTforPoint(Point &point, const Point &origin, int char
 }
 
 
-vector<vector<shared_ptr<Point>>> PointsProcessor::RegroupNerbyPoints(const vector<shared_ptr<Point>> &points,
-                                                                      double threshold)
+vector<vector<shared_ptr<Point>>> PointsProcessor::RegroupNerbyPoints(const vector<shared_ptr<Point>> &points)
 {
   vector<vector<shared_ptr<Point>>> regroupedPoints;
   vector<int> alreadyRegroupedIndices;
@@ -312,7 +311,7 @@ vector<vector<shared_ptr<Point>>> PointsProcessor::RegroupNerbyPoints(const vect
     thisPointNeighbours.push_back(points[iPoint1]);
     
     for(int iPoint2=iPoint1+1; iPoint2<points.size(); iPoint2++){
-      if(pointsProcessor.distance(*points[iPoint1], *points[iPoint2]) < threshold){
+      if(pointsProcessor.distance(*points[iPoint1], *points[iPoint2]) < config.doubleHitsMaxDistance){
         thisPointNeighbours.push_back(points[iPoint2]);
         alreadyRegroupedIndices.push_back(iPoint2);
       }
@@ -403,4 +402,80 @@ bool PointsProcessor::IsTgood(const vector<shared_ptr<Point>> &lastPoints,
     break;
   }
   return goodT;
+}
+
+bool PointsProcessor::IsGoodMiddleSeedHit(const Point &point,
+                                          const Point &trackMidPoint,
+                                          const Point &eventVertex,
+                                          int charge)
+{
+  double middleHitDeltaPhi = GetPointingAngleXY(eventVertex, trackMidPoint, point);
+  
+  if(config.doAsymmetricConstraints)  middleHitDeltaPhi = charge*middleHitDeltaPhi;
+  else                                middleHitDeltaPhi = fabs(middleHitDeltaPhi);
+  
+  if(config.seedMiddleHitDeltaPhi.IsOutside(middleHitDeltaPhi)){
+    if(config.verbosity>1) cout<<"Seed middle hit Δφ too large"<<endl;
+    return false;
+  }
+  
+  double middleHitDeltaZ = fabs(point.GetZ() - trackMidPoint.GetZ());
+  if(middleHitDeltaZ > config.seedMiddleHitMaxDeltaZ){
+    if(config.verbosity>1) cout<<"Seed middle hit Δz too large"<<endl;
+    return false;
+  }
+  return true;
+}
+
+
+bool PointsProcessor::IsGoodLastSeedHit(const Point &point,
+                                        const Point &middlePoint,
+                                        const Point &trackMidPoint,
+                                        int charge)
+{
+  double lastHitDeltaPhi = pointsProcessor.GetPointingAngleXY(trackMidPoint, middlePoint, point);
+  
+  if(config.doAsymmetricConstraints)  lastHitDeltaPhi = charge*lastHitDeltaPhi;
+  else                                lastHitDeltaPhi = fabs(lastHitDeltaPhi);
+  
+  if(config.seedLastHitDeltaPhi.IsOutside(lastHitDeltaPhi)){
+    if(config.verbosity>1) cout<<"Seed last hit Δφ too large"<<endl;
+    return false;
+  }
+  
+  double lastPointDeltaZ = fabs(middlePoint.GetZ() - point.GetZ());
+  if(lastPointDeltaZ > config.seedLastHitMaxDeltaZ){
+    if(config.verbosity>1) cout<<"Seed last hit Δz too large"<<endl;
+    return false;
+  }
+  return true;
+}
+
+vector<shared_ptr<Point>> PointsProcessor::GetGoodMiddleSeedHits(const vector<shared_ptr<Point>> &middlePoints,
+                                                                 const Point &trackMidPoint,
+                                                                 const Point &eventVertex,
+                                                                 int charge)
+{
+  vector<shared_ptr<Point>> goodMiddlePoints;
+  for(auto &point : middlePoints){
+    if(!pointsProcessor.IsGoodMiddleSeedHit(*point, trackMidPoint, eventVertex, charge)) continue;
+    goodMiddlePoints.push_back(point);
+  }
+  return goodMiddlePoints;
+}
+
+vector<shared_ptr<Point>> PointsProcessor::GetGoodLastSeedHits(const vector<shared_ptr<Point>> &lastPoints,
+                                                               const vector<shared_ptr<Point>> &goodMiddlePoints,
+                                                               const Point &trackMidPoint,
+                                                               int charge)
+{
+  vector<shared_ptr<Point>> goodLastPoints;
+  for(auto &point : lastPoints){
+    for(auto &middlePoint : goodMiddlePoints){
+      if(!pointsProcessor.IsGoodLastSeedHit(*point, *middlePoint, trackMidPoint, charge)) continue;
+      goodLastPoints.push_back(point);
+      break;
+    }
+  }
+  return goodLastPoints;
 }

@@ -38,7 +38,6 @@ vector<tuple<string, int, double, double, string>> histOptions1D = {
   {"next_point_delta_phi"       , 100, -3.2   , 3.2   , "#Delta #phi"             },
   {"next_point_delta_phi_plu"   , 100, -3.2   , 3.2   , "#Delta #phi"             },
   {"next_point_delta_phi_min"   , 100, -3.2   , 3.2   , "#Delta #phi"             },
-  
   {"next_point_delta_z"         , 100, 0      , 500   , "#Delta z"                },
   
   {"middle_seed_hit_delta_phi"      , 100 , -3.2      , 3.2   , "#Delta #phi"      },
@@ -289,8 +288,8 @@ int main(int argc, char* argv[])
     
     Point trackPointMid = pointsProcessor.GetPointOnTrack((layerR[track->GetNtrackerLayers()-1]+layerR[track->GetNtrackerLayers()])/2., *track, *eventVertex);
     
-    auto middleSeedCluster = pionSimHits[0];//FindClusterForHit(*pionSimHits[0],  pionClusters);
-    auto lastSeedCluster   = pionSimHits[1];//FindClusterForHit(*pionSimHits[1],  pionClusters);
+    auto middleSeedCluster = FindClusterForHit(*pionSimHits[0],  pionClusters);// pionSimHits[0];//
+    auto lastSeedCluster   = FindClusterForHit(*pionSimHits[1],  pionClusters);// pionSimHits[1];//
     
     if(!middleSeedCluster || !lastSeedCluster) continue;
     

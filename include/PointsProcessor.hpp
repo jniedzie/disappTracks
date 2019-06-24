@@ -85,8 +85,7 @@ public:
   Point GetPointOnTrack(double L, const Track &track, const Point &eventVertex);
   
   
-  vector<vector<shared_ptr<Point>>> RegroupNerbyPoints(const vector<shared_ptr<Point>> &points,
-                                                       double threshold);
+  vector<vector<shared_ptr<Point>>> RegroupNerbyPoints(const vector<shared_ptr<Point>> &points);
   
   double GetTforPoint(Point &point, const Point &origin, int charge);
   
@@ -107,6 +106,16 @@ public:
   
   bool IsTgood(const vector<shared_ptr<Point>> &lastPoints,
                const shared_ptr<Point> &point);
+  
+  vector<shared_ptr<Point>> GetGoodMiddleSeedHits(const vector<shared_ptr<Point>> &middlePoints,
+                                                  const Point &trackMidPoint,
+                                                  const Point &eventVertex,
+                                                  int charge);
+  
+  vector<shared_ptr<Point>> GetGoodLastSeedHits(const vector<shared_ptr<Point>> &lastPoints,
+                                                const vector<shared_ptr<Point>> &goodMiddlePoints,
+                                                const Point &trackMidPoint,
+                                                int charge);
   
   /// Structs for sorting point
   struct ComparePointByZ{
@@ -150,6 +159,19 @@ public:
       return (p1->GetT() > p2->GetT());
     }
   };
+  
+private:
+  
+  bool IsGoodMiddleSeedHit(const Point &point,
+                           const Point &trackMidPoint,
+                           const Point &eventVertex,
+                           int charge);
+  
+  bool IsGoodLastSeedHit(const Point &point,
+                         const Point &middlePoint,
+                         const Point &trackMidPoint,
+                         int charge);
+  
 };
 
 #endif /* PointsProcessor_hpp */

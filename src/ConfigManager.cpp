@@ -22,6 +22,8 @@ ConfigManager::ConfigManager(string _path)
     cout<<"INFO -- Successfully read config file: "<<_path<<endl;
   }
   
+  verbosity   = configFile->GetValue("verbosity_level", 0);
+  
   doubleHitsMaxDistance     = configFile->GetValue("double_hit_max_distance", 0.0);
   doAsymmetricConstraints   = configFile->GetValue("do_asymmetric_constraints", 0);
   

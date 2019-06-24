@@ -58,6 +58,11 @@ private:
   /// Sets and fixes a value for a ROOT fitter's parameter
   void FixParameter(ROOT::Fit::Fitter *fitter, int i, string name, double val);
   
+  int nDegreesOfFreedom = 6;
+  vector<shared_ptr<Point>> fittingPoints;
+  function<double(const double*)> chi2Function;
+  
+  double startR = 320; // mm, from MC
   double minR0 = 0;
   double maxR0 = 1000;
   double minRslope = 0;  // to be verified
@@ -68,6 +73,10 @@ private:
   double minSslope = -10000;  // to be verified
   double maxSslope = 0;
   
+  double startL;
+  double minL;
+  double maxL;
+  
   double minX0 = -2000;
   double maxX0 =  2000;
   double minY0 = -2000;
@@ -75,6 +84,9 @@ private:
   double minZ0 = -2000;
   double maxZ0 =  2000;
   
+  void GetXYranges(const Point &trackPoint,
+                   double &startX0, double &minX0, double &maxX0,
+                   double &startY0, double &minY0, double &maxY0);
 };
 
 #endif /* Fitter_hpp */
