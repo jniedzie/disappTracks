@@ -177,11 +177,13 @@ double Helix::GetNcycles() const
 
 double Helix::GetRadius(double t) const
 {
+  if(config.expRadiusFunction) return helixParams.R0 * exp(-helixParams.a*t);
   return (helixParams.R0 - helixParams.a*t);
 }
 
 double Helix::GetSlope(double t) const
 {
+  if(config.expRadiusFunction) return helixParams.s0 * exp(-helixParams.b*t);
   return (helixParams.s0 - helixParams.b*t);
 }
 

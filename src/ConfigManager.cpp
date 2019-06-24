@@ -64,9 +64,10 @@ ConfigManager::ConfigManager(string _path)
   maxNmissingHitsInRow      = configFile->GetValue("max_n_missing_hits_in_raw", 0);
   mergeAtTurnBack           = configFile->GetValue("merge_at_turn_back", 0);
   mergeFinalHelices         = configFile->GetValue("merge_final_helices", 0);
-  requireGoodStartingValues = configFile->GetValue("require_good_starting_values", 0);
-  
   allowTurningBack          = configFile->GetValue("allow_turning_back", 0);
+  requireGoodStartingValues = configFile->GetValue("require_good_starting_values", 0);
+  expRadiusFunction         = configFile->GetValue("exp_radius_function", 0);
+  expSlopeFunction          = configFile->GetValue("exp_slope_function", 0);
   
   maxEta                      = configFile->GetValue("max_eta",10.0);
   nTrackHits                  = configFile->GetValue("n_track_hits",3);

@@ -90,11 +90,15 @@ double GetParamForCurrentConfig(string monitorType, string optParam)
   }
   monitor.CalcEfficiency(nAnalyzedEvents);
   
-  if(optParam=="auc")         return monitor.GetAUC();
-  if(optParam=="sigma_init")  return monitor.GetSignificanceInitial();
-  if(optParam=="sigma_L0")    return monitor.GetSignificanceAfterL0();
-  if(optParam=="sigma_L1")    return monitor.GetSignificanceAfterL1();
-  if(optParam=="max_eff")     return monitor.GetMaxEfficiency();
+  if(optParam=="auc")               return monitor.GetAUC();
+  else if(optParam=="sigma_init")   return monitor.GetSignificanceInitial();
+  else if(optParam=="sigma_L0")     return monitor.GetSignificanceAfterL0();
+  else if(optParam=="sigma_L1")     return monitor.GetSignificanceAfterL1();
+  else if(optParam=="max_eff")      return monitor.GetMaxEfficiency();
+  else{
+    cout<<"Uknown optimization parameter: "<<optParam<<endl;
+  }
+  return 0.0;
 };
 
 int main(int argc, char* argv[])

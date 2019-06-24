@@ -196,9 +196,16 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &points, int c
     // Then add distances to all other points
     for(auto &p : pointsTriplet){
       t = p->GetT();
-      x = x0 + (R0 - a*t)*cos(t);
-      y = y0 + (R0 - a*t)*sin(t);
-      z = -charge*z0 + (s0 - b*t)*t;
+      if(config.expRadiusFunction){
+        x = x0 + (R0*exp(-a*t))*cos(t);
+        y = y0 + (R0*exp(-a*t))*sin(t);
+      }
+      else{
+        x = x0 + (R0 - a*t)*cos(t);
+        y = y0 + (R0 - a*t)*sin(t);
+      }
+      if(config.expSlopeFunction) z = -charge*z0 + (s0*exp(-b*t))*t;
+      else                        z = -charge*z0 + (s0 - b*t)*t;
       
       // calculate distance between helix and point's boundary (taking into account its errors)
       distX = distY = distZ = 0;
@@ -591,9 +598,16 @@ void Fitter::RefitHelix(Helix &helix)
       
       // find helix point for this point's t
       t = p->GetT();
-      x = x0 + (R0 - a*t)*cos(t);
-      y = y0 + (R0 - a*t)*sin(t);
-      z = -helix.GetCharge()*z0 + (s0 - b*t)*t;
+      if(config.expRadiusFunction){
+        x = x0 + (R0*exp(-a*t))*cos(t);
+        y = y0 + (R0*exp(-a*t))*sin(t);
+      }
+      else{
+        x = x0 + (R0 - a*t)*cos(t);
+        y = y0 + (R0 - a*t)*sin(t);
+      }
+      if(config.expSlopeFunction) z = -helix.GetCharge()*z0 + (s0*exp(-b*t))*t;
+      else                        z = -helix.GetCharge()*z0 + (s0 - b*t)*t;
       
       // calculate distance between helix and point's boundary (taking into account its errors)
       distX = distY = distZ = 0;

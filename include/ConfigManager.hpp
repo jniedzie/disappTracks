@@ -89,6 +89,8 @@ struct ConfigManager {
   bool mergeFinalHelices;
   bool allowTurningBack;
   bool requireGoodStartingValues;
+  bool expRadiusFunction;
+  bool expSlopeFunction;
   
   double doubleHitsMaxDistance;
   

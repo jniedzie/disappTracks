@@ -107,6 +107,10 @@ allow_turning_back:                         1
 ### Reject seed if it causes starting values outside of limits:
 require_good_starting_values:        1
 
+### R(t) and s(t) functions:
+exp_radius_function:        1
+exp_slope_function:         1
+
 **Benchmark parameters**
 
 ### Conditinos to accept fitted helix as a proper solution (each parameter has to be within given tolerance).
