@@ -62,21 +62,18 @@ n_track_hits: 2
 
 **Fitter parameters**
 
-### Determines how far points can be from helix to be assigned to it (in mm):
-helix_thickness:  0.0
-
 ### Maximum distance in 3D to consider two hits as overlapping ones (in mm):
 double_hit_max_distance:            20.0
 
 ### Constraints on seeds parameters:
-seed_max_chi2:                            5
+seed_max_chi2:                            1.0
 
-seed_middle_hit_min_delta_phi:   -1.2
-seed_middle_hit_max_delta_phi:   0.6
+seed_middle_hit_min_delta_phi:   -0.6
+seed_middle_hit_max_delta_phi:   0.3
 seed_middle_hit_max_delta_z:     100
 
 seed_last_hit_min_delta_phi:       -0.6
-seed_last_hit_max_delta_phi:       0.3
+seed_last_hit_max_delta_phi:       0.4
 seed_last_hit_max_delta_z:          100
 
 ### Constrains on pion track parameters:

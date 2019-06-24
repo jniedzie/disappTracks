@@ -27,8 +27,6 @@ ConfigManager::ConfigManager(string _path)
   doubleHitsMaxDistance     = configFile->GetValue("double_hit_max_distance", 0.0);
   doAsymmetricConstraints   = configFile->GetValue("do_asymmetric_constraints", 0);
   
-  helixThickness            = configFile->GetValue("helix_thickness",1.0);
-  circleThickness           = configFile->GetValue("circle_thickness",1.0);
   seedMaxChi2               = configFile->GetValue("seed_max_chi2",100.0);
   seedMiddleHitMaxDeltaZ    = configFile->GetValue("seed_middle_hit_max_delta_z",1000.0);
   seedLastHitMaxDeltaZ      = configFile->GetValue("seed_last_hit_max_delta_z",1000.0);
@@ -172,10 +170,6 @@ void ConfigManager::Print()
   cout<<"\tpx:"<<minPx<<" - "<<maxPx<<endl;
   cout<<"\tpy:"<<minPy<<" - "<<maxPy<<endl;
   cout<<"\tpz:"<<minPz<<" - "<<maxPz<<endl;
-  
-  cout<<"Algorithm parameters:"<<endl;
-  cout<<"\tHelix thickness:"<<helixThickness<<endl;
-  cout<<"\tCircle thickness:"<<circleThickness<<endl;
   
   cout<<"Benchmark options:"<<endl;
   cout<<"\tTolerance X:"<<toleranceX<<endl;

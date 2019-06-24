@@ -67,8 +67,6 @@ struct ConfigManager {
   int verbosity;
   
   // Fitter parameters
-  double helixThickness;
-  double circleThickness;
   double seedMaxChi2;
   range<double> seedMiddleHitDeltaPhi;
   double seedMiddleHitMaxDeltaZ;

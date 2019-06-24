@@ -68,7 +68,7 @@ verbose(0)
       
       f += distX + distY + distZ;
     }
-    return f/(3*fittingPoints.size()+nDegreesOfFreedom); // 6 is number of free fit parameters
+    return f/(3*fittingPoints.size()+nDegreesOfFreedom);
   };
 }
 
@@ -89,51 +89,18 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   startL      = (minL+maxL)/2.;// (helix.GetVertex()->GetX()-10*eventVertex.GetX())/cos(track.GetPhi());
 
   vector<vector<shared_ptr<Point>>> pointsByLayer = pointsProcessor.SortByLayer(points);
-  
-  // Find seeds
-  if(verbose>0) cout<<"Looking for seeds..."<<endl;
+
   vector<Helix> fittedHelices = GetSeeds(pointsByLayer);
-  if(verbose>0) cout<<"Number of valid seeds: "<<fittedHelices.size()<<endl;
-  
-  // Extend seeds
-  if(verbose>0) cout<<"Extending seeds..."<<endl;
   ExtendSeeds(fittedHelices, pointsByLayer);
-  if(verbose>0) cout<<"Candidates found: "<<fittedHelices.size()<<endl;
-  
-  // Remove very short candidates which should not even be merged with others
-  if(verbose>0) cout<<"Removing short candidates...";
-  vector<Helix> longHelices;
-  for(int iHelix=0; iHelix<fittedHelices.size(); iHelix++){
-    if(fittedHelices[iHelix].GetNpoints() >= config.candidateMinNpoints){
-      longHelices.push_back(fittedHelices[iHelix]);
-    }
-  }
-  if(verbose>0) cout<<" Candidates left:"<<longHelices.size()<<endl;
-  
-  // Merge similar candidates
-  if(config.mergeFinalHelices){
-    if(verbose>0) cout<<"Merging overlapping helices...";
-    while(MergeHelices(longHelices));
-    if(verbose>0) cout<<" merged down to: "<<longHelices.size()<<endl;
-  }
-  
-  // Remove helices that are too short
-  if(verbose>0) cout<<"Removing very short merged helices...";
-  vector<Helix> longMergedHelices;
-  for(int iHelix=0; iHelix<longHelices.size(); iHelix++){
-    if(longHelices[iHelix].GetNpoints() >= config.trackMinNpoints){
-      longMergedHelices.push_back(longHelices[iHelix]);
-    }
-  }
-  if(verbose>0) cout<<" long merged helices: "<<longMergedHelices.size()<<endl;
+  if(config.mergeFinalHelices) MergeHelices(fittedHelices);
+  RemoveShortHelices(fittedHelices);
   
   if(verbose>0) cout<<"Refitting surviving helices...";
-  for(auto &helix : longMergedHelices){
+  for(auto &helix : fittedHelices){
     if(helix.GetShouldRefit()) RefitHelix(helix);
   }
-  if(verbose>0) cout<<" done."<<endl;
   
-  return longMergedHelices;
+  return fittedHelices;
 }
 
 vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
@@ -143,18 +110,12 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
   auto middlePointsRegrouped = pointsProcessor.RegroupNerbyPoints(pointsByLayer[trackLayers]);
   auto lastPointsRegrouped   = pointsProcessor.RegroupNerbyPoints(pointsByLayer[trackLayers+1]);
   
-  double lmin = layerR[trackLayers-1];
-  double lmax = layerR[trackLayers];
-//  double lmin = layerRanges[trackLayers-1].GetMin();
-//  double lmax = layerRanges[trackLayers].GetMax();
-  double lstart = (lmin+lmax)/2;
-  
-  Point trackPointMid = pointsProcessor.GetPointOnTrack(lstart, track, eventVertex);
+  Point trackPointMid = pointsProcessor.GetPointOnTrack(minL, track, eventVertex);
   int charge = track.GetCharge();
   
   vector<Helix> seeds;
   int nPairs=0;
-
+  if(config.verbosity>0) cout<<"Looking for seeds..."<<endl;
   for(auto &middlePoints : middlePointsRegrouped){
     auto goodMiddlePoints = pointsProcessor.GetGoodMiddleSeedHits(middlePoints,
                                                                   trackPointMid,
@@ -183,7 +144,10 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
       seeds.push_back(*helix);
     }
   }
-  if(config.verbosity>0) cout<<"Tested pairs: "<<nPairs<<endl;
+  if(config.verbosity>0){
+    cout<<"Tested pairs: "<<nPairs<<endl;
+    cout<<"Number of valid seeds: "<<seeds.size()<<endl;
+  }
   return seeds;
 }
 
@@ -234,8 +198,9 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
 {
   bool finished;
   int nSteps=0;
+  if(config.verbosity>0) cout<<"Extending seeds..."<<endl;
   do{
-    if(verbose>0) cout<<"Helices before "<<nSteps<<" step: "<<helices.size()<<endl;
+    if(config.verbosity>0) cout<<"Helices before "<<nSteps<<" step: "<<helices.size()<<endl;
     
     finished = true;
     vector<Helix> nextStepHelices;
@@ -360,7 +325,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             extendedHelices.push_back(helixCopy);
           }
         
-          if(config.mergeAtTurnBack) while(MergeHelices(extendedHelices));
+          if(config.mergeAtTurnBack) while(LinkAndMergeHelices(extendedHelices));
         }
          
         // if it was possible to extend the helix
@@ -408,121 +373,8 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
     nSteps++;
   }
   while(!finished);
+  if(config.verbosity>0) cout<<"Candidates found: "<<helices.size()<<endl;
 }
-
-bool Fitter::MergeHelices(vector<Helix> &helices)
-{
-  // Merge helices that are very similar to each other
-  bool merged = false;
-  
-  vector<pair<Helix, vector<int>>> helixLinks;
-  
-  for(auto helix : helices){
-    helixLinks.push_back(make_pair(helix, vector<int>()));
-  }
-  
-  // build links between different helices
-  for(int iHelix1=0; iHelix1<helixLinks.size(); iHelix1++){
-    Helix &helix1 = helixLinks[iHelix1].first;
-    vector<shared_ptr<Point>> points1 = helix1.GetPoints();
-    
-    sort(points1.begin(), points1.end());
-      
-    for(int iHelix2=iHelix1+1; iHelix2<helixLinks.size(); iHelix2++){
-      Helix &helix2 = helixLinks[iHelix2].first;
-      vector<shared_ptr<Point>> points2 = helix2.GetPoints();
-      sort(points2.begin(), points2.end());
-        
-      vector<shared_ptr<Point>> samePoints;
-      set_intersection(points1.begin(), points1.end(),
-                       points2.begin(), points2.end(),
-                       back_inserter(samePoints));
-        
-      
-      size_t nDifferentPoints = max(points1.size()-samePoints.size(),
-                                    points2.size()-samePoints.size());
-        
-      
-      if(nDifferentPoints <= config.mergingMaxDifferentPoints){
-        helixLinks[iHelix1].second.push_back(iHelix2);
-        merged = true;
-      }
-    }
-  }
-  
-  // Merge all linked helices
-  vector<int> alreadyUsedHelices;
-  vector<int> toRemove;
-  
-  for(int iHelix=0; iHelix<helixLinks.size(); iHelix++){
-    Helix &helix1 = helixLinks[iHelix].first;
-    Helix helix1Copy(helix1);
-    
-    vector<shared_ptr<Point>> points1 = helix1.GetPoints();
-    vector<shared_ptr<Point>> allPoints;
-    
-    for(auto &p : points1){
-      allPoints.push_back(p);
-    }
-    alreadyUsedHelices.push_back(iHelix);
-    
-    vector<int> childIndices;
-    
-    for(auto iChild : helixLinks[iHelix].second){
-      if(find(alreadyUsedHelices.begin(), alreadyUsedHelices.end(), iChild) != alreadyUsedHelices.end()) continue;
-      
-      alreadyUsedHelices.push_back(iChild);
-      
-      Helix &helix2 = helices[iChild];
-      vector<shared_ptr<Point>> points2 = helix2.GetPoints();
-      
-      for(auto &p : points2){
-        if(p->GetLayer()<0) continue; // don't merge in the decay vertex
-        if(find_if(allPoints.begin(), allPoints.end(), [&](const shared_ptr<Point> &p1){return *p == *p1;}) != allPoints.end()) continue; // don't add the same point twice
-        allPoints.push_back(p);
-      }
-      
-      toRemove.push_back(iChild);
-      childIndices.push_back(iChild);
-    }
-    
-    if(helix1Copy.GetCharge() > 0)
-      sort(allPoints.begin(), allPoints.end(), PointsProcessor::ComparePointByTinverted());
-    else
-      sort(allPoints.begin(), allPoints.end(), PointsProcessor::ComparePointByT());
-    
-    helix1Copy.SetPoints(allPoints);
-    
-    RefitHelix(helix1Copy);
-    
-    if(helix1Copy.GetChi2() < config.trackMaxChi2){
-      helix1 = helix1Copy;
-    }
-    else{
-      // if merged helix had very bad chi2, cancel the whole merging operation
-      for(int i=0; i<toRemove.size();){
-        if(find(childIndices.begin(), childIndices.end(), i) != childIndices.end()) toRemove.erase(toRemove.begin()+i);
-        else i++;
-      }
-      for(int i=0; i<alreadyUsedHelices.size();){
-        if(find(childIndices.begin(), childIndices.end(), i) != childIndices.end())
-          alreadyUsedHelices.erase(alreadyUsedHelices.begin()+i);
-        else i++;
-      }
-    }
-  }
-  
-  // Store all helices that were not merged into another helix
-  vector<Helix> goodHelices;
-  for(int iHelix=0; iHelix<helixLinks.size(); iHelix++){
-    if(find(toRemove.begin(), toRemove.end(), iHelix) != toRemove.end()) continue;
-    goodHelices.push_back(helixLinks[iHelix].first);
-  }
-  helices = goodHelices;
-  
-  return merged;
-}
-
 
 void Fitter::RefitHelix(Helix &helix)
 {
@@ -587,6 +439,28 @@ void Fitter::RefitHelix(Helix &helix)
   helix.SetVertex(vertex);
   helix.UpdateOrigin(origin);
   helix.SetChi2(result.MinFcnValue());
+}
+
+void Fitter::MergeHelices(vector<Helix> &helices)
+{
+  if(config.verbosity>0) cout<<"Merging overlapping helices...";
+  
+  vector<Helix> helicesToMerge;
+  vector<Helix> tooShortToMerge;
+  // Remove very short candidates which should not even be merged with others
+  for(auto helix : helices){
+    if(helix.GetNpoints() >= config.candidateMinNpoints) helicesToMerge.push_back(helix);
+    else                                                 tooShortToMerge.push_back(helix);
+  }
+  
+  // Merge similar candidates
+  while(LinkAndMergeHelices(helicesToMerge));
+  
+  // Insert back those that were too short to merge
+  helicesToMerge.insert(helicesToMerge.end(), tooShortToMerge.begin(), tooShortToMerge.end());
+  
+  if(config.verbosity>0) cout<<" merged down to: "<<helicesToMerge.size()<<endl;
+  helices = helicesToMerge;
 }
 
 ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points)
@@ -686,4 +560,128 @@ void Fitter::GetXYranges(const Point &trackPoint,
   
   if(charge*x > 0)  minY0 -= maxR0/sqrt(pow(y/x, 2)+1);
   else              maxY0 += maxR0/sqrt(pow(y/x, 2)+1);
+}
+
+void Fitter::RemoveShortHelices(vector<Helix> helices)
+{
+  if(config.verbosity>0) cout<<"Removing very short merged helices...";
+  vector<Helix> longHelices;
+  for(auto helix : helices){
+    if(helix.GetNpoints() >= config.trackMinNpoints) longHelices.push_back(helix);
+  }
+  if(config.verbosity>0) cout<<" long merged helices: "<<longHelices.size()<<endl;
+  helices = longHelices;
+}
+
+bool Fitter::LinkAndMergeHelices(vector<Helix> &helices)
+{
+  // Merge helices that are very similar to each other
+  bool merged = false;
+  
+  vector<pair<Helix, vector<int>>> helixLinks;
+  
+  for(auto helix : helices){
+    helixLinks.push_back(make_pair(helix, vector<int>()));
+  }
+  
+  // build links between different helices
+  for(int iHelix1=0; iHelix1<helixLinks.size(); iHelix1++){
+    Helix &helix1 = helixLinks[iHelix1].first;
+    vector<shared_ptr<Point>> points1 = helix1.GetPoints();
+    
+    sort(points1.begin(), points1.end());
+    
+    for(int iHelix2=iHelix1+1; iHelix2<helixLinks.size(); iHelix2++){
+      Helix &helix2 = helixLinks[iHelix2].first;
+      vector<shared_ptr<Point>> points2 = helix2.GetPoints();
+      sort(points2.begin(), points2.end());
+      
+      vector<shared_ptr<Point>> samePoints;
+      set_intersection(points1.begin(), points1.end(),
+                       points2.begin(), points2.end(),
+                       back_inserter(samePoints));
+      
+      
+      size_t nDifferentPoints = max(points1.size()-samePoints.size(),
+                                    points2.size()-samePoints.size());
+      
+      
+      if(nDifferentPoints <= config.mergingMaxDifferentPoints){
+        helixLinks[iHelix1].second.push_back(iHelix2);
+        merged = true;
+      }
+    }
+  }
+  
+  // Merge all linked helices
+  vector<int> alreadyUsedHelices;
+  vector<int> toRemove;
+  
+  for(int iHelix=0; iHelix<helixLinks.size(); iHelix++){
+    Helix &helix1 = helixLinks[iHelix].first;
+    Helix helix1Copy(helix1);
+    
+    vector<shared_ptr<Point>> points1 = helix1.GetPoints();
+    vector<shared_ptr<Point>> allPoints;
+    
+    for(auto &p : points1){
+      allPoints.push_back(p);
+    }
+    alreadyUsedHelices.push_back(iHelix);
+    
+    vector<int> childIndices;
+    
+    for(auto iChild : helixLinks[iHelix].second){
+      if(find(alreadyUsedHelices.begin(), alreadyUsedHelices.end(), iChild) != alreadyUsedHelices.end()) continue;
+      
+      alreadyUsedHelices.push_back(iChild);
+      
+      Helix &helix2 = helices[iChild];
+      vector<shared_ptr<Point>> points2 = helix2.GetPoints();
+      
+      for(auto &p : points2){
+        if(p->GetLayer()<0) continue; // don't merge in the decay vertex
+        if(find_if(allPoints.begin(), allPoints.end(), [&](const shared_ptr<Point> &p1){return *p == *p1;}) != allPoints.end()) continue; // don't add the same point twice
+        allPoints.push_back(p);
+      }
+      
+      toRemove.push_back(iChild);
+      childIndices.push_back(iChild);
+    }
+    
+    if(helix1Copy.GetCharge() > 0)
+      sort(allPoints.begin(), allPoints.end(), PointsProcessor::ComparePointByTinverted());
+    else
+      sort(allPoints.begin(), allPoints.end(), PointsProcessor::ComparePointByT());
+    
+    helix1Copy.SetPoints(allPoints);
+    
+    RefitHelix(helix1Copy);
+    
+    if(helix1Copy.GetChi2() < config.trackMaxChi2){
+      helix1 = helix1Copy;
+    }
+    else{
+      // if merged helix had very bad chi2, cancel the whole merging operation
+      for(int i=0; i<toRemove.size();){
+        if(find(childIndices.begin(), childIndices.end(), i) != childIndices.end()) toRemove.erase(toRemove.begin()+i);
+        else i++;
+      }
+      for(int i=0; i<alreadyUsedHelices.size();){
+        if(find(childIndices.begin(), childIndices.end(), i) != childIndices.end())
+          alreadyUsedHelices.erase(alreadyUsedHelices.begin()+i);
+        else i++;
+      }
+    }
+  }
+  
+  // Store all helices that were not merged into another helix
+  vector<Helix> goodHelices;
+  for(int iHelix=0; iHelix<helixLinks.size(); iHelix++){
+    if(find(toRemove.begin(), toRemove.end(), iHelix) != toRemove.end()) continue;
+    goodHelices.push_back(helixLinks[iHelix].first);
+  }
+  helices = goodHelices;
+  
+  return merged;
 }

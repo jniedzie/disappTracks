@@ -84,7 +84,7 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
     trackCut.SetDedxPerCluster(range<double>(3.0,inf));
   }
   else if(config.category == "all"){
-    eventCut.SetNtracks(range<int>(1,1));
+    eventCut.SetNtracks(range<int>(1,inf));
     trackCut.SetCaloEmEnergy(range<double>(0.0,2.0));
   }
   

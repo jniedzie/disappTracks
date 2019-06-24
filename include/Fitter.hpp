@@ -22,6 +22,10 @@ public:
   /// Default destructor
   ~Fitter();
   
+  /// Returns a vector of helices fitting provided points
+  /// \param _points Collection of input points
+  /// \param _track Track along which the helix starts
+  /// \param _eventVertex Primary vertex of the event
   vector<Helix> FitHelices(const vector<shared_ptr<Point>> &_points,
                            const Track &_track,
                            const Point &_eventVertex);
@@ -33,21 +37,32 @@ private:
   
   int verbose;
   
-  ///
+  /// Checks parameters of all combinations of points in layers close to the decay point
+  /// and returns vector of 3-layer helices constructed from them
   vector<Helix> GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer);
   
-  ///
+  /// Fits helix of given charge to the collection of points provided
+  /// \return Resulting helix may be a nullptr if something went wrong (e.g. parameters of helix fitting
+  /// provided points were outside of assumed limits.
   unique_ptr<Helix> FitSeed(const vector<shared_ptr<Point>> &points, int charge);
   
-  ///
+  /// Attempts to extend provided seeds to following layers. If not possible, tries to turn back to the
+  /// same layer. If that's also not possible, assigns missing hit if still alloed by the limits.
   void ExtendSeeds(vector<Helix> &helices,
                    const vector<vector<shared_ptr<Point>>> &pointsByLayer);
   
-  ///
-  bool MergeHelices(vector<Helix> &helices);
+  /// Merges similar helices as long as there's nothing left to merge
+  void MergeHelices(vector<Helix> &helices);
   
-  ///
+  /// Performs single merging operation (accorging to merging_max_different_point and candidate_min_n_points
+  /// parameters). All helices that don't meet merging conditions are left intact.
+  bool LinkAndMergeHelices(vector<Helix> &helices);
+  
+  /// Refits helix params using points assigned to this helix
   void RefitHelix(Helix &helix);
+  
+  /// Removes helices that are below track_min_n_points threshold
+  void RemoveShortHelices(vector<Helix> helices);
   
   ///
   ROOT::Fit::Fitter* GetSeedFitter(const vector<shared_ptr<Point>> &points);
