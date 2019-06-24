@@ -11,7 +11,10 @@
 
 string configPath = "../configs/helixTagger_maxHits_auc.md";
 string outFilePrefix = "L2_all";
+string outPath = "taggerScannerOutput.txt";
 string cutLevel = "after_L2/all/";//after_L1/";
+string optimizeFor = "sigma_L0";
+string optimizationMonitor = "max_length";
 
 int nEvents = 100;
 
@@ -105,20 +108,20 @@ int main(int argc, char* argv[])
     pointsNoEndcapsBackground.push_back(GetClustersNoEndcaps(event, true));
   }
  
-  double initAUC = GetParamForCurrentConfig("max_length", "sigma_L0");
+  double initOptValue = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
   
-  double maxAUC = -inf;
+  double maxOptValue = -inf;
   
   // double hit max distance
   double bestDoubleHitsDistance = config.doubleHitsMaxDistance;
   for(config.doubleHitsMaxDistance = 20.0;
       config.doubleHitsMaxDistance >= 5.0;
       config.doubleHitsMaxDistance -= 1.0){
-    double currentAUC = GetParamForCurrentConfig("max_length", "sigma_L0");
-    cout<<"double_hit_max_distance: "<<config.doubleHitsMaxDistance<<"\tAUC: "<<currentAUC<<endl;
+    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
+    cout<<"double_hit_max_distance: "<<config.doubleHitsMaxDistance<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
     
-    if(currentAUC > maxAUC){
-      maxAUC = currentAUC;
+    if(currentAUC > maxOptValue){
+      maxOptValue = currentAUC;
       bestDoubleHitsDistance = config.doubleHitsMaxDistance;
     }
   }
@@ -128,11 +131,11 @@ int main(int argc, char* argv[])
   double bestSeedChi2 = config.seedMaxChi2;
   for(double exponent=-6; exponent<2; exponent+=1){
     config.seedMaxChi2 = pow(10, exponent);
-    double currentAUC = GetParamForCurrentConfig("max_length", "sigma_L0");
-    cout<<"seed_max_chi2: "<<config.seedMaxChi2<<"\tAUC: "<<currentAUC<<endl;
+    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
+    cout<<"seed_max_chi2: "<<config.seedMaxChi2<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
     
-    if(currentAUC > maxAUC){
-      maxAUC = currentAUC;
+    if(currentAUC > maxOptValue){
+      maxOptValue = currentAUC;
       bestSeedChi2 = config.seedMaxChi2;
     }
   }
@@ -143,11 +146,11 @@ int main(int argc, char* argv[])
   for(double min = 0.0; min >= -1.5; min-=0.1){
     config.seedMiddleHitDeltaPhi = range<double>(min, config.seedMiddleHitDeltaPhi.GetMax());
     
-    double currentAUC = GetParamForCurrentConfig("max_length", "sigma_L0");
-    cout<<"seed_middle_hit_min_delta_phi: "<<min<<"\tAUC: "<<currentAUC<<endl;
+    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
+    cout<<"seed_middle_hit_min_delta_phi: "<<min<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
     
-    if(currentAUC > maxAUC){
-      maxAUC = currentAUC;
+    if(currentAUC > maxOptValue){
+      maxOptValue = currentAUC;
       bestMiddleMinPhi = min;
     }
   }
@@ -158,11 +161,11 @@ int main(int argc, char* argv[])
   for(double max = 0.0; max <= 1.0; max+=0.1){
     config.seedMiddleHitDeltaPhi = range<double>(config.seedMiddleHitDeltaPhi.GetMin(), max);
     
-    double currentAUC = GetParamForCurrentConfig("max_length", "sigma_L0");
-    cout<<"seed_middle_hit_max_delta_phi: "<<max<<"\tAUC: "<<currentAUC<<endl;
+    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
+    cout<<"seed_middle_hit_max_delta_phi: "<<max<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
     
-    if(currentAUC > maxAUC){
-      maxAUC = currentAUC;
+    if(currentAUC > maxOptValue){
+      maxOptValue = currentAUC;
       bestMiddleMaxPhi = max;
     }
   }
@@ -173,11 +176,11 @@ int main(int argc, char* argv[])
   for(config.seedMiddleHitMaxDeltaZ  = 0;
       config.seedMiddleHitMaxDeltaZ <= 250;
       config.seedMiddleHitMaxDeltaZ += 10){
-    double currentAUC = GetParamForCurrentConfig("max_length", "sigma_L0");
-    cout<<"seed_middle_hit_max_delta_z: "<<config.seedMiddleHitMaxDeltaZ<<"\tAUC: "<<currentAUC<<endl;
+    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
+    cout<<"seed_middle_hit_max_delta_z: "<<config.seedMiddleHitMaxDeltaZ<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
     
-    if(currentAUC > maxAUC){
-      maxAUC = currentAUC;
+    if(currentAUC > maxOptValue){
+      maxOptValue = currentAUC;
       bestMiddleZ = config.seedMiddleHitMaxDeltaZ;
     }
   }
@@ -188,11 +191,11 @@ int main(int argc, char* argv[])
   for(double min = -0.1; min >= -2.0; min-=0.1){
     config.seedLastHitDeltaPhi = range<double>(min, config.seedLastHitDeltaPhi.GetMax());
     
-    double currentAUC = GetParamForCurrentConfig("max_length", "sigma_L0");
-    cout<<"seed_Last_hit_min_delta_phi: "<<min<<"\tAUC: "<<currentAUC<<endl;
+    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
+    cout<<"seed_Last_hit_min_delta_phi: "<<min<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
     
-    if(currentAUC > maxAUC){
-      maxAUC = currentAUC;
+    if(currentAUC > maxOptValue){
+      maxOptValue = currentAUC;
       bestLastMinPhi = min;
     }
   }
@@ -203,11 +206,11 @@ int main(int argc, char* argv[])
   for(double max = -0.1; max <= 1.0; max+=0.1){
     config.seedLastHitDeltaPhi = range<double>(config.seedLastHitDeltaPhi.GetMin(), max);
     
-    double currentAUC = GetParamForCurrentConfig("max_length", "sigma_L0");
-    cout<<"seed_last_hit_max_delta_phi: "<<max<<"\tAUC: "<<currentAUC<<endl;
+    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
+    cout<<"seed_last_hit_max_delta_phi: "<<max<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
     
-    if(currentAUC > maxAUC){
-      maxAUC = currentAUC;
+    if(currentAUC > maxOptValue){
+      maxOptValue = currentAUC;
       bestLastMaxPhi = max;
     }
   }
@@ -218,11 +221,11 @@ int main(int argc, char* argv[])
   for(config.seedLastHitMaxDeltaZ = 0;
       config.seedLastHitMaxDeltaZ <= 300;
       config.seedLastHitMaxDeltaZ += 10){
-    double currentAUC = GetParamForCurrentConfig("max_length", "sigma_L0");
-    cout<<"seed_last_hit_max_delta_z: "<<config.seedLastHitMaxDeltaZ<<"\tAUC: "<<currentAUC<<endl;
+    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
+    cout<<"seed_last_hit_max_delta_z: "<<config.seedLastHitMaxDeltaZ<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
     
-    if(currentAUC > maxAUC){
-      maxAUC = currentAUC;
+    if(currentAUC > maxOptValue){
+      maxOptValue = currentAUC;
       bestLastZ = config.seedLastHitMaxDeltaZ;
     }
   }
@@ -232,11 +235,11 @@ int main(int argc, char* argv[])
   double bestTrackChi2 = config.trackMaxChi2;
   for(double exponent=-3.0; exponent<-1.9; exponent+=0.1){
     config.trackMaxChi2 = pow(10, exponent);
-    double currentAUC = GetParamForCurrentConfig("max_length", "sigma_L0");
-    cout<<"track_max_chi2: "<<config.trackMaxChi2<<"\tAUC: "<<currentAUC<<endl;
+    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
+    cout<<"track_max_chi2: "<<config.trackMaxChi2<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
     
-    if(currentAUC > maxAUC){
-      maxAUC = currentAUC;
+    if(currentAUC > maxOptValue){
+      maxOptValue = currentAUC;
       bestTrackChi2 = config.trackMaxChi2;
     }
   }
@@ -247,11 +250,11 @@ int main(int argc, char* argv[])
   for(config.nextPointMaxDeltaZ = 0;
       config.nextPointMaxDeltaZ <= 300;
       config.nextPointMaxDeltaZ += 10){
-    double currentAUC = GetParamForCurrentConfig("max_length", "sigma_L0");
-    cout<<"next_point_max_delta_z: "<<config.nextPointMaxDeltaZ<<"\tAUC: "<<currentAUC<<endl;
+    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
+    cout<<"next_point_max_delta_z: "<<config.nextPointMaxDeltaZ<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
     
-    if(currentAUC > maxAUC){
-      maxAUC = currentAUC;
+    if(currentAUC > maxOptValue){
+      maxOptValue = currentAUC;
       bestTrackZ = config.nextPointMaxDeltaZ;
     }
   }
@@ -262,11 +265,11 @@ int main(int argc, char* argv[])
   for(config.nextPointMaxDeltaXY  = 0;
       config.nextPointMaxDeltaXY <= 100;
       config.nextPointMaxDeltaXY += 10){
-    double currentAUC = GetParamForCurrentConfig("max_length", "sigma_L0");
-    cout<<"next_point_max_delta_xy: "<<config.nextPointMaxDeltaXY<<"\tAUC: "<<currentAUC<<endl;
+    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
+    cout<<"next_point_max_delta_xy: "<<config.nextPointMaxDeltaXY<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
     
-    if(currentAUC > maxAUC){
-      maxAUC = currentAUC;
+    if(currentAUC > maxOptValue){
+      maxOptValue = currentAUC;
       bestTrackXY = config.nextPointMaxDeltaXY;
     }
   }
@@ -277,11 +280,11 @@ int main(int argc, char* argv[])
   for(config.nextPointMaxDeltaT  = 0;
       config.nextPointMaxDeltaT <= 1.5;
       config.nextPointMaxDeltaT += 0.1){
-    double currentAUC = GetParamForCurrentConfig("max_length", "sigma_L0");
-    cout<<"next_point_max_delta_t: "<<config.nextPointMaxDeltaT<<"\tAUC: "<<currentAUC<<endl;
+    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
+    cout<<"next_point_max_delta_t: "<<config.nextPointMaxDeltaT<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
     
-    if(currentAUC > maxAUC){
-      maxAUC = currentAUC;
+    if(currentAUC > maxOptValue){
+      maxOptValue = currentAUC;
       bestTrackT = config.nextPointMaxDeltaT;
     }
   }
@@ -297,19 +300,23 @@ int main(int argc, char* argv[])
 //  SetParameter(fitter, 20, "allow_turning_back"            ,  1   ,  0    , 2   , 1  , fix);
 //  SetParameter(fitter, 21, "candidate_min_n_points"        ,  3   ,  3    , 10  , 1  , dontFix);
   
-  cout<<"Init AUC: "<<initAUC<<"\tfinal AUC:"<<maxAUC<<endl;
-  cout<<"double_hit_max_distance: "<<bestDoubleHitsDistance<<endl;
-  cout<<"seed_max_chi2: "<<bestSeedChi2<<endl;
-  cout<<"seed_middle_hit_min_delta_phi: "<<bestMiddleMinPhi<<endl;
-  cout<<"seed_middle_hit_max_delta_phi: "<<bestMiddleMaxPhi<<endl;
-  cout<<"seed_middle_hit_max_delta_z: "<<bestMiddleZ<<endl;
-  cout<<"seed_last_hit_min_delta_phi: "<<bestLastMinPhi<<endl;
-  cout<<"seed_last_hit_max_delta_phi: "<<bestLastMaxPhi<<endl;
-  cout<<"seed_last_hit_max_delta_z: "<<bestLastZ<<endl;
-  cout<<"track_max_chi2: "<<bestTrackChi2<<endl;
-  cout<<"next_point_max_delta_z: "<<bestTrackZ<<endl;
-  cout<<"next_point_max_delta_xy: "<<bestTrackXY<<endl;
-  cout<<"next_point_max_delta_t: "<<bestTrackT<<endl;
+  ofstream outFile(outPath);
+  outFile << "Output for data: " << cutLevel << "\t optimizing for: "<<optimizeFor<<"\tusing monitor: "<<optimizationMonitor<<endl;
+  outFile << "Init "<<optimizeFor<<": "<<initOptValue<<"\tfinal "<<optimizeFor<<":"<<maxOptValue<<endl;
+  outFile << "double_hit_max_distance: "<<bestDoubleHitsDistance<<endl;
+  outFile << "seed_max_chi2: "<<bestSeedChi2<<endl;
+  outFile << "seed_middle_hit_min_delta_phi: "<<bestMiddleMinPhi<<endl;
+  outFile << "seed_middle_hit_max_delta_phi: "<<bestMiddleMaxPhi<<endl;
+  outFile << "seed_middle_hit_max_delta_z: "<<bestMiddleZ<<endl;
+  outFile << "seed_last_hit_min_delta_phi: "<<bestLastMinPhi<<endl;
+  outFile << "seed_last_hit_max_delta_phi: "<<bestLastMaxPhi<<endl;
+  outFile << "seed_last_hit_max_delta_z: "<<bestLastZ<<endl;
+  outFile << "track_max_chi2: "<<bestTrackChi2<<endl;
+  outFile << "next_point_max_delta_z: "<<bestTrackZ<<endl;
+  outFile << "next_point_max_delta_xy: "<<bestTrackXY<<endl;
+  outFile << "next_point_max_delta_t: "<<bestTrackT<<endl;
+  
+  outFile.close();
   
   return 0;
 }
