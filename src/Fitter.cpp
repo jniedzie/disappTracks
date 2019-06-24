@@ -648,7 +648,7 @@ void Fitter::RefitHelix(Helix &helix)
      startX0      < minX0      || startX0     > maxX0     ||
      startY0      < minY0      || startY0     > maxY0     ||
      startZ0      < minZ0      || startZ0     > maxZ0){
-    cout<<"ERROR -- wrong params in RefitHelix, which should never happen..."<<endl;
+    if(verbose>0) cout<<"ERROR -- wrong params in RefitHelix, which should never happen..."<<endl;
     return;
   }
   
@@ -705,7 +705,7 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   double startR = 320; // mm, from MC
   
   if(startR < minR0 || startR > maxR0){
-    cout<<"ERROR -- R:"<<startR<<"\tmin:"<<minR0<<"\tmax:"<<maxR0<<endl;
+    if(verbose>0) cout<<"ERROR -- R:"<<startR<<"\tmin:"<<minR0<<"\tmax:"<<maxR0<<endl;
     if(config.requireGoodStartingValues) return nullptr;
   }
   
@@ -760,7 +760,7 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   double startS0 = startR * trackPoint.GetVectorSlopeC();
   
   if(startS0 < minS0 || startS0 > maxS0){
-    cout<<"ERROR -- S0:"<<startS0<<"\tmin:"<<minS0<<"\tmax:"<<maxS0<<endl;
+    if(verbose>0) cout<<"ERROR -- S0:"<<startS0<<"\tmin:"<<minS0<<"\tmax:"<<maxS0<<endl;
     if(config.requireGoodStartingValues) return nullptr;
   }
   
@@ -772,15 +772,15 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   double startZ0 = -track.GetCharge() * (trackPoint.GetZ() - startS0 * tTrack);
   
   if(startX0 < minX0 || startX0 > maxX0){
-    cout<<"ERROR -- x0:"<<startX0<<"\tmin:"<<minX0<<"\tmax:"<<maxX0<<endl;
+    if(verbose>0) cout<<"ERROR -- x0:"<<startX0<<"\tmin:"<<minX0<<"\tmax:"<<maxX0<<endl;
     if(config.requireGoodStartingValues) return nullptr;
   }
   if(startY0 < minY0 || startY0 > maxY0){
-    cout<<"ERROR -- y0:"<<startY0<<"\tmin:"<<minY0<<"\tmax:"<<maxY0<<endl;
+    if(verbose>0) cout<<"ERROR -- y0:"<<startY0<<"\tmin:"<<minY0<<"\tmax:"<<maxY0<<endl;
     if(config.requireGoodStartingValues) return nullptr;
   }
   if(startZ0 < minZ0 || startZ0 > maxZ0){
-    cout<<"ERROR -- z0:"<<startZ0<<"\tmin:"<<minZ0<<"\tmax:"<<maxZ0<<endl;
+    if(verbose>0) cout<<"ERROR -- z0:"<<startZ0<<"\tmin:"<<minZ0<<"\tmax:"<<maxZ0<<endl;
     if(config.requireGoodStartingValues) return nullptr;
   }
   
