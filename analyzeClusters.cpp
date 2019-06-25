@@ -5,7 +5,7 @@
 #include "Helpers.hpp"
 #include "EventSet.hpp"
 
-string configPath  = "configs/eventDisplay.md";
+string configPath  = "configs/clusters.md";
 string cutLevel    = "after_L1/all/";// "after_L1/4layers/"; //"after_L1/4layers/";//after_L1/";
 string outfileName = "results/tmp.root";
 
@@ -192,8 +192,6 @@ int main(int argc, char* argv[])
     auto trackerClusters = event->GetTrackerClusters();
     auto chargino        = event->GetGenCharginoTracks()[0];
     auto charginoSimHits = event->GetCharginoSimHits();
-    
-    
     
     vector<double> trackDedx;
     
