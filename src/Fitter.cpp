@@ -5,8 +5,7 @@
 #include "Fitter.hpp"
 
 Fitter::Fitter() :
-eventVertex(Point(0, 0, 0)),
-verbose(0)
+eventVertex(Point(0, 0, 0))
 {
   chi2Function = [&](const double *par) {
     double R0 = par[0];
@@ -17,9 +16,7 @@ verbose(0)
     double x0 = par[5];
     double y0 = par[6];
     double z0 = par[7];
-    
-    int charge = track.GetCharge();
-    
+
     // First add distance to the vertex
     Point origin(x0, y0, z0);
     fittingPoints[0] = make_shared<Point>(pointsProcessor.GetPointOnTrack(L, track, eventVertex));
@@ -86,6 +83,7 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   eventVertex  = _eventVertex;
   nTrackLayers = track.GetNtrackerLayers();
   InitLparams();
+  charge = track.GetCharge();
 
   vector<vector<shared_ptr<Point>>> pointsByLayer = pointsProcessor.SortByLayer(points);
 
@@ -106,11 +104,32 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
     nTrackLayers-=1;
   }
   
+  if(config.allowOppositeCharge){
+    charge = -charge;
+    vector<Helix> fittedHelicesOpposite = GetSeeds(pointsByLayer);
+    fittedHelices.insert(fittedHelices.end(), fittedHelicesOpposite.begin(), fittedHelicesOpposite.end());
+    
+    if(config.allowOneLessLayer){
+      nTrackLayers-=1;
+      InitLparams();
+      vector<Helix> fittedHelicesOneLess = GetSeeds(pointsByLayer);
+      fittedHelices.insert(fittedHelices.end(), fittedHelicesOneLess.begin(), fittedHelicesOneLess.end());
+      nTrackLayers+=1;
+    }
+    if(config.allowOneMoreLayer){
+      nTrackLayers+=1;
+      InitLparams();
+      vector<Helix> fittedHelicesOneMore = GetSeeds(pointsByLayer);
+      fittedHelices.insert(fittedHelices.end(), fittedHelicesOneMore.begin(), fittedHelicesOneMore.end());
+      nTrackLayers-=1;
+    }
+  }
+  
   ExtendSeeds(fittedHelices, pointsByLayer);
   if(config.mergeFinalHelices) MergeHelices(fittedHelices);
   RemoveShortHelices(fittedHelices);
   
-  if(verbose>0) cout<<"Refitting surviving helices...";
+  if(config.verbosity>0) cout<<"Refitting surviving helices...";
   for(auto &helix : fittedHelices){
     if(helix.GetShouldRefit()) RefitHelix(helix);
   }
@@ -131,7 +150,6 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
   double lstart = (lmin+lmax)/2;
   
   Point trackPointMid = pointsProcessor.GetPointOnTrack(minL, track, eventVertex);
-  int charge = track.GetCharge();
   
   vector<Helix> seeds;
   int nPairs=0;
@@ -156,7 +174,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
       points.insert(points.end(), goodMiddlePoints.begin(), goodMiddlePoints.end());
       points.insert(points.end(), goodLastPoints.begin()  , goodLastPoints.end());
 
-      auto helix = FitSeed(points,  charge);
+      auto helix = FitSeed(points);
   
       if(!helix) continue;
       if(helix->GetChi2() > config.seedMaxChi2) continue;
@@ -171,7 +189,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
   return seeds;
 }
 
-unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &seedPoints, int charge)
+unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &seedPoints)
 {
   auto fitter = GetSeedFitter(seedPoints);
   if(!fitter) return nullptr;
@@ -400,6 +418,7 @@ void Fitter::RefitHelix(Helix &helix)
 {
   helix.SetChi2(inf);
   fittingPoints = helix.GetPoints();
+  charge = helix.GetCharge();
   
   ROOT::Fit::Fitter *fitter = new ROOT::Fit::Fitter();
   int nPar = 8;
@@ -422,7 +441,7 @@ void Fitter::RefitHelix(Helix &helix)
      startX0      < minX0      || startX0     > maxX0     ||
      startY0      < minY0      || startY0     > maxY0     ||
      startZ0      < minZ0      || startZ0     > maxZ0){
-    if(verbose>0) cout<<"ERROR -- wrong params in RefitHelix, which should never happen..."<<endl;
+    if(config.verbosity>0) cout<<"ERROR -- wrong params in RefitHelix, which should never happen..."<<endl;
     return;
   }
   
@@ -485,7 +504,7 @@ void Fitter::MergeHelices(vector<Helix> &helices)
 
 ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points)
 {
-  ROOT::Fit::Fitter *fitter = new ROOT::Fit::Fitter();
+  auto fitter = new ROOT::Fit::Fitter();
   
   // This is a stupid hack to be able to set fit parameters before actually setting a fitting function
   // Params we want to set only once, but function will change in each iteration of the loop, because
@@ -496,7 +515,6 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   double pStart[nPar];
   fitter->SetFCN(fitFunction, pStart);
   
-  
   // Calculate initial parameters as good as we can at this point.
   Point trackPoint = pointsProcessor.GetPointOnTrack(startL, track, eventVertex);
   
@@ -504,11 +522,11 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   GetXYranges(trackPoint, startX0, minX0, maxX0, startY0, minY0, maxY0);
   
   if(startX0 < minX0 || startX0 > maxX0){
-    if(verbose>0) cout<<"ERROR -- x0:"<<startX0<<"\tmin:"<<minX0<<"\tmax:"<<maxX0<<endl;
+    if(config.verbosity>0) cout<<"ERROR -- x0:"<<startX0<<"\tmin:"<<minX0<<"\tmax:"<<maxX0<<endl;
     if(config.requireGoodStartingValues) return nullptr;
   }
   if(startY0 < minY0 || startY0 > maxY0){
-    if(verbose>0) cout<<"ERROR -- y0:"<<startY0<<"\tmin:"<<minY0<<"\tmax:"<<maxY0<<endl;
+    if(config.verbosity>0) cout<<"ERROR -- y0:"<<startY0<<"\tmin:"<<minY0<<"\tmax:"<<maxY0<<endl;
     if(config.requireGoodStartingValues) return nullptr;
   }
   
@@ -516,17 +534,17 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   double startS0 = startR * trackPoint.GetVectorSlopeC();
   
   if(startS0 < minS0 || startS0 > maxS0){
-    if(verbose>0) cout<<"ERROR -- S0:"<<startS0<<"\tmin:"<<minS0<<"\tmax:"<<maxS0<<endl;
+    if(config.verbosity>0) cout<<"ERROR -- S0:"<<startS0<<"\tmin:"<<minS0<<"\tmax:"<<maxS0<<endl;
     if(config.requireGoodStartingValues) return nullptr;
   }
   
   // -- get t param of the track point and calculate Z position of the vertex
   Point origin(startX0, startY0, 0);
-  double tTrack = pointsProcessor.GetTforPoint(trackPoint, origin, track.GetCharge());
-  double startZ0 = -track.GetCharge() * (trackPoint.GetZ() - startS0 * tTrack);
+  double tTrack = pointsProcessor.GetTforPoint(trackPoint, origin, charge);
+  double startZ0 = -charge * (trackPoint.GetZ() - startS0 * tTrack);
 
   if(startZ0 < minZ0 || startZ0 > maxZ0){
-    if(verbose>0) cout<<"ERROR -- z0:"<<startZ0<<"\tmin:"<<minZ0<<"\tmax:"<<maxZ0<<endl;
+    if(config.verbosity>0) cout<<"ERROR -- z0:"<<startZ0<<"\tmin:"<<minZ0<<"\tmax:"<<maxZ0<<endl;
     if(config.requireGoodStartingValues) return nullptr;
   }
   
@@ -565,9 +583,8 @@ void Fitter::GetXYranges(const Point &trackPoint,
                          double &startX0, double &minX0, double &maxX0,
                          double &startY0, double &minY0, double &maxY0)
 {
-  int charge = track.GetCharge();
-  double x   = trackPoint.GetX();
-  double y   = trackPoint.GetY();
+  double x = trackPoint.GetX();
+  double y = trackPoint.GetY();
   
   minX0 = maxX0 = x;
   minY0 = maxY0 = y;

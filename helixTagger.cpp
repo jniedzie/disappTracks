@@ -106,20 +106,20 @@ int main(int argc, char* argv[])
   config = ConfigManager(configPath);
   auto fitter = make_unique<Fitter>();
   TCanvas *canvas = new TCanvas("ROC", "ROC", 2880,1800);
-  canvas->Divide(4,5);
+  canvas->Divide(3,3);
   
   vector<map<string, PerformanceMonitor>> monitors;// [iTest][name]
   
   for(int iTest=0; iTest<nTests; iTest++){
     map<string, PerformanceMonitor> mapForTest = {
       {"n_helices" , PerformanceMonitor("N helices",  20, 0, 20 , nEvents)},
-      {"avg_hits"  , PerformanceMonitor("Avg hits",   20, 0, 20 , nEvents)},
+//      {"avg_hits"  , PerformanceMonitor("Avg hits",   20, 0, 20 , nEvents)},
       {"max_hits"  , PerformanceMonitor("Max hits",   20, 0, 20 , nEvents)},
       {"max_layers", PerformanceMonitor("Max layers", 20, 0, 20 , nEvents)},
-      {"avg_length", PerformanceMonitor("Avg length", 20, 0, 2  , nEvents)},
+//      {"avg_length", PerformanceMonitor("Avg length", 20, 0, 2  , nEvents)},
       {"max_length", PerformanceMonitor("Max length", 20, 0, 6   , nEvents)},
-      {"min_chi2"  , PerformanceMonitor("Min chi2"  , 10000, 0, 0.01 , nEvents)},
-      {"min_chi2_per_hit"  , PerformanceMonitor("Min chi2 per hit"  , 10000, 0, 0.001 , nEvents)},
+//      {"min_chi2"  , PerformanceMonitor("Min chi2"  , 10000, 0, 0.01 , nEvents)},
+//      {"min_chi2_per_hit"  , PerformanceMonitor("Min chi2 per hit"  , 10000, 0, 0.001 , nEvents)},
       {"turned_back"  , PerformanceMonitor("Did turn back"  , 2, 0, 2 , nEvents)},
     };
     monitors.push_back(mapForTest);
@@ -164,9 +164,9 @@ int main(int argc, char* argv[])
                                                fittedHelicesSignal.size(),
                                                fittedHelicesBackground.size());
         
-        monitors[iTest]["avg_hits"].SetValues(iEvent,
-                                              GetAvgNhits(fittedHelicesSignal),
-                                              GetAvgNhits(fittedHelicesBackground));
+//        monitors[iTest]["avg_hits"].SetValues(iEvent,
+//                                              GetAvgNhits(fittedHelicesSignal),
+//                                              GetAvgNhits(fittedHelicesBackground));
         
         monitors[iTest]["max_hits"].SetValues(iEvent,
                                               GetMaxNhits(fittedHelicesSignal),
@@ -176,21 +176,21 @@ int main(int argc, char* argv[])
                                                 GetMaxNlayers(fittedHelicesSignal),
                                                 GetMaxNlayers(fittedHelicesBackground));
         
-        monitors[iTest]["avg_length"].SetValues(iEvent,
-                                                GetAvgLength(fittedHelicesSignal),
-                                                GetAvgLength(fittedHelicesBackground));
+//        monitors[iTest]["avg_length"].SetValues(iEvent,
+//                                                GetAvgLength(fittedHelicesSignal),
+//                                                GetAvgLength(fittedHelicesBackground));
         
         monitors[iTest]["max_length"].SetValues(iEvent,
                                                 GetMaxLength(fittedHelicesSignal),
                                                 GetMaxLength(fittedHelicesBackground));
         
-        monitors[iTest]["min_chi2"].SetValues(iEvent,
-                                              GetMinChi2(fittedHelicesSignal),
-                                              GetMinChi2(fittedHelicesBackground));
-        
-        monitors[iTest]["min_chi2_per_hit"].SetValues(iEvent,
-                                                      GetMinChi2overNhits(fittedHelicesSignal),
-                                                      GetMinChi2overNhits(fittedHelicesBackground));
+//        monitors[iTest]["min_chi2"].SetValues(iEvent,
+//                                              GetMinChi2(fittedHelicesSignal),
+//                                              GetMinChi2(fittedHelicesBackground));
+//        
+//        monitors[iTest]["min_chi2_per_hit"].SetValues(iEvent,
+//                                                      GetMinChi2overNhits(fittedHelicesSignal),
+//                                                      GetMinChi2overNhits(fittedHelicesBackground));
         
         
         monitors[iTest]["turned_back"].SetValues(iEvent,

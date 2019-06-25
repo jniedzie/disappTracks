@@ -3,6 +3,8 @@
 ### Path of the output file:
 output_path: helixFittingResults/tests.root
 
+verbosity_level:  1
+
 **Fitter parameters**
 
 ### Maximum distance in 3D to consider two hits as overlapping ones (in mm):
@@ -51,9 +53,10 @@ require_good_starting_values:        0
 exp_radius_function:        0
 exp_slope_function:         0
 
-### Let pion helix start one layer before/after the chargino track
-allow_one_less_layer: 0
-allow_one_more_layer: 0
+### Let pion helix start one layer before/after the chargino track or have opposite charge
+allow_one_less_layer: 1
+allow_one_more_layer: 1
+allow_opposite_charge: 1
 
 **Helix tagger options**
 

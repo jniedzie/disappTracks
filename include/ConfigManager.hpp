@@ -96,6 +96,7 @@ struct ConfigManager {
   bool doAsymmetricConstraints;
   bool allowOneLessLayer;
   bool allowOneMoreLayer;
+  bool allowOppositeCharge;
   
   // Random chargino's track parameters
   double maxEta;

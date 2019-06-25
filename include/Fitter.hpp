@@ -31,11 +31,16 @@ public:
                            const Point &_eventVertex);
   
 private:
-  vector<shared_ptr<Point>> points;
-  Track track;
-  Point eventVertex;
+  vector<shared_ptr<Point>> points; ///< collection of all points in the events
+  Track track;                      ///< track from which helix should start
+  Point eventVertex;                ///< primary vertex of the event
   
-  int verbose;
+  int nTrackLayers;                 ///< number of layers before helix should start
+  int charge;                       ///< assumed charge of the helix
+  
+  int nDegreesOfFreedom = 6;        ///< number of free fit parameters
+  vector<shared_ptr<Point>> fittingPoints; ///< collection of points to which we are fitting at the moment
+  function<double(const double*)> chi2Function; ///< chi2 function
   
   /// Checks parameters of all combinations of points in layers close to the decay point
   /// and returns vector of 3-layer helices constructed from them
@@ -44,7 +49,7 @@ private:
   /// Fits helix of given charge to the collection of points provided
   /// \return Resulting helix may be a nullptr if something went wrong (e.g. parameters of helix fitting
   /// provided points were outside of assumed limits.
-  unique_ptr<Helix> FitSeed(const vector<shared_ptr<Point>> &points, int charge);
+  unique_ptr<Helix> FitSeed(const vector<shared_ptr<Point>> &points);
   
   /// Attempts to extend provided seeds to following layers. If not possible, tries to turn back to the
   /// same layer. If that's also not possible, assigns missing hit if still alloed by the limits.
@@ -64,7 +69,8 @@ private:
   /// Removes helices that are below track_min_n_points threshold
   void RemoveShortHelices(vector<Helix> helices);
   
-  ///
+  /// Creates a fitter for seeds, with the best guess of the initial parameters
+  /// \return nullptr if parameters were outside of limits, but requested only good params
   ROOT::Fit::Fitter* GetSeedFitter(const vector<shared_ptr<Point>> &points);
   
   /// Sets name, limits and starting value of a ROOT fitter's parameter
@@ -73,12 +79,16 @@ private:
   /// Sets and fixes a value for a ROOT fitter's parameter
   void FixParameter(ROOT::Fit::Fitter *fitter, int i, string name, double val);
   
-  int nDegreesOfFreedom = 6;
-  vector<shared_ptr<Point>> fittingPoints;
-  function<double(const double*)> chi2Function;
+  /// Returns the most probable X0 and Y0 limits and starting values for given decay point
+  /// and assumed charge
+  void GetXYranges(const Point &trackPoint,
+                   double &startX0, double &minX0, double &maxX0,
+                   double &startY0, double &minY0, double &maxY0);
   
-  int nTrackLayers;
+  /// Sets L limits and starting value based on the curent number of tracker layers
+  void InitLparams();
   
+  // Initial parameters and their limits:
   double startR = 320; // mm, from MC
   double minR0 = 0;
   double maxR0 = 1000;
@@ -101,11 +111,6 @@ private:
   double minZ0 = -2000;
   double maxZ0 =  2000;
   
-  void GetXYranges(const Point &trackPoint,
-                   double &startX0, double &minX0, double &maxX0,
-                   double &startY0, double &minY0, double &maxY0);
-  
-  void InitLparams();
 };
 
 #endif /* Fitter_hpp */

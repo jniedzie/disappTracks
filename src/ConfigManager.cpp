@@ -71,6 +71,7 @@ ConfigManager::ConfigManager(string _path)
   
   allowOneLessLayer          = configFile->GetValue("allow_one_less_layer", 0);
   allowOneMoreLayer          = configFile->GetValue("allow_one_more_layer", 0);
+  allowOppositeCharge        = configFile->GetValue("allow_opposite_charge", 0);
   
   maxEta                      = configFile->GetValue("max_eta",10.0);
   nTrackHits                  = configFile->GetValue("n_track_hits",3);
