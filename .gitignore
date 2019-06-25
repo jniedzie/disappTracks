@@ -31,3 +31,6 @@ taggerFitter
 buildTaggerFitter/error/
 buildTaggerFitter/log/
 buildTaggerFitter/output/
+taggerScanner
+taggerScannerOutput.txt
+
