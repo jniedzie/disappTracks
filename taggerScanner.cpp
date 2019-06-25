@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
 //  }
 //  config.doubleHitsMaxDistance = bestDoubleHitsDistance;
   
-   seed chi2
+//   seed chi2
   double bestSeedChi2 = config.seedMaxChi2;
   for(double exponent=-3; exponent<=1; exponent+=1){
     config.seedMaxChi2 = pow(10, exponent);
