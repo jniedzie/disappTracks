@@ -11,13 +11,12 @@ uint searchRun = 1;
 uint searchLumi = 1;
 unsigned long long searchEvent = 2662;
 
-//string configPath = "configs/eventDisplay.md";
-string configPath = "configs/helixTagger_maxHits_auc.md";
+string configPath = "configs/eventDisplay.md";
 string cutLevel = "after_L2/all/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 19;
+int iEvent = 113;
 
 bool injectPion = false;
 bool fitHelix = true;
@@ -25,14 +24,14 @@ bool fitHelix = true;
 bool pionHitsOnly = true;
 
 // "after_L2/all/":
-// ok: 1, 2, 4, 8, 14, 15, 17, 19
+// ok: 1, 2, 4, 8, 14, 15, 17, 19, 40, 41, 42, 44
 //
 // ok, but could be improved:
 // 5: poor chi2
 // 16: touches next layer at turn back, so missing hit is added and prevents turning back
 //
 // no way:
-// not enough hits: 0, 9
+// not enough hits: 0, 9,
 // missing seed hits: 3, 11, 12, 13
 // endcaps only: 18, 20
 //
@@ -40,6 +39,7 @@ bool pionHitsOnly = true;
 // 6: chargino goes to endcaps
 // 7: those hits got crazy
 // 10: missing hit poorly placed, as it's the first one after the seed. Then cannot extend from there.
+// 43: high middle Δφ, then scattered a bit
 
 
 // "after_L2/4layers/":

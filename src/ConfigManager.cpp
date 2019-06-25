@@ -69,6 +69,9 @@ ConfigManager::ConfigManager(string _path)
   expRadiusFunction         = configFile->GetValue("exp_radius_function", 0);
   expSlopeFunction          = configFile->GetValue("exp_slope_function", 0);
   
+  allowOneLessLayer          = configFile->GetValue("allow_one_less_layer", 0);
+  allowOneMoreLayer          = configFile->GetValue("allow_one_more_layer", 0);
+  
   maxEta                      = configFile->GetValue("max_eta",10.0);
   nTrackHits                  = configFile->GetValue("n_track_hits",3);
   minPx                       = configFile->GetValue("min_px",50.0);

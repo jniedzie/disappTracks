@@ -77,6 +77,8 @@ private:
   vector<shared_ptr<Point>> fittingPoints;
   function<double(const double*)> chi2Function;
   
+  int nTrackLayers;
+  
   double startR = 320; // mm, from MC
   double minR0 = 0;
   double maxR0 = 1000;
@@ -102,6 +104,8 @@ private:
   void GetXYranges(const Point &trackPoint,
                    double &startX0, double &minX0, double &maxX0,
                    double &startY0, double &minY0, double &maxY0);
+  
+  void InitLparams();
 };
 
 #endif /* Fitter_hpp */

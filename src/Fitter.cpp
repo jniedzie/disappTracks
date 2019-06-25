@@ -81,16 +81,31 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
                                  const Track &_track,
                                  const Point &_eventVertex)
 {
-  points      = _points;
-  track       = _track;
-  eventVertex = _eventVertex;
-  minL        = layerRanges[track.GetNtrackerLayers()-1].GetMin();
-  maxL        = layerRanges[track.GetNtrackerLayers()].GetMax();
-  startL      = (minL+maxL)/2.;// (helix.GetVertex()->GetX()-10*eventVertex.GetX())/cos(track.GetPhi());
+  points       = _points;
+  track        = _track;
+  eventVertex  = _eventVertex;
+  nTrackLayers = track.GetNtrackerLayers();
+  InitLparams();
 
   vector<vector<shared_ptr<Point>>> pointsByLayer = pointsProcessor.SortByLayer(points);
 
   vector<Helix> fittedHelices = GetSeeds(pointsByLayer);
+  
+  if(config.allowOneLessLayer){
+    nTrackLayers-=1;
+    InitLparams();
+    vector<Helix> fittedHelicesOneLess = GetSeeds(pointsByLayer);
+    fittedHelices.insert(fittedHelices.end(), fittedHelicesOneLess.begin(), fittedHelicesOneLess.end());
+    nTrackLayers+=1;
+  }
+  if(config.allowOneMoreLayer){
+    nTrackLayers+=1;
+    InitLparams();
+    vector<Helix> fittedHelicesOneMore = GetSeeds(pointsByLayer);
+    fittedHelices.insert(fittedHelices.end(), fittedHelicesOneMore.begin(), fittedHelicesOneMore.end());
+    nTrackLayers-=1;
+  }
+  
   ExtendSeeds(fittedHelices, pointsByLayer);
   if(config.mergeFinalHelices) MergeHelices(fittedHelices);
   RemoveShortHelices(fittedHelices);
@@ -106,9 +121,14 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
 vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
 {
   // find possible middle and last seeds' points
-  int trackLayers = track.GetNtrackerLayers();
-  auto middlePointsRegrouped = pointsProcessor.RegroupNerbyPoints(pointsByLayer[trackLayers]);
-  auto lastPointsRegrouped   = pointsProcessor.RegroupNerbyPoints(pointsByLayer[trackLayers+1]);
+  auto middlePointsRegrouped = pointsProcessor.RegroupNerbyPoints(pointsByLayer[nTrackLayers]);
+  auto lastPointsRegrouped   = pointsProcessor.RegroupNerbyPoints(pointsByLayer[nTrackLayers+1]);
+  
+  double lmin = layerR[nTrackLayers-1];
+  double lmax = layerR[nTrackLayers];
+  //  double lmin = layerRanges[nTrackLayers-1].GetMin();
+  //  double lmax = layerRanges[nTrackLayers].GetMax();
+  double lstart = (lmin+lmax)/2;
   
   Point trackPointMid = pointsProcessor.GetPointOnTrack(minL, track, eventVertex);
   int charge = track.GetCharge();
@@ -618,6 +638,8 @@ bool Fitter::LinkAndMergeHelices(vector<Helix> &helices)
   vector<int> toRemove;
   
   for(int iHelix=0; iHelix<helixLinks.size(); iHelix++){
+    if(helixLinks[iHelix].second.size() == 0) continue; // if there's nothing to link, skip it
+    
     Helix &helix1 = helixLinks[iHelix].first;
     Helix helix1Copy(helix1);
     
@@ -684,4 +706,11 @@ bool Fitter::LinkAndMergeHelices(vector<Helix> &helices)
   helices = goodHelices;
   
   return merged;
+}
+
+void Fitter::InitLparams()
+{
+  minL   = layerRanges[nTrackLayers-1].GetMin();
+  maxL   = layerRanges[nTrackLayers].GetMax();
+  startL = (minL+maxL)/2.;
 }

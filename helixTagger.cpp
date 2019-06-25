@@ -9,10 +9,11 @@
 #include "PerformanceMonitor.hpp"
 #include "EventSet.hpp"
 
-string configPath = "configs/helixTagger_maxHits_auc.md";
-string cutLevel = "after_L2/all/";//after_L1/";
+string configPath = "configs/helixTagger.md";
+string cutLevel = "after_L1/all/";//after_L1/";
 
-int nEvents = 20; // max: 1287
+const int nEvents = 40; // max: 1287
+const int eventOffset = 0;
 const int nTests = 1;
 
 int nAnalyzedEvents = 0;
@@ -96,6 +97,7 @@ double GetAvgLength(vector<Helix> helices);
 double GetMaxLength(vector<Helix> helices);
 double GetMinChi2(vector<Helix> helices);
 double GetMinChi2overNhits(vector<Helix> helices);
+bool   DidTurnBack(vector<Helix> helices);
 
 int main(int argc, char* argv[])
 {
@@ -104,7 +106,7 @@ int main(int argc, char* argv[])
   config = ConfigManager(configPath);
   auto fitter = make_unique<Fitter>();
   TCanvas *canvas = new TCanvas("ROC", "ROC", 2880,1800);
-  canvas->Divide(4,4);
+  canvas->Divide(4,5);
   
   vector<map<string, PerformanceMonitor>> monitors;// [iTest][name]
   
@@ -118,6 +120,7 @@ int main(int argc, char* argv[])
       {"max_length", PerformanceMonitor("Max length", 20, 0, 6   , nEvents)},
       {"min_chi2"  , PerformanceMonitor("Min chi2"  , 10000, 0, 0.01 , nEvents)},
       {"min_chi2_per_hit"  , PerformanceMonitor("Min chi2 per hit"  , 10000, 0, 0.001 , nEvents)},
+      {"turned_back"  , PerformanceMonitor("Did turn back"  , 2, 0, 2 , nEvents)},
     };
     monitors.push_back(mapForTest);
   }
@@ -126,7 +129,7 @@ int main(int argc, char* argv[])
   vector<vector<shared_ptr<Point>>> pointsNoEndcapsSignal;
   vector<vector<shared_ptr<Point>>> pointsNoEndcapsBackground;
   
-  for(auto iEvent=0; iEvent<nEvents; iEvent++){
+  for(auto iEvent=eventOffset; iEvent<eventOffset+nEvents; iEvent++){
     auto event = GetEvent(iEvent);
     events.push_back(event);
     pointsNoEndcapsSignal.push_back(GetClustersNoEndcaps(event, false));
@@ -189,6 +192,10 @@ int main(int argc, char* argv[])
                                                       GetMinChi2overNhits(fittedHelicesSignal),
                                                       GetMinChi2overNhits(fittedHelicesBackground));
         
+        
+        monitors[iTest]["turned_back"].SetValues(iEvent,
+                                                 DidTurnBack(fittedHelicesSignal),
+                                                 DidTurnBack(fittedHelicesBackground));
         
       }
       nAnalyzedEvents++;
@@ -360,4 +367,15 @@ double GetMinChi2overNhits(vector<Helix> helices)
   }
   
   return minChi2;
+}
+
+bool DidTurnBack(vector<Helix> helices)
+{
+  if(helices.size()==0) return false;
+  
+  for(auto helix : helices){
+    if(helix.GetFirstTurningPointIndex()>0) return true;
+  }
+  
+  return false;
 }

@@ -94,6 +94,8 @@ struct ConfigManager {
   double doubleHitsMaxDistance;
   
   bool doAsymmetricConstraints;
+  bool allowOneLessLayer;
+  bool allowOneMoreLayer;
   
   // Random chargino's track parameters
   double maxEta;
