@@ -32,6 +32,7 @@ public:
   inline double GetSignificanceInitial(){ return significanceInitial; }
   inline double GetSignificanceAfterL0(){ return significanceAfterL0; }
   inline double GetSignificanceAfterL1(){ return significanceAfterL1; }
+  inline double GetInvFakeAtHighestEff(){ return invFakeAtHighestEff; }
   
 private:
   double thresholdMin;
@@ -58,6 +59,7 @@ private:
   double significanceInitial; ///< max significance assuming initial N_sig and N_bck, only when fake rate !=0
   double significanceAfterL0; ///< max significance assuming L0 N_sig and N_bck, only when fake rate !=0
   double significanceAfterL1; ///< max significance assuming L1 N_sig and N_bck, only when fake rate !=0
+  double invFakeAtHighestEff; ///< 1/fake_rate for the highest efficiency lower than 1.0
   
   TF1* GetRocFunction();
 };

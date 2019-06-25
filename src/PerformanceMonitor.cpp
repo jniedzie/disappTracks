@@ -17,7 +17,8 @@ nBins(_nBins),
 auc(0),
 maxEfficiency(0),
 significanceInitial(0),
-significanceAfterL0(0)
+significanceAfterL0(0),
+invFakeAtHighestEff(0)
 {
   histSignal     = new TH1D(Form("%s%i", name.c_str(), RandInt(0, inf)),
                             Form("%s%i", name.c_str(), RandInt(0, inf)),
@@ -93,6 +94,7 @@ void PerformanceMonitor::CalcEfficiency(int nAnalyzedEvents)
   significanceInitial = -inf;
   significanceAfterL0 = -inf;
   significanceAfterL1 = -inf;
+  invFakeAtHighestEff = -inf;
   
   set<pair<double, double>> rocXY;
   
@@ -100,9 +102,10 @@ void PerformanceMonitor::CalcEfficiency(int nAnalyzedEvents)
     efficiency[iThreshold]  /= nAnalyzedEvents;
     fakeRate[iThreshold]    /= nAnalyzedEvents;
     
-    if(efficiency[iThreshold] > maxEfficiency && efficiency[iThreshold] != 1.0)
+    if(efficiency[iThreshold] > maxEfficiency && efficiency[iThreshold] != 1.0){
       maxEfficiency = efficiency[iThreshold];
-    
+      invFakeAtHighestEff = 1/fakeRate[iThreshold];
+    }
     double sigmaApproxInitial = 3986*efficiency[iThreshold]/sqrt(3986*efficiency[iThreshold]+6E+07*fakeRate[iThreshold]);
     
     if(sigmaApproxInitial > significanceInitial && fakeRate[iThreshold] > 0)

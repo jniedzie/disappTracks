@@ -13,8 +13,8 @@ string configPath = "configs/helixTagger.md";
 string outFilePrefix = "L2_all";
 string outPath = "taggerScannerOutput.txt";
 string cutLevel = "after_L2/all/";//after_L1/";
-string optimizeFor = "sigma_L0";
-string optimizationMonitor = "max_layers";
+string optimizeFor = "min_fake";
+string optimizationMonitor = "max_hits";
 
 const int nEvents = 40;
 const int eventOffset = 40;
@@ -96,6 +96,7 @@ double GetParamForCurrentConfig(string monitorType, string optParam)
   else if(optParam=="sigma_L0")     return monitor.GetSignificanceAfterL0();
   else if(optParam=="sigma_L1")     return monitor.GetSignificanceAfterL1();
   else if(optParam=="max_eff")      return monitor.GetMaxEfficiency();
+  else if(optParam=="min_fake")     return monitor.GetInvFakeAtHighestEff();
   else{
     cout<<"Uknown optimization parameter: "<<optParam<<endl;
   }
@@ -132,19 +133,19 @@ int main(int argc, char* argv[])
 //  }
 //  config.doubleHitsMaxDistance = bestDoubleHitsDistance;
   
-  // seed chi2
-//  double bestSeedChi2 = config.seedMaxChi2;
-//  for(double exponent=-3; exponent<=1; exponent+=1){
-//    config.seedMaxChi2 = pow(10, exponent);
-//    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
-//    cout<<"seed_max_chi2: "<<config.seedMaxChi2<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
-//
-//    if(currentAUC > maxOptValue){
-//      maxOptValue = currentAUC;
-//      bestSeedChi2 = config.seedMaxChi2;
-//    }
-//  }
-//  config.seedMaxChi2 = bestSeedChi2;
+   seed chi2
+  double bestSeedChi2 = config.seedMaxChi2;
+  for(double exponent=-3; exponent<=1; exponent+=1){
+    config.seedMaxChi2 = pow(10, exponent);
+    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
+    cout<<"seed_max_chi2: "<<config.seedMaxChi2<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
+
+    if(currentAUC > maxOptValue){
+      maxOptValue = currentAUC;
+      bestSeedChi2 = config.seedMaxChi2;
+    }
+  }
+  config.seedMaxChi2 = bestSeedChi2;
   
   // seed middle min Δφ
 //  double bestMiddleMinPhi = config.seedMiddleHitDeltaPhi.GetMin();
