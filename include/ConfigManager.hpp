@@ -80,6 +80,7 @@ struct ConfigManager {
   double trackMaxChi2;
   int mergingMaxDifferentPoints;
   int trackMinNpoints;
+  int trackMinNlayers;
   int candidateMinNpoints;
   int maxNmissingHits;
   int maxNmissingHitsInRow;
@@ -96,7 +97,9 @@ struct ConfigManager {
   bool doAsymmetricConstraints;
   bool allowOneLessLayer;
   bool allowOneMoreLayer;
-  bool allowOppositeCharge;
+  int checkOppositeChargeBelowNlayers;
+  
+  int minLayersForDeltaXY;
   
   // Random chargino's track parameters
   double maxEta;

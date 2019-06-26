@@ -177,6 +177,7 @@ bool HelixProcessor::IsPointCloseToHelixInLayer(const Helix &helix, const Point 
   
   for(Point newPointEstimeted : newPointsEstimated){
     double distanceXYtoPoint = pointsProcessor.distanceXY(newPointEstimeted, point);
+    
     if(distanceXYtoPoint <= config.nextPointMaxDeltaXY){
       goodXY=true;
       break;

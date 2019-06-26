@@ -29,6 +29,8 @@ firstTurningPointIndex(-1)
   
   helixParams.R0 = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
   helixParams.s0 = GetRadius(0) * charge * momentum->GetVectorSlopeC();
+  helixParams.a = 0;
+  helixParams.b = 0;
   
   // take a vector perpendicular to the pion's momentum vector
   Point v = Point(charge * momentum->GetY(),charge * -momentum->GetX(), 0.0);
@@ -40,6 +42,8 @@ firstTurningPointIndex(-1)
   origin.SetX(origin.GetX() + v.GetX());
   origin.SetY(origin.GetY() + v.GetY());
  
+  double tShift=0;
+  
   if(momentum->GetZ() > 0){
     if(charge > 0) tShift = TMath::Pi() - atan2(-v.GetX(), v.GetY());
     if(charge < 0) tShift = TMath::Pi() - atan2(-v.GetY(), v.GetX());
@@ -50,7 +54,17 @@ firstTurningPointIndex(-1)
   }
   origin.SetZ(origin.GetZ() - fabs(tShift)*fabs(GetSlope(0)));
   
-  tMax = GetNcycles()*2*TMath::Pi();
+  points.front()->SetT(tShift);
+  
+  double tMax = GetNcycles()*2*TMath::Pi();
+  
+  auto lastPoint = make_shared<Point>(origin.GetX() + GetRadius(tMax)*cos(tMax),
+                                      origin.GetY() + GetRadius(tMax)*sin(tMax),
+                                      -charge*origin.GetZ() + GetSlope(tMax)*tMax);
+  
+  lastPoint->SetT(tMax);
+  points.push_back(lastPoint);
+  
   tStep = 0.01;
 }
 
@@ -82,9 +96,6 @@ firstTurningPointIndex(-1)
                                 points[1]->GetY() - points[0]->GetY(),
                                 points[1]->GetZ() - points[0]->GetZ());
   
-  
-  tShift  = points.front()->GetT();
-  tMax    = points.back()->GetT();
   tStep   = 0.01;
 }
 
@@ -93,8 +104,6 @@ iCycles(h.iCycles),
 isFinished(h.isFinished),
 seedID(h.seedID),
 points(h.points),
-tShift(h.tShift),
-tMax(h.tMax),
 tStep(h.tStep),
 origin(h.origin),
 momentum(make_unique<Point>(*h.momentum)),
@@ -123,8 +132,6 @@ Helix& Helix::operator=(const Helix &h)
   isFinished     = h.isFinished;
   seedID         = h.seedID;
   points         = h.points;
-  tShift         = h.tShift;
-  tMax           = h.tMax;
   tStep          = h.tStep;
   track          = h.track;
   helixParams    = h.helixParams;
@@ -160,8 +167,8 @@ void Helix::Print()
   cout<<"\tMomentum:("<<momentum->GetX()<<","<<momentum->GetY()<<","<<momentum->GetZ()<<")\n";
   cout<<"\tCharge: "<<charge<<"\n";
   cout<<"\ts0: "<<helixParams.s0<<"\tb: "<<helixParams.b<<"\tR0: "<<helixParams.R0<<"\t a: "<<helixParams.a<<endl;
-  cout<<"\tnPoints:"<<points.size()<<"\tnMissingHits: "<<nMissingHits<<"\n";
-  cout<<"\tt min:"<<tShift<<"\tt max:"<<tMax<<endl;
+  cout<<"\tnPoints:"<<points.size()<<"\tnLayers: "<<GetNlayers()<<"\tnMissingHits: "<<nMissingHits<<"\n";
+  cout<<"\tt min:"<<GetTmin()<<"\tt max:"<<GetTmax()<<endl;
   cout<<"\tchi2:"<<chi2<<endl;
 }
 
@@ -189,42 +196,20 @@ double Helix::GetSlope(double t) const
 
 void Helix::AddPoint(const shared_ptr<Point> &point)
 {
-  shared_ptr<Point> previousPoint = points.back();
-  int previousPointLayer = previousPoint->GetLayer();
-  
   double t = pointsProcessor.GetTforPoint(*point, origin, charge);
-  int thisPointLayer = point->GetLayer();
+  double tMax = GetTmax();
   
-  if((thisPointLayer != previousPointLayer) || (points.size()==firstTurningPointIndex)){
-    if(charge < 0) while(t < tMax) t += 2*TMath::Pi();
-    else           while(t > tMax) t -= 2*TMath::Pi();
-  }
-  else{
-    double previousT = previousPoint->GetT();
-    
-    if(fabs(previousPoint->GetX()+122) < 1 &&
-       fabs(previousPoint->GetY()-330) < 1 &&
-       fabs(previousPoint->GetZ()+82) < 1){
-      
-    }
-    
-    while(fabs(t-previousT) > fabs(t+2*TMath::Pi()-previousT)) t += 2*TMath::Pi();
-    while(fabs(t-previousT) > fabs(t-2*TMath::Pi()-previousT)) t -= 2*TMath::Pi();
-  }
+  while(fabs(t-tMax) > fabs(t+2*TMath::Pi()-tMax)) t += 2*TMath::Pi();
+  while(fabs(t-tMax) > fabs(t-2*TMath::Pi()-tMax)) t -= 2*TMath::Pi();
   
   point->SetT(t);
-  tMax = t;
   points.push_back(point);
 }
 
 void Helix::UpdateOrigin(const Point &_origin)
 {
   origin = _origin;
-  
   pointsProcessor.SetPointsT(points, origin, charge);
-  
-  tShift = points.front()->GetT();
-  tMax   = points.back()->GetT();
 }
 
 void Helix::IncreaseMissingHits(){
@@ -278,4 +263,17 @@ vector<shared_ptr<Point>> Helix::GetSecontToLastPoints() const
   }
   
   return resultPoints;
+}
+
+uint Helix::GetNlayers() const
+{
+  unordered_set<int> layers;
+  for(int iPoint=0; iPoint<points.size(); iPoint++){
+    int layer = points[iPoint]->GetLayer();
+    if(layer > 0){
+      if(iPoint < firstTurningPointIndex) layers.insert( layer);
+      else                                layers.insert(-layer);
+    }
+  }
+  return layers.size();
 }

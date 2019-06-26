@@ -60,6 +60,8 @@ ConfigManager::ConfigManager(string _path)
   mergingMaxDifferentPoints = configFile->GetValue("merging_max_different_point", 0);
   candidateMinNpoints       = configFile->GetValue("candidate_min_n_points", 0);
   trackMinNpoints           = configFile->GetValue("track_min_n_points", 0);
+  trackMinNlayers           = configFile->GetValue("track_min_n_layers", 0);
+  
   maxNmissingHits           = configFile->GetValue("max_n_missing_hits", 0);
   maxNmissingHitsInRow      = configFile->GetValue("max_n_missing_hits_in_raw", 0);
   mergeAtTurnBack           = configFile->GetValue("merge_at_turn_back", 0);
@@ -71,7 +73,8 @@ ConfigManager::ConfigManager(string _path)
   
   allowOneLessLayer          = configFile->GetValue("allow_one_less_layer", 0);
   allowOneMoreLayer          = configFile->GetValue("allow_one_more_layer", 0);
-  allowOppositeCharge        = configFile->GetValue("allow_opposite_charge", 0);
+  checkOppositeChargeBelowNlayers = configFile->GetValue("check_opposite_charge_below_Nlayers", 0);
+  minLayersForDeltaXY         = configFile->GetValue("min_layers_for_delta_xy", inf);
   
   maxEta                      = configFile->GetValue("max_eta",10.0);
   nTrackHits                  = configFile->GetValue("n_track_hits",3);

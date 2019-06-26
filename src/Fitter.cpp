@@ -85,46 +85,59 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   InitLparams();
   charge = track.GetCharge();
 
-  vector<vector<shared_ptr<Point>>> pointsByLayer = pointsProcessor.SortByLayer(points);
-
-  vector<Helix> fittedHelices = GetSeeds(pointsByLayer);
+  vector<Helix> fittedHelices = PerformFittingCycle();
+  
+  if(nTrackLayers < config.checkOppositeChargeBelowNlayers){
+    if(config.verbosity>0) cout<<"Checking opposite charge for default n layers"<<endl;
+    charge = -charge;
+    vector<Helix> fittedHelicesOpposite = PerformFittingCycle();
+    fittedHelices.insert(fittedHelices.end(), fittedHelicesOpposite.begin(), fittedHelicesOpposite.end());
+    charge = -charge;
+  }
   
   if(config.allowOneLessLayer){
+    if(config.verbosity>0) cout<<"Assuming one less layer"<<endl;
     nTrackLayers-=1;
     InitLparams();
-    vector<Helix> fittedHelicesOneLess = GetSeeds(pointsByLayer);
+    vector<Helix> fittedHelicesOneLess = PerformFittingCycle();
     fittedHelices.insert(fittedHelices.end(), fittedHelicesOneLess.begin(), fittedHelicesOneLess.end());
+    
+    if(nTrackLayers < config.checkOppositeChargeBelowNlayers){
+      if(config.verbosity>0) cout<<"Checking opposite charge for one less layer"<<endl;
+      charge = -charge;
+      vector<Helix> fittedHelicesOpposite = PerformFittingCycle();
+      fittedHelices.insert(fittedHelices.end(), fittedHelicesOpposite.begin(), fittedHelicesOpposite.end());
+      charge = -charge;
+    }
+    
     nTrackLayers+=1;
   }
   if(config.allowOneMoreLayer){
+    if(config.verbosity>0) cout<<"Assuming one more layer"<<endl;
     nTrackLayers+=1;
     InitLparams();
-    vector<Helix> fittedHelicesOneMore = GetSeeds(pointsByLayer);
+    vector<Helix> fittedHelicesOneMore = PerformFittingCycle();
     fittedHelices.insert(fittedHelices.end(), fittedHelicesOneMore.begin(), fittedHelicesOneMore.end());
+    
+    if(nTrackLayers < config.checkOppositeChargeBelowNlayers){
+      if(config.verbosity>0) cout<<"Checking opposite charge for one more layer"<<endl;
+      charge = -charge;
+      vector<Helix> fittedHelicesOpposite = PerformFittingCycle();
+      fittedHelices.insert(fittedHelices.end(), fittedHelicesOpposite.begin(), fittedHelicesOpposite.end());
+      charge = -charge;
+    }
+    
     nTrackLayers-=1;
   }
   
-  if(config.allowOppositeCharge){
-    charge = -charge;
-    vector<Helix> fittedHelicesOpposite = GetSeeds(pointsByLayer);
-    fittedHelices.insert(fittedHelices.end(), fittedHelicesOpposite.begin(), fittedHelicesOpposite.end());
-    
-    if(config.allowOneLessLayer){
-      nTrackLayers-=1;
-      InitLparams();
-      vector<Helix> fittedHelicesOneLess = GetSeeds(pointsByLayer);
-      fittedHelices.insert(fittedHelices.end(), fittedHelicesOneLess.begin(), fittedHelicesOneLess.end());
-      nTrackLayers+=1;
-    }
-    if(config.allowOneMoreLayer){
-      nTrackLayers+=1;
-      InitLparams();
-      vector<Helix> fittedHelicesOneMore = GetSeeds(pointsByLayer);
-      fittedHelices.insert(fittedHelices.end(), fittedHelicesOneMore.begin(), fittedHelicesOneMore.end());
-      nTrackLayers-=1;
-    }
-  }
+  return fittedHelices;
+}
+
+vector<Helix> Fitter::PerformFittingCycle()
+{
+  vector<vector<shared_ptr<Point>>> pointsByLayer = pointsProcessor.SortByLayer(points);
   
+  vector<Helix> fittedHelices = GetSeeds(pointsByLayer);
   ExtendSeeds(fittedHelices, pointsByLayer);
   if(config.mergeFinalHelices) MergeHelices(fittedHelices);
   RemoveShortHelices(fittedHelices);
@@ -133,7 +146,6 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   for(auto &helix : fittedHelices){
     if(helix.GetShouldRefit()) RefitHelix(helix);
   }
-  
   return fittedHelices;
 }
 
@@ -297,7 +309,13 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             pointsProcessor.SetPointsT(tmpPoints, helix.GetOrigin(), helix.GetCharge());
             
             for(auto &point : points){
-              if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, nextPointLayer, true)) continue;
+              
+              if(helix.GetNlayers() >= config.minLayersForDeltaXY){
+                if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, nextPointLayer, true)) continue;
+              }
+              else{
+                if(!pointsProcessor.IsPhiGood(lastPoints, secondToLastPoints, point, charge)) continue;
+              }
               if(!pointsProcessor.IsZgood(lastPoints, point)) continue;
               if(!pointsProcessor.IsTgood(lastPoints, point)) continue;
               goodPoints.push_back(point);
@@ -599,12 +617,15 @@ void Fitter::GetXYranges(const Point &trackPoint,
   else              maxY0 += maxR0/sqrt(pow(y/x, 2)+1);
 }
 
-void Fitter::RemoveShortHelices(vector<Helix> helices)
+void Fitter::RemoveShortHelices(vector<Helix> &helices)
 {
   if(config.verbosity>0) cout<<"Removing very short merged helices...";
   vector<Helix> longHelices;
   for(auto helix : helices){
-    if(helix.GetNpoints() >= config.trackMinNpoints) longHelices.push_back(helix);
+    if(helix.GetNpoints() >= config.trackMinNpoints &&
+       helix.GetNlayers() >= config.trackMinNlayers){
+      longHelices.push_back(helix);
+    }
   }
   if(config.verbosity>0) cout<<" long merged helices: "<<longHelices.size()<<endl;
   helices = longHelices;
@@ -663,9 +684,7 @@ bool Fitter::LinkAndMergeHelices(vector<Helix> &helices)
     vector<shared_ptr<Point>> points1 = helix1.GetPoints();
     vector<shared_ptr<Point>> allPoints;
     
-    for(auto &p : points1){
-      allPoints.push_back(p);
-    }
+    for(auto &p : points1) allPoints.push_back(p);
     alreadyUsedHelices.push_back(iHelix);
     
     vector<int> childIndices;

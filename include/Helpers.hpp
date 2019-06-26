@@ -629,4 +629,19 @@ inline std::chrono::time_point<std::chrono::steady_clock> now()
   return std::chrono::steady_clock::now();
 }
 
+//inline double fastAtan2(double y, double x)
+//{
+//  double absX = fabs(x);
+//  double absY = fabs(y);
+//
+//  double a = min(absX, absY)/max(absX, absY);
+//  double s = a*a;
+//  double r = ((-0.0464964749*s + 0.15931422)*s - 0.327622764)*s*a + a;
+//  if(absY > absX) r = 1.57079637 - r;
+//  if(x<0) r = 3.14159274 - r;
+//  if(y<0) r = -r;
+//
+//  return r;
+//}
+
 #endif /* Helpers_h */

@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
       {"max_hits"  , PerformanceMonitor("Max hits",   20, 0, 20 , nEvents)},
       {"max_layers", PerformanceMonitor("Max layers", 20, 0, 20 , nEvents)},
 //      {"avg_length", PerformanceMonitor("Avg length", 20, 0, 2  , nEvents)},
-      {"max_length", PerformanceMonitor("Max length", 20, 0, 6   , nEvents)},
+      {"max_length", PerformanceMonitor("Max length", 40, 0, 12   , nEvents)},
 //      {"min_chi2"  , PerformanceMonitor("Min chi2"  , 10000, 0, 0.01 , nEvents)},
 //      {"min_chi2_per_hit"  , PerformanceMonitor("Min chi2 per hit"  , 10000, 0, 0.001 , nEvents)},
       {"turned_back"  , PerformanceMonitor("Did turn back"  , 2, 0, 2 , nEvents)},
@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
     pointsNoEndcapsBackground.push_back(GetClustersNoEndcaps(event, true));
   }
   
-  
+  auto start = now();
   for(int iTest=0; iTest<nTests; iTest++){
     cout<<"\n\nparam: "<<SetParamValue(iTest)<<"\n\n"<<endl;
     nAnalyzedEvents=0;
@@ -235,7 +235,7 @@ int main(int argc, char* argv[])
   //  events.SaveEventsToFiles("afterHelixTagging/");
   //  cout<<"helixTagger -- finished"<<endl;
   
-  
+  cout<<"Time: "<<duration(start, now());
   
   canvas->Update();
   theApp.Run();
@@ -308,15 +308,8 @@ int GetMaxNlayers(vector<Helix> helices)
   int maxNlayers = 0;
   
   for(auto helix : helices){
-    unordered_set<int> layers;
-    for(int iPoint=0; iPoint<helix.GetNpoints(); iPoint++){
-      int layer = helix.GetPoints()[iPoint]->GetLayer();
-      if(layer > 0){
-        if(iPoint < helix.GetFirstTurningPointIndex()) layers.insert( layer);
-        else                                           layers.insert(-layer);
-      }
-    }
-    if(layers.size() > maxNlayers) maxNlayers = (int)layers.size();
+    uint nLayers = helix.GetNlayers();
+    if(nLayers > maxNlayers) maxNlayers = nLayers;
   }
   return maxNlayers;
 }

@@ -14,24 +14,30 @@ double_hit_max_distance:            20.0
 seed_max_chi2:                             5
 
 seed_middle_hit_min_delta_phi:   -0.6
-seed_middle_hit_max_delta_phi:   0.4
+seed_middle_hit_max_delta_phi:   0.5
 seed_middle_hit_max_delta_z:     200
 
 seed_last_hit_min_delta_phi:       -0.6
-seed_last_hit_max_delta_phi:       0.4
+seed_last_hit_max_delta_phi:       0.5
 seed_last_hit_max_delta_z:          200
 
 ### Constrains on pion track parameters:
 track_max_chi2:                             0.01
 
+next_point_min_delta_phi:             -0.6
+next_point_max_delta_phi:             0.5
 next_point_max_delta_z:                300
-next_point_max_delta_xy:              200
+next_point_max_delta_xy:              500
 next_point_max_delta_t:                2.0
 
 track_min_n_points:                       3
+track_min_n_layers:                       2
+
+### Use distance to helix only when it passed through at least N layers:
+min_layers_for_delta_xy:                5
 
 ### Max number of different points and min number of points to merge two helices:
-merging_max_different_point:         2
+merging_max_different_point:         3
 candidate_min_n_points:                3
 merge_at_turn_back:                      0
 merge_final_helices:                        1
@@ -41,7 +47,7 @@ max_n_missing_hits:                       1
 max_n_missing_hits_in_raw:           1
 
 ### Asymmetric hits constraints:
-do_asymmetric_constraints:           1
+do_asymmetric_constraints:           0
 
 ### Turn on/off turning back helices
 allow_turning_back:                         1
@@ -56,7 +62,10 @@ exp_slope_function:         0
 ### Let pion helix start one layer before/after the chargino track or have opposite charge
 allow_one_less_layer: 1
 allow_one_more_layer: 1
-allow_opposite_charge: 1
+check_opposite_charge_below_Nlayers: 5
+
+
+
 
 **Helix tagger options**
 

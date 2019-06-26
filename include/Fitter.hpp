@@ -42,6 +42,8 @@ private:
   vector<shared_ptr<Point>> fittingPoints; ///< collection of points to which we are fitting at the moment
   function<double(const double*)> chi2Function; ///< chi2 function
   
+  vector<Helix> PerformFittingCycle();
+  
   /// Checks parameters of all combinations of points in layers close to the decay point
   /// and returns vector of 3-layer helices constructed from them
   vector<Helix> GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer);
@@ -67,7 +69,7 @@ private:
   void RefitHelix(Helix &helix);
   
   /// Removes helices that are below track_min_n_points threshold
-  void RemoveShortHelices(vector<Helix> helices);
+  void RemoveShortHelices(vector<Helix> &helices);
   
   /// Creates a fitter for seeds, with the best guess of the initial parameters
   /// \return nullptr if parameters were outside of limits, but requested only good params

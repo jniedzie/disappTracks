@@ -16,7 +16,7 @@ string cutLevel = "after_L2/all/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 113;
+int iEvent = 101;
 
 bool injectPion = false;
 bool fitHelix = true;
@@ -186,7 +186,6 @@ int main(int argc, char* argv[])
   display = new Display();
 	
 	auto event = GetEvent();
-	shared_ptr<Track> track = event->GetTrack(0);
 	
 	const map<string,any> dedxOptions = {
 		{"title", "dE/dx clusters"},
@@ -251,16 +250,18 @@ int main(int argc, char* argv[])
     auto pionClusters = event->GetPionClusters();
     auto pointsByLayer = pointsProcessor.SortByLayer(allSimplePoints);
   
-    for(shared_ptr<Point> point : pointsByLayer[track->GetNtrackerLayers()]){
-      auto trackPoint = pointsProcessor.GetPointOnTrack(layerR[track->GetNtrackerLayers()], *track, *event->GetVertex());
-
-      if(pointsProcessor.distance(make_shared<Point>(trackPoint), point) < 100){
-        if(find_if(pionClusters.begin(), pionClusters.end(), [&](const shared_ptr<Point> &p) {return *p == *point;}) == pionClusters.end()){
-          pionClusters.push_back(point);
+    for(auto &track : event->GetTracks()){
+      for(shared_ptr<Point> point : pointsByLayer[track->GetNtrackerLayers()]){
+        auto trackPoint = pointsProcessor.GetPointOnTrack(layerR[track->GetNtrackerLayers()], *track, *event->GetVertex());
+        
+        if(pointsProcessor.distance(make_shared<Point>(trackPoint), point) < 100){
+          if(find_if(pionClusters.begin(), pionClusters.end(), [&](const shared_ptr<Point> &p) {return *p == *point;}) == pionClusters.end()){
+            pionClusters.push_back(point);
+          }
         }
       }
     }
-    
+      
     map<string,any> pionClustersOptions = {
       {"title", "Pion hits"},
       {"binsMin" , 0},
@@ -283,26 +284,20 @@ int main(int argc, char* argv[])
       
       pointsNoEndcaps.push_back(point);
     }
+    pointsProcessor.SetPointsLayers(pionClusters);
+    display->DrawSimplePoints(pionHitsOnly ? pionClusters : pointsNoEndcaps, pionClustersOptions);
     
     auto start = now();
     vector<Helix> fittedHelices;
     
-    if(pionHitsOnly){
-      pointsProcessor.SetPointsLayers(pionClusters);
-      display->DrawSimplePoints(pionClusters, pionClustersOptions);
-      fittedHelices = fitter->FitHelices(pionClusters, *track, *event->GetVertex());
+    for(auto &track : event->GetTracks()){
+      vector<Helix> helices = fitter->FitHelices(pionHitsOnly ? pionClusters : pointsNoEndcaps, *track, *event->GetVertex());
+      fittedHelices.insert(fittedHelices.end(), helices.begin(), helices.end());
     }
-    else{
-      display->DrawSimplePoints(pointsNoEndcaps, pionClustersOptions);
-      fittedHelices = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
-//    fittedHelices = fitter->FitHelices(allSimplePoints, *track, *event->GetVertex());
-    }
-      
     auto end = now();
     
     cout<<"Fitting time: "<<duration(start, end)<<endl;
-    
-    
+
     map<string,any> bestHelixOptions = {
       {"title", "Best helix"},
       {"markerStyle", 20},

@@ -63,8 +63,6 @@ public:
   
   // Setters
   inline void   SetCharge(int val)            { charge = val; }
-  inline void   SetTmin(double val)           { tShift = val; }
-  inline void   SetTmax(double val)           { tMax = val; }
   inline void   SetMomentum(const Point &val) { momentum = make_unique<Point>(val); }
   inline void   SetPoints(vector<shared_ptr<Point>> &val){ points = val; }
   void          SetVertex(const Point &_vertex);
@@ -86,8 +84,8 @@ public:
   inline uint64_t             GetUniqueID() const {return uniqueID; }
   inline uint64_t             GetSeedID()   const {return seedID; }
   
-  inline double               GetTmin()     const {return tShift;}
-  inline double               GetTmax()     const {return tMax;}
+  inline double               GetTmin()     const {return points.front()->GetT();}
+  inline double               GetTmax()     const {return points.back()->GetT();}
   inline double               GetTstep()    const {return tStep;}
   
   double                      GetRadius(double t) const;
@@ -112,6 +110,7 @@ public:
   inline int   GetFirstTurningPointIndex(){ return firstTurningPointIndex; }
   
   double                      GetNcycles()  const;
+  uint                        GetNlayers() const;
   
   inline bool GetShouldRefit() const { return shouldRefit; }
   inline double GetChi2() const { return chi2; }
@@ -122,8 +121,6 @@ private:
   Point origin;                     ///< Center of the helix
   vector<shared_ptr<Point>> points; ///< Vector of points laying on the helix
   
-  double tShift;  ///< Angle by which beginning of the helix is shifted due to the shift of its origin
-  double tMax;    ///< Max angle (taking into account number of cycles
   double tStep;   ///< Step determining drawing precision
   
   unique_ptr<Point> momentum;   ///< Pion's momentum vector

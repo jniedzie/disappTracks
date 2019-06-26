@@ -47,8 +47,12 @@ double GetParamForCurrentConfig(string monitorType, string optParam)
 {
   nAnalyzedEvents=0;
   int max = 20;
+  int nBins = 20;
   if(monitorType=="avg_length") max = 2;
-  if(monitorType=="max_length") max = 6;
+  if(monitorType=="max_length"){
+    nBins = 40;
+    max = 12;
+  }
   auto monitor = PerformanceMonitor(monitorType, 20, 0, max, nEvents);
   
   for(auto iEvent=0; iEvent<nEvents; iEvent++){

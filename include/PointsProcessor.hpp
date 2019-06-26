@@ -31,41 +31,8 @@ public:
   double distance(const Point &p1,const Point &p2) const;
   double distance(shared_ptr<Point> p1, shared_ptr<Point> p2) const;
   
-  double distanceWithUncertainZ(shared_ptr<Point> p1, shared_ptr<Point> p2, double zTolerance) const;
-  
   /// Returns distance between this and another point in the transverse plane
   double distanceXY(Point p1, Point p2) const;
-  
-  /// Returns squared distance between this and another point in the transverse plane
-  /// (should be much faster than a true distance)
-  double distanceXYsquared(Point p1, Point p2) const;
-  
-  /// Separates vector of points into groups with the same XY position (within tolerance)
-  vector<vector<Point>> SplitPointsIntoLines(const vector<shared_ptr<Point>> &points,
-                                             double tolerance) const;
-  
-  /// Returns a vector filled with random points in the pixel barrel
-  /// \param nPoints Number of points that will be generated
-  vector<shared_ptr<Point>> GetRandomPoints(int nPoints) const;
-  
-  /// Returns a new vector containing points that are not closer to each other than given threshold
-  /// \param points Input points vector
-  /// \param minPointsSeparation Minimal allowed distance between two points
-  vector<shared_ptr<Point>> FilterNearbyPoints(const vector<shared_ptr<Point>> &points,
-                                               double minPointsSeparation);
-  
-  /// Creates all possible combinations of input points with a dummy first triplet point
-  TripletsVector BuildPointTriplets(const vector<shared_ptr<Point>> &points);
-  
-  /// Creates all possible combinations of two input points
-  vector<PointsPair> BuildPointPairs(const vector<shared_ptr<Point>> &points);
-  
-  /// Creates a vector of pairs of point triples. In each pair first one starts with provided originMin
-  /// point, the second one with the originMax. Second and third element of each pair are all possible
-  /// combinations of the input points provided.
-  TripletPairsVector BuildPointTripletPairs(const vector<shared_ptr<Point>> &points,
-                                            const shared_ptr<Point> &originMin,
-                                            const shared_ptr<Point> &originMax);
   
   /// Sorts provided points by layer 
   vector<vector<shared_ptr<Point>>> SortByLayer(const vector<shared_ptr<Point>> &points);
@@ -117,7 +84,7 @@ public:
                                                 const Point &trackMidPoint,
                                                 int charge);
   
-  /// Structs for sorting point
+  /// Structs for sorting points
   struct ComparePointByZ{
     bool operator() (const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){
       return (p1->GetZ() < p2->GetZ());
