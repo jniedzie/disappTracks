@@ -409,9 +409,11 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           // add a missing hit
           else{
             int missingHitLayer = helix.GetFirstTurningPointIndex() > 0 ? lastPointLayer-1 : lastPointLayer+1;
+            if(!crossesNextLayer) missingHitLayer = lastPointLayer;
             shared_ptr<Point> missingHit = helixProcessor.GetPointCloseToHelixInLayer(helix, missingHitLayer);
 
             helix.AddPoint(missingHit); // this will set missing hit's T
+            missingHit = helix.GetLastPoints().back();
             double t = missingHit->GetT();
             missingHit->SetZ(-helix.GetCharge()*helix.GetOrigin().GetZ() + helix.GetSlope(t)*t + 10*eventVertex.GetZ());
             missingHit->SetSubDetName("missing");

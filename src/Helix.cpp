@@ -63,6 +63,7 @@ firstTurningPointIndex(-1)
                                       -charge*origin.GetZ() + GetSlope(tMax)*tMax);
   
   lastPoint->SetT(tMax);
+  lastPoint->SetLayer(20);
   points.push_back(lastPoint);
   
   tStep = 0.01;
@@ -89,7 +90,7 @@ firstTurningPointIndex(-1)
   charge = track.GetCharge();
   
   points.push_back(make_shared<Point>(_decayVertex));
-  for(auto &p : _points) points.push_back(p);
+  for(auto &p : _points) points.push_back(make_shared<Point>(*p));
   
   // this only gives approximate direction of the momentum vector
   momentum = make_unique<Point>(points[1]->GetX() - points[0]->GetX(),
@@ -203,7 +204,7 @@ void Helix::AddPoint(const shared_ptr<Point> &point)
   while(fabs(t-tMax) > fabs(t-2*TMath::Pi()-tMax)) t -= 2*TMath::Pi();
   
   point->SetT(t);
-  points.push_back(point);
+  points.push_back(make_shared<Point>(*point));
 }
 
 void Helix::UpdateOrigin(const Point &_origin)
@@ -235,10 +236,9 @@ vector<shared_ptr<Point>> Helix::GetLastPoints() const
     
     if((point->GetLayer() == lastPointLayer) &&
        (iPoint>=firstTurningPointIndex)){
-      resultPoints.push_back(point);
+      resultPoints.push_back(make_shared<Point>(*point));
     }
   }
-  
   return resultPoints;
 }
 
@@ -252,13 +252,13 @@ vector<shared_ptr<Point>> Helix::GetSecontToLastPoints() const
     auto point = points[iPoint];
     
     if(firstTurningPointIndex<0){
-      if((point->GetLayer() == lastPointLayer-1)) resultPoints.push_back(point);
+      if((point->GetLayer() == lastPointLayer-1)) resultPoints.push_back(make_shared<Point>(*point));
     }
     else if(iPoint<firstTurningPointIndex){
-      if((point->GetLayer() == lastPointLayer)) resultPoints.push_back(point);
+      if((point->GetLayer() == lastPointLayer)) resultPoints.push_back(make_shared<Point>(*point));
     }
     else{
-      if((point->GetLayer() == lastPointLayer+1)) resultPoints.push_back(point);
+      if((point->GetLayer() == lastPointLayer+1)) resultPoints.push_back(make_shared<Point>(*point));
     }
   }
   
@@ -277,3 +277,19 @@ uint Helix::GetNlayers() const
   }
   return layers.size();
 }
+
+double Helix::GetTmax() const
+{
+  vector<shared_ptr<Point>> lastPoints = GetLastPoints();
+  if(lastPoints.size()==1) return lastPoints.front()->GetT();
+  
+  double extremeT=charge*inf;
+  
+  for(auto &point : lastPoints){
+    if(charge > 0 && point->GetT() < extremeT) extremeT = point->GetT();
+    if(charge < 0 && point->GetT() > extremeT) extremeT = point->GetT();
+  }
+
+  return extremeT;
+}
+  

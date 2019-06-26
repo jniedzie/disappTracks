@@ -85,7 +85,7 @@ public:
   inline uint64_t             GetSeedID()   const {return seedID; }
   
   inline double               GetTmin()     const {return points.front()->GetT();}
-  inline double               GetTmax()     const {return points.back()->GetT();}
+         double               GetTmax()     const;
   inline double               GetTstep()    const {return tStep;}
   
   double                      GetRadius(double t) const;
