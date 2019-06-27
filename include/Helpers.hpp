@@ -629,6 +629,14 @@ inline std::chrono::time_point<std::chrono::steady_clock> now()
   return std::chrono::steady_clock::now();
 }
 
+inline double GetRofT(double R0, double a, double t, int charge){
+  return R0 + charge*a*t;
+}
+
+inline double GetSofT(double s0, double b, double t, int charge){
+  return s0 + charge*b*t;
+}
+
 //inline double fastAtan2(double y, double x)
 //{
 //  double absX = fabs(x);

@@ -12,7 +12,6 @@ errX(0),
 errY(0),
 errZ(0),
 value(0),
-t(0),
 layer(-1),
 subDetName(""),
 time(-1.0)
@@ -31,7 +30,6 @@ isPionHit(false),
 errX(_errX),
 errY(_errY),
 errZ(_errZ),
-t(_t),
 layer(_layer),
 time(_time)
 {
@@ -49,7 +47,6 @@ Point::Point(const Point &p)
   errY       = p.errY;
   errZ       = p.errZ;
   subDetName = p.subDetName;
-  t          = p.t;
   layer      = p.layer;
   time       = p.time;
 }
@@ -65,7 +62,6 @@ void Point::operator=(const Point &p)
   errY       = p.errY;
   errZ       = p.errZ;
   subDetName = p.subDetName;
-  t          = p.t;
   layer      = p.layer;
   time       = p.time;
 }
@@ -81,7 +77,6 @@ Point::Point(vector<Point> points)
     errX += p.GetXerr();
     errY += p.GetYerr();
     errZ += p.GetZerr();
-    t += p.t;
     time += p.time;
   }
   x /= points.size();
@@ -90,7 +85,6 @@ Point::Point(vector<Point> points)
   errX /= points.size();
   errY /= points.size();
   errZ /= points.size();
-  t /= points.size();
   time /= points.size();
 }
 

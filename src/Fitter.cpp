@@ -20,7 +20,6 @@ eventVertex(Point(0, 0, 0))
     // First add distance to the vertex
     Point origin(x0, y0, z0);
     fittingPoints[0] = make_shared<Point>(pointsProcessor.GetPointOnTrack(L, track, eventVertex));
-    pointsProcessor.SetPointsT(fittingPoints, origin, charge);
     
     double t, distX, distY, distZ, x, y, z;
     double f=0;
@@ -29,17 +28,11 @@ eventVertex(Point(0, 0, 0))
     for(auto &p : fittingPoints){
       if(p->GetSubDetName()=="missing") continue;
       
-      t = p->GetT();
-      if(config.expRadiusFunction){
-        x = x0 + (R0*exp(-a*t))*cos(t);
-        y = y0 + (R0*exp(-a*t))*sin(t);
-      }
-      else{
-        x = x0 + (R0 - a*t)*cos(t);
-        y = y0 + (R0 - a*t)*sin(t);
-      }
-      if(config.expSlopeFunction) z = -charge*z0 + (s0*exp(-b*t))*t;
-      else                        z = -charge*z0 + (s0 - b*t)*t;
+      t = pointsProcessor.GetTforPoint(*p, origin, charge);
+      
+      x = x0 + GetRofT(R0, a, t, charge)*cos(t);
+      y = y0 + GetRofT(R0, a, t, charge)*sin(t);
+      z = -charge*z0 + GetSofT(s0, b, t, charge)*t;
       
       // calculate distance between helix and point's boundary (taking into account its errors)
       distX = distY = distZ = 0;
@@ -302,11 +295,11 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             
             vector<shared_ptr<Point>> goodPoints;
             
-            // Set T of possible new pionts like if they were laying on this helix
-            vector<shared_ptr<Point>> tmpPoints;
-            tmpPoints.insert(tmpPoints.end(), helixPoints.begin(), helixPoints.end());
-            tmpPoints.insert(tmpPoints.end(), points.begin(), points.end());
-            pointsProcessor.SetPointsT(tmpPoints, helix.GetOrigin(), helix.GetCharge());
+            vector<double> lastPointsT;
+            
+            for(size_t index : helix.GetLastPointsIndices()){
+              lastPointsT.push_back(helix.GetPointT(index));
+            }
             
             for(auto &point : points){
               
@@ -317,7 +310,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
                 if(!pointsProcessor.IsPhiGood(lastPoints, secondToLastPoints, point, charge)) continue;
               }
               if(!pointsProcessor.IsZgood(lastPoints, point)) continue;
-              if(!pointsProcessor.IsTgood(lastPoints, point)) continue;
+              if(!pointsProcessor.IsTgood(lastPointsT, pointsProcessor.GetTforPoint(*point, helix.GetOrigin(), helix.GetCharge()))) continue;
               goodPoints.push_back(point);
             }
             
@@ -367,8 +360,8 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             
             /// Extend helix by the new point and refit its params
             Helix helixCopy(helix);
-            helixCopy.SetFirstTurningPointIndex(helixCopy.GetNpoints());
             for(auto &point : goodTurningBackPoints) helixCopy.AddPoint(point);
+            helixCopy.SetFirstTurningPointIndex(helixCopy.GetNpoints()-1);
             RefitHelix(helixCopy);
             
             // check if chi2 is small enough
@@ -376,7 +369,6 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             
             // if we reached this point, it means that this hit is not missing
             helixCopy.SetIsPreviousHitMissing(false);
-            
             
             extendedHelices.push_back(helixCopy);
           }
@@ -398,7 +390,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
              helix.GetNmissingHitsInRow()  >= config.maxNmissingHitsInRow){
             
             // if last hit was a missing hit, remove it
-            if(helix.GetLastPoints().size()==1 && helix.GetLastPoints().front()->GetSubDetName()=="missing"){
+            if(helix.GetLastPoints().back()->GetSubDetName()=="missing"){
               helix.RemoveLastPoint();
               RefitHelix(helix);
             }
@@ -414,8 +406,10 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
 
             helix.AddPoint(missingHit); // this will set missing hit's T
             missingHit = helix.GetLastPoints().back();
-            double t = missingHit->GetT();
-            missingHit->SetZ(-helix.GetCharge()*helix.GetOrigin().GetZ() + helix.GetSlope(t)*t + 10*eventVertex.GetZ());
+//            double t = missingHit->GetT();
+//            missingHit->SetZ(-helix.GetCharge()*helix.GetOrigin().GetZ() + helix.GetSlope(t)*t + 10*eventVertex.GetZ());
+            missingHit->SetZ(lastPoints.front()->GetZ());
+            
             missingHit->SetSubDetName("missing");
             helix.IncreaseMissingHits();
             
@@ -683,10 +677,9 @@ bool Fitter::LinkAndMergeHelices(vector<Helix> &helices)
     Helix &helix1 = helixLinks[iHelix].first;
     Helix helix1Copy(helix1);
     
-    vector<shared_ptr<Point>> points1 = helix1.GetPoints();
-    vector<shared_ptr<Point>> allPoints;
-    
-    for(auto &p : points1) allPoints.push_back(p);
+    vector<shared_ptr<Point>> allPoints = helix1.GetPoints();
+    vector<double> allPointsT = helix1.GetPointsT();
+
     alreadyUsedHelices.push_back(iHelix);
     
     vector<int> childIndices;
@@ -698,24 +691,22 @@ bool Fitter::LinkAndMergeHelices(vector<Helix> &helices)
       
       Helix &helix2 = helices[iChild];
       vector<shared_ptr<Point>> points2 = helix2.GetPoints();
+      vector<double> pointsT2 = helix2.GetPointsT();
       
-      for(auto &p : points2){
+      for(size_t index=0; index<points2.size(); index++){
+        auto p = points2[index];
         if(p->GetLayer()<0) continue; // don't merge in the decay vertex
         if(find_if(allPoints.begin(), allPoints.end(), [&](const shared_ptr<Point> &p1){return *p == *p1;}) != allPoints.end()) continue; // don't add the same point twice
+        
         allPoints.push_back(p);
+        allPointsT.push_back(pointsT2[index]);
       }
       
       toRemove.push_back(iChild);
       childIndices.push_back(iChild);
     }
     
-    if(helix1Copy.GetCharge() > 0)
-      sort(allPoints.begin(), allPoints.end(), PointsProcessor::ComparePointByTinverted());
-    else
-      sort(allPoints.begin(), allPoints.end(), PointsProcessor::ComparePointByT());
-    
-    helix1Copy.SetPoints(allPoints);
-    
+    helix1Copy.SetPointsAndSortByT(allPoints, allPointsT);
     RefitHelix(helix1Copy);
     
     if(helix1Copy.GetChi2() < config.trackMaxChi2){

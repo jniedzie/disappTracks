@@ -54,14 +54,9 @@ public:
   
   vector<vector<shared_ptr<Point>>> RegroupNerbyPoints(const vector<shared_ptr<Point>> &points);
   
-  double GetTforPoint(Point &point, const Point &origin, int charge);
+  double GetTforPoint(const Point &point, const Point &origin, int charge);
   
   void SetPointsLayers(vector<shared_ptr<Point>> &points);
-  
-  void SetPointsT(vector<shared_ptr<Point>> &points, const Point &origin, int charge);
-  
-  void SetPointsT(vector<shared_ptr<Point>> &points, const Point &origin, int charge,
-                  shared_ptr<Point> &lastPointBeforeTurning);
   
   bool IsPhiGood(const vector<shared_ptr<Point>> &lastPoints,
                  const vector<shared_ptr<Point>> &secondToLastPoints,
@@ -71,8 +66,7 @@ public:
   bool IsZgood(const vector<shared_ptr<Point>> &lastPoints,
                const shared_ptr<Point> &point);
   
-  bool IsTgood(const vector<shared_ptr<Point>> &lastPoints,
-               const shared_ptr<Point> &point);
+  bool IsTgood(const vector<double> &lastPointsT, double pointT);
   
   vector<shared_ptr<Point>> GetGoodMiddleSeedHits(const vector<shared_ptr<Point>> &middlePoints,
                                                   const Point &trackMidPoint,
@@ -112,18 +106,6 @@ public:
   struct ComparePointByLayerInverted{
     bool operator() (const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){
       return (p1->GetLayer() > p2->GetLayer());
-    }
-  };
-  
-  struct ComparePointByT{
-    bool operator() (const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){
-      return (p1->GetT() < p2->GetT());
-    }
-  };
-  
-  struct ComparePointByTinverted{
-    bool operator() (const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){
-      return (p1->GetT() > p2->GetT());
     }
   };
   

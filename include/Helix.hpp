@@ -64,7 +64,9 @@ public:
   // Setters
   inline void   SetCharge(int val)            { charge = val; }
   inline void   SetMomentum(const Point &val) { momentum = make_unique<Point>(val); }
-  inline void   SetPoints(vector<shared_ptr<Point>> &val){ points = val; }
+  void          SetPointsAndSortByT(const vector<shared_ptr<Point>> &points,
+                                    const vector<double> &_pointsT);
+  
   void          SetVertex(const Point &_vertex);
   inline void   SetShouldRefit(bool val) { shouldRefit = val; }
   inline void   SetChi2(double val) { chi2 = val; }
@@ -73,18 +75,17 @@ public:
   inline void   SetIsPreviousHitMissing(bool val){ isPreviousHitMissing = val; }
   inline void   SetFirstTurningPointIndex(int val){ firstTurningPointIndex = val; }
   
-  /// Increases number of missing hits and missing hits in a row (based on isPreviousHitMissing variable, which
-  /// should be set by the user).
+  /// Increases number of missing hits and missing hits in a row (based on isPreviousHitMissing
+  /// variable, which should be set by the user).
   void   IncreaseMissingHits();
   void   RemoveLastPoint();
-  
   
   // Getters
   inline int                  GetCharge()   const {return charge; }
   inline uint64_t             GetUniqueID() const {return uniqueID; }
   inline uint64_t             GetSeedID()   const {return seedID; }
   
-  inline double               GetTmin()     const {return points.front()->GetT();}
+  inline double               GetTmin()     const {return pointsT.front();}
          double               GetTmax()     const;
   inline double               GetTstep()    const {return tStep;}
   
@@ -98,8 +99,13 @@ public:
   inline unique_ptr<Point>    GetMomentum() const {return make_unique<Point>(*momentum);}
   
   vector<shared_ptr<Point>>   GetPoints()   const {return points;}
+  vector<double>              GetPointsT()  const {return pointsT;}
+  
+  double GetPointT(size_t index) const {return pointsT[index];}
   vector<shared_ptr<Point>>   GetLastPoints() const;
   vector<shared_ptr<Point>>   GetSecontToLastPoints() const;
+  
+  vector<size_t>   GetLastPointsIndices() const;
   
   inline uint                 GetNpoints()  const {return (uint)(points.size());}
   
@@ -110,7 +116,7 @@ public:
   inline int   GetFirstTurningPointIndex(){ return firstTurningPointIndex; }
   
   double                      GetNcycles()  const;
-  uint                        GetNlayers() const;
+  size_t                      GetNlayers() const;
   
   inline bool GetShouldRefit() const { return shouldRefit; }
   inline double GetChi2() const { return chi2; }
@@ -120,6 +126,7 @@ public:
 private:
   Point origin;                     ///< Center of the helix
   vector<shared_ptr<Point>> points; ///< Vector of points laying on the helix
+  vector<double> pointsT;           ///< T values of points
   
   double tStep;   ///< Step determining drawing precision
   
@@ -140,6 +147,8 @@ private:
   int nMissingHits;
   int nMissingHitsInRow;
   bool isPreviousHitMissing;
+  
+  void SortPointsByT(bool inverted);
   
   friend class HelixProcessor;
 };

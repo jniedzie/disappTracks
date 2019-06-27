@@ -10,10 +10,10 @@
 #include "EventSet.hpp"
 
 string configPath = "configs/helixTagger.md";
-string outFilePrefix = "L2_all";
+string outFilePrefix = "L1_all";
 string outPath = "taggerScannerOutput.txt";
-string cutLevel = "after_L2/all/";//after_L1/";
-string optimizeFor = "min_fake";
+string cutLevel = "after_L1/all/";//after_L1/";
+string optimizeFor = "sigma_L0";
 string optimizationMonitor = "max_hits";
 
 const int nEvents = 40;
@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
   
 //   seed chi2
   double bestSeedChi2 = config.seedMaxChi2;
-  for(double exponent=-3; exponent<=1; exponent+=1){
+  for(double exponent=-3; exponent<=-1; exponent+=1){
     config.seedMaxChi2 = pow(10, exponent);
     double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
     cout<<"seed_max_chi2: "<<config.seedMaxChi2<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
@@ -167,19 +167,19 @@ int main(int argc, char* argv[])
 //  config.seedMiddleHitDeltaPhi = range<double>(bestMiddleMinPhi, config.seedMiddleHitDeltaPhi.GetMax());
 
   // seed middle max Δφ
-//  double bestMiddleMaxPhi = config.seedMiddleHitDeltaPhi.GetMax();
-//  for(double max = 0.0; max <= 1.0; max+=0.2){
-//    config.seedMiddleHitDeltaPhi = range<double>(config.seedMiddleHitDeltaPhi.GetMin(), max);
-//
-//    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
-//    cout<<"seed_middle_hit_max_delta_phi: "<<max<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
-//
-//    if(currentAUC > maxOptValue){
-//      maxOptValue = currentAUC;
-//      bestMiddleMaxPhi = max;
-//    }
-//  }
-//  config.seedMiddleHitDeltaPhi = range<double>(config.seedMiddleHitDeltaPhi.GetMin(), bestMiddleMaxPhi);
+  double bestMiddleMaxPhi = config.seedMiddleHitDeltaPhi.GetMax();
+  for(double max = 0.0; max <= 1.0; max+=0.2){
+    config.seedMiddleHitDeltaPhi = range<double>(config.seedMiddleHitDeltaPhi.GetMin(), max);
+
+    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
+    cout<<"seed_middle_hit_max_delta_phi: "<<max<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
+
+    if(currentAUC > maxOptValue){
+      maxOptValue = currentAUC;
+      bestMiddleMaxPhi = max;
+    }
+  }
+  config.seedMiddleHitDeltaPhi = range<double>(config.seedMiddleHitDeltaPhi.GetMin(), bestMiddleMaxPhi);
   
   
   // seed middle Δz
@@ -212,10 +212,10 @@ int main(int argc, char* argv[])
     }
   }
   config.seedLastHitDeltaPhi = range<double>(bestLastMinPhi, config.seedLastHitDeltaPhi.GetMax());
-  
+  */
   // seed last max Δφ
   double bestLastMaxPhi = config.seedLastHitDeltaPhi.GetMax();
-  for(double max = 0.2; max <= 0.7; max+=0.1){
+  for(double max = 0.0; max <= 1.0; max+=0.2){
     config.seedLastHitDeltaPhi = range<double>(config.seedLastHitDeltaPhi.GetMin(), max);
     
     double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
@@ -227,7 +227,6 @@ int main(int argc, char* argv[])
     }
   }
   config.seedLastHitDeltaPhi = range<double>(config.seedLastHitDeltaPhi.GetMin(), bestLastMaxPhi);
-   */
   
   // seed last min Δz
 //  double bestLastZ = config.seedLastHitMaxDeltaZ;
@@ -317,12 +316,12 @@ int main(int argc, char* argv[])
   outFile << "Output for data: " << cutLevel << "\t optimizing for: "<<optimizeFor<<"\tusing monitor: "<<optimizationMonitor<<endl;
   outFile << "Init "<<optimizeFor<<": "<<initOptValue<<"\tfinal "<<optimizeFor<<":"<<maxOptValue<<endl;
 //  outFile << "double_hit_max_distance: "<<bestDoubleHitsDistance<<endl;
-//  outFile << "seed_max_chi2: "<<bestSeedChi2<<endl;
+  outFile << "seed_max_chi2: "<<bestSeedChi2<<endl;
 //  outFile << "seed_middle_hit_min_delta_phi: "<<bestMiddleMinPhi<<endl;
-//  outFile << "seed_middle_hit_max_delta_phi: "<<bestMiddleMaxPhi<<endl;
+  outFile << "seed_middle_hit_max_delta_phi: "<<bestMiddleMaxPhi<<endl;
 //  outFile << "seed_middle_hit_max_delta_z: "<<bestMiddleZ<<endl;
 //  outFile << "seed_last_hit_min_delta_phi: "<<bestLastMinPhi<<endl;
-//  outFile << "seed_last_hit_max_delta_phi: "<<bestLastMaxPhi<<endl;
+  outFile << "seed_last_hit_max_delta_phi: "<<bestLastMaxPhi<<endl;
 //  outFile << "seed_last_hit_max_delta_z: "<<bestLastZ<<endl;
 //  outFile << "track_max_chi2: "<<bestTrackChi2<<endl;
 //  outFile << "next_point_max_delta_z: "<<bestTrackZ<<endl;

@@ -16,7 +16,7 @@ string cutLevel = "after_L2/all/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 101;
+int iEvent = 2;
 
 bool injectPion = false;
 bool fitHelix = true;

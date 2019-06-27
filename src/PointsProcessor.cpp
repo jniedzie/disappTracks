@@ -147,7 +147,7 @@ Point PointsProcessor::GetPointOnTrack(double L, const Track &track, const Point
   return p;
 }
 
-double PointsProcessor::GetTforPoint(Point &point, const Point &origin, int charge)
+double PointsProcessor::GetTforPoint(const Point &point, const Point &origin, int charge)
 {
   double t = atan2(point.GetY() - origin.GetY(), point.GetX() - origin.GetX());
 
@@ -183,20 +183,6 @@ vector<vector<shared_ptr<Point>>> PointsProcessor::RegroupNerbyPoints(const vect
   }
   
   return regroupedPoints;
-}
-
-void PointsProcessor::SetPointsT(vector<shared_ptr<Point>> &points, const Point &origin, int charge)
-{
-  for(int iPoint=0; iPoint<points.size(); iPoint++){
-    auto point = points[iPoint];
-    double t = GetTforPoint(*point, origin, charge);
-    if(iPoint!=0){
-      double previousT = points[iPoint-1]->GetT();
-      while(fabs(t+2*TMath::Pi()-previousT) < fabs(t-previousT)) t += 2*TMath::Pi();
-      while(fabs(t-2*TMath::Pi()-previousT) < fabs(t-previousT)) t -= 2*TMath::Pi();
-    }
-    point->SetT(t);
-  }
 }
 
 bool PointsProcessor::IsPhiGood(const vector<shared_ptr<Point>> &lastPoints,
@@ -236,13 +222,12 @@ bool PointsProcessor::IsZgood(const vector<shared_ptr<Point>> &lastPoints,
   return goodZ;
 }
 
-bool PointsProcessor::IsTgood(const vector<shared_ptr<Point>> &lastPoints,
-                              const shared_ptr<Point> &point)
+bool PointsProcessor::IsTgood(const vector<double> &lastPointsT, double pointT)
 {
   bool goodT = false;
   
-  for(auto &lastPoint : lastPoints){
-    double deltaT = fabs(lastPoint->GetT() - point->GetT());
+  for(auto &lastPointT : lastPointsT){
+    double deltaT = fabs(lastPointT - pointT);
     if(deltaT > config.nextPointMaxDeltaT) continue;
     goodT = true;
     break;
@@ -303,7 +288,7 @@ vector<shared_ptr<Point>> PointsProcessor::GetGoodMiddleSeedHits(const vector<sh
                                                                  int charge)
 {
   vector<shared_ptr<Point>> goodMiddlePoints;
-  for(auto &point : middlePoints){    
+  for(auto &point : middlePoints){
     if(!pointsProcessor.IsGoodMiddleSeedHit(*point, trackMidPoint, eventVertex, charge)) continue;
     goodMiddlePoints.push_back(point);
   }

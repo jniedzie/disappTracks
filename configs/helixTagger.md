@@ -3,7 +3,7 @@
 ### Path of the output file:
 output_path: helixFittingResults/tests.root
 
-verbosity_level:  1
+verbosity_level:  0
 
 **Fitter parameters**
 
@@ -11,24 +11,24 @@ verbosity_level:  1
 double_hit_max_distance:            20.0
 
 ### Constraints on seeds parameters:
-seed_max_chi2:                             5
+seed_max_chi2:                             0.01
 
 seed_middle_hit_min_delta_phi:   -0.6
-seed_middle_hit_max_delta_phi:   0.5
+seed_middle_hit_max_delta_phi:   0.4
 seed_middle_hit_max_delta_z:     200
 
 seed_last_hit_min_delta_phi:       -0.6
-seed_last_hit_max_delta_phi:       0.5
+seed_last_hit_max_delta_phi:       0.4
 seed_last_hit_max_delta_z:          200
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             0.01
+track_max_chi2:                             0.04
 
 next_point_min_delta_phi:             -0.6
 next_point_max_delta_phi:             0.5
 next_point_max_delta_z:                300
-next_point_max_delta_xy:              500
-next_point_max_delta_t:                2.0
+next_point_max_delta_xy:              200
+next_point_max_delta_t:                0.7
 
 track_min_n_points:                       3
 track_min_n_layers:                       2
@@ -37,7 +37,7 @@ track_min_n_layers:                       2
 min_layers_for_delta_xy:                5
 
 ### Max number of different points and min number of points to merge two helices:
-merging_max_different_point:         3
+merging_max_different_point:         2
 candidate_min_n_points:                3
 merge_at_turn_back:                      0
 merge_final_helices:                        1

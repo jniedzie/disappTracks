@@ -23,8 +23,6 @@ nMissingHitsInRow(0),
 isPreviousHitMissing(false),
 firstTurningPointIndex(-1)
 {
-  points.push_back(make_shared<Point>(_decayVertex));
-  
   seedID = uniqueID = reinterpret_cast<uint64_t>(this);
   
   helixParams.R0 = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
@@ -54,7 +52,8 @@ firstTurningPointIndex(-1)
   }
   origin.SetZ(origin.GetZ() - fabs(tShift)*fabs(GetSlope(0)));
   
-  points.front()->SetT(tShift);
+  points.push_back(make_shared<Point>(_decayVertex));
+  pointsT.push_back(tShift);
   
   double tMax = GetNcycles()*2*TMath::Pi();
   
@@ -62,9 +61,10 @@ firstTurningPointIndex(-1)
                                       origin.GetY() + GetRadius(tMax)*sin(tMax),
                                       -charge*origin.GetZ() + GetSlope(tMax)*tMax);
   
-  lastPoint->SetT(tMax);
   lastPoint->SetLayer(20);
+  
   points.push_back(lastPoint);
+  pointsT.push_back(tMax);
   
   tStep = 0.01;
 }
@@ -90,7 +90,12 @@ firstTurningPointIndex(-1)
   charge = track.GetCharge();
   
   points.push_back(make_shared<Point>(_decayVertex));
-  for(auto &p : _points) points.push_back(make_shared<Point>(*p));
+  pointsT.push_back(pointsProcessor.GetTforPoint(_decayVertex, origin, charge));
+  
+  for(auto &p : _points){
+    points.push_back(p);
+    pointsT.push_back(pointsProcessor.GetTforPoint(*p, origin, charge));
+  }
   
   // this only gives approximate direction of the momentum vector
   momentum = make_unique<Point>(points[1]->GetX() - points[0]->GetX(),
@@ -105,6 +110,7 @@ iCycles(h.iCycles),
 isFinished(h.isFinished),
 seedID(h.seedID),
 points(h.points),
+pointsT(h.pointsT),
 tStep(h.tStep),
 origin(h.origin),
 momentum(make_unique<Point>(*h.momentum)),
@@ -133,6 +139,7 @@ Helix& Helix::operator=(const Helix &h)
   isFinished     = h.isFinished;
   seedID         = h.seedID;
   points         = h.points;
+  pointsT        = h.pointsT;
   tStep          = h.tStep;
   track          = h.track;
   helixParams    = h.helixParams;
@@ -185,14 +192,12 @@ double Helix::GetNcycles() const
 
 double Helix::GetRadius(double t) const
 {
-  if(config.expRadiusFunction) return helixParams.R0 * exp(-helixParams.a*t);
-  return (helixParams.R0 - helixParams.a*t);
+  return GetRofT(helixParams.R0, helixParams.a, t, charge);
 }
 
 double Helix::GetSlope(double t) const
 {
-  if(config.expRadiusFunction) return helixParams.s0 * exp(-helixParams.b*t);
-  return (helixParams.s0 - helixParams.b*t);
+  return GetSofT(helixParams.s0, helixParams.b, t, charge);
 }
 
 void Helix::AddPoint(const shared_ptr<Point> &point)
@@ -200,17 +205,27 @@ void Helix::AddPoint(const shared_ptr<Point> &point)
   double t = pointsProcessor.GetTforPoint(*point, origin, charge);
   double tMax = GetTmax();
   
-  while(fabs(t-tMax) > fabs(t+2*TMath::Pi()-tMax)) t += 2*TMath::Pi();
-  while(fabs(t-tMax) > fabs(t-2*TMath::Pi()-tMax)) t -= 2*TMath::Pi();
-  
-  point->SetT(t);
-  points.push_back(make_shared<Point>(*point));
+  if(charge > 0){ if(t > tMax) t -= 2*TMath::Pi(); }
+  else          { if(t < tMax) t += 2*TMath::Pi(); }
+
+  points.push_back(point);
+  pointsT.push_back(t);
 }
 
 void Helix::UpdateOrigin(const Point &_origin)
 {
   origin = _origin;
-  pointsProcessor.SetPointsT(points, origin, charge);
+  
+  for(int iPoint=0; iPoint<points.size(); iPoint++){
+    auto point = points[iPoint];
+    double t = pointsProcessor.GetTforPoint(*point, origin, charge);
+    if(iPoint!=0){
+      double previousT = pointsT[iPoint-1];
+      while(fabs(t+2*TMath::Pi()-previousT) < fabs(t-previousT)) t += 2*TMath::Pi();
+      while(fabs(t-2*TMath::Pi()-previousT) < fabs(t-previousT)) t -= 2*TMath::Pi();
+    }
+    pointsT[iPoint] = t;
+  }
 }
 
 void Helix::IncreaseMissingHits(){
@@ -224,6 +239,7 @@ void Helix::IncreaseMissingHits(){
 void Helix::RemoveLastPoint()
 {
   points.pop_back();
+  pointsT.pop_back();
 }
 
 vector<shared_ptr<Point>> Helix::GetLastPoints() const
@@ -236,10 +252,24 @@ vector<shared_ptr<Point>> Helix::GetLastPoints() const
     
     if((point->GetLayer() == lastPointLayer) &&
        (iPoint>=firstTurningPointIndex)){
-      resultPoints.push_back(make_shared<Point>(*point));
+      resultPoints.push_back(point);
     }
   }
   return resultPoints;
+}
+
+vector<size_t> Helix::GetLastPointsIndices() const
+{
+  vector<size_t> resultIndices;
+  int lastPointLayer = points.back()->GetLayer();
+  
+  for(int iPoint=0; iPoint<points.size(); iPoint++){
+    if((points[iPoint]->GetLayer() == lastPointLayer) &&
+       (iPoint>=firstTurningPointIndex)){
+      resultIndices.push_back(iPoint);
+    }
+  }
+  return resultIndices;
 }
 
 vector<shared_ptr<Point>> Helix::GetSecontToLastPoints() const
@@ -252,20 +282,20 @@ vector<shared_ptr<Point>> Helix::GetSecontToLastPoints() const
     auto point = points[iPoint];
     
     if(firstTurningPointIndex<0){
-      if((point->GetLayer() == lastPointLayer-1)) resultPoints.push_back(make_shared<Point>(*point));
+      if((point->GetLayer() == lastPointLayer-1)) resultPoints.push_back(point);
     }
     else if(iPoint<firstTurningPointIndex){
-      if((point->GetLayer() == lastPointLayer)) resultPoints.push_back(make_shared<Point>(*point));
+      if((point->GetLayer() == lastPointLayer)) resultPoints.push_back(point);
     }
     else{
-      if((point->GetLayer() == lastPointLayer+1)) resultPoints.push_back(make_shared<Point>(*point));
+      if((point->GetLayer() == lastPointLayer+1)) resultPoints.push_back(point);
     }
   }
   
   return resultPoints;
 }
 
-uint Helix::GetNlayers() const
+size_t Helix::GetNlayers() const
 {
   unordered_set<int> layers;
   for(int iPoint=0; iPoint<points.size(); iPoint++){
@@ -280,16 +310,43 @@ uint Helix::GetNlayers() const
 
 double Helix::GetTmax() const
 {
-  vector<shared_ptr<Point>> lastPoints = GetLastPoints();
-  if(lastPoints.size()==1) return lastPoints.front()->GetT();
+  vector<size_t> lastPointsIndices = GetLastPointsIndices();
+  if(lastPointsIndices.size()==1) return pointsT[lastPointsIndices.front()];
   
   double extremeT=charge*inf;
   
-  for(auto &point : lastPoints){
-    if(charge > 0 && point->GetT() < extremeT) extremeT = point->GetT();
-    if(charge < 0 && point->GetT() > extremeT) extremeT = point->GetT();
+  for(size_t index : lastPointsIndices){
+    if(charge > 0 && pointsT[index] < extremeT) extremeT = pointsT[index];
+    if(charge < 0 && pointsT[index] > extremeT) extremeT = pointsT[index];
   }
 
   return extremeT;
 }
+
+void Helix::SortPointsByT(bool inverted)
+{
+  // initialize original index locations
+  vector<size_t> idx(points.size());
+  iota(idx.begin(), idx.end(), 0);
   
+  // sort indexes based on comparing values in v
+  sort(idx.begin(), idx.end(),
+       [&](size_t i1, size_t i2) {return inverted ? pointsT[i1] > pointsT[i2] : pointsT[i1] < pointsT[i2];});
+  
+  vector<shared_ptr<Point>> sortedPoints;
+  vector<double> sortedPointsT;
+  
+  for(auto iter : idx){
+    sortedPoints.push_back(points[iter]);
+    sortedPointsT.push_back(pointsT[iter]);
+  }
+  points = sortedPoints;
+  pointsT = sortedPointsT;
+}
+
+void Helix::SetPointsAndSortByT(const vector<shared_ptr<Point>> &_points, const vector<double> &_pointsT)
+{
+  points = _points;
+  pointsT = _pointsT;
+  SortPointsByT(charge > 0);
+}

@@ -47,7 +47,6 @@ public:
   inline double GetYerr() const {return errY;}
   inline double GetZerr() const {return errZ;}
   inline double GetValue() const {return value;}
-  inline double GetT() const {return t;}
   inline double GetTime() const {return time;}
   inline string GetSubDetName() const {return subDetName;}
   inline int    GetLayer() const {return layer;}
@@ -57,7 +56,6 @@ public:
   inline void SetY(double val){y = val;}
   inline void SetZ(double val){z = val;}
   inline void SetIsPionHit(bool val){isPionHit = val;}
-  inline void SetT(double val){t = val;}
   inline void SetLayer(int val){layer = val;}
   inline void SetSubDetName(string val){subDetName = val;}
 private:
@@ -65,7 +63,6 @@ private:
   double x,y,z;             ///< XYZ coordinates of the point
   double errX, errY, errZ;  ///< coordinates uncertainties
   double value;             ///< Value at this point
-  double t;                 ///< Parameter of the helix equation
   int layer;                ///< INdex of tracker layer in which the points is located
   double time;              ///< Timing informatino for the hit
   string subDetName;        ///< Can store name of the sub-detector
