@@ -92,7 +92,7 @@ private:
   
   // Initial parameters and their limits:
   double startR = 320; // mm, from MC
-  double minR0 = 0;
+  double minR0 = 50;
   double maxR0 = 1000;
   double minRslope = 0;  // to be verified
   double maxRslope = 10000;

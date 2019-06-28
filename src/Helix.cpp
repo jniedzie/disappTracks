@@ -26,13 +26,13 @@ firstTurningPointIndex(-1)
   seedID = uniqueID = reinterpret_cast<uint64_t>(this);
   
   helixParams.R0 = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
-  helixParams.s0 = GetRadius(0) * charge * momentum->GetVectorSlopeC();
+  helixParams.s0 = helixParams.R0 * charge * momentum->GetVectorSlopeC();
   helixParams.a = 0;
   helixParams.b = 0;
   
   // take a vector perpendicular to the pion's momentum vector
   Point v = Point(charge * momentum->GetY(),charge * -momentum->GetX(), 0.0);
-  const double scale = GetRadius(0)/sqrt(pow(v.GetX(),2)+pow(v.GetY(),2));
+  const double scale = helixParams.R0/sqrt(pow(v.GetX(),2)+pow(v.GetY(),2));
   
   v.SetX(scale * v.GetX());
   v.SetY(scale * v.GetY());
@@ -50,7 +50,7 @@ firstTurningPointIndex(-1)
     if(charge > 0) tShift = TMath::Pi() - atan2(-v.GetY(), v.GetX());
     if(charge < 0) tShift = TMath::Pi() - atan2(-v.GetX(), v.GetY());
   }
-  origin.SetZ(origin.GetZ() - fabs(tShift)*fabs(GetSlope(0)));
+  origin.SetZ(origin.GetZ() - fabs(tShift)*fabs(helixParams.s0));
   
   points.push_back(make_shared<Point>(_decayVertex));
   pointsT.push_back(tShift);
@@ -187,17 +187,17 @@ void Helix::SetVertex(const Point &_vertex)
 
 double Helix::GetNcycles() const
 {
-  return sgn(momentum->GetZ())*((sgn(momentum->GetZ())*trackerZsize) - origin.GetZ())/(fabs(GetSlope(0))*2*TMath::Pi());
+  return sgn(momentum->GetZ())*((sgn(momentum->GetZ())*trackerZsize) - origin.GetZ())/(fabs(GetSlope(GetTmin()))*2*TMath::Pi());
 }
 
 double Helix::GetRadius(double t) const
 {
-  return GetRofT(helixParams.R0, helixParams.a, t, charge);
+  return GetRofT(helixParams.R0, helixParams.a, GetTmin(), t, charge);
 }
 
 double Helix::GetSlope(double t) const
 {
-  return GetSofT(helixParams.s0, helixParams.b, t, charge);
+  return GetSofT(helixParams.s0, helixParams.b, GetTmin(), t, charge);
 }
 
 void Helix::AddPoint(const shared_ptr<Point> &point)

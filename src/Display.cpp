@@ -94,15 +94,15 @@ void Display::DrawHelix(const Helix &helix, const map<string,any> options)
   auto fillPointForT = [&](double t){
     double x = helix.GetOrigin().GetX();
     double y = helix.GetOrigin().GetY();
-    double z = helix.GetOrigin().GetZ() + fabs(helix.GetSlope(0))*t;
+    double z = helix.GetOrigin().GetZ() + fabs(helix.GetSlope(tMin))*t;
     
     if(helix.GetCharge()*zSign < 0){
-      x += helix.GetRadius(0)*cos(t);
-      y += helix.GetRadius(0)*sin(t);
+      x += helix.GetRadius(tMin)*cos(t);
+      y += helix.GetRadius(tMin)*sin(t);
     }
     else{
-      x += helix.GetRadius(0)*sin(t);
-      y += helix.GetRadius(0)*cos(t);
+      x += helix.GetRadius(tMin)*sin(t);
+      y += helix.GetRadius(tMin)*cos(t);
     }
     helixPoints->Fill(scale*x,scale*y,scale*z, 0);
   };
@@ -122,7 +122,7 @@ void Display::DrawShrinkingHelix(const Helix &helix, const map<string,any> optio
   auto fillPointForT = [&](double t){
     double x = helix.GetOrigin().GetX() + helix.GetRadius(t)*cos(t);
     double y = helix.GetOrigin().GetY() + helix.GetRadius(t)*sin(t);
-    double z = -helix.GetCharge()*helix.GetOrigin().GetZ() + helix.GetSlope(t)*t;
+    double z = helix.GetCharge()*helix.GetOrigin().GetZ() + helix.GetSlope(t)*t;
     
     helixPoints->Fill(scale*x,scale*y,scale*z, 0);
   };

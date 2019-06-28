@@ -21,6 +21,8 @@ eventVertex(Point(0, 0, 0))
     Point origin(x0, y0, z0);
     fittingPoints[0] = make_shared<Point>(pointsProcessor.GetPointOnTrack(L, track, eventVertex));
     
+    double tMin = pointsProcessor.GetTforPoint(*fittingPoints.front(), origin, charge);
+    
     double t, distX, distY, distZ, x, y, z;
     double f=0;
     
@@ -30,9 +32,9 @@ eventVertex(Point(0, 0, 0))
       
       t = pointsProcessor.GetTforPoint(*p, origin, charge);
       
-      x = x0 + GetRofT(R0, a, t, charge)*cos(t);
-      y = y0 + GetRofT(R0, a, t, charge)*sin(t);
-      z = -charge*z0 + GetSofT(s0, b, t, charge)*t;
+      x = x0 + GetRofT(R0, a, tMin, t, charge)*cos(t);
+      y = y0 + GetRofT(R0, a, tMin, t, charge)*sin(t);
+      z = charge*z0 + GetSofT(s0, b, tMin, t, charge)*t;
       
       // calculate distance between helix and point's boundary (taking into account its errors)
       distX = distY = distZ = 0;
@@ -274,7 +276,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         
         // try to extend to next layer
         if(crossesNextLayer || !config.allowTurningBack){
-          
+  
           // Find points that could extend this helix
           vector<shared_ptr<Point>> possiblePointsAll;
           if(lastPointLayer+1 < pointsByLayer.size() && lastPointLayer-1 >= 0){
@@ -310,7 +312,13 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
                 if(!pointsProcessor.IsPhiGood(lastPoints, secondToLastPoints, point, charge)) continue;
               }
               if(!pointsProcessor.IsZgood(lastPoints, point)) continue;
-              if(!pointsProcessor.IsTgood(lastPointsT, pointsProcessor.GetTforPoint(*point, helix.GetOrigin(), helix.GetCharge()))) continue;
+              
+              double previousT = lastPointsT.front();
+              double t = pointsProcessor.GetTforPoint(*point, helix.GetOrigin(), helix.GetCharge());
+              while(fabs(t+2*TMath::Pi()-previousT) < fabs(t-previousT)) t += 2*TMath::Pi();
+              while(fabs(t-2*TMath::Pi()-previousT) < fabs(t-previousT)) t -= 2*TMath::Pi();
+              
+              if(!pointsProcessor.IsTgood(lastPointsT, t)) continue;
               goodPoints.push_back(point);
             }
             
@@ -440,9 +448,9 @@ void Fitter::RefitHelix(Helix &helix)
   double pStart[nPar];
   fitter->SetFCN(fitFunction, pStart);
   
-  double startR0     = helix.GetRadius(0);
+  double startR0     = helix.GetRadius(helix.GetTmin());
   double startRslope = helix.GetRadiusFactor();
-  double startS0     = helix.GetSlope(0);
+  double startS0     = helix.GetSlope(helix.GetTmin());
   double startSslope = helix.GetSlopeFactor();
   double startX0     = helix.GetOrigin().GetX();
   double startY0     = helix.GetOrigin().GetY();
@@ -555,7 +563,7 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   // -- get t param of the track point and calculate Z position of the vertex
   Point origin(startX0, startY0, 0);
   double tTrack = pointsProcessor.GetTforPoint(trackPoint, origin, charge);
-  double startZ0 = -charge * (trackPoint.GetZ() - startS0 * tTrack);
+  double startZ0 = charge*(trackPoint.GetZ() - startS0 * tTrack);
 
   if(startZ0 < minZ0 || startZ0 > maxZ0){
     if(config.verbosity>0) cout<<"ERROR -- z0:"<<startZ0<<"\tmin:"<<minZ0<<"\tmax:"<<maxZ0<<endl;

@@ -85,27 +85,27 @@ n_track_hits: 2
 double_hit_max_distance:            20.0
 
 ### Constraints on seeds parameters:
-seed_max_chi2:                           0.005
+seed_max_chi2:                           0.1
 
 seed_middle_hit_min_delta_phi:   -0.4
-seed_middle_hit_max_delta_phi:  0.4
-seed_middle_hit_max_delta_z:     200
+seed_middle_hit_max_delta_phi:  1.0
+seed_middle_hit_max_delta_z:     500
 
 seed_last_hit_min_delta_phi:       -0.4
-seed_last_hit_max_delta_phi:       0.4
-seed_last_hit_max_delta_z:          200
+seed_last_hit_max_delta_phi:       2.0
+seed_last_hit_max_delta_z:          500
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             0.003
+track_max_chi2:                             0.01
 
 next_point_min_delta_phi:             -0.5
-next_point_max_delta_phi:             0.5
-next_point_max_delta_z:                300
+next_point_max_delta_phi:             1.0
+next_point_max_delta_z:                500
 next_point_max_delta_xy:              200
-next_point_max_delta_t:                1.0
+next_point_max_delta_t:                1.5
 
-track_min_n_points:                       0
-track_min_n_layers:                       4
+track_min_n_points:                       3
+track_min_n_layers:                       2
 
 ### Use distance to helix only when it passed through at least N layers:
 min_layers_for_delta_xy:                5

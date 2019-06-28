@@ -12,11 +12,11 @@ uint searchLumi = 1;
 unsigned long long searchEvent = 2662;
 
 string configPath = "configs/eventDisplay.md";
-string cutLevel = "after_L2/all/";//after_L1/";
+string cutLevel = "after_L1/all/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 2;
+int iEvent = 25;
 
 bool injectPion = false;
 bool fitHelix = true;
@@ -291,6 +291,19 @@ int main(int argc, char* argv[])
     vector<Helix> fittedHelices;
     
     for(auto &track : event->GetTracks()){
+      bool trackLayersOk = false;
+      bool chargeOk = false;
+      
+      for(auto chargino : event->GetGenCharginoTracks()){
+        if(fabs(track->GetEta() - chargino.GetEta()) < 0.1){
+          if(track->GetNtrackerLayers() == chargino.GetNtrackerLayers()) trackLayersOk = true;
+          if(track->GetCharge() == chargino.GetCharge()) chargeOk = true;
+        }
+      }
+      cout<<"\n\nTrack layers ok: "<<(trackLayersOk ? "YES" : "NO")<<endl;
+      cout<<"\n\nTrack charge ok: "<<(chargeOk ? "YES" : "NO")<<endl;
+      cout<<"Fitting for track: "; track->Print();
+      
       vector<Helix> helices = fitter->FitHelices(pionHitsOnly ? pionClusters : pointsNoEndcaps, *track, *event->GetVertex());
       fittedHelices.insert(fittedHelices.end(), helices.begin(), helices.end());
     }
