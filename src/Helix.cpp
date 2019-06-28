@@ -238,6 +238,10 @@ void Helix::IncreaseMissingHits(){
 
 void Helix::RemoveLastPoint()
 {
+  if(points.back()->GetSubDetName()=="missing"){
+    nMissingHits--;
+    nMissingHitsInRow--;
+  }
   points.pop_back();
   pointsT.pop_back();
 }
