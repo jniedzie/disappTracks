@@ -16,12 +16,18 @@ string cutLevel = "after_L1/all/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 25;
+int iEvent = 2;
 
 bool injectPion = false;
 bool fitHelix = true;
 
 bool pionHitsOnly = true;
+
+// "after_L1/all/":
+// ok: 0,
+
+// no chance:
+// no hits: 1
 
 // "after_L2/all/":
 // ok: 1, 2, 4, 8, 14, 15, 17, 19, 40, 41, 42, 44

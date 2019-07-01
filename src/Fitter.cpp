@@ -34,7 +34,7 @@ eventVertex(Point(0, 0, 0))
       
       x = x0 + GetRofT(R0, a, tMin, t, charge)*cos(t);
       y = y0 + GetRofT(R0, a, tMin, t, charge)*sin(t);
-      z = charge*z0 + GetSofT(s0, b, tMin, t, charge)*t;
+      z = -charge*z0 + GetSofT(s0, b, tMin, t, charge)*t;
       
       // calculate distance between helix and point's boundary (taking into account its errors)
       distX = distY = distZ = 0;
@@ -156,7 +156,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
   //  double lmax = layerRanges[nTrackLayers].GetMax();
   double lstart = (lmin+lmax)/2;
   
-  Point trackPointMid = pointsProcessor.GetPointOnTrack(minL, track, eventVertex);
+  Point trackPointMid = pointsProcessor.GetPointOnTrack(startL, track, eventVertex);
   
   vector<Helix> seeds;
   int nPairs=0;
@@ -563,7 +563,7 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   // -- get t param of the track point and calculate Z position of the vertex
   Point origin(startX0, startY0, 0);
   double tTrack = pointsProcessor.GetTforPoint(trackPoint, origin, charge);
-  double startZ0 = charge*(trackPoint.GetZ() - startS0 * tTrack);
+  double startZ0 = -charge * (trackPoint.GetZ() - startS0 * tTrack);
 
   if(startZ0 < minZ0 || startZ0 > maxZ0){
     if(config.verbosity>0) cout<<"ERROR -- z0:"<<startZ0<<"\tmin:"<<minZ0<<"\tmax:"<<maxZ0<<endl;

@@ -13,7 +13,7 @@ string configPath = "configs/helixTagger.md";
 string cutLevel = "after_L1/all/";//after_L1/";
 
 const int nEvents = 40; // max: 1287
-const int eventOffset = 100;
+const int eventOffset = 0;
 const int nTests = 1;
 
 int nAnalyzedEvents = 0;

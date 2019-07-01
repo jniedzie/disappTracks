@@ -139,18 +139,18 @@ int main(int argc, char* argv[])
   
 //   seed chi2
   double bestSeedChi2 = config.seedMaxChi2;
-  for(double exponent=-6; exponent<=0; exponent+=1.0){
-    config.seedMaxChi2 = pow(10, exponent);
-    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
-    cout<<"seed_max_chi2: "<<config.seedMaxChi2<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
-
-    if(currentAUC > maxOptValue){
-      maxOptValue = currentAUC;
-      bestSeedChi2 = config.seedMaxChi2;
-    }
-  }
-  config.seedMaxChi2 = bestSeedChi2;
-  
+//  for(double exponent=0.01; exponent<=0.19; exponent+=0.01){
+//    config.seedMaxChi2 = exponent;// pow(10, exponent);
+//    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
+//    cout<<"seed_max_chi2: "<<config.seedMaxChi2<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
+//
+//    if(currentAUC > maxOptValue){
+//      maxOptValue = currentAUC;
+//      bestSeedChi2 = config.seedMaxChi2;
+//    }
+//  }
+//  config.seedMaxChi2 = bestSeedChi2;
+//
   // seed middle min Δφ
   double bestMiddleMinPhi = config.seedMiddleHitDeltaPhi.GetMin();
 //  for(double min = 0.0; min >= -1.0; min-=0.1){
@@ -168,34 +168,34 @@ int main(int argc, char* argv[])
 
   // seed middle max Δφ
   double bestMiddleMaxPhi = config.seedMiddleHitDeltaPhi.GetMax();
-  for(double max = 0.0; max <= 0.6; max+=0.1){
-    config.seedMiddleHitDeltaPhi = range<double>(config.seedMiddleHitDeltaPhi.GetMin(), max);
-
-    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
-    cout<<"seed_middle_hit_max_delta_phi: "<<max<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
-
-    if(currentAUC > maxOptValue){
-      maxOptValue = currentAUC;
-      bestMiddleMaxPhi = max;
-    }
-  }
-  config.seedMiddleHitDeltaPhi = range<double>(config.seedMiddleHitDeltaPhi.GetMin(), bestMiddleMaxPhi);
+//  for(double max = 0.0; max <= 0.6; max+=0.1){
+//    config.seedMiddleHitDeltaPhi = range<double>(config.seedMiddleHitDeltaPhi.GetMin(), max);
+//
+//    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
+//    cout<<"seed_middle_hit_max_delta_phi: "<<max<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
+//
+//    if(currentAUC > maxOptValue){
+//      maxOptValue = currentAUC;
+//      bestMiddleMaxPhi = max;
+//    }
+//  }
+//  config.seedMiddleHitDeltaPhi = range<double>(config.seedMiddleHitDeltaPhi.GetMin(), bestMiddleMaxPhi);
   
   
   // seed middle Δz
   double bestMiddleZ = config.seedMiddleHitMaxDeltaZ;
-  for(config.seedMiddleHitMaxDeltaZ  = 50;
-      config.seedMiddleHitMaxDeltaZ <= 300;
-      config.seedMiddleHitMaxDeltaZ += 50){
-    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
-    cout<<"seed_middle_hit_max_delta_z: "<<config.seedMiddleHitMaxDeltaZ<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
-
-    if(currentAUC > maxOptValue){
-      maxOptValue = currentAUC;
-      bestMiddleZ = config.seedMiddleHitMaxDeltaZ;
-    }
-  }
-  config.seedMiddleHitMaxDeltaZ = bestMiddleZ;
+//  for(config.seedMiddleHitMaxDeltaZ  = 50;
+//      config.seedMiddleHitMaxDeltaZ <= 300;
+//      config.seedMiddleHitMaxDeltaZ += 50){
+//    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
+//    cout<<"seed_middle_hit_max_delta_z: "<<config.seedMiddleHitMaxDeltaZ<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
+//
+//    if(currentAUC > maxOptValue){
+//      maxOptValue = currentAUC;
+//      bestMiddleZ = config.seedMiddleHitMaxDeltaZ;
+//    }
+//  }
+//  config.seedMiddleHitMaxDeltaZ = bestMiddleZ;
   
   
   // seed last min Δφ
@@ -289,9 +289,9 @@ int main(int argc, char* argv[])
   
   // next point Δt
   double bestTrackT = config.nextPointMaxDeltaT;
-//  for(config.nextPointMaxDeltaT  = 0.1;
-//      config.nextPointMaxDeltaT <= 1.0;
-//      config.nextPointMaxDeltaT += 0.2){
+//  for(config.nextPointMaxDeltaT  = 0.7;
+//      config.nextPointMaxDeltaT <= 1.5;
+//      config.nextPointMaxDeltaT += 0.1){
 //    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
 //    cout<<"next_point_max_delta_t: "<<config.nextPointMaxDeltaT<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
 //
