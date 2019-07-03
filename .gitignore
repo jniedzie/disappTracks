@@ -4,6 +4,7 @@ display
 getFfactor
 plotDeDx
 *.o
+analyzeTagger
 cutsCorrelations
 drawDistributions
 eventDisplay
