@@ -149,7 +149,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
   vector<Helix> seeds;
 
   if(pointsByLayer[nTrackLayers].size() == 0 || pointsByLayer[nTrackLayers+1].size() == 0 ||
-     pointsByLayer.size() <= nTrackLayers){
+     pointsByLayer.size() <= (nTrackLayers+1)){
     return seeds;
   }
   
