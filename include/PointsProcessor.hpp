@@ -109,6 +109,12 @@ public:
     }
   };
   
+  struct ComparePointByTime{
+    bool operator() (const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){
+      return (p1->GetTime() < p2->GetTime());
+    }
+  };
+  
 private:
   
   bool IsGoodMiddleSeedHit(const Point &point,

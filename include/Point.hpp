@@ -36,6 +36,9 @@ public:
   /// Returns slope of vector defined by this point calculated from the Y axis
   double GetVectorSlopeC() const;
   
+  double GetVectorEta() const;
+  double GetVectorPhi() const;
+  
   /// Tells whether or not this point belongs to a true pion's helix
   inline bool IsPionHit() const {return isPionHit;}
   
@@ -57,6 +60,7 @@ public:
   inline void SetZ(double val){z = val;}
   inline void SetIsPionHit(bool val){isPionHit = val;}
   inline void SetLayer(int val){layer = val;}
+  inline void SetTime(double val){time = val;}
   inline void SetSubDetName(string val){subDetName = val;}
 private:
   

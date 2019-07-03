@@ -354,3 +354,8 @@ void Helix::SetPointsAndSortByT(const vector<shared_ptr<Point>> &_points, const 
   pointsT = _pointsT;
   SortPointsByT(charge > 0);
 }
+
+void Helix::SetPoints(const vector<shared_ptr<Point>> &_points)
+{
+  points = _points;
+}

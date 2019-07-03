@@ -87,20 +87,9 @@ vector<tuple<string, int, double, double, string, int, double, double, string>> 
   {"next_point_delta_phi_pion_pt" , 50, 0, 3.14 , "#Delta #phi" , 50, 0, 1000 , "pion p_{t} (MeV)"  },
   {"next_point_delta_z_pion_pz"   , 50, 0, 1000 , "#Delta z"    , 50, 0, 1000 , "pion p_{z} (MeV)"  },
   {"charge_gen_vs_rec"            , 3 ,-1, 2    , "q_{rec}"     , 3 ,-1, 2    , "q_{gen}"           },
-  {"layers_gen_vs_rec_0_0"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
-  {"layers_gen_vs_rec_0_5"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
-  {"layers_gen_vs_rec_0_7"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
-  {"layers_gen_vs_rec_0_8"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
-  {"layers_gen_vs_rec_0_9"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
-  {"layers_gen_vs_rec_1_0"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
-  {"layers_gen_vs_rec_1_2"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
-  {"layers_gen_vs_rec_2_0"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
-  {"layers_gen_vs_rec_3_0"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
-  {"layers_gen_vs_rec_4_0"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
-  {"layers_gen_vs_rec_5_0"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
-  {"layers_gen_vs_rec_6_0"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
-  {"layers_gen_vs_rec_7_0"        ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
+  {"layers_gen_vs_rec"            ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
   {"pt_gen_vs_rec"                ,100 ,0 , 1000   , "pt_{rec}", 100 , 0, 1000, "pt_{gen}" },
+  {"pt_gen_vs_rec_good_charge"    ,100 ,0 , 1000   , "pt_{rec}", 100 , 0, 1000, "pt_{gen}" },
 };
 map<string, TH1D *> hists1D;
 map<string, TH2D *> hists2D;
@@ -145,8 +134,8 @@ range<double> GetPointsRingSize(vector<shared_ptr<Point>> points)
 shared_ptr<Point> FindClusterForHit(const Point &hit, const vector<shared_ptr<Point>> &clusters)
 {
   for(auto &cluster : clusters){
-    if(fabs(hit.GetX() - cluster->GetX()) < cluster->GetXerr() &&
-       fabs(hit.GetY() - cluster->GetY()) < cluster->GetYerr() &&
+    if(fabs(hit.GetX() - cluster->GetX()) < 1 &&
+       fabs(hit.GetY() - cluster->GetY()) < 1 &&
        fabs(hit.GetZ() - cluster->GetZ()) < cluster->GetZerr()){
       return cluster;
     }
@@ -219,26 +208,13 @@ int main(int argc, char* argv[])
     hists1D["lumi"]->Fill(event->GetLumiSection());
     hists1D["noise_n_clusters"]->Fill(trackerClusters.size()-pionClusters.size());
     hists2D["charge_gen_vs_rec"]->Fill(track->GetCharge(), chargino.GetCharge());
-    
-    hists2D["layers_gen_vs_rec_0_0"]->Fill(track->GetNtrackerLayers(), nCharginoLayers);
-    hists2D["layers_gen_vs_rec_0_5"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 0.5 ? 1 : 0), nCharginoLayers);
-    hists2D["layers_gen_vs_rec_0_7"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 0.7 ? 1 : 0), nCharginoLayers);
-    hists2D["layers_gen_vs_rec_0_8"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 0.8 ? 1 : 0), nCharginoLayers);
-    hists2D["layers_gen_vs_rec_0_9"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 0.9 ? 1 : 0), nCharginoLayers);
-    hists2D["layers_gen_vs_rec_1_0"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 1.0 ? 1 : 0), nCharginoLayers);
-    hists2D["layers_gen_vs_rec_1_2"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 1.2 ? 1 : 0), nCharginoLayers);
-    hists2D["layers_gen_vs_rec_2_0"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 2.0 ? 1 : 0), nCharginoLayers);
-    hists2D["layers_gen_vs_rec_3_0"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 2.0 ? 1 : 0), nCharginoLayers);
-    hists2D["layers_gen_vs_rec_4_0"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 2.0 ? 1 : 0), nCharginoLayers);
-    hists2D["layers_gen_vs_rec_5_0"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 2.0 ? 1 : 0), nCharginoLayers);
-    hists2D["layers_gen_vs_rec_6_0"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 2.0 ? 1 : 0), nCharginoLayers);
-    hists2D["layers_gen_vs_rec_7_0"]->Fill(track->GetNtrackerLayers()-(lastToAvgTrackDedxRatio < 2.0 ? 1 : 0), nCharginoLayers);
-
+    hists2D["layers_gen_vs_rec"]->Fill(track->GetNtrackerLayers(), nCharginoLayers);
     hists2D["pt_gen_vs_rec"]->Fill(track->GetPt(), chargino.GetPt());
     
     if(track->GetCharge()==chargino.GetCharge()){
       hists1D["num_chargino_q_efficiency_vs_gen_pt"]->Fill(chargino.GetPt());
       hists1D["num_chargino_q_efficiency_vs_track_pt"]->Fill(track->GetPt());
+      hists2D["pt_gen_vs_rec_good_charge"]->Fill(track->GetPt(), chargino.GetPt());
     }
     
     hists1D["den_chargino_q_efficiency_vs_gen_pt"]->Fill(chargino.GetPt());
@@ -273,7 +249,8 @@ int main(int argc, char* argv[])
     
     for(int iHit=0; iHit<pionSimHits.size()-1; iHit++){
 //      auto pionCluster = FindClusterForHit(*pionSimHits[iHit],  pionClusters);
-    
+//      pionCluster->SetTime(pionSimHits[iHit]->GetTime());
+      
       auto thisHit = pionSimHits[iHit];
       auto nextHit = pionSimHits[iHit+1];
       
@@ -463,8 +440,8 @@ int main(int argc, char* argv[])
   charginoCanvas->Divide(2,3);
   hists2D["charge_gen_vs_rec"]->SetMarkerSize(3.0);
   charginoCanvas->cd(1);  hists2D["charge_gen_vs_rec"]->DrawNormalized("text colz");
-  hists2D["layers_gen_vs_rec_0_0"]->SetMarkerSize(3.0);
-  charginoCanvas->cd(2);  hists2D["layers_gen_vs_rec_0_0"]->DrawNormalized("text colz");
+  hists2D["layers_gen_vs_rec"]->SetMarkerSize(3.0);
+  charginoCanvas->cd(2);  hists2D["layers_gen_vs_rec"]->DrawNormalized("text colz");
   
   hists1D["num_chargino_q_efficiency_vs_gen_pt"]->Divide(hists1D["den_chargino_q_efficiency_vs_gen_pt"]);
   charginoCanvas->cd(3);  hists1D["num_chargino_q_efficiency_vs_gen_pt"]->Draw();
@@ -473,6 +450,7 @@ int main(int argc, char* argv[])
   charginoCanvas->cd(4);  hists1D["num_chargino_q_efficiency_vs_track_pt"]->Draw();
   
   charginoCanvas->cd(5); hists2D["pt_gen_vs_rec"]->DrawNormalized("colz");
+  charginoCanvas->cd(6); hists2D["pt_gen_vs_rec_good_charge"]->DrawNormalized("colz");
   
   TCanvas *chargeCanvas   = new TCanvas("charge", "charge", 2880, 1800);
   TCanvas *clustersCanvas = new TCanvas("clusters", "clusters", 2880, 1800);

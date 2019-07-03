@@ -146,6 +146,13 @@ vector<Helix> Fitter::PerformFittingCycle()
 
 vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
 {
+  vector<Helix> seeds;
+
+  if(pointsByLayer[nTrackLayers].size() == 0 || pointsByLayer[nTrackLayers+1].size() == 0 ||
+     pointsByLayer.size() <= nTrackLayers){
+    return seeds;
+  }
+  
   // find possible middle and last seeds' points
   auto middlePointsRegrouped = pointsProcessor.RegroupNerbyPoints(pointsByLayer[nTrackLayers]);
   auto lastPointsRegrouped   = pointsProcessor.RegroupNerbyPoints(pointsByLayer[nTrackLayers+1]);
@@ -158,7 +165,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
   
   Point trackPointMid = pointsProcessor.GetPointOnTrack(startL, track, eventVertex);
   
-  vector<Helix> seeds;
+  
   int nPairs=0;
   if(config.verbosity>0) cout<<"Looking for seeds..."<<endl;
   for(auto &middlePoints : middlePointsRegrouped){
@@ -662,8 +669,7 @@ bool Fitter::LinkAndMergeHelices(vector<Helix> &helices)
       set_intersection(points1.begin(), points1.end(),
                        points2.begin(), points2.end(),
                        back_inserter(samePoints));
-      
-      
+
       size_t nDifferentPoints = max(points1.size()-samePoints.size(),
                                     points2.size()-samePoints.size());
       

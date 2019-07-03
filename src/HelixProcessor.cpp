@@ -204,3 +204,25 @@ shared_ptr<Point> HelixProcessor::GetPointCloseToHelixInLayer(const Helix &helix
   
   return newPoint;
 }
+
+size_t HelixProcessor::GetNcommonPoints(const Helix &helix1, const Helix &helix2)
+{
+  vector<shared_ptr<Point>> commonPoints;
+  auto points1 = helix1.GetPoints();
+  auto points2 = helix2.GetPoints();
+  
+  for(auto &p1 : points1){
+    for(auto &p2 : points2){
+      if(*p1 == *p2) commonPoints.push_back(p1);
+    }
+  }
+  
+//  set_intersection(points1.begin(), points1.end(),
+//                   points2.begin(), points2.end(),
+//                   back_inserter(commonPoints),
+//                   [&](const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){
+//                     return *p1 == *p2;
+//                   });
+//  
+  return commonPoints.size();
+}

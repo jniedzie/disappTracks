@@ -48,6 +48,8 @@ public:
   
   shared_ptr<Point> GetPointCloseToHelixInLayer(const Helix &helix, int layer);
   
+  size_t GetNcommonPoints(const Helix &helix1, const Helix &helix2);
+  
 private:
   static const int maxNhelices = 1000;   ///< Maximum supported number of helices per event
   int nHelices;                          ///< Number of helices in the current tree entry

@@ -110,3 +110,14 @@ bool Point::operator==(const Point &p) const
   
   return theSame;
 }
+
+double Point::GetVectorEta() const
+{
+  double theta = acos(z/sqrt(x*x+y*y+z*z));
+  return -log(tan(theta/2.));
+}
+
+double Point::GetVectorPhi() const
+{
+  return atan2(y,x);
+}

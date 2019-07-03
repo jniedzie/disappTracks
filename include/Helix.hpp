@@ -66,6 +66,7 @@ public:
   inline void   SetMomentum(const Point &val) { momentum = make_unique<Point>(val); }
   void          SetPointsAndSortByT(const vector<shared_ptr<Point>> &points,
                                     const vector<double> &_pointsT);
+  void          SetPoints(const vector<shared_ptr<Point>> &_points);
   
   void          SetVertex(const Point &_vertex);
   inline void   SetShouldRefit(bool val) { shouldRefit = val; }

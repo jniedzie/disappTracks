@@ -58,7 +58,7 @@ n_tracker_layers: 4
 ### Limit number of events loaded (-1 means load all available)
 max_N_events_signal:  -1
 
-verbosity_level: 2
+verbosity_level: 0
 
 **Pion's parameters**
 
@@ -96,7 +96,7 @@ seed_last_hit_max_delta_phi:       0.5
 seed_last_hit_max_delta_z:          100
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             0.5
+track_max_chi2:                             0.01
 
 next_point_min_delta_phi:             -0.5
 next_point_max_delta_phi:            1.5
@@ -134,8 +134,8 @@ exp_radius_function:        0
 exp_slope_function:         0
 
 ### Let pion helix start one layer before/after the chargino track
-allow_one_less_layer: 1
-allow_one_more_layer: 1
+allow_one_less_layer: 0
+allow_one_more_layer: 0
 check_opposite_charge_below_Nlayers: 0
 
 **Benchmark parameters**

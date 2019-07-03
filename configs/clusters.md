@@ -28,6 +28,6 @@ load_friend_tree: 1
 **General settings**
 
 ### Limit number of events loaded (-1 means load all available)
-max_N_events_signal:  20
+max_N_events_signal:  -1
 
 verbosity_level: 2
