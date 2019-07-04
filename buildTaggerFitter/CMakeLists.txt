@@ -32,9 +32,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 add_executable(taggerFitter ../taggerFitter.cpp)
 add_executable(taggerScanner ../taggerScanner.cpp)
+add_executable(helixTagger ../helixTagger.cpp)
 
 set_property(TARGET taggerFitter PROPERTY CXX_STANDARD 17)
 set_property(TARGET taggerScanner PROPERTY CXX_STANDARD 17)
+set_property(TARGET helixTagger PROPERTY CXX_STANDARD 17)
 
 include_directories("${PROJECT_SOURCE_DIR}/../include")
 
@@ -66,3 +68,4 @@ set_property(TARGET libAnalysis PROPERTY CXX_STANDARD 17)
 
 target_link_libraries(taggerFitter libAnalysis ${ROOT_LIBRARIES})
 target_link_libraries(taggerScanner libAnalysis ${ROOT_LIBRARIES})
+target_link_libraries(helixTagger libAnalysis ${ROOT_LIBRARIES})
