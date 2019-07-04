@@ -9,7 +9,7 @@
 #include "PerformanceMonitor.hpp"
 #include "EventSet.hpp"
 
-string configPath = "configs/helixTagger.md";
+string configPath = "../configs/helixTagger.md";
 string cutLevel = "after_L1/all/";//after_L1/";
 
 const int nEvents = 100; // max: 1287
@@ -101,8 +101,8 @@ bool   DidTurnBack(vector<Helix> helices);
 
 int main(int argc, char* argv[])
 {
-  TApplication theApp("App", &argc, argv);
   cout.imbue(locale("de_DE"));
+  // TApplication theApp("App", &argc, argv);
   
   config = ConfigManager(configPath);
   auto fitter = make_unique<Fitter>();
@@ -203,32 +203,32 @@ int main(int argc, char* argv[])
     }
   
     int iPad=1;
-    for(auto &[name, monitor] : monitors[iTest]){
-      monitor.CalcEfficiency(nAnalyzedEvents);
+    for(auto &monitor : monitors[iTest]){
+      monitor.second.CalcEfficiency(nAnalyzedEvents);
       canvas->cd(iPad++);
-      monitor.DrawRocGraph(iTest==0);
+      monitor.second.DrawRocGraph(iTest==0);
       canvas->cd(iPad++);
-      monitor.DrawHists();
+      monitor.second.DrawHists();
     }
     
   }
   
   
-  for(auto &[name, monitor] : monitors[0]){
+  for(auto &monitor : monitors[0]){
     cout<<"\n\n============================================================"<<endl;
-    cout<<"Monitor: "<<name<<endl;
+    cout<<"Monitor: "<<monitor.first<<endl;
 
-    if(name!="min_chi2" && name!="min_chi2_per_hit"){
+    if(monitor.first!="min_chi2" && monitor.first!="min_chi2_per_hit"){
       for(int iTest=0; iTest<nTests; iTest++){
         double param = SetParamValue(iTest);
         cout<<"Param: "<<param<<endl;
-        monitors[iTest][name].PrintFakesEfficiency();
+        monitors[iTest][monitor.first].PrintFakesEfficiency();
       }
     }
     for(int iTest=0; iTest<nTests; iTest++){
       double param = SetParamValue(iTest);
       cout<<"Param: "<<param<<"\t";
-      monitors[iTest][name].PrintParams();
+      monitors[iTest][monitor.first].PrintParams();
     }
   }
   
@@ -239,7 +239,7 @@ int main(int argc, char* argv[])
   cout<<"Time: "<<duration(start, now());
   
   canvas->Update();
-  theApp.Run();
+//  theApp.Run();
   return 0;
 }
 
