@@ -60,6 +60,7 @@
 #include <memory>
 #include <utility>
 #include <unordered_set>
+#include <locale>
 
 using namespace std;
 

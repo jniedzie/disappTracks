@@ -9,8 +9,6 @@
 #include "PerformanceMonitor.hpp"
 #include "EventSet.hpp"
 
-#include <locale>
-
 string configPath = "configs/eventDisplay.md";
 string cutLevel = "after_L1/all/";//after_L1/";
 
@@ -27,7 +25,7 @@ int main(int argc, char* argv[])
   config = ConfigManager(configPath);
   auto fitter = make_unique<Fitter>();
   TCanvas *canvas = new TCanvas("Tagger analysis", "Tagger analysis", 2880,1800);
-  canvas->Divide(3,3);
+  canvas->Divide(4,3);
 
   
   TH1D *nCommonPointsHistPion  = new TH1D("n rec clusters on helix pion", "n rec clusters on helix pion", 20, 0, 20);
@@ -56,6 +54,10 @@ int main(int argc, char* argv[])
     {"nAvgHits", {30, 0, 30}},
     {"nAvgLayers", {30, 0, 30}},
     {"nAvgLength", {30, 0, 6}},
+    {"slope", {100, -1000, 1000}},
+    {"slopeFactor", {100, -4000, 0}},
+    {"radius", {100, 0, 1000}},
+    {"radiusFactor", {100, 0, 2000}},
   };
   
   map<string, pair<TH1D*, TH1D*>> hists;
@@ -116,6 +118,13 @@ int main(int argc, char* argv[])
       hists["nAvgLayers"].first->Fill(helixProcessor.GetAvgNlayers(fittedHelicesPion));
       hists["nAvgLength"].first->Fill(helixProcessor.GetAvgLength(fittedHelicesPion));
       
+      for(auto &helix : fittedHelicesPion){
+        hists["slope"].first->Fill(helix.GetSlope(helix.GetTmin()));
+        hists["slopeFactor"].first->Fill(helix.GetSlopeFactor());
+        hists["radius"].first->Fill(helix.GetRadius(helix.GetTmin()));
+        hists["radiusFactor"].first->Fill(helix.GetRadiusFactor());
+      }
+      
       for(int iThreshold=0; iThreshold<nThresholds; iThreshold++){
         if(maxNclusters >= iThreshold) nEventsWithTrueHelixPion[iThreshold]++;
       }
@@ -137,6 +146,13 @@ int main(int argc, char* argv[])
       hists["nAvgHits"].second->Fill(helixProcessor.GetAvgNhits(fittedHelicesNoise));
       hists["nAvgLayers"].second->Fill(helixProcessor.GetAvgNlayers(fittedHelicesNoise));
       hists["nAvgLength"].second->Fill(helixProcessor.GetAvgLength(fittedHelicesNoise));
+      
+      for(auto &helix : fittedHelicesNoise){
+        hists["slope"].second->Fill(helix.GetSlope(helix.GetTmin()));
+        hists["slopeFactor"].second->Fill(helix.GetSlopeFactor());
+        hists["radius"].second->Fill(helix.GetRadius(helix.GetTmin()));
+        hists["radiusFactor"].second->Fill(helix.GetRadiusFactor());
+      }
       
       for(int iThreshold=0; iThreshold<nThresholds; iThreshold++){
         if(maxNclusters >= iThreshold) nEventsWithTrueHelixNoise[iThreshold]++;
@@ -237,10 +253,10 @@ int main(int argc, char* argv[])
     canvas->cd(iPad++);
     histPair.first->SetLineColor(kGreen+2);
     histPair.first->SetFillColorAlpha(kGreen+2, 0.3);
-    histPair.first->Draw(iPad==3 ? "" : "same");
+    histPair.first->DrawNormalized(iPad==3 ? "" : "same");
     histPair.second->SetLineColor(kRed);
     histPair.second->SetFillColorAlpha(kRed, 0.3);
-    histPair.second->Draw("same");
+    histPair.second->DrawNormalized("same");
     
     outFile->cd();
     histPair.first->Write();

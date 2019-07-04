@@ -101,6 +101,15 @@ struct ConfigManager {
   
   int minLayersForDeltaXY;
   
+  double startR0, minR0, maxR0;
+  double minRslope, maxRslope;
+  
+  double minS0, maxS0;
+  double minSslope, maxSslope;
+  double minX0, maxX0;
+  double minY0, maxY0;
+  double minZ0, maxZ0;
+  
   // Random chargino's track parameters
   double maxEta;
   int nTrackHits;

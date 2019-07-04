@@ -12,7 +12,7 @@
 string configPath = "configs/helixTagger.md";
 string cutLevel = "after_L1/all/";//after_L1/";
 
-const int nEvents = 40; // max: 1287
+const int nEvents = 100; // max: 1287
 const int eventOffset = 0;
 const int nTests = 1;
 
@@ -102,6 +102,7 @@ bool   DidTurnBack(vector<Helix> helices);
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
+  cout.imbue(locale("de_DE"));
   
   config = ConfigManager(configPath);
   auto fitter = make_unique<Fitter>();

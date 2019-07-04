@@ -60,12 +60,28 @@ exp_radius_function:        0
 exp_slope_function:         0
 
 ### Let pion helix start one layer before/after the chargino track or have opposite charge
-allow_one_less_layer: 1
+allow_one_less_layer: 0
 allow_one_more_layer: 1
 check_opposite_charge_below_Nlayers: 5
 
+### Limits of helix parameters:
+start_R0: 320
+min_R0: 50
+max_R0: 1000
+min_Rslope:  0
+max_Rslope: 1200
 
+min_S0: -10000
+max_S0: 10000
+min_Sslope: -1000
+max_Sslope: 0
 
+min_X0: -2000
+max_X0: 2000
+min_Y0: -2000
+max_Y0: 2000
+min_Z0: -2000
+max_Z0: 2000
 
 **Helix tagger options**
 

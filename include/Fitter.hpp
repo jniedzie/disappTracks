@@ -42,6 +42,9 @@ private:
   vector<shared_ptr<Point>> fittingPoints; ///< collection of points to which we are fitting at the moment
   function<double(const double*)> chi2Function; ///< chi2 function
   
+  // Initial parameters and their limits:
+  double startL, minL, maxL;
+  
   vector<Helix> PerformFittingCycle();
   
   /// Checks parameters of all combinations of points in layers close to the decay point
@@ -90,29 +93,7 @@ private:
   /// Sets L limits and starting value based on the curent number of tracker layers
   void InitLparams();
   
-  // Initial parameters and their limits:
-  double startR = 320; // mm, from MC
-  double minR0 = 50;
-  double maxR0 = 1000;
-  double minRslope = 0;  // to be verified
-  double maxRslope = 10000;
-  
-  double minS0 = -10000;  // to be verified
-  double maxS0 =  10000;
-  double minSslope = -10000;  // to be verified
-  double maxSslope = 0;
-  
-  double startL;
-  double minL;
-  double maxL;
-  
-  double minX0 = -2000;
-  double maxX0 =  2000;
-  double minY0 = -2000;
-  double maxY0 =  2000;
-  double minZ0 = -2000;
-  double maxZ0 =  2000;
-  
+
 };
 
 #endif /* Fitter_hpp */

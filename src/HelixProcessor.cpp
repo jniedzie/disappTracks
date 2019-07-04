@@ -240,7 +240,6 @@ int HelixProcessor::GetMaxNhits(vector<Helix> helices)
 
 int HelixProcessor::GetAvgNlayers(vector<Helix> helices)
 {
-  int maxNlayers = 0;
   double avgLayers = 0;
   for(auto helix : helices) avgLayers += helix.GetNlayers();
   avgLayers /= helices.size();

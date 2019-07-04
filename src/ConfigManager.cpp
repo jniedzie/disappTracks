@@ -76,6 +76,23 @@ ConfigManager::ConfigManager(string _path)
   checkOppositeChargeBelowNlayers = configFile->GetValue("check_opposite_charge_below_Nlayers", 0);
   minLayersForDeltaXY         = configFile->GetValue("min_layers_for_delta_xy", inf);
   
+  startR0 = configFile->GetValue("start_R0", 320.0);
+  minR0 = configFile->GetValue("min_R0", 50.0);
+  maxR0 = configFile->GetValue("max_R0", 1000.0);
+  minRslope = configFile->GetValue("min_Rslope", 0.0);
+  maxRslope = configFile->GetValue("max_Rslope", 10000.0);
+  minS0 = configFile->GetValue("min_S0", -10000.0);
+  maxS0 = configFile->GetValue("max_S0", 10000.0);
+  minSslope = configFile->GetValue("min_Sslope", -10000.0);
+  maxSslope = configFile->GetValue("max_Sslope", 0.0);
+  
+  minX0 = configFile->GetValue("min_X0", -2000.0);
+  maxX0 = configFile->GetValue("max_X0",  2000.0);
+  minY0 = configFile->GetValue("min_Y0", -2000.0);
+  maxY0 = configFile->GetValue("max_Y0",  2000.0);
+  minZ0 = configFile->GetValue("min_Z0", -2000.0);
+  maxZ0 = configFile->GetValue("max_Z0",  2000.0);
+  
   maxEta                      = configFile->GetValue("max_eta",10.0);
   nTrackHits                  = configFile->GetValue("n_track_hits",3);
   minPx                       = configFile->GetValue("min_px",50.0);
