@@ -9,6 +9,8 @@
 #include "PerformanceMonitor.hpp"
 #include "EventSet.hpp"
 
+#include <locale>
+
 string configPath = "configs/eventDisplay.md";
 string cutLevel = "after_L1/all/";//after_L1/";
 
@@ -25,12 +27,46 @@ int main(int argc, char* argv[])
   config = ConfigManager(configPath);
   auto fitter = make_unique<Fitter>();
   TCanvas *canvas = new TCanvas("Tagger analysis", "Tagger analysis", 2880,1800);
-  canvas->Divide(2,2);
+  canvas->Divide(3,3);
 
   
   TH1D *nCommonPointsHistPion  = new TH1D("n rec clusters on helix pion", "n rec clusters on helix pion", 20, 0, 20);
   TH1D *nCommonPointsHistNoise = new TH1D("n rec clusters on helix noise", "n rec clusters on helix noise", 20, 0, 20);
   TH1D *nCommonPointsHistAll   = new TH1D("n rec clusters on helix all", "n rec clusters on helix all", 20, 0, 20);
+  
+  const int nThresholds = 10;
+  
+  int nEventsWithHelixPion = 0;
+  int nEventsWithHelixNoise = 0;
+  int nEventsWithHelixAll = 0;
+  
+  int nEventsWithTrueHelixPion[nThresholds] = {0};
+  int nEventsWithTrueHelixNoise[nThresholds] = {0};
+  
+  int nEventsWithTrueAndFakeAll[nThresholds] = {0};
+  int nEventsWithTrueOrFakeAll[nThresholds] = {0};
+  int nEventsWithFakeOnlyAll[nThresholds] = {0};
+  int nEventsWithTrueOnlyAll[nThresholds] = {0};
+  int nEventsWithTrueAll[nThresholds] = {0};
+  
+  map<string, tuple<int, double, double>> histParams = {
+    {"nMaxHits", {30, 0, 30}},
+    {"nMaxLayers", {30, 0, 30}},
+    {"nMaxLength", {30, 0, 6}},
+    {"nAvgHits", {30, 0, 30}},
+    {"nAvgLayers", {30, 0, 30}},
+    {"nAvgLength", {30, 0, 6}},
+  };
+  
+  map<string, pair<TH1D*, TH1D*>> hists;
+  
+  for(auto &[title, params] : histParams){
+    auto &[nBins, min, max] = params;
+    hists[title] = make_pair(new TH1D((title+"Pion").c_str(), (title+"Pion").c_str(), nBins, min, max),
+                             new TH1D((title+"Noise").c_str(), (title+"Noise").c_str(), nBins, min, max));
+  }
+  
+  int nEventsAnalyzed = 0;
   
   EventSet events;
   events.LoadEventsFromFiles(cutLevel);
@@ -41,10 +77,12 @@ int main(int argc, char* argv[])
   for(auto iEvent=0; iEvent<nEvents; iEvent++){
     auto event = events.At(dataType, setIter, iEvent);
     
-    cout<<"\n\n=================================================================\n"<<endl;
-    cout<<"helixTagger -- processing event "<<iEvent<<endl;
+    if(iEvent%10==0)  cout<<"|";
+    else              cout<<".";
     
     if(event->GetNtracks() != 1 || event->GetGenPionHelices().size() != 1) continue;
+    
+    nEventsAnalyzed++;
     
     auto track     = event->GetTracks().front();
     auto pionHelix = event->GetGenPionHelices().front();
@@ -60,19 +98,126 @@ int main(int argc, char* argv[])
     auto pointsNoEndcaps = GetClustersNoEndcaps(event, removePionClusters);
     vector<Helix> fittedHelicesAll = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
     
+    size_t maxNclusters = 0;
+
     for(auto helix : fittedHelicesPion){
-      nCommonPointsHistPion->Fill(helixProcessor.GetNcommonPoints(pionHelix, helix));
-    }
-    for(auto helix : fittedHelicesNoise){
-      nCommonPointsHistNoise->Fill(helixProcessor.GetNcommonPoints(pionHelix, helix));
-    }
-    for(auto helix : fittedHelicesAll){
-      nCommonPointsHistAll->Fill(helixProcessor.GetNcommonPoints(pionHelix, helix));
+      size_t nPionClusters = helixProcessor.GetNcommonPoints(pionHelix, helix);
+      if(nPionClusters > maxNclusters) maxNclusters = nPionClusters;
     }
     
+    if(fittedHelicesPion.size() > 0){
+      nEventsWithHelixPion++;
+      
+      nCommonPointsHistPion->Fill(maxNclusters);
+      hists["nMaxHits"].first->Fill(helixProcessor.GetMaxNhits(fittedHelicesPion));
+      hists["nMaxLayers"].first->Fill(helixProcessor.GetMaxNlayers(fittedHelicesPion));
+      hists["nMaxLength"].first->Fill(helixProcessor.GetMaxLength(fittedHelicesPion));
+      hists["nAvgHits"].first->Fill(helixProcessor.GetAvgNhits(fittedHelicesPion));
+      hists["nAvgLayers"].first->Fill(helixProcessor.GetAvgNlayers(fittedHelicesPion));
+      hists["nAvgLength"].first->Fill(helixProcessor.GetAvgLength(fittedHelicesPion));
+      
+      for(int iThreshold=0; iThreshold<nThresholds; iThreshold++){
+        if(maxNclusters >= iThreshold) nEventsWithTrueHelixPion[iThreshold]++;
+      }
+    }
+    
+    maxNclusters=0;
+    for(auto helix : fittedHelicesNoise){
+      size_t nPionClusters = helixProcessor.GetNcommonPoints(pionHelix, helix);
+      if(nPionClusters > maxNclusters) maxNclusters = nPionClusters;
+    }
+
+    if(fittedHelicesNoise.size() > 0){
+      nEventsWithHelixNoise++;
+      
+      nCommonPointsHistNoise->Fill(maxNclusters);
+      hists["nMaxHits"].second->Fill(helixProcessor.GetMaxNhits(fittedHelicesNoise));
+      hists["nMaxLayers"].second->Fill(helixProcessor.GetMaxNlayers(fittedHelicesNoise));
+      hists["nMaxLength"].second->Fill(helixProcessor.GetMaxLength(fittedHelicesNoise));
+      hists["nAvgHits"].second->Fill(helixProcessor.GetAvgNhits(fittedHelicesNoise));
+      hists["nAvgLayers"].second->Fill(helixProcessor.GetAvgNlayers(fittedHelicesNoise));
+      hists["nAvgLength"].second->Fill(helixProcessor.GetAvgLength(fittedHelicesNoise));
+      
+      for(int iThreshold=0; iThreshold<nThresholds; iThreshold++){
+        if(maxNclusters >= iThreshold) nEventsWithTrueHelixNoise[iThreshold]++;
+      }
+    }
+    
+    maxNclusters=0;
+    int nTrueHelices[nThresholds]={0};
+    int nFakeHelices[nThresholds]={0};
+    for(auto helix : fittedHelicesAll){
+      size_t nPionClusters = helixProcessor.GetNcommonPoints(pionHelix, helix);
+      if(nPionClusters > maxNclusters) maxNclusters = nPionClusters;
+      
+      for(int iThreshold=0; iThreshold<nThresholds; iThreshold++){
+        if(nPionClusters >= iThreshold) nTrueHelices[iThreshold]++;
+        else                            nFakeHelices[iThreshold]++;
+      }
+    }
+    
+    if(fittedHelicesAll.size() > 0){
+      nCommonPointsHistAll->Fill(maxNclusters);
+      
+      nEventsWithHelixAll++;
+      
+      for(int iThreshold=0; iThreshold<nThresholds; iThreshold++){
+        if(nTrueHelices[iThreshold]!=0) nEventsWithTrueAll[iThreshold]++;
+        if(nTrueHelices[iThreshold]!=0 && nFakeHelices[iThreshold]!=0) nEventsWithTrueAndFakeAll[iThreshold]++;
+        if(nTrueHelices[iThreshold]!=0 || nFakeHelices[iThreshold]!=0) nEventsWithTrueOrFakeAll[iThreshold]++;
+        
+        if(nTrueHelices[iThreshold]>0 && nFakeHelices[iThreshold]==0) nEventsWithTrueOnlyAll[iThreshold]++;
+        if(nTrueHelices[iThreshold]==0 && nFakeHelices[iThreshold]!=0) nEventsWithFakeOnlyAll[iThreshold]++;
+      }
+    }
+  }
+  cout<<endl;
+  
+  cout<<"Time: "<<duration(start, now())<<endl;
+  
+  cout<<"events with helix (pion): "<<100*nEventsWithHelixPion/(double)nEventsAnalyzed<<" %"<<endl;
+  cout<<"events with helix (Noise): "<<100*nEventsWithHelixNoise/(double)nEventsAnalyzed<<" %"<<endl;
+  cout<<"events with helix (All): "<<100*nEventsWithHelixAll/(double)nEventsAnalyzed<<" %"<<endl;
+  
+  for(int iThreshold=0; iThreshold<nThresholds; iThreshold++){
+    cout<<"\n\n==================================="<<endl;
+    cout<<"Results for threshold: "<<iThreshold<<endl;
+    
+    double c_eff_pure  = nEventsWithTrueHelixPion[iThreshold]/(double)nEventsAnalyzed;
+    double c_fake_pure = (nEventsWithHelixNoise-nEventsWithTrueHelixNoise[iThreshold])/(double)nEventsAnalyzed;
+    double c_eff_and   = nEventsWithTrueAndFakeAll[iThreshold]/(double)nEventsAnalyzed;
+    double c_eff_or    = nEventsWithTrueOrFakeAll[iThreshold]/(double)nEventsAnalyzed;
+    double c_fake      = nEventsWithFakeOnlyAll[iThreshold]/(double)nEventsAnalyzed;
+    double c_eff_full  = nEventsWithTrueOnlyAll[iThreshold]/(double)nEventsAnalyzed;
+    double c_eff       = nEventsWithTrueAll[iThreshold]/(double)nEventsAnalyzed;
+    
+    cout.imbue(locale("de_DE"));
+    cout<<"\n"<<endl;
+    cout<<"c_eff^pure: "<<c_eff_pure<<endl;
+    cout<<"c_fake^pure: "<<c_fake_pure<<endl;
+    cout<<"c_eff^and: "<<c_eff_and<<endl;
+    cout<<"c_eff^or: "<<c_eff_or<<endl;
+    cout<<"c_fake: "<<c_fake<<endl;
+    cout<<"c_eff^full: "<<c_eff_full<<endl;
+    cout<<"c_eff: "<<c_eff<<endl;
+    cout<<setprecision(3);
+    cout<<c_eff_pure<<" "<<c_fake_pure<<" "<<c_eff<<" "<<c_fake<<" "<<c_eff_full<<endl;
   }
   
-  cout<<"Time: "<<duration(start, now());
+  cout<<"Pure ROC curve points:"<<endl;
+  for(int iThreshold=0; iThreshold<nThresholds; iThreshold++){
+    double c_fake_pure = (nEventsWithHelixNoise-nEventsWithTrueHelixNoise[iThreshold])/(double)nEventsAnalyzed;
+    double c_eff_pure  = nEventsWithTrueHelixPion[iThreshold]/(double)nEventsAnalyzed;
+    
+    cout<<c_fake_pure<<"\t"<<c_eff_pure<<endl;
+  }
+  
+  cout<<"ROC curve points:"<<endl;
+   for(int iThreshold=0; iThreshold<nThresholds; iThreshold++){
+     double c_fake      = nEventsWithFakeOnlyAll[iThreshold]/(double)nEventsAnalyzed;
+     double c_eff       = nEventsWithTrueAll[iThreshold]/(double)nEventsAnalyzed;
+     cout<<c_fake<<"\t"<<c_eff<<endl;
+   }
   
   canvas->cd(1);
   nCommonPointsHistPion->SetLineColor(kGreen+2);
@@ -85,6 +230,23 @@ int main(int argc, char* argv[])
   nCommonPointsHistAll->SetFillColorAlpha(kBlue, 0.3);
   nCommonPointsHistAll->Draw("same");
   
+  int iPad=2;
+  TFile *outFile = new TFile("results/analyzeTagger.root","recreate");
+  
+  for(auto &[title, histPair] : hists){
+    canvas->cd(iPad++);
+    histPair.first->SetLineColor(kGreen+2);
+    histPair.first->SetFillColorAlpha(kGreen+2, 0.3);
+    histPair.first->Draw(iPad==3 ? "" : "same");
+    histPair.second->SetLineColor(kRed);
+    histPair.second->SetFillColorAlpha(kRed, 0.3);
+    histPair.second->Draw("same");
+    
+    outFile->cd();
+    histPair.first->Write();
+    histPair.second->Write();
+  }
+  
   double legendW=0.25, legendH=0.40, legendX=0.65, legendY=0.1;
   TLegend *leg = new TLegend(legendX,legendY,legendX+legendW,legendY+legendH);
   leg->AddEntry(nCommonPointsHistPion, "Pion hits only", "elp");
@@ -93,17 +255,13 @@ int main(int argc, char* argv[])
   
   leg->Draw();
   
-  canvas->Update();
-  
-  TFile *outFile = new TFile("results/analyzeTagger.root","recreate");
   outFile->cd();
   nCommonPointsHistPion->Write();
   nCommonPointsHistNoise->Write();
   nCommonPointsHistAll->Write();
-  
   outFile->Close();
   
-  
+  canvas->Update();
   theApp.Run();
   return 0;
 }

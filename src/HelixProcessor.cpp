@@ -217,12 +217,102 @@ size_t HelixProcessor::GetNcommonPoints(const Helix &helix1, const Helix &helix2
     }
   }
   
-//  set_intersection(points1.begin(), points1.end(),
-//                   points2.begin(), points2.end(),
-//                   back_inserter(commonPoints),
-//                   [&](const shared_ptr<Point> &p1, const shared_ptr<Point> &p2){
-//                     return *p1 == *p2;
-//                   });
-//  
   return commonPoints.size();
+}
+
+double HelixProcessor::GetAvgNhits(vector<Helix> helices)
+{
+  if(helices.size()==0) return 0;
+  double avgHits = 0;
+  for(auto helix : helices) avgHits += helix.GetNpoints();
+  avgHits /= helices.size();
+  return avgHits;
+}
+
+int HelixProcessor::GetMaxNhits(vector<Helix> helices)
+{
+  int maxNhits = 0;
+  for(auto helix : helices){
+    if(helix.GetNpoints() > maxNhits) maxNhits = helix.GetNpoints();
+  }
+  return maxNhits;
+}
+
+int HelixProcessor::GetAvgNlayers(vector<Helix> helices)
+{
+  int maxNlayers = 0;
+  double avgLayers = 0;
+  for(auto helix : helices) avgLayers += helix.GetNlayers();
+  avgLayers /= helices.size();
+  return avgLayers;
+}
+
+int HelixProcessor::GetMaxNlayers(vector<Helix> helices)
+{
+  size_t maxNlayers = 0;
+  
+  for(auto helix : helices){
+    size_t nLayers = helix.GetNlayers();
+    if(nLayers > maxNlayers) maxNlayers = nLayers;
+  }
+  return (int)maxNlayers;
+}
+
+double HelixProcessor::GetAvgLength(vector<Helix> helices)
+{
+  if(helices.size()==0) return 0;
+  double avgLength = 0;
+  
+  for(auto helix : helices){
+    double length = fabs(helix.GetTmax() - helix.GetTmin());
+    avgLength += length;
+  }
+  avgLength /= helices.size();
+  return avgLength;
+}
+
+double HelixProcessor::GetMaxLength(vector<Helix> helices)
+{
+  if(helices.size()==0) return 0;
+  double maxLength = -inf;
+  
+  for(auto helix : helices){
+    double length = fabs(helix.GetTmax() - helix.GetTmin());
+    if(length > maxLength) maxLength = length;
+  }
+  return maxLength;
+}
+
+double HelixProcessor::GetMinChi2(vector<Helix> helices)
+{
+  if(helices.size()==0) return 0;
+  double minChi2 = inf;
+  
+  for(auto helix : helices){
+    if(helix.GetChi2() < minChi2) minChi2 = helix.GetChi2();
+  }
+  return minChi2;
+}
+
+double HelixProcessor::GetMinChi2overNhits(vector<Helix> helices)
+{
+  if(helices.size()==0) return 0;
+  double minChi2 = inf;
+  
+  for(auto helix : helices){
+    if(helix.GetChi2()/helix.GetNpoints() < minChi2) minChi2 = helix.GetChi2()/helix.GetNpoints();
+  }
+  
+  return minChi2;
+}
+
+bool HelixProcessor::DidTurnBack(vector<Helix> helices)
+{
+  if(helices.size()==0) return false;
+  
+  for(auto helix : helices){
+    if(helix.GetFirstTurningPointIndex()>0) return true;
+  }
+  
+  return false;
 }

@@ -50,6 +50,16 @@ public:
   
   size_t GetNcommonPoints(const Helix &helix1, const Helix &helix2);
   
+  double GetAvgNhits(vector<Helix> helices);
+  int GetMaxNhits(vector<Helix> helices);
+  int GetAvgNlayers(vector<Helix> helices);
+  int GetMaxNlayers(vector<Helix> helices);
+  double GetAvgLength(vector<Helix> helices);
+  double GetMaxLength(vector<Helix> helices);
+  double GetMinChi2(vector<Helix> helices);
+  double GetMinChi2overNhits(vector<Helix> helices);
+  bool DidTurnBack(vector<Helix> helices);
+  
 private:
   static const int maxNhelices = 1000;   ///< Maximum supported number of helices per event
   int nHelices;                          ///< Number of helices in the current tree entry

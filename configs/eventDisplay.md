@@ -56,7 +56,7 @@ n_noise_hits: 0
 n_tracker_layers: 4
 
 ### Limit number of events loaded (-1 means load all available)
-max_N_events_signal:  -1
+max_N_events_signal:  100
 
 verbosity_level: 0
 
@@ -85,24 +85,24 @@ n_track_hits: 2
 double_hit_max_distance:            20.0
 
 ### Constraints on seeds parameters:
-seed_max_chi2:                           0.06
+seed_max_chi2:                           0.01
 
 seed_middle_hit_min_delta_phi:   -0.4
-seed_middle_hit_max_delta_phi:  0.4
-seed_middle_hit_max_delta_z:     100
+seed_middle_hit_max_delta_phi:  0.5
+seed_middle_hit_max_delta_z:     200
 
 seed_last_hit_min_delta_phi:       -0.4
-seed_last_hit_max_delta_phi:       0.5
-seed_last_hit_max_delta_z:          100
+seed_last_hit_max_delta_phi:       0.4
+seed_last_hit_max_delta_z:          200
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             0.01
+track_max_chi2:                             0.1
 
 next_point_min_delta_phi:             -0.5
-next_point_max_delta_phi:            1.5
-next_point_max_delta_z:                500
-next_point_max_delta_xy:              100
-next_point_max_delta_t:                1.5
+next_point_max_delta_phi:            0.5
+next_point_max_delta_z:                300
+next_point_max_delta_xy:              250
+next_point_max_delta_t:                0.6
 
 track_min_n_points:                       3
 track_min_n_layers:                       2
@@ -127,7 +127,7 @@ do_asymmetric_constraints:           0
 allow_turning_back:                         1
 
 ### Reject seed if it causes starting values outside of limits:
-require_good_starting_values:        0
+require_good_starting_values:        1
 
 ### R(t) and s(t) functions:
 exp_radius_function:        0
@@ -135,8 +135,8 @@ exp_slope_function:         0
 
 ### Let pion helix start one layer before/after the chargino track
 allow_one_less_layer: 0
-allow_one_more_layer: 0
-check_opposite_charge_below_Nlayers: 0
+allow_one_more_layer: 1
+check_opposite_charge_below_Nlayers: 5
 
 **Benchmark parameters**
 
