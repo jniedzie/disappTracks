@@ -173,7 +173,7 @@ vector<vector<shared_ptr<Point>>> PointsProcessor::RegroupNerbyPoints(const vect
     thisPointNeighbours.push_back(points[iPoint1]);
     
     for(int iPoint2=iPoint1+1; iPoint2<points.size(); iPoint2++){
-      if(pointsProcessor.distance(*points[iPoint1], *points[iPoint2]) < config.doubleHitsMaxDistance){
+      if(pointsProcessor.distance(*points[iPoint1], *points[iPoint2]) < config.params["double_hit_max_distance"]){
         thisPointNeighbours.push_back(points[iPoint2]);
         alreadyRegroupedIndices.push_back(iPoint2);
       }
@@ -196,10 +196,19 @@ bool PointsProcessor::IsPhiGood(const vector<shared_ptr<Point>> &lastPoints,
     for(auto &secondToLastPoint : secondToLastPoints){
       double deltaPhi = pointsProcessor.GetPointingAngleXY(*secondToLastPoint, *lastPoint, *point);
       
-      if(config.doAsymmetricConstraints)  deltaPhi = charge*deltaPhi;
-      else                                deltaPhi = fabs(deltaPhi);
+      range<double> nextPointDeltaPhi(-inf, inf);
       
-      if(config.nextPointDeltaPhi.IsOutside(deltaPhi)) continue;
+      if(config.params["do_asymmetric_constraints"]){
+        deltaPhi = charge*deltaPhi;
+        nextPointDeltaPhi = range<double>(config.params["next_point_min_delta_phi"],
+                                          config.params["next_point_max_delta_phi"]);
+      }
+      else{
+        deltaPhi = fabs(deltaPhi);
+        nextPointDeltaPhi = range<double>(0, config.params["next_point_max_delta_phi"]);
+      }
+      
+      if(nextPointDeltaPhi.IsOutside(deltaPhi)) continue;
       goodPhi = true;
       break;
     }
@@ -215,7 +224,7 @@ bool PointsProcessor::IsZgood(const vector<shared_ptr<Point>> &lastPoints,
   
   for(auto &lastPoint : lastPoints){
     double deltaZ = fabs(lastPoint->GetZ() - point->GetZ());
-    if(deltaZ > config.nextPointMaxDeltaZ) continue;
+    if(deltaZ > config.params["next_point_max_delta_z"]) continue;
     goodZ = true;
     break;
   }
@@ -228,7 +237,7 @@ bool PointsProcessor::IsTgood(const vector<double> &lastPointsT, double pointT)
   
   for(auto &lastPointT : lastPointsT){
     double deltaT = fabs(lastPointT - pointT);
-    if(deltaT > config.nextPointMaxDeltaT) continue;
+    if(deltaT > config.params["next_point_max_delta_t"]) continue;
     goodT = true;
     break;
   }
@@ -242,16 +251,25 @@ bool PointsProcessor::IsGoodMiddleSeedHit(const Point &point,
 {
   double middleHitDeltaPhi = GetPointingAngleXY(eventVertex, trackMidPoint, point);
   
-  if(config.doAsymmetricConstraints)  middleHitDeltaPhi = charge*middleHitDeltaPhi;
-  else                                middleHitDeltaPhi = fabs(middleHitDeltaPhi);
+  range<double> seedMiddleHitDeltaPhi(-inf, inf);
   
-  if(config.seedMiddleHitDeltaPhi.IsOutside(middleHitDeltaPhi)){
+  if(config.params["do_asymmetric_constraints"]){
+    middleHitDeltaPhi = charge*middleHitDeltaPhi;
+    seedMiddleHitDeltaPhi = range<double>(config.params["seed_middle_hit_min_delta_phi"],
+                                          config.params["seed_middle_hit_max_delta_phi"]);
+  }
+  else{
+    middleHitDeltaPhi = fabs(middleHitDeltaPhi);
+    seedMiddleHitDeltaPhi = range<double>(0, config.params["seed_middle_hit_max_delta_phi"]);
+  }
+  
+  if(seedMiddleHitDeltaPhi.IsOutside(middleHitDeltaPhi)){
     if(config.verbosity>1) cout<<"Seed middle hit Δφ too large"<<endl;
     return false;
   }
   
   double middleHitDeltaZ = fabs(point.GetZ() - trackMidPoint.GetZ());
-  if(middleHitDeltaZ > config.seedMiddleHitMaxDeltaZ){
+  if(middleHitDeltaZ > config.params["seed_middle_hit_max_delta_z"]){
     if(config.verbosity>1) cout<<"Seed middle hit Δz too large"<<endl;
     return false;
   }
@@ -266,16 +284,25 @@ bool PointsProcessor::IsGoodLastSeedHit(const Point &point,
 {
   double lastHitDeltaPhi = pointsProcessor.GetPointingAngleXY(trackMidPoint, middlePoint, point);
   
-  if(config.doAsymmetricConstraints)  lastHitDeltaPhi = charge*lastHitDeltaPhi;
-  else                                lastHitDeltaPhi = fabs(lastHitDeltaPhi);
+  range<double> seedLastHitDeltaPhi(-inf, inf);
   
-  if(config.seedLastHitDeltaPhi.IsOutside(lastHitDeltaPhi)){
+  if(config.params["do_asymmetric_constraints"]){
+    lastHitDeltaPhi = charge*lastHitDeltaPhi;
+    seedLastHitDeltaPhi = range<double>(config.params["seed_last_hit_min_delta_phi"],
+                                        config.params["seed_last_hit_max_delta_phi"]);
+  }
+  else{
+    lastHitDeltaPhi = fabs(lastHitDeltaPhi);
+    seedLastHitDeltaPhi = range<double>(0, config.params["seed_last_hit_max_delta_phi"]);
+  }
+  
+  if(seedLastHitDeltaPhi.IsOutside(lastHitDeltaPhi)){
     if(config.verbosity>1) cout<<"Seed last hit Δφ too large"<<endl;
     return false;
   }
   
   double lastPointDeltaZ = fabs(middlePoint.GetZ() - point.GetZ());
-  if(lastPointDeltaZ > config.seedLastHitMaxDeltaZ){
+  if(lastPointDeltaZ > config.params["seed_last_hit_max_delta_z"]){
     if(config.verbosity>1) cout<<"Seed last hit Δz too large"<<endl;
     return false;
   }

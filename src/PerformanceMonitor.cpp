@@ -95,6 +95,8 @@ void PerformanceMonitor::CalcEfficiency(int nAnalyzedEvents)
   significanceAfterL0 = -inf;
   significanceAfterL1 = -inf;
   invFakeAtHighestEff = -inf;
+  maxDistToSqrtFake = -inf;
+  avgDistToSqrtFake = 0;
   
   set<pair<double, double>> rocXY;
   
@@ -121,9 +123,26 @@ void PerformanceMonitor::CalcEfficiency(int nAnalyzedEvents)
     if(sigmaApproxL1all > significanceAfterL1 && fakeRate[iThreshold] > 0)
       significanceAfterL1 = sigmaApproxL1all;
     
+    double distToSqrtFake = efficiency[iThreshold]-sqrt(fakeRate[iThreshold]);
+    
+    if(distToSqrtFake > maxDistToSqrtFake
+       && fakeRate[iThreshold] > 0.01
+       && fakeRate[iThreshold] < 0.99
+       ){
+      if(fabs(distToSqrtFake)<0.001){
+        
+      }
+      
+      
+      maxDistToSqrtFake = distToSqrtFake;
+    }
+    avgDistToSqrtFake += distToSqrtFake;
+    
     rocGraph->SetPoint(iThreshold, fakeRate[iThreshold], efficiency[iThreshold]);
     rocXY.insert(make_pair(fakeRate[iThreshold], efficiency[iThreshold]));
   }
+  avgDistToSqrtFake /= nBins;
+  
   rocGraph->Fit(rocFun,"Q");
   auc = rocFun->Integral(0,1);
   
@@ -149,6 +168,8 @@ void PerformanceMonitor::PrintParams()
   cout<<"AUC: "<<auc<<"\tmax eff: "<<maxEfficiency<<"\t";
   cout<<"sign Initial: "<<significanceInitial<<"\t";
   cout<<"sign L0 all: "<<significanceAfterL0<<endl;
+  cout<<"Max dist to sqrt fake: "<<maxDistToSqrtFake<<"\t";
+  cout<<"avg dist to sqrt fake: "<<avgDistToSqrtFake<<"\t";
 }
 
 TF1* PerformanceMonitor::GetRocFunction()

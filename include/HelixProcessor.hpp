@@ -50,6 +50,17 @@ public:
   
   size_t GetNcommonPoints(const Helix &helix1, const Helix &helix2);
   
+  double GetHelicesParamsByMonitorName(vector<Helix> helices, string monitorName){
+    if(monitorName == "avg_hits")   return GetAvgNhits(helices);
+    if(monitorName == "max_hits")   return GetMaxNhits(helices);
+    if(monitorName == "avg_layers") return GetAvgNlayers(helices);
+    if(monitorName == "max_layers") return GetMaxNlayers(helices);
+    if(monitorName == "avg_length") return GetAvgLength(helices);
+    if(monitorName == "max_length") return GetMaxLength(helices);
+    if(monitorName == "n_helices")  return helices.size();
+    return -inf;
+  }
+  
   double GetAvgNhits(vector<Helix> helices);
   int GetMaxNhits(vector<Helix> helices);
   int GetAvgNlayers(vector<Helix> helices);

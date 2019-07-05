@@ -56,7 +56,7 @@ n_noise_hits: 0
 n_tracker_layers: 4
 
 ### Limit number of events loaded (-1 means load all available)
-max_N_events_signal:  100
+max_N_events_signal:  -1
 
 verbosity_level: 0
 

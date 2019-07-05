@@ -1,4 +1,4 @@
-//  taggerFitter.cpp
+//  taggerScanner.cpp
 //
 //  Created by Jeremi Niedziela on 18/06/2019.
 
@@ -10,13 +10,9 @@
 #include "EventSet.hpp"
 
 string configPath = "configs/helixTagger.md";
-string outFilePrefix = "L1_all";
-string outPath = "taggerScannerOutput.txt";
 string cutLevel = "after_L1/all/";//after_L1/";
-string optimizeFor = "auc";
-string optimizationMonitor = "max_layers";
 
-const int nEvents = 40;
+const int nEvents = 100;
 const int eventOffset = 100;
 
 int nAnalyzedEvents = 0;
@@ -24,18 +20,9 @@ int nAnalyzedEvents = 0;
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
 
-string monitorType = "";
-string optimizationParam = "";
-
 vector<shared_ptr<Point>> GetClustersNoEndcaps(const shared_ptr<Event> &event, bool removePionClusters);
 
 auto helixFitter = make_unique<Fitter>();
-
-double GetAvgNhits(vector<Helix> helices);
-int    GetMaxNhits(vector<Helix> helices);
-int    GetMaxNlayers(vector<Helix> helices);
-double GetAvgLength(vector<Helix> helices);
-double GetMaxLength(vector<Helix> helices);
 
 shared_ptr<Event> GetEvent(int iEvent);
 
@@ -43,68 +30,78 @@ vector<shared_ptr<Event>> events;
 vector<vector<shared_ptr<Point>>> pointsNoEndcapsSignal;
 vector<vector<shared_ptr<Point>>> pointsNoEndcapsBackground;
 
-double GetParamForCurrentConfig(string monitorType, string optParam)
+vector<string> monitorTypes = {
+  "avg_hits",
+  "max_hits",
+  "avg_layers",
+  "max_layers",
+  "avg_length",
+  "max_length",
+  "n_helices"
+};
+
+vector<string> optimizationVars = {
+//  "auc",
+//  "sigma_init",
+//  "sigma_L0",
+//  "sigma_L1",
+//  "max_eff",
+//  "min_fake",
+  "max_dist_fake",
+  "avg_dist_fake",
+};
+
+map<string, map<string, double>> bestMonitorValue; //[monitorType][optimizeFor]
+map<string, map<string, map<string, double>>> bestParamValue; //[monitorType][optimizeFor][configParam]
+
+//           name     start    stop   step
+vector<tuple<string, double, double, double>> paramsToTest = {
+//  {"double_hit_max_distance", 20, 0, -1},
+//  {"seed_max_chi2", 0.01, 0.10, 0.01},
+  {"seed_middle_hit_max_delta_phi", 0, 1.0, 0.1},
+//  {"seed_middle_hit_max_delta_z", 50, 300, 50},
+};
+
+void CheckParamForCurrentConfig(string paramName)
 {
   nAnalyzedEvents=0;
-  int max = 20;
-  int nBins = 20;
-  if(monitorType=="avg_length") max = 2;
-  if(monitorType=="max_length"){
-    nBins = 40;
-    max = 12;
-  }
-  auto monitor = PerformanceMonitor(monitorType, 20, 0, max, nEvents);
   
+  map<string, PerformanceMonitor> monitors;
+  
+  for(auto monitorType : monitorTypes){
+    int max = 20, nBins = 20;
+    if(monitorType=="avg_length" || monitorType=="max_length"){ max = 10; nBins = 40; }
+    monitors[monitorType] = PerformanceMonitor(monitorType, nBins, 0, max, nEvents);
+  }
+
   for(auto iEvent=0; iEvent<nEvents; iEvent++){
-    if(pointsNoEndcapsSignal[iEvent].size()==0 || pointsNoEndcapsBackground[iEvent].size()==0){
-      cout<<"helixTagger -- no tracker hits for event "<<iEvent<<endl;
-      //      continue;
-    }
     auto event = events[iEvent];
     
     for(auto &track : event->GetTracks()){
       vector<Helix> fittedHelicesSignal = helixFitter->FitHelices(pointsNoEndcapsSignal[iEvent], *track, *event->GetVertex());
       vector<Helix> fittedHelicesBackground = helixFitter->FitHelices(pointsNoEndcapsBackground[iEvent], *track, *event->GetVertex());
       
-      if(monitorType=="avg_hits"){
-        monitor.SetValues(iEvent, GetAvgNhits(fittedHelicesSignal), GetAvgNhits(fittedHelicesBackground));
+      for(string monitorType : monitorTypes){
+        monitors[monitorType].SetValues(iEvent,
+                                       helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesSignal, monitorType),
+                                       helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesBackground, monitorType));
+        
       }
-      else if(monitorType=="max_hits"){
-        monitor.SetValues(iEvent, GetMaxNhits(fittedHelicesSignal), GetMaxNhits(fittedHelicesBackground));
-      }
-      else if(monitorType=="max_layers"){
-        monitor.SetValues(iEvent, GetMaxNlayers(fittedHelicesSignal), GetMaxNlayers(fittedHelicesBackground));
-      }
-      else if(monitorType=="n_helices"){
-        monitor.SetValues(iEvent, fittedHelicesSignal.size(), fittedHelicesBackground.size());
-      }
-      else if(monitorType=="avg_length"){
-        monitor.SetValues(iEvent, GetAvgLength(fittedHelicesSignal), GetAvgLength(fittedHelicesBackground));
-      }
-      else if(monitorType=="max_length"){
-        monitor.SetValues(iEvent, GetMaxLength(fittedHelicesSignal), GetMaxLength(fittedHelicesBackground));
-      }
-      else{
-        cout<<"Unknown monitor type: "<<monitorType<<endl;
-        cout<<"Possible options: avg_hits/max_hits/max_layers/n_helices/avg_length/max_length"<<endl;
-        exit(0);
-      }
-
     }
     nAnalyzedEvents++;
   }
-  monitor.CalcEfficiency(nAnalyzedEvents);
   
-  if(optParam=="auc")               return monitor.GetAUC();
-  else if(optParam=="sigma_init")   return monitor.GetSignificanceInitial();
-  else if(optParam=="sigma_L0")     return monitor.GetSignificanceAfterL0();
-  else if(optParam=="sigma_L1")     return monitor.GetSignificanceAfterL1();
-  else if(optParam=="max_eff")      return monitor.GetMaxEfficiency();
-  else if(optParam=="min_fake")     return monitor.GetInvFakeAtHighestEff();
-  else{
-    cout<<"Uknown optimization parameter: "<<optParam<<endl;
+  for(string monitorType : monitorTypes){
+    monitors[monitorType].CalcEfficiency(nAnalyzedEvents);
+    
+    for(string optimizeFor : optimizationVars){
+      double value = monitors[monitorType].GetValueByName(optimizeFor);
+      if(value > bestMonitorValue[monitorType][optimizeFor]){
+        bestMonitorValue[monitorType][optimizeFor] = value;
+        bestParamValue[monitorType][optimizeFor][paramName] = config.params[paramName];
+      }
+    }
   }
-  return 0.0;
 };
 
 int main(int argc, char* argv[])
@@ -117,204 +114,43 @@ int main(int argc, char* argv[])
     pointsNoEndcapsSignal.push_back(GetClustersNoEndcaps(event, false));
     pointsNoEndcapsBackground.push_back(GetClustersNoEndcaps(event, true));
   }
+  
+  for(string monitorType : monitorTypes){
+    for(string optimizeFor : optimizationVars){
+      bestMonitorValue[monitorType][optimizeFor] = -inf;
+      for(auto &[paramName, min, max, step] : paramsToTest){
+        bestParamValue[monitorType][optimizeFor][paramName] = -inf;
+      }
+    }
+  }
  
-  double initOptValue = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
-  
-  double maxOptValue = -inf;
-  
   // double hit max distance
-//  double bestDoubleHitsDistance = config.doubleHitsMaxDistance;
-//  for(config.doubleHitsMaxDistance = 20.0;
-//      config.doubleHitsMaxDistance >= 5.0;
-//      config.doubleHitsMaxDistance -= 1.0){
-//    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
-//    cout<<"double_hit_max_distance: "<<config.doubleHitsMaxDistance<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
-//
-//    if(currentAUC > maxOptValue){
-//      maxOptValue = currentAUC;
-//      bestDoubleHitsDistance = config.doubleHitsMaxDistance;
-//    }
-//  }
-//  config.doubleHitsMaxDistance = bestDoubleHitsDistance;
+  for(auto &[name, min, max, step] : paramsToTest){
+    cout<<"Testing "<<name<<endl;
+    
+    for(config.params[name]  = min;
+        step < 0 ? config.params[name] >= max : config.params[name] <= max;
+        config.params[name] += step){
+      cout<<"\t"<<config.params[name];
+      CheckParamForCurrentConfig(name);
+    }
+    cout<<endl;
+  }
   
-//   seed chi2
-  double bestSeedChi2 = config.seedMaxChi2;
-//  for(double exponent=0.01; exponent<=0.19; exponent+=0.01){
-//    config.seedMaxChi2 = exponent;// pow(10, exponent);
-//    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
-//    cout<<"seed_max_chi2: "<<config.seedMaxChi2<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
-//
-//    if(currentAUC > maxOptValue){
-//      maxOptValue = currentAUC;
-//      bestSeedChi2 = config.seedMaxChi2;
-//    }
-//  }
-//  config.seedMaxChi2 = bestSeedChi2;
-//
-  // seed middle min Δφ
-  double bestMiddleMinPhi = config.seedMiddleHitDeltaPhi.GetMin();
-//  for(double min = 0.0; min >= -1.0; min-=0.1){
-//    config.seedMiddleHitDeltaPhi = range<double>(min, config.seedMiddleHitDeltaPhi.GetMax());
-//
-//    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
-//    cout<<"seed_middle_hit_min_delta_phi: "<<min<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
-//
-//    if(currentAUC > maxOptValue){
-//      maxOptValue = currentAUC;
-//      bestMiddleMinPhi = min;
-//    }
-//  }
-//  config.seedMiddleHitDeltaPhi = range<double>(bestMiddleMinPhi, config.seedMiddleHitDeltaPhi.GetMax());
+  for(string monitorType : monitorTypes){
+    cout<<"\n\nMonitor type: "<<monitorType<<endl;
+    
+    for(string optimizeFor : optimizationVars){
+      cout<<"\tbest "<<optimizeFor<<": "<<bestMonitorValue[monitorType][optimizeFor]<<endl;
 
-  // seed middle max Δφ
-  double bestMiddleMaxPhi = config.seedMiddleHitDeltaPhi.GetMax();
-//  for(double max = 0.0; max <= 0.6; max+=0.1){
-//    config.seedMiddleHitDeltaPhi = range<double>(config.seedMiddleHitDeltaPhi.GetMin(), max);
-//
-//    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
-//    cout<<"seed_middle_hit_max_delta_phi: "<<max<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
-//
-//    if(currentAUC > maxOptValue){
-//      maxOptValue = currentAUC;
-//      bestMiddleMaxPhi = max;
-//    }
-//  }
-//  config.seedMiddleHitDeltaPhi = range<double>(config.seedMiddleHitDeltaPhi.GetMin(), bestMiddleMaxPhi);
+      for(auto &[paramName, min, max, step] : paramsToTest){
+        cout<<"\t\t"<<paramName<<": "<<bestParamValue[monitorType][optimizeFor][paramName]<<endl;
+      }
+    }
+  }
   
-  
-  // seed middle Δz
-  double bestMiddleZ = config.seedMiddleHitMaxDeltaZ;
-//  for(config.seedMiddleHitMaxDeltaZ  = 50;
-//      config.seedMiddleHitMaxDeltaZ <= 300;
-//      config.seedMiddleHitMaxDeltaZ += 50){
-//    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
-//    cout<<"seed_middle_hit_max_delta_z: "<<config.seedMiddleHitMaxDeltaZ<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
-//
-//    if(currentAUC > maxOptValue){
-//      maxOptValue = currentAUC;
-//      bestMiddleZ = config.seedMiddleHitMaxDeltaZ;
-//    }
-//  }
-//  config.seedMiddleHitMaxDeltaZ = bestMiddleZ;
-  
-  
-  // seed last min Δφ
-  double bestLastMinPhi = config.seedLastHitDeltaPhi.GetMin();
-//  for(double min = -0.4; min >= -0.7; min-=0.1){
-//    config.seedLastHitDeltaPhi = range<double>(min, config.seedLastHitDeltaPhi.GetMax());
-//
-//    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
-//    cout<<"seed_Last_hit_min_delta_phi: "<<min<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
-//
-//    if(currentAUC > maxOptValue){
-//      maxOptValue = currentAUC;
-//      bestLastMinPhi = min;
-//    }
-//  }
-//  config.seedLastHitDeltaPhi = range<double>(bestLastMinPhi, config.seedLastHitDeltaPhi.GetMax());
-  
-  // seed last max Δφ
-  double bestLastMaxPhi = config.seedLastHitDeltaPhi.GetMax();
-//  for(double max = 0.0; max <= 0.6; max+=0.1){
-//    config.seedLastHitDeltaPhi = range<double>(config.seedLastHitDeltaPhi.GetMin(), max);
-//
-//    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
-//    cout<<"seed_last_hit_max_delta_phi: "<<max<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
-//
-//    if(currentAUC > maxOptValue){
-//      maxOptValue = currentAUC;
-//      bestLastMaxPhi = max;
-//    }
-//  }
-//  config.seedLastHitDeltaPhi = range<double>(config.seedLastHitDeltaPhi.GetMin(), bestLastMaxPhi);
-  
-  // seed last min Δz
-  double bestLastZ = config.seedLastHitMaxDeltaZ;
-//  for(config.seedLastHitMaxDeltaZ = 50;
-//      config.seedLastHitMaxDeltaZ <= 300;
-//      config.seedLastHitMaxDeltaZ += 50){
-//    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
-//    cout<<"seed_last_hit_max_delta_z: "<<config.seedLastHitMaxDeltaZ<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
-//
-//    if(currentAUC > maxOptValue){
-//      maxOptValue = currentAUC;
-//      bestLastZ = config.seedLastHitMaxDeltaZ;
-//    }
-//  }
-//  config.seedLastHitMaxDeltaZ = bestLastZ;
-  
-  // track chi2
-  double bestTrackChi2 = config.trackMaxChi2;
-//  for(double exponent=-6.0; exponent<1; exponent+=1.0){
-//    config.trackMaxChi2 = pow(10, exponent);
-//    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
-//    cout<<"track_max_chi2: "<<config.trackMaxChi2<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
-//
-//    if(currentAUC > maxOptValue){
-//      maxOptValue = currentAUC;
-//      bestTrackChi2 = config.trackMaxChi2;
-//    }
-//  }
-//  config.trackMaxChi2 = bestTrackChi2;
-  
-  // next point Δz
-  double bestTrackZ = config.nextPointMaxDeltaZ;
-//  for(config.nextPointMaxDeltaZ = 100;
-//      config.nextPointMaxDeltaZ <= 500;
-//      config.nextPointMaxDeltaZ += 100){
-//    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
-//    cout<<"next_point_max_delta_z: "<<config.nextPointMaxDeltaZ<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
-//
-//    if(currentAUC > maxOptValue){
-//      maxOptValue = currentAUC;
-//      bestTrackZ = config.nextPointMaxDeltaZ;
-//    }
-//  }
-//  config.nextPointMaxDeltaZ = bestTrackZ;
-  
-  // next point Δxy
-  double bestTrackXY = config.nextPointMaxDeltaXY;
-//  for(config.nextPointMaxDeltaXY  = 50;
-//      config.nextPointMaxDeltaXY <= 300;
-//      config.nextPointMaxDeltaXY += 50){
-//    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
-//    cout<<"next_point_max_delta_xy: "<<config.nextPointMaxDeltaXY<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
-//
-//    if(currentAUC > maxOptValue){
-//      maxOptValue = currentAUC;
-//      bestTrackXY = config.nextPointMaxDeltaXY;
-//    }
-//  }
-//  config.nextPointMaxDeltaXY = bestTrackXY;
-  
-  // next point Δt
-  double bestTrackT = config.nextPointMaxDeltaT;
-//  for(config.nextPointMaxDeltaT  = 0.7;
-//      config.nextPointMaxDeltaT <= 1.5;
-//      config.nextPointMaxDeltaT += 0.1){
-//    double currentAUC = GetParamForCurrentConfig(optimizationMonitor, optimizeFor);
-//    cout<<"next_point_max_delta_t: "<<config.nextPointMaxDeltaT<<"\t"<<optimizeFor<<": "<<currentAUC<<endl;
-//
-//    if(currentAUC > maxOptValue){
-//      maxOptValue = currentAUC;
-//      bestTrackT = config.nextPointMaxDeltaT;
-//    }
-//  }
-//  config.nextPointMaxDeltaT = bestTrackT;
-
-//  SetParameter(fitter, 13, "track_min_n_points"            ,  5   ,  0    , 20  , 1  , dontFix);
-//  SetParameter(fitter, 14, "merging_max_different_point"   ,  5   ,  0    , 20  , 1  , dontFix);
-//  SetParameter(fitter, 15, "max_n_missing_hits"            ,  1   ,  0    , 5   , 1  , fix);
-//  SetParameter(fitter, 16, "max_n_missing_hits_in_raw"     ,  1   ,  0    , 5   , 1  , fix);
-//  SetParameter(fitter, 17, "merge_at_turn_back"            ,  0   ,  0    , 2   , 1  , fix);
-//  SetParameter(fitter, 18, "merge_final_helices"           ,  0   ,  0    , 2   , 1  , fix);
-//  SetParameter(fitter, 19, "do_asymmetric_constraints"     ,  1   ,  0    , 2   , 1  , fix);
-//  SetParameter(fitter, 20, "allow_turning_back"            ,  1   ,  0    , 2   , 1  , fix);
-//  SetParameter(fitter, 21, "candidate_min_n_points"        ,  3   ,  3    , 10  , 1  , dontFix);
-  
-  ofstream outFile(outPath);
-  outFile << "Output for data: " << cutLevel << "\t optimizing for: "<<optimizeFor<<"\tusing monitor: "<<optimizationMonitor<<endl;
-  outFile << "Init "<<optimizeFor<<": "<<initOptValue<<"\tfinal "<<optimizeFor<<":"<<maxOptValue<<endl;
+//  ofstream outFile(outPath);
+//  outFile << "Init "<<optimizeFor<<": "<<initOptValue<<"\tfinal "<<optimizeFor<<":"<<maxOptValue<<endl;
 //  outFile << "double_hit_max_distance: "<<bestDoubleHitsDistance<<endl;
 //  outFile << "seed_max_chi2: "<<bestSeedChi2<<endl;
 //  outFile << "seed_middle_hit_min_delta_phi: "<<bestMiddleMinPhi<<endl;
@@ -328,7 +164,7 @@ int main(int argc, char* argv[])
 //  outFile << "next_point_max_delta_xy: "<<bestTrackXY<<endl;
 //  outFile << "next_point_max_delta_t: "<<bestTrackT<<endl;
 //
-  outFile.close();
+//  outFile.close();
   
   return 0;
 }
@@ -374,65 +210,4 @@ vector<shared_ptr<Point>> GetClustersNoEndcaps(const shared_ptr<Event> &event, b
   }
   
   return pointsNoEndcaps;
-}
-
-double GetAvgNhits(vector<Helix> helices)
-{
-  if(helices.size()==0) return 0;
-  double avgHits = 0;
-  for(auto helix : helices) avgHits += helix.GetNpoints();
-  avgHits /= helices.size();
-  return avgHits;
-}
-
-int GetMaxNhits(vector<Helix> helices)
-{
-  int maxNhits = 0;
-  for(auto helix : helices){
-    if(helix.GetNpoints() > maxNhits) maxNhits = helix.GetNpoints();
-  }
-  return maxNhits;
-}
-
-int GetMaxNlayers(vector<Helix> helices)
-{
-  int maxNlayers = 0;
-  
-  for(auto helix : helices){
-    unordered_set<int> layers;
-    for(int iPoint=0; iPoint<helix.GetNpoints(); iPoint++){
-      int layer = helix.GetPoints()[iPoint]->GetLayer();
-      if(layer > 0){
-        if(iPoint < helix.GetFirstTurningPointIndex()) layers.insert( layer);
-        else                                           layers.insert(-layer);
-      }
-    }
-    if(layers.size() > maxNlayers) maxNlayers = (int)layers.size();
-  }
-  return maxNlayers;
-}
-
-double GetAvgLength(vector<Helix> helices)
-{
-  if(helices.size()==0) return 0;
-  double avgLength = 0;
-  
-  for(auto helix : helices){
-    double length = fabs(helix.GetTmax() - helix.GetTmin());
-    avgLength += length;
-  }
-  avgLength /= helices.size();
-  return avgLength;
-}
-
-double GetMaxLength(vector<Helix> helices)
-{
-  if(helices.size()==0) return 0;
-  double maxLength = -inf;
-  
-  for(auto helix : helices){
-    double length = fabs(helix.GetTmax() - helix.GetTmin());
-    if(length > maxLength) maxLength = length;
-  }
-  return maxLength;
 }

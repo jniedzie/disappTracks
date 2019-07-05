@@ -9,7 +9,7 @@
 #include "PerformanceMonitor.hpp"
 #include "EventSet.hpp"
 
-string configPath = "../configs/helixTagger.md";
+string configPath = "configs/helixTagger.md";
 string cutLevel = "after_L1/all/";//after_L1/";
 
 const int nEvents = 100; // max: 1287
@@ -24,7 +24,7 @@ double SetParamValue(int iTest){
   // then assign the value to the correct config parameter:
 
   double paramValue = iTest+5;
-  config.doubleHitsMaxDistance = paramValue;
+  config.params["double_hit_max_distance"] = paramValue;
   
   //-------
   // seeds

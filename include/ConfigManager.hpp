@@ -23,6 +23,8 @@ struct ConfigManager {
   /// Prints complete information about current configuration
   void Print();
   
+  map<string, double> params;
+  
   //------------------------------//
   //    Analysis configuration    //
   //------------------------------//
@@ -66,40 +68,7 @@ struct ConfigManager {
   int nTrackerLayers;
   int verbosity;
   
-  // Fitter parameters
-  double seedMaxChi2;
-  range<double> seedMiddleHitDeltaPhi;
-  double seedMiddleHitMaxDeltaZ;
-  range<double> seedLastHitDeltaPhi;
-  double seedLastHitMaxDeltaZ;
-  range<double> nextPointDeltaPhi;
-  double nextPointMaxDeltaZ;
-  double nextPointMaxDeltaXY;
-  double nextPointMaxDeltaT;
-  
-  double trackMaxChi2;
-  int mergingMaxDifferentPoints;
-  int trackMinNpoints;
-  int trackMinNlayers;
-  int candidateMinNpoints;
-  int maxNmissingHits;
-  int maxNmissingHitsInRow;
-  
-  bool mergeAtTurnBack;
-  bool mergeFinalHelices;
-  bool allowTurningBack;
-  bool requireGoodStartingValues;
-  bool expRadiusFunction;
-  bool expSlopeFunction;
-  
-  double doubleHitsMaxDistance;
-  
-  bool doAsymmetricConstraints;
-  bool allowOneLessLayer;
-  bool allowOneMoreLayer;
-  int checkOppositeChargeBelowNlayers;
-  
-  int minLayersForDeltaXY;
+  // Fitter parameter
   
   double startR0, minR0, maxR0;
   double minRslope, maxRslope;

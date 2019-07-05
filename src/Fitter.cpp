@@ -82,7 +82,7 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
 
   vector<Helix> fittedHelices = PerformFittingCycle();
   
-  if(nTrackLayers < config.checkOppositeChargeBelowNlayers){
+  if(nTrackLayers < config.params["check_opposite_charge_below_Nlayers"]){
     if(config.verbosity>0) cout<<"Checking opposite charge for default n layers"<<endl;
     charge = -charge;
     vector<Helix> fittedHelicesOpposite = PerformFittingCycle();
@@ -90,14 +90,14 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
     charge = -charge;
   }
   
-  if(config.allowOneLessLayer){
+  if(config.params["allow_one_less_layer"]){
     if(config.verbosity>0) cout<<"Assuming one less layer"<<endl;
     nTrackLayers-=1;
     InitLparams();
     vector<Helix> fittedHelicesOneLess = PerformFittingCycle();
     fittedHelices.insert(fittedHelices.end(), fittedHelicesOneLess.begin(), fittedHelicesOneLess.end());
     
-    if(nTrackLayers < config.checkOppositeChargeBelowNlayers){
+    if(nTrackLayers < config.params["check_opposite_charge_below_Nlayers"]){
       if(config.verbosity>0) cout<<"Checking opposite charge for one less layer"<<endl;
       charge = -charge;
       vector<Helix> fittedHelicesOpposite = PerformFittingCycle();
@@ -107,14 +107,14 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
     
     nTrackLayers+=1;
   }
-  if(config.allowOneMoreLayer){
+  if(config.params["allow_one_more_layer"]){
     if(config.verbosity>0) cout<<"Assuming one more layer"<<endl;
     nTrackLayers+=1;
     InitLparams();
     vector<Helix> fittedHelicesOneMore = PerformFittingCycle();
     fittedHelices.insert(fittedHelices.end(), fittedHelicesOneMore.begin(), fittedHelicesOneMore.end());
     
-    if(nTrackLayers < config.checkOppositeChargeBelowNlayers){
+    if(nTrackLayers < config.params["check_opposite_charge_below_Nlayers"]){
       if(config.verbosity>0) cout<<"Checking opposite charge for one more layer"<<endl;
       charge = -charge;
       vector<Helix> fittedHelicesOpposite = PerformFittingCycle();
@@ -134,7 +134,7 @@ vector<Helix> Fitter::PerformFittingCycle()
   
   vector<Helix> fittedHelices = GetSeeds(pointsByLayer);
   ExtendSeeds(fittedHelices, pointsByLayer);
-  if(config.mergeFinalHelices) MergeHelices(fittedHelices);
+  if(config.params["merge_final_helices"]) MergeHelices(fittedHelices);
   RemoveShortHelices(fittedHelices);
   
   if(config.verbosity>0) cout<<"Refitting surviving helices...";
@@ -185,7 +185,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
       auto helix = FitSeed(points);
   
       if(!helix) continue;
-      if(helix->GetChi2() > config.seedMaxChi2) continue;
+      if(helix->GetChi2() > config.params["seed_max_chi2"]) continue;
       
       seeds.push_back(*helix);
     }
@@ -276,7 +276,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         bool crossesNextLayer = helixProcessor.GetIntersectionWithLayer(helix, nextPointLayer, pA, pB);
         
         // try to extend to next layer
-        if(crossesNextLayer || !config.allowTurningBack){
+        if(crossesNextLayer || !config.params["allow_turning_back"]){
   
           // Find points that could extend this helix
           vector<shared_ptr<Point>> possiblePointsAll;
@@ -306,7 +306,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             
             for(auto &point : points){
               
-              if(helix.GetNlayers() >= config.minLayersForDeltaXY){
+              if(helix.GetNlayers() >= config.params["min_layers_for_delta_xy"]){
                 if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, nextPointLayer, true)) continue;
               }
               else{
@@ -331,7 +331,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             RefitHelix(helixCopy);
             
             // check if chi2 is small enough
-            if(helixCopy.GetChi2() > config.trackMaxChi2) continue;
+            if(helixCopy.GetChi2() > config.params["track_max_chi2"]) continue;
             
             // if we reached this point, it means that this hit is not missing
             helixCopy.SetIsPreviousHitMissing(false);
@@ -374,7 +374,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             RefitHelix(helixCopy);
             
             // check if chi2 is small enough
-            if(helixCopy.GetChi2() > config.trackMaxChi2) continue;
+            if(helixCopy.GetChi2() > config.params["track_max_chi2"]) continue;
             
             // if we reached this point, it means that this hit is not missing
             helixCopy.SetIsPreviousHitMissing(false);
@@ -382,7 +382,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             extendedHelices.push_back(helixCopy);
           }
         
-          if(config.mergeAtTurnBack) while(LinkAndMergeHelices(extendedHelices));
+          if(config.params["merge_at_turn_back"]) while(LinkAndMergeHelices(extendedHelices));
         }
          
         // if it was possible to extend the helix
@@ -395,8 +395,8 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         else{ // if helix could not be extended
           
           // if not missing hits are allowed
-          if(helix.GetNmissingHits()       >= config.maxNmissingHits ||
-             helix.GetNmissingHitsInRow()  >= config.maxNmissingHitsInRow){
+          if(helix.GetNmissingHits()       >= config.params["max_n_missing_hits"] ||
+             helix.GetNmissingHitsInRow()  >= config.params["max_n_missing_hits_in_raw"]){
             
             // if last hit was a missing hit, remove it
             if(helix.GetLastPoints().back()->GetSubDetName()=="missing"){
@@ -511,8 +511,8 @@ void Fitter::MergeHelices(vector<Helix> &helices)
   vector<Helix> tooShortToMerge;
   // Remove very short candidates which should not even be merged with others
   for(auto helix : helices){
-    if(helix.GetNpoints() >= config.candidateMinNpoints) helicesToMerge.push_back(helix);
-    else                                                 tooShortToMerge.push_back(helix);
+    if(helix.GetNpoints() >= config.params["candidate_min_n_points"]) helicesToMerge.push_back(helix);
+    else                                                              tooShortToMerge.push_back(helix);
   }
   
   // Merge similar candidates
@@ -546,11 +546,11 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   
   if(startX0 < minX0 || startX0 > maxX0){
     if(config.verbosity>0) cout<<"ERROR -- x0:"<<startX0<<"\tmin:"<<minX0<<"\tmax:"<<maxX0<<endl;
-    if(config.requireGoodStartingValues) return nullptr;
+    if(config.params["require_good_starting_values"]) return nullptr;
   }
   if(startY0 < minY0 || startY0 > maxY0){
     if(config.verbosity>0) cout<<"ERROR -- y0:"<<startY0<<"\tmin:"<<minY0<<"\tmax:"<<maxY0<<endl;
-    if(config.requireGoodStartingValues) return nullptr;
+    if(config.params["require_good_starting_values"]) return nullptr;
   }
   
   // -- calculate slope from the track momentum direction (pion usually follows this direction)
@@ -558,7 +558,7 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   
   if(startS0 < config.minS0 || startS0 > config.maxS0){
     if(config.verbosity>0) cout<<"ERROR -- S0:"<<startS0<<"\tmin:"<<config.minS0<<"\tmax:"<<config.maxS0<<endl;
-    if(config.requireGoodStartingValues) return nullptr;
+    if(config.params["require_good_starting_values"]) return nullptr;
   }
   
   // -- get t param of the track point and calculate Z position of the vertex
@@ -568,7 +568,7 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
 
   if(startZ0 < config.minZ0 || startZ0 > config.maxZ0){
     if(config.verbosity>0) cout<<"ERROR -- z0:"<<startZ0<<"\tmin:"<<config.minZ0<<"\tmax:"<<config.maxZ0<<endl;
-    if(config.requireGoodStartingValues) return nullptr;
+    if(config.params["require_good_starting_values"]) return nullptr;
   }
   
   // Set calculated initial param values
@@ -627,8 +627,8 @@ void Fitter::RemoveShortHelices(vector<Helix> &helices)
   if(config.verbosity>0) cout<<"Removing very short merged helices...";
   vector<Helix> longHelices;
   for(auto helix : helices){
-    if(helix.GetNpoints() >= config.trackMinNpoints &&
-       helix.GetNlayers() >= config.trackMinNlayers){
+    if(helix.GetNpoints() >= config.params["track_min_n_points"] &&
+       helix.GetNlayers() >= config.params["track_min_n_layers"]){
       longHelices.push_back(helix);
     }
   }
@@ -668,7 +668,7 @@ bool Fitter::LinkAndMergeHelices(vector<Helix> &helices)
                                     points2.size()-samePoints.size());
       
       
-      if(nDifferentPoints <= config.mergingMaxDifferentPoints){
+      if(nDifferentPoints <= config.params["merging_max_different_point"]){
         helixLinks[iHelix1].second.push_back(iHelix2);
         merged = true;
       }
@@ -717,7 +717,7 @@ bool Fitter::LinkAndMergeHelices(vector<Helix> &helices)
     helix1Copy.SetPointsAndSortByT(allPoints, allPointsT);
     RefitHelix(helix1Copy);
     
-    if(helix1Copy.GetChi2() < config.trackMaxChi2){
+    if(helix1Copy.GetChi2() < config.params["track_max_chi2"]){
       helix1 = helix1Copy;
     }
     else{
