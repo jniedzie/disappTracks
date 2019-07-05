@@ -457,25 +457,25 @@ void Fitter::RefitHelix(Helix &helix)
   double startY0     = helix.GetOrigin().GetY();
   double startZ0     = helix.GetOrigin().GetZ();
   
-  if(startR0      < config.minR0      || startR0     > config.maxR0     ||
-     startRslope  < config.minRslope  || startRslope > config.maxRslope ||
-     startS0      < config.minS0      || startS0     > config.maxS0     ||
-     startSslope  < config.minSslope  || startSslope > config.maxSslope ||
-     startX0      < config.minX0      || startX0     > config.maxX0     ||
-     startY0      < config.minY0      || startY0     > config.maxY0     ||
-     startZ0      < config.minZ0      || startZ0     > config.maxZ0){
+  if(startR0      < config.params["min_R0"]     || startR0     > config.params["max_R0"]      ||
+     startRslope  < config.params["min_Rslope"]  || startRslope > config.params["max_Rslope"] ||
+     startS0      < config.params["min_S0"]      || startS0     > config.params["max_S0"]     ||
+     startSslope  < config.params["min_Sslope"]  || startSslope > config.params["max_Sslope"] ||
+     startX0      < config.params["min_X0"]      || startX0     > config.params["max_X0"]     ||
+     startY0      < config.params["min_Y0"]      || startY0     > config.params["max_Y0"]     ||
+     startZ0      < config.params["min_Z0"]      || startZ0     > config.params["max_Z0"]){
     if(config.verbosity>0) cout<<"ERROR -- wrong params in RefitHelix, which should never happen..."<<endl;
     return;
   }
   
-  SetParameter(fitter, 0, "R0", startR0     , config.minR0     , config.maxR0);
-  SetParameter(fitter, 1, "a" , startRslope , config.minRslope , config.maxRslope);
-  SetParameter(fitter, 2, "s0", startS0     , config.minS0     , config.maxS0);
-  SetParameter(fitter, 3, "b" , startSslope , config.minSslope , config.maxSslope);
+  SetParameter(fitter, 0, "R0", startR0     , config.params["min_R0"]     , config.params["max_R0"]);
+  SetParameter(fitter, 1, "a" , startRslope , config.params["min_Rslope"] , config.params["max_Rslope"]);
+  SetParameter(fitter, 2, "s0", startS0     , config.params["min_S0"]     , config.params["max_S0"]);
+  SetParameter(fitter, 3, "b" , startSslope , config.params["min_Sslope"] , config.params["max_Sslope"]);
   SetParameter(fitter, 4, "L" , startL      , minL      , maxL);
-  SetParameter(fitter, 5, "x0", startX0     , config.minX0     , config.maxX0);
-  SetParameter(fitter, 6, "y0", startY0     , config.minY0     , config.maxY0);
-  SetParameter(fitter, 7, "z0", startZ0     , config.minZ0     , config.maxZ0);
+  SetParameter(fitter, 5, "x0", startX0     , config.params["min_X0"]     , config.params["max_X0"]);
+  SetParameter(fitter, 6, "y0", startY0     , config.params["min_Y0"]     , config.params["max_Y0"]);
+  SetParameter(fitter, 7, "z0", startZ0     , config.params["min_Z0"]     , config.params["max_Z0"]);
 
   for(int i=0; i<nPar; i++) pStart[i] = fitter->Config().ParSettings(i).Value();
   
@@ -554,10 +554,10 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   }
   
   // -- calculate slope from the track momentum direction (pion usually follows this direction)
-  double startS0 = config.startR0 * trackPoint.GetVectorSlopeC();
+  double startS0 = config.params["start_R0"] * trackPoint.GetVectorSlopeC();
   
-  if(startS0 < config.minS0 || startS0 > config.maxS0){
-    if(config.verbosity>0) cout<<"ERROR -- S0:"<<startS0<<"\tmin:"<<config.minS0<<"\tmax:"<<config.maxS0<<endl;
+  if(startS0 < config.params["min_S0"] || startS0 > config.params["max_S0"]){
+    if(config.verbosity>0) cout<<"ERROR -- S0:"<<startS0<<"\tmin:"<<config.params["min_S0"]<<"\tmax:"<<config.params["max_S0"]<<endl;
     if(config.params["require_good_starting_values"]) return nullptr;
   }
   
@@ -566,18 +566,18 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   double tTrack = pointsProcessor.GetTforPoint(trackPoint, origin, charge);
   double startZ0 = -charge * (trackPoint.GetZ() - startS0 * tTrack);
 
-  if(startZ0 < config.minZ0 || startZ0 > config.maxZ0){
-    if(config.verbosity>0) cout<<"ERROR -- z0:"<<startZ0<<"\tmin:"<<config.minZ0<<"\tmax:"<<config.maxZ0<<endl;
+  if(startZ0 < config.params["min_Z0"] || startZ0 > config.params["max_Z0"]){
+    if(config.verbosity>0) cout<<"ERROR -- z0:"<<startZ0<<"\tmin:"<<config.params["min_Z0"]<<"\tmax:"<<config.params["max_Z0"]<<endl;
     if(config.params["require_good_starting_values"]) return nullptr;
   }
   
   // Set calculated initial param values
-  SetParameter(fitter, 0, "R0", config.startR0  , config.minR0   , config.maxR0 ); // limits from MC
-  SetParameter(fitter, 2, "s0", startS0 , config.minS0   , config.maxS0 );
+  SetParameter(fitter, 0, "R0", config.params["start_R0"]  , config.params["min_R0"]   , config.params["max_R0"] ); // limits from MC
+  SetParameter(fitter, 2, "s0", startS0 , config.params["min_S0"]   , config.params["max_S0"] );
   SetParameter(fitter, 4, "L" , startL  , minL    , maxL  );
-  SetParameter(fitter, 5, "x0", startX0 , config.minX0   , config.maxX0 );
-  SetParameter(fitter, 6, "y0", startY0 , config.minY0   , config.maxY0 );
-  SetParameter(fitter, 7, "z0", startZ0 , config.minZ0   , config.maxZ0 );
+  SetParameter(fitter, 5, "x0", startX0 , config.params["min_X0"]   , config.params["max_X0"] );
+  SetParameter(fitter, 6, "y0", startY0 , config.params["min_Y0"]   , config.params["max_Y0"] );
+  SetParameter(fitter, 7, "z0", startZ0 , config.params["min_Z0"]   , config.params["max_Z0"] );
   
   // With 3 points we don't know how fast will radius and slope decrease:
   FixParameter(fitter, 1, "a" ,  0.0000001);
@@ -612,14 +612,14 @@ void Fitter::GetXYranges(const Point &trackPoint,
   minX0 = maxX0 = x;
   minY0 = maxY0 = y;
   
-  startX0 = x + sgn(y)*charge*config.startR0/sqrt(pow(x/y, 2)+1);
-  startY0 = y - sgn(x)*charge*config.startR0/sqrt(pow(y/x, 2)+1);
+  startX0 = x + sgn(y)*charge*config.params["start_R0"]/sqrt(pow(x/y, 2)+1);
+  startY0 = y - sgn(x)*charge*config.params["start_R0"]/sqrt(pow(y/x, 2)+1);
   
-  if(charge*y < 0)  minX0 -= config.maxR0/sqrt(pow(x/y, 2)+1);
-  else              maxX0 += config.maxR0/sqrt(pow(x/y, 2)+1);
+  if(charge*y < 0)  minX0 -= config.params["max_R0"]/sqrt(pow(x/y, 2)+1);
+  else              maxX0 += config.params["max_R0"]/sqrt(pow(x/y, 2)+1);
   
-  if(charge*x > 0)  minY0 -= config.maxR0/sqrt(pow(y/x, 2)+1);
-  else              maxY0 += config.maxR0/sqrt(pow(y/x, 2)+1);
+  if(charge*x > 0)  minY0 -= config.params["max_R0"]/sqrt(pow(y/x, 2)+1);
+  else              maxY0 += config.params["max_R0"]/sqrt(pow(y/x, 2)+1);
 }
 
 void Fitter::RemoveShortHelices(vector<Helix> &helices)

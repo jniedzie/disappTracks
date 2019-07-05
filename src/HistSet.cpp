@@ -318,7 +318,7 @@ void HistSet::Draw(TCanvas *c1, int pad)
   
   if(logy) gPad->SetLogy();
   
-  if(config.showLegends) leg->Draw();
+  if(config.params["show_legends"]) leg->Draw();
   c1->Update();
 }
 
@@ -392,7 +392,7 @@ void HistSet::DrawPerLayer()
     signalStack->Draw("nostack,same,p");
     dataStack->Draw("nostack,same,p");
     
-    if(config.showLegends) leg->Draw();
+    if(config.params["show_legends"]) leg->Draw();
   }
   
   c1->Update();

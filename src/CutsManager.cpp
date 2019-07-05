@@ -53,7 +53,7 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
   eventCut.SetNtaus(range<int>(0,0));
   eventCut.SetNleptons(range<int>(0,0));
   
-  if(config.performCutsLevel == 0) return;
+  if(config.params["cuts_level"] == 0) return;
   
   //----------------------------------------------------------------------------
   // Level 1 cuts
@@ -88,7 +88,7 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
     trackCut.SetCaloEmEnergy(range<double>(0.0,2.0));
   }
   
-  if(config.performCutsLevel == 1) return;
+  if(config.params["cuts_level"] == 1) return;
   
   //----------------------------------------------------------------------------
   // Level 2 cuts (gen info)
@@ -98,7 +98,7 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
   trackCut.SetRequireCorrectCharge(true);
   trackCut.SetRequireCorrectNlayers(true);
   
-  if(config.performCutsLevel == 2) return;
+  if(config.params["cuts_level"] == 2) return;
   
   //
   

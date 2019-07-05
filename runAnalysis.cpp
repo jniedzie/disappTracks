@@ -22,20 +22,20 @@ void ProcessCuts(EventSet &events,
 {
   events.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
-  if(config.printYields){
-    cout<<"\n\nYields after level "<<config.performCutsLevel<<" cuts"<<endl;
+  if(config.params["print_yields"]){
+    cout<<"\n\nYields after level "<<config.params["cuts_level"]<<" cuts"<<endl;
     events.PrintYields();
   }
-  if(config.saveEvents){
-    string prefix = "after_L"+to_string(config.performCutsLevel);
+  if(config.params["save_events"]){
+    string prefix = "after_L"+to_string(config.params["cuts_level"]);
     prefix = prefix + "/" + suffix + "/";
-    if(config.performCutsLevel==10) prefix = "adish_cuts";
+    if(config.params["cuts_level"]==10) prefix = "adish_cuts";
     events.SaveEventsToFiles(prefix);
   }
-  if(config.drawStandardPlots)  events.DrawStandardPlots();
-  if(config.drawPerLayerPlots)  events.DrawPerLayerPlots();
+  if(config.params["draw_standard_plots"])  events.DrawStandardPlots();
+  if(config.params["draw_per_layer_plots"])  events.DrawPerLayerPlots();
   
-  if(config.printBackgroundDetails){
+  if(config.params["print_background_details"]){
     for(int iBck=0;iBck<kNbackgrounds;iBck++){
       if(!config.runBackground[iBck]) continue;
       cout<<"Background events in "<<backgroundTitle[iBck]<<":"<<endl;
@@ -44,7 +44,7 @@ void ProcessCuts(EventSet &events,
       }
     }
   }
-  if(config.printDataDetails){
+  if(config.params["print_data_details"]){
     for(int iData=0;iData<kNdata;iData++){
       if(!config.runData[iData]) continue;
       cout<<"Data events in "<<dataTitle[iData]<<":"<<endl;
@@ -53,7 +53,7 @@ void ProcessCuts(EventSet &events,
       }
     }
   }
-  if(config.printSignalDetails){
+  if(config.params["print_signal_details"]){
     for(int iSig=0;iSig<kNsignals;iSig++){
       if(!config.runSignal[iSig]) continue;
       cout<<"Signal events in "<<signalTitle[iSig]<<":"<<endl;
@@ -103,15 +103,15 @@ int main(int argc, char* argv[])
   EventSet events;
   
   string initPrefix;
-  if(config.performCutsLevel==0 || config.performCutsLevel==10) initPrefix = "";
-  if(config.performCutsLevel==1)  initPrefix = "after_L0/";
-  if(config.performCutsLevel==2){
+  if(config.params["cuts_level"]==0 || config.params["cuts_level"]==10) initPrefix = "";
+  if(config.params["cuts_level"]==1)  initPrefix = "after_L0/";
+  if(config.params["cuts_level"]==2){
     if(config.category == "2-tracks") initPrefix = "after_L1/2tracks/";
     if(config.category == "3-layers") initPrefix = "after_L1/3layers/";
     if(config.category == "4-layers") initPrefix = "after_L1/4layers/";
     if(config.category == "all")      initPrefix = "after_L1/all/";
   }
-  if(config.performCutsLevel==20) initPrefix = "afterHelixTagging/";
+  if(config.params["cuts_level"]==20) initPrefix = "afterHelixTagging/";
   
   events.LoadEventsFromFiles(initPrefix);
   cout<<"\n\nInitial yields"<<endl;
@@ -132,12 +132,12 @@ int main(int argc, char* argv[])
   cutsManager.GetCuts(eventCut, trackCut, jetCut, leptonCut);
   
   
-  if(config.performCutsLevel == 0){
+  if(config.params["cuts_level"] == 0){
     ProcessCuts(events, eventCut, trackCut, jetCut, leptonCut);
   }
 	
-  if(config.performCutsLevel == 1){
-    if(config.scanMETbinning){
+  if(config.params["cuts_level"] == 1){
+    if(config.params["scan_MET_binning"]){
       gStyle->SetOptStat(0);
       TCanvas *c1 = new TCanvas("significance","significance",800,500);
       c1->cd();
@@ -211,7 +211,7 @@ int main(int argc, char* argv[])
       }
       c1->Update();
     }
-    else if(config.doMETbinning){
+    else if(config.params["do_MET_binning"]){
       if(config.category != "2-tracks"){
         
         cout<<"Combined significances from MET bins:"<<endl;
@@ -262,7 +262,7 @@ int main(int argc, char* argv[])
     }
   }
   
-  if(config.performCutsLevel == 2){
+  if(config.params["cuts_level"] == 2){
     string suffix = "";
     if(config.category == "2-tracks") suffix = "2tracks";
     if(config.category == "3-layers") suffix = "3layers";
@@ -274,11 +274,15 @@ int main(int argc, char* argv[])
   //---------------------------------------------------------------------------
   // Draw plots after helix tagging
   //---------------------------------------------------------------------------
-  if(config.performCutsLevel == 20) events.DrawStandardPlots();
+  if(config.params["cuts_level"] == 20) events.DrawStandardPlots();
   
   cout<<"Done"<<endl;
   
-  if(config.drawStandardPlots || config.drawPerLayerPlots || config.scanMETbinning)  theApp.Run();
+  if(config.params["draw_standard_plots"]  ||
+     config.params["draw_per_layer_plots"] ||
+     config.params["scan_MET_binning"])
+    theApp.Run();
+  
   return 0;
 }
 

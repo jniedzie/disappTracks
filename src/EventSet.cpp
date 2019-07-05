@@ -120,18 +120,18 @@ void EventSet::LoadEventsFromFiles(string prefix)
     
     if(prefix==""){
       for(string path : inFileNameBackground[iBck]){
-        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kBackground, config.maxNeventsBackground, iBck);
+        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kBackground, config.params["max_N_events_background"], iBck);
       }
     }
     else{
       string path = inFileNameBackground[iBck][0];
-      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kBackground, config.maxNeventsBackground, iBck);
+      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kBackground, config.params["max_N_events_background"], iBck);
     }
   }
   
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!config.runSignal[iSig]) continue;
-    AddEventsFromFile((inFileNameSignal[iSig]+prefix+"tree.root"),xtracks::kSignal,config.maxNeventsSignal,iSig);
+    AddEventsFromFile((inFileNameSignal[iSig]+prefix+"tree.root"),xtracks::kSignal,config.params["max_N_events_signal"],iSig);
   }
   
   for(int iData=0;iData<kNdata;iData++){
@@ -139,12 +139,12 @@ void EventSet::LoadEventsFromFiles(string prefix)
     
     if(prefix==""){
       for(string path : inFileNameData[iData]){
-        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, config.maxNeventsData, iData);
+        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, config.params["max_N_events_data"], iData);
       }
     }
     else{
       string path = inFileNameData[iData][0];
-      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, config.maxNeventsData, iData);
+      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, config.params["max_N_events_data"], iData);
     }
   }
 }
@@ -154,26 +154,26 @@ void EventSet::LoadEventsFromFiles(xtracks::EDataType dataType, int setIter, str
   if(dataType == xtracks::kBackground){
     if(prefix==""){
       for(string path : inFileNameBackground[setIter]){
-        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kBackground, config.maxNeventsBackground, setIter);
+        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kBackground, config.params["max_N_events_background"], setIter);
       }
     }
     else{
       string path = inFileNameBackground[setIter][0];
-      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kBackground, config.maxNeventsBackground, setIter);
+      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kBackground, config.params["max_N_events_background"], setIter);
     }
   }
   else if(dataType == xtracks::kSignal){
-    AddEventsFromFile((inFileNameSignal[setIter]+prefix+"tree.root"),xtracks::kSignal,config.maxNeventsSignal,setIter);
+    AddEventsFromFile((inFileNameSignal[setIter]+prefix+"tree.root"),xtracks::kSignal,config.params["max_N_events_signal"],setIter);
   }
   else if(dataType == xtracks::kData){
     if(prefix==""){
       for(string path : inFileNameData[setIter]){
-        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, config.maxNeventsData, setIter);
+        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, config.params["max_N_events_data"], setIter);
       }
     }
     else{
       string path = inFileNameData[setIter][0];
-      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, config.maxNeventsData, setIter);
+      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, config.params["max_N_events_data"], setIter);
     }
   }
 }
@@ -183,26 +183,26 @@ void EventSet::LoadEventFromFiles(xtracks::EDataType dataType, int setIter, int 
   if(dataType == xtracks::kBackground){
     if(prefix==""){
       for(string path : inFileNameBackground[setIter]){
-        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kBackground, config.maxNeventsBackground, setIter, iEvent);
+        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kBackground, config.params["max_N_events_background"], setIter, iEvent);
       }
     }
     else{
       string path = inFileNameBackground[setIter][0];
-      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kBackground, config.maxNeventsBackground, setIter, iEvent);
+      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kBackground, config.params["max_N_events_background"], setIter, iEvent);
     }
   }
   else if(dataType == xtracks::kSignal){
-    AddEventsFromFile((inFileNameSignal[setIter]+prefix+"tree.root"),xtracks::kSignal,config.maxNeventsSignal,setIter, iEvent);
+    AddEventsFromFile((inFileNameSignal[setIter]+prefix+"tree.root"),xtracks::kSignal,config.params["max_N_events_signal"],setIter, iEvent);
   }
   else if(dataType == xtracks::kData){
     if(prefix==""){
       for(string path : inFileNameData[setIter]){
-        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, config.maxNeventsData, setIter, iEvent);
+        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, config.params["max_N_events_data"], setIter, iEvent);
       }
     }
     else{
       string path = inFileNameData[setIter][0];
-      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, config.maxNeventsData, setIter, iEvent);
+      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, config.params["max_N_events_data"], setIter, iEvent);
     }
   }
 }
@@ -243,14 +243,14 @@ void EventSet::PrintYields() const
     nBackgroundTotal += weightedSize(xtracks::kBackground,iBck);
     nBackgroundTotalRaw += size(xtracks::kBackground,iBck);
     
-    if(config.printYields){
+    if(config.params["print_yields"]){
       cout<<backgroundTitle[iBck]<<"\t";
       cout<<weightedSize(xtracks::kBackground, (int)iBck);
       cout<<"\t("<<size(xtracks::kBackground,(int)iBck)<<")"<<endl;
     }
   }
   
-  if(config.printYields){
+  if(config.params["print_yields"]){
     cout<<"Background total:\t"<<nBackgroundTotal<<"\t("<<nBackgroundTotalRaw<<")"<<endl;
     
     for(int iSig=0;iSig<kNsignals;iSig++){
@@ -461,10 +461,10 @@ void EventSet::DrawStandardPlots(string prefix) const
   }
   
   string outPath;
-  if(config.performCutsLevel==0)       outPath = "results/plots_after_L0/";
-  else if(config.performCutsLevel==1)  outPath = "results/plots_after_L1/";
+  if(config.params["cuts_level"]==0)       outPath = "results/plots_after_L0/";
+  else if(config.params["cuts_level"]==1)  outPath = "results/plots_after_L1/";
   else{
-    cout<<"ERROR -- unknown cuts level: "<<config.performCutsLevel<<endl;
+    cout<<"ERROR -- unknown cuts level: "<<config.params["cuts_level"]<<endl;
     exit(0);
   }
   
@@ -666,7 +666,7 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
   TFile *inFileFriend = nullptr;
   TTree *treeFriend = nullptr;
   
-  if(config.loadFriendTree){
+  if(config.params["load_friend_tree"]){
     cout<<"Opening friend file"<<endl;
     inFileFriend = TFile::Open(Form("%s/tree_friend.root",basePath.c_str()));
     

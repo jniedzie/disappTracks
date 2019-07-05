@@ -16,10 +16,10 @@ int main(int argc, char* argv[])
   EventSet events;
   
   string inputPrefix;
-  if(config.performCutsLevel == 0)       inputPrefix = "after_L0/";
-  else if(config.performCutsLevel == 1)  inputPrefix = "after_L1/";
+  if(config.params["cuts_level"] == 0)       inputPrefix = "after_L0/";
+  else if(config.params["cuts_level"] == 1)  inputPrefix = "after_L1/";
   else{
-    cout<<"ERROR -- unknown cuts level: "<<config.performCutsLevel<<endl;
+    cout<<"ERROR -- unknown cuts level: "<<config.params["cuts_level"]<<endl;
     exit(0);
   }
   
@@ -37,8 +37,8 @@ int main(int argc, char* argv[])
   
   cout<<"Drawing plots"<<endl;
   
-  if(config.drawStandardPlots) events.DrawStandardPlots();
-  if(config.drawPerLayerPlots) events.DrawPerLayerPlots();
+  if(config.params["draw_standard_plots"]) events.DrawStandardPlots();
+  if(config.params["draw_per_layer_plots"]) events.DrawPerLayerPlots();
  
   cout<<"Done"<<endl;
   

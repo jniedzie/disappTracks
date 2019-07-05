@@ -22,23 +22,6 @@ ConfigManager::ConfigManager(string _path)
   
   verbosity   = configFile->GetValue("verbosity_level", 0);
   
-  startR0 = configFile->GetValue("start_R0", 320.0);
-  minR0 = configFile->GetValue("min_R0", 50.0);
-  maxR0 = configFile->GetValue("max_R0", 1000.0);
-  minRslope = configFile->GetValue("min_Rslope", 0.0);
-  maxRslope = configFile->GetValue("max_Rslope", 10000.0);
-  minS0 = configFile->GetValue("min_S0", -10000.0);
-  maxS0 = configFile->GetValue("max_S0", 10000.0);
-  minSslope = configFile->GetValue("min_Sslope", -10000.0);
-  maxSslope = configFile->GetValue("max_Sslope", 0.0);
-  
-  minX0 = configFile->GetValue("min_X0", -2000.0);
-  maxX0 = configFile->GetValue("max_X0",  2000.0);
-  minY0 = configFile->GetValue("min_Y0", -2000.0);
-  maxY0 = configFile->GetValue("max_Y0",  2000.0);
-  minZ0 = configFile->GetValue("min_Z0", -2000.0);
-  maxZ0 = configFile->GetValue("max_Z0",  2000.0);
-  
   maxEta                      = configFile->GetValue("max_eta",10.0);
   nTrackHits                  = configFile->GetValue("n_track_hits",3);
   minPx                       = configFile->GetValue("min_px",50.0);
@@ -58,15 +41,7 @@ ConfigManager::ConfigManager(string _path)
   tolerancePz                 = configFile->GetValue("tolerance_pz",30.0);
   nNoiseHits                  = configFile->GetValue("n_noise_hits",500);
   nTrackerLayers              = configFile->GetValue("n_tracker_layers",4);
-  
  
-  performCutsLevel       = configFile->GetValue("cuts_level",2);
-  
-  category               = configFile->GetValue("analysis_category","");
-  scanMETbinning         = configFile->GetValue("scan_MET_binning",0);
-  doMETbinning           = configFile->GetValue("do_MET_binning",0);
-  saveEvents             = configFile->GetValue("save_events",0);
-  
   for(int iBck=0;iBck<kNbackgrounds;iBck++){runBackground.push_back(false);}
   for(int iSig=0;iSig<kNsignals;iSig++){runSignal.push_back(false);}
   for(int iData=0;iData<kNdata;iData++){runData.push_back(false);}
@@ -91,25 +66,6 @@ ConfigManager::ConfigManager(string _path)
   runSignal[kWino_M_1000_cTau_20] = configFile->GetValue("do_1000_20",0);
   
   runData[kElectron_Run2017B] = configFile->GetValue("do_2017",0);
-  
-  printYields            = configFile->GetValue("print_yields",1);
-  printBackgroundDetails = configFile->GetValue("print_background_details",0);
-  printDataDetails       = configFile->GetValue("print_data_details",0);
-  printSignalDetails     = configFile->GetValue("print_signal_details",0);
-  
-  drawStandardPlots      = configFile->GetValue("draw_standard_plots",1);
-  drawPerLayerPlots      = configFile->GetValue("draw_per_layer_plots",0);
-  showLegends            = configFile->GetValue("show_legends",1);
-  
-  
-  
-  maxNeventsBackground   = configFile->GetValue("max_N_events_background",-1);
-  maxNeventsSignal       = configFile->GetValue("max_N_events_signal",-1);
-  maxNeventsData         = configFile->GetValue("max_N_events_data",-1);
-  
-  loadFriendTree         = configFile->GetValue("load_friend_tree",0);
-  
-  totalLuminosity        = configFile->GetValue("total_luminosity",146.91);
   
   showGeometryPixel      = configFile->GetValue("show_geometry_pixel",0);
   showGeometryStrip      = configFile->GetValue("show_geometry_strip",0);

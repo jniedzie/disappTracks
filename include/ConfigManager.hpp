@@ -29,28 +29,6 @@ struct ConfigManager {
   //    Analysis configuration    //
   //------------------------------//
   
-  int performCutsLevel = 2;
-  
-  bool saveEvents;
-  bool printYields;
-  bool printBackgroundDetails;
-  bool printDataDetails;
-  bool printSignalDetails;
-  
-  bool drawStandardPlots;
-  bool drawPerLayerPlots;
-  bool showLegends;
-  bool scanMETbinning;
-  bool doMETbinning;
-  
-  int maxNeventsBackground;
-  int maxNeventsSignal;
-  int maxNeventsData;
-  
-  bool loadFriendTree;
-  
-  double totalLuminosity;
-  
   string category;
   
   vector<bool> runBackground;
@@ -67,17 +45,6 @@ struct ConfigManager {
   int nNoiseHits;
   int nTrackerLayers;
   int verbosity;
-  
-  // Fitter parameter
-  
-  double startR0, minR0, maxR0;
-  double minRslope, maxRslope;
-  
-  double minS0, maxS0;
-  double minSslope, maxSslope;
-  double minX0, maxX0;
-  double minY0, maxY0;
-  double minZ0, maxZ0;
   
   // Random chargino's track parameters
   double maxEta;
