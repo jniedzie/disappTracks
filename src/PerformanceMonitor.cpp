@@ -96,7 +96,9 @@ void PerformanceMonitor::CalcEfficiency(int nAnalyzedEvents)
   significanceAfterL1 = -inf;
   invFakeAtHighestEff = -inf;
   maxDistToSqrtFake = -inf;
-  avgDistToSqrtFake = 0;
+  avgDistToSqrtFake = -inf;
+  
+  bool first=true;
   
   set<pair<double, double>> rocXY;
   
@@ -125,18 +127,16 @@ void PerformanceMonitor::CalcEfficiency(int nAnalyzedEvents)
     
     double distToSqrtFake = efficiency[iThreshold]-sqrt(fakeRate[iThreshold]);
     
-    if(distToSqrtFake > maxDistToSqrtFake
-       && fakeRate[iThreshold] > 0.01
-       && fakeRate[iThreshold] < 0.99
-       ){
-      if(fabs(distToSqrtFake)<0.001){
-        
+    if(fakeRate[iThreshold] > 0.01 && fakeRate[iThreshold] < 0.99){
+      if(distToSqrtFake > maxDistToSqrtFake) maxDistToSqrtFake = distToSqrtFake;
+      if(first){
+        avgDistToSqrtFake = distToSqrtFake;
+        first = false;
       }
-      
-      
-      maxDistToSqrtFake = distToSqrtFake;
+      else{
+        avgDistToSqrtFake += distToSqrtFake;
+      }
     }
-    avgDistToSqrtFake += distToSqrtFake;
     
     rocGraph->SetPoint(iThreshold, fakeRate[iThreshold], efficiency[iThreshold]);
     rocXY.insert(make_pair(fakeRate[iThreshold], efficiency[iThreshold]));
@@ -145,12 +145,6 @@ void PerformanceMonitor::CalcEfficiency(int nAnalyzedEvents)
   
   rocGraph->Fit(rocFun,"Q");
   auc = rocFun->Integral(0,1);
-  
-//  double aucXY=0;
-//  for(auto &xy : rocXY) aucXY += xy.second-xy.first;
-//  aucXY /= rocXY.size();
-//  auc = aucXY;
-
 }
 
 
