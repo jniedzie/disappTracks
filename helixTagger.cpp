@@ -12,9 +12,6 @@
 string configPath = "configs/helixTagger.md";
 string cutLevel = "after_L1/all/";//after_L1/";
 
-const int nEvents = 300; // max: 1287
-const int eventOffset = 0;
-
 int nAnalyzedEvents = 0;
 
 vector<string> monitorTypes = {
@@ -43,24 +40,23 @@ int main(int argc, char* argv[])
   TCanvas *canvas = new TCanvas("ROC", "ROC", 2880,1800);
   canvas->Divide(3,3);
   
-  map<string, PerformanceMonitor> monitors;
+  vector<map<string, PerformanceMonitor>> monitors; // [paramBin][monitorType]
+  const int nParamBins = 4;
   
-  for(auto monitorType : monitorTypes){
-    int max = 20, nBins = 20;
-    if(monitorType=="avg_length" || monitorType=="max_length"){ max = 10; nBins = 40; }
-    monitors[monitorType] = PerformanceMonitor(monitorType, nBins, 0, max);
+  for(int iParam=0; iParam<nParamBins; iParam++){
+    map<string, PerformanceMonitor> monitorsForParam;
+    
+    for(auto monitorType : monitorTypes){
+      int max = 20, nBins = 20;
+      if(monitorType=="avg_length" || monitorType=="max_length"){ max = 10; nBins = 40; }
+      monitorsForParam[monitorType] = PerformanceMonitor(monitorType, nBins, 0, max);
+    }
+    monitors.push_back(monitorsForParam);
   }
   
-  vector<shared_ptr<Event>> events;
-  vector<vector<shared_ptr<Point>>> pointsNoEndcapsSignal;
-  vector<vector<shared_ptr<Point>>> pointsNoEndcapsBackground;
-  
-  for(auto iEvent=eventOffset; iEvent<eventOffset+nEvents; iEvent++){
-    auto event = GetEvent(iEvent);
-    events.push_back(event);
-    pointsNoEndcapsSignal.push_back(GetClustersNoEndcaps(event, false));
-    pointsNoEndcapsBackground.push_back(GetClustersNoEndcaps(event, true));
-  }
+  EventSet events;
+  events.LoadEventsFromFiles(cutLevel);
+  int nEvents=events.size(dataType, setIter);
   
   auto start = now();
   
@@ -70,21 +66,30 @@ int main(int argc, char* argv[])
     cout<<"\n\n=================================================================\n"<<endl;
     cout<<"helixTagger -- processing event "<<iEvent<<endl;
     
-    auto event = events[iEvent];
+//    auto event = events[iEvent];
+    auto event = events.At(dataType, setIter, iEvent);
     
     if(event->GetGenPionHelices().size() != 1) continue;
     double pionPt = event->GetGenPionHelices().front().GetMomentum()->GetTransverse();
-    if(pionPt < 400 ) continue;
+    
+    int iParam = -1;
+    if(pionPt < 150) iParam = 0;
+    if(pionPt > 150 && pionPt < 300) iParam = 1;
+    if(pionPt > 300 && pionPt < 450) iParam = 2;
+    if(pionPt > 450) iParam = 3;
     
     for(auto &track : event->GetTracks()){
       
-      vector<Helix> fittedHelicesSignal     = fitter->FitHelices(pointsNoEndcapsSignal[iEvent], *track, *event->GetVertex());
-      vector<Helix> fittedHelicesBackground = fitter->FitHelices(pointsNoEndcapsBackground[iEvent], *track, *event->GetVertex());
+      auto pointsNoEndcapsSignal = GetClustersNoEndcaps(event, false);
+      auto pointsNoEndcapsBackground = GetClustersNoEndcaps(event, true);
+      
+      vector<Helix> fittedHelicesSignal     = fitter->FitHelices(pointsNoEndcapsSignal, *track, *event->GetVertex());
+      vector<Helix> fittedHelicesBackground = fitter->FitHelices(pointsNoEndcapsBackground, *track, *event->GetVertex());
       
       // for(auto helix : fittedHelicesSignal) event->AddHelix(move(fittedHelix));
       
       for(string monitorType : monitorTypes){
-        monitors[monitorType].SetValues(helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesSignal, monitorType),
+        monitors[iParam][monitorType].SetValues(helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesSignal, monitorType),
                                         helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesBackground, monitorType));
         
       }
@@ -93,20 +98,26 @@ int main(int argc, char* argv[])
   }
   
   int iPad=1;
-  for(auto &monitor : monitors){
-    monitor.second.CalcEfficiency();
-    canvas->cd(iPad++);
-    monitor.second.DrawRocGraph(true);
-    canvas->cd(iPad++);
-    monitor.second.DrawHists();
+  for(auto &monitorsForParam : monitors){
+    for(auto &monitor : monitorsForParam){
+      monitor.second.CalcEfficiency();
+      canvas->cd(iPad++);
+      monitor.second.DrawRocGraph(true);
+      canvas->cd(iPad++);
+      monitor.second.DrawHists();
+    }
   }
   
-  
-  for(auto &monitor : monitors){
+  int iParam=0;
+  for(auto &monitorsForParam : monitors){
     cout<<"\n\n============================================================"<<endl;
-    cout<<"Monitor: "<<monitor.first<<endl;
-    monitor.second.PrintFakesEfficiency();
-    monitor.second.PrintParams();
+    cout<<"Param bin: "<<iParam++<<endl;
+    
+    for(auto &monitor : monitorsForParam){
+      cout<<"\nMonitor: "<<monitor.first<<endl;
+      monitor.second.PrintFakesEfficiency();
+      monitor.second.PrintParams();
+    }
   }
   
   cout<<"N events analyzed: "<<nAnalyzedEvents<<endl;
