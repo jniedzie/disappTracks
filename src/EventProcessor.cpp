@@ -467,7 +467,7 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   
   TH1I *hist = (TH1I*)gDirectory->Get("hist");
   Long64_t iEntry = hist->GetBinLowEdge(hist->FindFirstBinAbove(0));
-  delete hist;
+  if(hist) delete hist;
   friendTree->GetEntry(iEntry);
   // end of uberhack
   

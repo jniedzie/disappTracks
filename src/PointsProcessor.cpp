@@ -264,13 +264,13 @@ bool PointsProcessor::IsGoodMiddleSeedHit(const Point &point,
   }
   
   if(seedMiddleHitDeltaPhi.IsOutside(middleHitDeltaPhi)){
-    if(config.verbosity>1) cout<<"Seed middle hit Δφ too large"<<endl;
+    if(config.params["verbosity_level"]>1) cout<<"Seed middle hit Δφ too large"<<endl;
     return false;
   }
   
   double middleHitDeltaZ = fabs(point.GetZ() - trackMidPoint.GetZ());
   if(middleHitDeltaZ > config.params["seed_middle_hit_max_delta_z"]){
-    if(config.verbosity>1) cout<<"Seed middle hit Δz too large"<<endl;
+    if(config.params["verbosity_level"]>1) cout<<"Seed middle hit Δz too large"<<endl;
     return false;
   }
   return true;
@@ -297,13 +297,13 @@ bool PointsProcessor::IsGoodLastSeedHit(const Point &point,
   }
   
   if(seedLastHitDeltaPhi.IsOutside(lastHitDeltaPhi)){
-    if(config.verbosity>1) cout<<"Seed last hit Δφ too large"<<endl;
+    if(config.params["verbosity_level"]>1) cout<<"Seed last hit Δφ too large"<<endl;
     return false;
   }
   
   double lastPointDeltaZ = fabs(middlePoint.GetZ() - point.GetZ());
   if(lastPointDeltaZ > config.params["seed_last_hit_max_delta_z"]){
-    if(config.verbosity>1) cout<<"Seed last hit Δz too large"<<endl;
+    if(config.params["verbosity_level"]>1) cout<<"Seed last hit Δz too large"<<endl;
     return false;
   }
   return true;

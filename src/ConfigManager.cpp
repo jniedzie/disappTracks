@@ -20,27 +20,8 @@ ConfigManager::ConfigManager(string _path)
     cout<<"INFO -- Successfully read config file: "<<_path<<endl;
   }
   
-  verbosity   = configFile->GetValue("verbosity_level", 0);
-  
-  maxEta                      = configFile->GetValue("max_eta",10.0);
-  nTrackHits                  = configFile->GetValue("n_track_hits",3);
-  minPx                       = configFile->GetValue("min_px",50.0);
-  minPy                       = configFile->GetValue("min_py",50.0);
-  minPz                       = configFile->GetValue("min_pz",50.0);
-  maxPx                       = configFile->GetValue("max_px",250.0);
-  maxPy                       = configFile->GetValue("max_py",250.0);
-  maxPz                       = configFile->GetValue("max_pz",250.0);
-  injectPionHits              = configFile->GetValue("inject_pion_hits",0);
-  nTests                      = configFile->GetValue("n_tests",1);
-  outputPath                  = configFile->GetValue("output_path","unnamed.root");
-  toleranceX                  = configFile->GetValue("tolerance_x",10.0);
-  toleranceY                  = configFile->GetValue("tolerance_y",10.0);
-  toleranceZ                  = configFile->GetValue("tolerance_z",10.0);
-  tolerancePx                 = configFile->GetValue("tolerance_px",30.0);
-  tolerancePy                 = configFile->GetValue("tolerance_py",30.0);
-  tolerancePz                 = configFile->GetValue("tolerance_pz",30.0);
-  nNoiseHits                  = configFile->GetValue("n_noise_hits",500);
-  nTrackerLayers              = configFile->GetValue("n_tracker_layers",4);
+  outputPath  = configFile->GetValue("output_path","unnamed.root");
+  category    = configFile->GetValue("analysis_category","unknown");
  
   for(int iBck=0;iBck<kNbackgrounds;iBck++){runBackground.push_back(false);}
   for(int iSig=0;iSig<kNsignals;iSig++){runSignal.push_back(false);}
@@ -66,21 +47,6 @@ ConfigManager::ConfigManager(string _path)
   runSignal[kWino_M_1000_cTau_20] = configFile->GetValue("do_1000_20",0);
   
   runData[kElectron_Run2017B] = configFile->GetValue("do_2017",0);
-  
-  showGeometryPixel      = configFile->GetValue("show_geometry_pixel",0);
-  showGeometryStrip      = configFile->GetValue("show_geometry_strip",0);
-  showGeometryEcal       = configFile->GetValue("show_geometry_ecal",0);
-  showGeometryHcal       = configFile->GetValue("show_geometry_hcal",0);
-  
-  drawTrackerClusters = configFile->GetValue("draw_tracker_clusters",1);
-  drawMET             = configFile->GetValue("draw_met",1);
-  drawJets            = configFile->GetValue("draw_jets",1);
-  drawPionSimHits     = configFile->GetValue("draw_pion_simhits",1);
-  drawPionClusters    = configFile->GetValue("draw_pion_clusters",1);
-  drawCharginoSimHits = configFile->GetValue("draw_chargino_simhits",1);
-  
-  
-  // using a map
   
   params["verbosity_level"]             = configFile->GetValue("verbosity_level", 0);
   params["double_hit_max_distance"]     = configFile->GetValue("double_hit_max_distance", 0.0);
@@ -192,32 +158,4 @@ ConfigManager::ConfigManager(string _path)
   params["draw_pion_simhits"]       = configFile->GetValue("draw_pion_simhits",1);
   params["draw_pion_clusters"]      = configFile->GetValue("draw_pion_clusters",1);
   params["draw_chargino_simhits"]   = configFile->GetValue("draw_chargino_simhits",1);
-}
-
-
-void ConfigManager::Print()
-{
-  cout<<"\n\n========================================================"<<endl;
-  cout<<"Basic configuration:"<<endl;
-  cout<<"\tN tests:"<<nTests<<endl;
-  cout<<"\tN noise hits:"<<nNoiseHits<<endl;
-  cout<<"\tOutput file:"<<outputPath<<endl;
-  cout<<"\tTrack eta:"<<maxEta<<"\t n hits:"<<nTrackHits<<endl;
-  cout<<"\tN tracker layers:"<<nTrackerLayers<<endl;
-  
-  cout<<"Pion properties:"<<endl;
-  cout<<"\tInjecting pion hits: "<<(injectPionHits ? "yes" : "no")<<endl;
-  cout<<"\tpx:"<<minPx<<" - "<<maxPx<<endl;
-  cout<<"\tpy:"<<minPy<<" - "<<maxPy<<endl;
-  cout<<"\tpz:"<<minPz<<" - "<<maxPz<<endl;
-  
-  cout<<"Benchmark options:"<<endl;
-  cout<<"\tTolerance X:"<<toleranceX<<endl;
-  cout<<"\tTolerance Y:"<<toleranceY<<endl;
-  cout<<"\tTolerance Z:"<<toleranceZ<<endl;
-  cout<<"\tTolerance Px:"<<tolerancePx<<endl;
-  cout<<"\tTolerance Py:"<<tolerancePy<<endl;
-  cout<<"\tTolerance Pz:"<<tolerancePz<<endl;
-  
-  cout<<"========================================================\n\n"<<endl;
 }

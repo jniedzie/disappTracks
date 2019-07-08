@@ -14,12 +14,12 @@ double_hit_max_distance:            20.0
 seed_max_chi2:                             0.08
 
 seed_middle_hit_min_delta_phi:   -0.6
-seed_middle_hit_max_delta_phi:   0.6
+seed_middle_hit_max_delta_phi:   0.9
 seed_middle_hit_max_delta_z:     150
 
 seed_last_hit_min_delta_phi:       -0.6
-seed_last_hit_max_delta_phi:       0.4
-seed_last_hit_max_delta_z:          200
+seed_last_hit_max_delta_phi:       0.7
+seed_last_hit_max_delta_z:          250
 
 ### Constrains on pion track parameters:
 track_max_chi2:                             0.01

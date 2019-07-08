@@ -12,13 +12,13 @@ class PerformanceMonitor
 public:
   PerformanceMonitor();
   
-  PerformanceMonitor(string _name, int _nBins, double min, double max, int nEvents);
+  PerformanceMonitor(string _name, int _nBins, double min, double max);
   
   void operator=(const PerformanceMonitor &pm);
   
-  void SetValues(int iEvent, double valueSignal, double valueBackground);
+  void SetValues(double valueSignal, double valueBackground);
   
-  void CalcEfficiency(int nAnalyzedEvents);
+  void CalcEfficiency();
   
   void DrawRocGraph(bool first);
   void DrawHists();

@@ -121,3 +121,7 @@ double Point::GetVectorPhi() const
 {
   return atan2(y,x);
 }
+double Point::GetTransverse() const
+{
+  return sqrt(x*x+y*y);
+}

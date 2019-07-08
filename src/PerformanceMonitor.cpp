@@ -9,7 +9,7 @@ PerformanceMonitor::PerformanceMonitor()
   
 }
 
-PerformanceMonitor::PerformanceMonitor(string _name, int _nBins, double min, double max, int nEvents) :
+PerformanceMonitor::PerformanceMonitor(string _name, int _nBins, double min, double max) :
 name(_name),
 thresholdMin(min),
 thresholdMax(max),
@@ -29,11 +29,6 @@ invFakeAtHighestEff(0)
   
   histSignal->SetFillColorAlpha(kGreen+1, 0.3);
   histBackground->SetFillColorAlpha(kRed, 0.3);
-  
-  for(int iEvent=0; iEvent<nEvents; iEvent++){
-    valuesSignal.push_back(0.0);
-    valuesBackground.push_back(0.0);
-  }
   
   rocFun = GetRocFunction();
   rocGraph = new TGraph();
@@ -67,15 +62,15 @@ void PerformanceMonitor::operator=(const PerformanceMonitor &pm)
   name             = pm.name;
 }
 
-void PerformanceMonitor::SetValues(int iEvent, double valueSignal, double valueBackground)
+void PerformanceMonitor::SetValues(double valueSignal, double valueBackground)
 {
-  valuesSignal[iEvent] = valueSignal;
-  valuesBackground[iEvent] = valueBackground;
+  valuesSignal.push_back(valueSignal);
+  valuesBackground.push_back(valueBackground);
   histSignal->Fill(valueSignal);
   histBackground->Fill(valueBackground);
 }
 
-void PerformanceMonitor::CalcEfficiency(int nAnalyzedEvents)
+void PerformanceMonitor::CalcEfficiency()
 {
   for(int iThreshold=0; iThreshold<nBins; iThreshold++){
     efficiency[iThreshold] = 0.0;
@@ -103,8 +98,8 @@ void PerformanceMonitor::CalcEfficiency(int nAnalyzedEvents)
   set<pair<double, double>> rocXY;
   
   for(int iThreshold=0; iThreshold<nBins; iThreshold++){
-    efficiency[iThreshold]  /= nAnalyzedEvents;
-    fakeRate[iThreshold]    /= nAnalyzedEvents;
+    efficiency[iThreshold]  /= valuesSignal.size();
+    fakeRate[iThreshold]    /= valuesSignal.size();
     
     if(efficiency[iThreshold] > maxEfficiency && efficiency[iThreshold] != 1.0){
       maxEfficiency = efficiency[iThreshold];
@@ -144,7 +139,7 @@ void PerformanceMonitor::CalcEfficiency(int nAnalyzedEvents)
   avgDistToSqrtFake /= nBins;
   
   rocGraph->Fit(rocFun,"Q");
-  auc = rocFun->Integral(0,1);
+  auc = 0;// rocFun->Integral(0,1);
 }
 
 

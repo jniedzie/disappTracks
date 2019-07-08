@@ -33,12 +33,12 @@ vector<int> HelixProcessor::AreIdentical(const Helix &h1, const Helix &h2)
 {
   vector<int> reasons;
   
-  if(fabs(h1.GetOrigin().GetX() - h2.GetOrigin().GetX()) > config.toleranceX) reasons.push_back(1);
-  if(fabs(h1.GetOrigin().GetY() - h2.GetOrigin().GetY()) > config.toleranceY) reasons.push_back(2);
-  if(fabs(h1.GetOrigin().GetZ() - h2.GetOrigin().GetZ()) > config.toleranceZ) reasons.push_back(3);
-  if(fabs(h1.GetMomentum()->GetX() - h2.GetMomentum()->GetX()) > config.tolerancePx) reasons.push_back(4);
-  if(fabs(h1.GetMomentum()->GetY() - h2.GetMomentum()->GetY()) > config.tolerancePy) reasons.push_back(5);
-  if(fabs(h1.GetMomentum()->GetZ() - h2.GetMomentum()->GetZ()) > config.tolerancePz) reasons.push_back(6);
+  if(fabs(h1.GetOrigin().GetX() - h2.GetOrigin().GetX()) > config.params["tolerance_x"]) reasons.push_back(1);
+  if(fabs(h1.GetOrigin().GetY() - h2.GetOrigin().GetY()) > config.params["tolerance_y"]) reasons.push_back(2);
+  if(fabs(h1.GetOrigin().GetZ() - h2.GetOrigin().GetZ()) > config.params["tolerance_z"]) reasons.push_back(3);
+  if(fabs(h1.GetMomentum()->GetX() - h2.GetMomentum()->GetX()) > config.params["tolerance_px"]) reasons.push_back(4);
+  if(fabs(h1.GetMomentum()->GetY() - h2.GetMomentum()->GetY()) > config.params["tolerance_py"]) reasons.push_back(5);
+  if(fabs(h1.GetMomentum()->GetZ() - h2.GetMomentum()->GetZ()) > config.params["tolerance_pz"]) reasons.push_back(6);
   if(h1.GetCharge() != h2.GetCharge()) reasons.push_back(7);
   
   return reasons;

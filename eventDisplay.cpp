@@ -87,28 +87,28 @@ void DrawHitsOrClusters(const shared_ptr<Event> event, int pointsType)
   string typeName;
   
   if(pointsType == 0){
-    if(!config.drawPionSimHits) return;
+    if(!config.params["draw_pion_simhits"]) return;
     
     hitsOrClusters = event->GetPionSimHits();
     drawingOptions["color"] = kCyan;
     typeName = "Pions hits ";
   }
   else if(pointsType == 1){
-    if(!config.drawCharginoSimHits) return;
+    if(!config.params["draw_chargino_simhits"]) return;
     
     hitsOrClusters = event->GetCharginoSimHits();
     drawingOptions["color"] = kMagenta;
     typeName = "Charginos hits ";
   }
   else if(pointsType == 2){
-    if(!config.drawTrackerClusters) return;
+    if(!config.params["draw_tracker_clusters"]) return;
     
     hitsOrClusters = event->GetTrackerClusters();
     drawingOptions["color"] = kYellow;
     typeName = "Tracker clusters ";
   }
   else if(pointsType == 3){
-    if(!config.drawPionClusters) return;
+    if(!config.params["draw_pion_clusters"]) return;
     
     hitsOrClusters = event->GetPionClusters();
     pointsProcessor.SetPointsLayers(hitsOrClusters);

@@ -83,7 +83,7 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   vector<Helix> fittedHelices = PerformFittingCycle();
   
   if(nTrackLayers < config.params["check_opposite_charge_below_Nlayers"]){
-    if(config.verbosity>0) cout<<"Checking opposite charge for default n layers"<<endl;
+    if(config.params["verbosity_level"]>0) cout<<"Checking opposite charge for default n layers"<<endl;
     charge = -charge;
     vector<Helix> fittedHelicesOpposite = PerformFittingCycle();
     fittedHelices.insert(fittedHelices.end(), fittedHelicesOpposite.begin(), fittedHelicesOpposite.end());
@@ -91,14 +91,14 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
   }
   
   if(config.params["allow_one_less_layer"]){
-    if(config.verbosity>0) cout<<"Assuming one less layer"<<endl;
+    if(config.params["verbosity_level"]>0) cout<<"Assuming one less layer"<<endl;
     nTrackLayers-=1;
     InitLparams();
     vector<Helix> fittedHelicesOneLess = PerformFittingCycle();
     fittedHelices.insert(fittedHelices.end(), fittedHelicesOneLess.begin(), fittedHelicesOneLess.end());
     
     if(nTrackLayers < config.params["check_opposite_charge_below_Nlayers"]){
-      if(config.verbosity>0) cout<<"Checking opposite charge for one less layer"<<endl;
+      if(config.params["verbosity_level"]>0) cout<<"Checking opposite charge for one less layer"<<endl;
       charge = -charge;
       vector<Helix> fittedHelicesOpposite = PerformFittingCycle();
       fittedHelices.insert(fittedHelices.end(), fittedHelicesOpposite.begin(), fittedHelicesOpposite.end());
@@ -108,14 +108,14 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
     nTrackLayers+=1;
   }
   if(config.params["allow_one_more_layer"]){
-    if(config.verbosity>0) cout<<"Assuming one more layer"<<endl;
+    if(config.params["verbosity_level"]>0) cout<<"Assuming one more layer"<<endl;
     nTrackLayers+=1;
     InitLparams();
     vector<Helix> fittedHelicesOneMore = PerformFittingCycle();
     fittedHelices.insert(fittedHelices.end(), fittedHelicesOneMore.begin(), fittedHelicesOneMore.end());
     
     if(nTrackLayers < config.params["check_opposite_charge_below_Nlayers"]){
-      if(config.verbosity>0) cout<<"Checking opposite charge for one more layer"<<endl;
+      if(config.params["verbosity_level"]>0) cout<<"Checking opposite charge for one more layer"<<endl;
       charge = -charge;
       vector<Helix> fittedHelicesOpposite = PerformFittingCycle();
       fittedHelices.insert(fittedHelices.end(), fittedHelicesOpposite.begin(), fittedHelicesOpposite.end());
@@ -137,7 +137,7 @@ vector<Helix> Fitter::PerformFittingCycle()
   if(config.params["merge_final_helices"]) MergeHelices(fittedHelices);
   RemoveShortHelices(fittedHelices);
   
-  if(config.verbosity>0) cout<<"Refitting surviving helices...";
+  if(config.params["verbosity_level"]>0) cout<<"Refitting surviving helices...";
   for(auto &helix : fittedHelices){
     if(helix.GetShouldRefit()) RefitHelix(helix);
   }
@@ -161,7 +161,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
   
   
   int nPairs=0;
-  if(config.verbosity>0) cout<<"Looking for seeds..."<<endl;
+  if(config.params["verbosity_level"]>0) cout<<"Looking for seeds..."<<endl;
   for(auto &middlePoints : middlePointsRegrouped){
     auto goodMiddlePoints = pointsProcessor.GetGoodMiddleSeedHits(middlePoints,
                                                                   trackPointMid,
@@ -190,7 +190,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
       seeds.push_back(*helix);
     }
   }
-  if(config.verbosity>0){
+  if(config.params["verbosity_level"]>0){
     cout<<"Tested pairs: "<<nPairs<<endl;
     cout<<"Number of valid seeds: "<<seeds.size()<<endl;
   }
@@ -244,9 +244,9 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
 {
   bool finished;
   int nSteps=0;
-  if(config.verbosity>0) cout<<"Extending seeds..."<<endl;
+  if(config.params["verbosity_level"]>0) cout<<"Extending seeds..."<<endl;
   do{
-    if(config.verbosity>0) cout<<"Helices before "<<nSteps<<" step: "<<helices.size()<<endl;
+    if(config.params["verbosity_level"]>0) cout<<"Helices before "<<nSteps<<" step: "<<helices.size()<<endl;
     
     finished = true;
     vector<Helix> nextStepHelices;
@@ -434,7 +434,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
     nSteps++;
   }
   while(!finished);
-  if(config.verbosity>0) cout<<"Candidates found: "<<helices.size()<<endl;
+  if(config.params["verbosity_level"]>0) cout<<"Candidates found: "<<helices.size()<<endl;
 }
 
 void Fitter::RefitHelix(Helix &helix)
@@ -464,7 +464,7 @@ void Fitter::RefitHelix(Helix &helix)
      startX0      < config.params["min_X0"]      || startX0     > config.params["max_X0"]     ||
      startY0      < config.params["min_Y0"]      || startY0     > config.params["max_Y0"]     ||
      startZ0      < config.params["min_Z0"]      || startZ0     > config.params["max_Z0"]){
-    if(config.verbosity>0) cout<<"ERROR -- wrong params in RefitHelix, which should never happen..."<<endl;
+    if(config.params["verbosity_level"]>0) cout<<"ERROR -- wrong params in RefitHelix, which should never happen..."<<endl;
     return;
   }
   
@@ -505,7 +505,7 @@ void Fitter::RefitHelix(Helix &helix)
 
 void Fitter::MergeHelices(vector<Helix> &helices)
 {
-  if(config.verbosity>0) cout<<"Merging overlapping helices...";
+  if(config.params["verbosity_level"]>0) cout<<"Merging overlapping helices...";
   
   vector<Helix> helicesToMerge;
   vector<Helix> tooShortToMerge;
@@ -521,7 +521,7 @@ void Fitter::MergeHelices(vector<Helix> &helices)
   // Insert back those that were too short to merge
   helicesToMerge.insert(helicesToMerge.end(), tooShortToMerge.begin(), tooShortToMerge.end());
   
-  if(config.verbosity>0) cout<<" merged down to: "<<helicesToMerge.size()<<endl;
+  if(config.params["verbosity_level"]>0) cout<<" merged down to: "<<helicesToMerge.size()<<endl;
   helices = helicesToMerge;
 }
 
@@ -545,11 +545,11 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   GetXYranges(trackPoint, startX0, minX0, maxX0, startY0, minY0, maxY0);
   
   if(startX0 < minX0 || startX0 > maxX0){
-    if(config.verbosity>0) cout<<"ERROR -- x0:"<<startX0<<"\tmin:"<<minX0<<"\tmax:"<<maxX0<<endl;
+    if(config.params["verbosity_level"]>0) cout<<"ERROR -- x0:"<<startX0<<"\tmin:"<<minX0<<"\tmax:"<<maxX0<<endl;
     if(config.params["require_good_starting_values"]) return nullptr;
   }
   if(startY0 < minY0 || startY0 > maxY0){
-    if(config.verbosity>0) cout<<"ERROR -- y0:"<<startY0<<"\tmin:"<<minY0<<"\tmax:"<<maxY0<<endl;
+    if(config.params["verbosity_level"]>0) cout<<"ERROR -- y0:"<<startY0<<"\tmin:"<<minY0<<"\tmax:"<<maxY0<<endl;
     if(config.params["require_good_starting_values"]) return nullptr;
   }
   
@@ -557,7 +557,7 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   double startS0 = config.params["start_R0"] * trackPoint.GetVectorSlopeC();
   
   if(startS0 < config.params["min_S0"] || startS0 > config.params["max_S0"]){
-    if(config.verbosity>0) cout<<"ERROR -- S0:"<<startS0<<"\tmin:"<<config.params["min_S0"]<<"\tmax:"<<config.params["max_S0"]<<endl;
+    if(config.params["verbosity_level"]>0) cout<<"ERROR -- S0:"<<startS0<<"\tmin:"<<config.params["min_S0"]<<"\tmax:"<<config.params["max_S0"]<<endl;
     if(config.params["require_good_starting_values"]) return nullptr;
   }
   
@@ -567,7 +567,7 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points
   double startZ0 = -charge * (trackPoint.GetZ() - startS0 * tTrack);
 
   if(startZ0 < config.params["min_Z0"] || startZ0 > config.params["max_Z0"]){
-    if(config.verbosity>0) cout<<"ERROR -- z0:"<<startZ0<<"\tmin:"<<config.params["min_Z0"]<<"\tmax:"<<config.params["max_Z0"]<<endl;
+    if(config.params["verbosity_level"]>0) cout<<"ERROR -- z0:"<<startZ0<<"\tmin:"<<config.params["min_Z0"]<<"\tmax:"<<config.params["max_Z0"]<<endl;
     if(config.params["require_good_starting_values"]) return nullptr;
   }
   
@@ -624,7 +624,7 @@ void Fitter::GetXYranges(const Point &trackPoint,
 
 void Fitter::RemoveShortHelices(vector<Helix> &helices)
 {
-  if(config.verbosity>0) cout<<"Removing very short merged helices...";
+  if(config.params["verbosity_level"]>0) cout<<"Removing very short merged helices...";
   vector<Helix> longHelices;
   for(auto helix : helices){
     if(helix.GetNpoints() >= config.params["track_min_n_points"] &&
@@ -632,7 +632,7 @@ void Fitter::RemoveShortHelices(vector<Helix> &helices)
       longHelices.push_back(helix);
     }
   }
-  if(config.verbosity>0) cout<<" long merged helices: "<<longHelices.size()<<endl;
+  if(config.params["verbosity_level"]>0) cout<<" long merged helices: "<<longHelices.size()<<endl;
   helices = longHelices;
 }
 

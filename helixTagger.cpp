@@ -12,7 +12,7 @@
 string configPath = "configs/helixTagger.md";
 string cutLevel = "after_L1/all/";//after_L1/";
 
-const int nEvents = 100; // max: 1287
+const int nEvents = 300; // max: 1287
 const int eventOffset = 0;
 
 int nAnalyzedEvents = 0;
@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
   for(auto monitorType : monitorTypes){
     int max = 20, nBins = 20;
     if(monitorType=="avg_length" || monitorType=="max_length"){ max = 10; nBins = 40; }
-    monitors[monitorType] = PerformanceMonitor(monitorType, nBins, 0, max, nEvents);
+    monitors[monitorType] = PerformanceMonitor(monitorType, nBins, 0, max);
   }
   
   vector<shared_ptr<Event>> events;
@@ -72,6 +72,10 @@ int main(int argc, char* argv[])
     
     auto event = events[iEvent];
     
+    if(event->GetGenPionHelices().size() != 1) continue;
+    double pionPt = event->GetGenPionHelices().front().GetMomentum()->GetTransverse();
+    if(pionPt < 400 ) continue;
+    
     for(auto &track : event->GetTracks()){
       
       vector<Helix> fittedHelicesSignal     = fitter->FitHelices(pointsNoEndcapsSignal[iEvent], *track, *event->GetVertex());
@@ -80,8 +84,7 @@ int main(int argc, char* argv[])
       // for(auto helix : fittedHelicesSignal) event->AddHelix(move(fittedHelix));
       
       for(string monitorType : monitorTypes){
-        monitors[monitorType].SetValues(iEvent,
-                                        helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesSignal, monitorType),
+        monitors[monitorType].SetValues(helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesSignal, monitorType),
                                         helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesBackground, monitorType));
         
       }
@@ -91,7 +94,7 @@ int main(int argc, char* argv[])
   
   int iPad=1;
   for(auto &monitor : monitors){
-    monitor.second.CalcEfficiency(nAnalyzedEvents);
+    monitor.second.CalcEfficiency();
     canvas->cd(iPad++);
     monitor.second.DrawRocGraph(true);
     canvas->cd(iPad++);
@@ -106,6 +109,8 @@ int main(int argc, char* argv[])
     monitor.second.PrintParams();
   }
   
+  cout<<"N events analyzed: "<<nAnalyzedEvents<<endl;
+  
   //  cout<<"helixTagger -- saving events"<<endl;
   //  events.SaveEventsToFiles("afterHelixTagging/");
   //  cout<<"helixTagger -- finished"<<endl;
@@ -113,6 +118,12 @@ int main(int argc, char* argv[])
   cout<<"Time: "<<duration(start, now());
   
   canvas->Update();
+  
+  TFile *outFile = new TFile("helixTagger.root", "recreate");
+  outFile->cd();
+  canvas->Write();
+  outFile->Close();
+  
   //  theApp.Run();
   return 0;
 }

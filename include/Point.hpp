@@ -38,6 +38,7 @@ public:
   
   double GetVectorEta() const;
   double GetVectorPhi() const;
+  double GetTransverse() const;
   
   /// Tells whether or not this point belongs to a true pion's helix
   inline bool IsPionHit() const {return isPionHit;}

@@ -17,72 +17,17 @@ extern ConfigManager config;
 /// default values will be used.
 struct ConfigManager {
   /// Default constructor
-  /// \_path Path to the config file
+  /// \param _path Path to the config file
   ConfigManager(string _path="");
   
-  /// Prints complete information about current configuration
-  void Print();
+  map<string, double> params; ///< All bool, int and double parameters from the config file
   
-  map<string, double> params;
+  string category;    ///< Name of the analysis category
+  string outputPath;  ///< Output file path
   
-  //------------------------------//
-  //    Analysis configuration    //
-  //------------------------------//
-  
-  string category;
-  
-  vector<bool> runBackground;
-  vector<bool> runSignal;
-  vector<bool> runData;
-  
-  //------------------------------//
-  //  Helix fitter configuration  //
-  //------------------------------//
-  
-  // General settings
-  bool injectPionHits;
-  int nTests;
-  int nNoiseHits;
-  int nTrackerLayers;
-  int verbosity;
-  
-  // Random chargino's track parameters
-  double maxEta;
-  int nTrackHits;
-  
-    // Random pion's parameters
-  double minPx;
-  double minPy;
-  double minPz;
-  double maxPx;
-  double maxPy;
-  double maxPz;
-  
-  const char* outputPath;
-  
-  // Benchmark parameters
-  double toleranceX;
-  double toleranceY;
-  double toleranceZ;
-  double tolerancePx;
-  double tolerancePy;
-  double tolerancePz;
-  
-  //------------------------------//
-  // Event Display configuration  //
-  //------------------------------//
-  
-  bool showGeometryPixel;
-  bool showGeometryStrip;
-  bool showGeometryEcal;
-  bool showGeometryHcal;
-  
-  bool drawTrackerClusters;
-  bool drawMET;
-  bool drawJets;
-  bool drawPionSimHits;
-  bool drawPionClusters;
-  bool drawCharginoSimHits;
+  vector<bool> runBackground; ///< Should run given backgorund sample (by EBackground enum)
+  vector<bool> runSignal;     ///< Should run given signal sample (by ESignal enum)
+  vector<bool> runData;       ///< Should run given data sample (by EData enum)
   
 private:
   unique_ptr<TEnv> configFile;

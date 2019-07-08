@@ -58,8 +58,11 @@ map<string, map<string, map<string, double>>> bestParamValue; //[monitorType][op
 vector<tuple<string, double, double, double>> paramsToTest = {
 //  {"double_hit_max_distance", 20, 0, -1},
 //  {"seed_max_chi2", 0.01, 0.10, 0.01},
-  {"seed_middle_hit_max_delta_phi", 0, 1.0, 0.1},
+//  {"seed_middle_hit_max_delta_phi", 0, 1.0, 0.1},
 //  {"seed_middle_hit_max_delta_z", 50, 300, 50},
+//  {"seed_last_hit_max_delta_phi", 0.0, 1.0, 0.1},
+//  {"seed_last_hit_max_delta_z", 50, 300, 50},
+  {"track_max_chi2", 0.001, 0.05, 0.002},
 };
 
 void CheckParamForCurrentConfig(string paramName)
@@ -71,7 +74,7 @@ void CheckParamForCurrentConfig(string paramName)
   for(auto monitorType : monitorTypes){
     int max = 20, nBins = 20;
     if(monitorType=="avg_length" || monitorType=="max_length"){ max = 10; nBins = 40; }
-    monitors[monitorType] = PerformanceMonitor(monitorType, nBins, 0, max, nEvents);
+    monitors[monitorType] = PerformanceMonitor(monitorType, nBins, 0, max);
   }
 
   for(auto iEvent=0; iEvent<nEvents; iEvent++){
@@ -82,8 +85,7 @@ void CheckParamForCurrentConfig(string paramName)
       vector<Helix> fittedHelicesBackground = helixFitter->FitHelices(pointsNoEndcapsBackground[iEvent], *track, *event->GetVertex());
       
       for(string monitorType : monitorTypes){
-        monitors[monitorType].SetValues(iEvent,
-                                       helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesSignal, monitorType),
+        monitors[monitorType].SetValues(helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesSignal, monitorType),
                                        helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesBackground, monitorType));
         
       }
@@ -92,7 +94,7 @@ void CheckParamForCurrentConfig(string paramName)
   }
   
   for(string monitorType : monitorTypes){
-    monitors[monitorType].CalcEfficiency(nAnalyzedEvents);
+    monitors[monitorType].CalcEfficiency();
     
     for(string optimizeFor : optimizationVars){
       double value = monitors[monitorType].GetValueByName(optimizeFor);
@@ -131,7 +133,7 @@ int main(int argc, char* argv[])
     for(config.params[name]  = min;
         step < 0 ? config.params[name] >= max : config.params[name] <= max;
         config.params[name] += step){
-      cout<<"\t"<<config.params[name];
+      cout<<"\t"<<config.params[name]<<endl;
       CheckParamForCurrentConfig(name);
     }
     cout<<endl;

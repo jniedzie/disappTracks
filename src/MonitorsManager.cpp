@@ -17,14 +17,14 @@ MonitorsManager::MonitorsManager()
   double maxX = 250;
   double maxY = 250;
   double maxZ = 250;
-  double maxEta = config.maxEta;
+  double maxEta = config.params["max_eta"];
   
-  double minPx = config.minPx;
-  double minPy = config.minPy;
-  double minPz = config.minPz;
-  double maxPx = config.maxPx;
-  double maxPy = config.maxPy;
-  double maxPz = config.maxPz;
+  double minPx = config.params["min_px"];
+  double minPy = config.params["min_py"];
+  double minPz = config.params["min_pz"];
+  double maxPx = config.params["max_px"];
+  double maxPy = config.params["max_py"];
+  double maxPz = config.params["max_pz"];
   
   const vector<tuple<const char*,int,double,double,int,double,double>> monitors2Dparams = {
     {"xResponse",     500, -maxX,  maxX,  500, -maxX,  maxX},
@@ -194,7 +194,7 @@ void MonitorsManager::PlotAndSaveMonitors()
   // Regular 1D and 2D monitors
   TCanvas *c1 = new TCanvas("Monitors","Monitors",2880,1800);
   c1->Divide(4,4);
-  TFile *outFile = new TFile(config.outputPath,"recreate");
+  TFile *outFile = new TFile(config.outputPath.c_str(),"recreate");
   outFile->cd();
   
   int i=1;
