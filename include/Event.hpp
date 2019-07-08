@@ -100,65 +100,65 @@ public:
   inline void SetSetIter(int val){setIter = val;}
   
   // getters
-  inline uint  GetLumiSection(){return lumiSection;}
-  inline uint  GetRunNumber(){return runNumber;}
-  inline unsigned long long GetEventNumber(){return eventNumber;}
+  inline uint  GetLumiSection() const {return lumiSection;}
+  inline uint  GetRunNumber() const {return runNumber;}
+  inline unsigned long long GetEventNumber() const {return eventNumber;}
   
-  inline double GetWeight(){return weight;}
+  inline double GetWeight() const {return weight;}
   
-  inline int GetNtracks(){return (int)tracks.size(); }
-  inline int GetNjets(){return (int)jets.size(); }
-  inline int GetNleptons(){return (int)leptons.size(); }
-  inline int GetNcentralJets(){
+  inline int GetNtracks() const {return (int)tracks.size(); }
+  inline int GetNjets() const {return (int)jets.size(); }
+  inline int GetNleptons() const {return (int)leptons.size(); }
+  inline int GetNcentralJets() const {
     int n=0;
     for(auto j : jets){
       if(!j->IsForward()) n++;
     }
     return n;
   }
-  inline int GetNvertices(){return nVertices;}
-  inline unique_ptr<Point> GetVertex(){return make_unique<Point>(*vertex);}
-  inline int GetNjet30(){return nJet30;}
-  inline int GetNjet30a(){return nJet30a;}
-  inline int GetNtau(){return nTau;}
-  inline int GetNhelices(){return (int)helices.size();}
+  inline int GetNvertices() const {return nVertices;}
+  inline unique_ptr<Point> GetVertex() const {return make_unique<Point>(*vertex);}
+  inline int GetNjet30() const {return nJet30;}
+  inline int GetNjet30a() const {return nJet30a;}
+  inline int GetNtau() const {return nTau;}
+  inline int GetNhelices() const {return (int)helices.size();}
   
-  inline double GetMetSumEt(){return metSumEt;}
-  inline double GetMetPt(){return metPt;}
-  inline double GetMetMass(){return metMass;}
-  inline double GetMetPhi(){return metPhi;}
-  inline double GetMetEta(){return metEta;}
+  inline double GetMetSumEt() const {return metSumEt;}
+  inline double GetMetPt() const {return metPt;}
+  inline double GetMetMass() const {return metMass;}
+  inline double GetMetPhi() const {return metPhi;}
+  inline double GetMetEta() const {return metEta;}
   
-  inline double GetMetNoMuPt(){return metNoMuPt;}
-  inline double GetMetNoMuMass(){return metNoMuMass;}
-  inline double GetMetNoMuPhi(){return metNoMuPhi;}
-  inline double GetMetNoMuEta(){return metNoMuEta;}
+  inline double GetMetNoMuPt() const {return metNoMuPt;}
+  inline double GetMetNoMuMass() const {return metNoMuMass;}
+  inline double GetMetNoMuPhi() const {return metNoMuPhi;}
+  inline double GetMetNoMuEta() const {return metNoMuEta;}
   inline bool HetMetNoMuTrigger(){return metNoMuTrigger;}
   
-  inline bool GetGoodVerticesFlag(){return flag_goodVertices;}
-  inline bool GetBadPFmuonFlag(){return flag_badPFmuon;}
-  inline bool GetHBHEnoiseFlag(){return flag_HBHEnoise;}
-  inline bool GetHBHEnoiseIsoFlag(){return flag_HBHEnoiseIso;}
-  inline bool GetEcalDeadCellFlag(){return flag_EcalDeadCell;}
-  inline bool GetEeBadScFlag(){return flag_eeBadSc;}
-  inline bool GetBadChargedCandidateFlag(){return flag_badChargedCandidate;}
-  inline bool GetEcalBadCalibFlag(){return flag_ecalBadCalib;}
-  inline bool GetGlobalTightHalo2016Flag(){return flag_globalTightHalo2016;}
+  inline bool GetGoodVerticesFlag() const {return flag_goodVertices;}
+  inline bool GetBadPFmuonFlag() const {return flag_badPFmuon;}
+  inline bool GetHBHEnoiseFlag() const {return flag_HBHEnoise;}
+  inline bool GetHBHEnoiseIsoFlag() const {return flag_HBHEnoiseIso;}
+  inline bool GetEcalDeadCellFlag() const {return flag_EcalDeadCell;}
+  inline bool GetEeBadScFlag() const {return flag_eeBadSc;}
+  inline bool GetBadChargedCandidateFlag() const {return flag_badChargedCandidate;}
+  inline bool GetEcalBadCalibFlag() const {return flag_ecalBadCalib;}
+  inline bool GetGlobalTightHalo2016Flag() const {return flag_globalTightHalo2016;}
   
-  inline int GetNgenChargino(){return nGenChargino;}
-  inline double GetXsec(){return xsec;}
-  inline double GetWgtSum(){return wgtsum;}
-  inline double GetGenWeight(){return genWeight;}
+  inline int GetNgenChargino() const {return nGenChargino;}
+  inline double GetXsec() const {return xsec;}
+  inline double GetWgtSum() const {return wgtsum;}
+  inline double GetGenWeight() const {return genWeight;}
   
-  inline shared_ptr<Track>  GetTrack(int i){return tracks[i];}
-  inline shared_ptr<Jet>    GetJet(int i){return jets[i];}
-  inline shared_ptr<Lepton> GetLepton(int i){return leptons[i];}
-  inline shared_ptr<Helix>  GetHelix(int i){return helices[i];}
+  inline shared_ptr<Track>  GetTrack(int i) const {return tracks[i];}
+  inline shared_ptr<Jet>    GetJet(int i) const {return jets[i];}
+  inline shared_ptr<Lepton> GetLepton(int i) const {return leptons[i];}
+  inline shared_ptr<Helix>  GetHelix(int i) const {return helices[i];}
 	
-	inline vector<shared_ptr<Track>>   GetTracks(){return tracks;}
-  inline vector<shared_ptr<Jet>>     GetJets(){return jets;}
-  inline vector<shared_ptr<Lepton>>  GetLeptons(){return leptons;}
-  inline vector<shared_ptr<Helix>>   GetHelices(){return helices;}
+	inline vector<shared_ptr<Track>>   GetTracks() const {return tracks;}
+  inline vector<shared_ptr<Jet>>     GetJets() const {return jets;}
+  inline vector<shared_ptr<Lepton>>  GetLeptons() const {return leptons;}
+  inline vector<shared_ptr<Helix>>   GetHelices() const {return helices;}
 
 private:
   vector<shared_ptr<Track>>  tracks;   ///< Vector of isolated tracks

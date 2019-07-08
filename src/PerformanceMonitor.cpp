@@ -154,11 +154,11 @@ void PerformanceMonitor::PrintFakesEfficiency()
 
 void PerformanceMonitor::PrintParams()
 {
-  cout<<"AUC: "<<auc<<"\tmax eff: "<<maxEfficiency<<"\t";
-  cout<<"sign Initial: "<<significanceInitial<<"\t";
-  cout<<"sign L0 all: "<<significanceAfterL0<<endl;
+//  cout<<"AUC: "<<auc<<"\tmax eff: "<<maxEfficiency<<"\t";
+//  cout<<"sign Initial: "<<significanceInitial<<"\t";
+//  cout<<"sign L0 all: "<<significanceAfterL0<<endl;
   cout<<"Max dist to sqrt fake: "<<maxDistToSqrtFake<<"\t";
-  cout<<"avg dist to sqrt fake: "<<avgDistToSqrtFake<<"\t";
+//  cout<<"avg dist to sqrt fake: "<<avgDistToSqrtFake<<"\t";
 }
 
 TF1* PerformanceMonitor::GetRocFunction()

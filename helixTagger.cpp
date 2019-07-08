@@ -10,9 +10,24 @@
 #include "EventSet.hpp"
 
 string configPath = "configs/helixTagger.md";
-string cutLevel = "after_L1/all/";//after_L1/";
+string cutLevel = "after_L1/all/";
 
-int nAnalyzedEvents = 0;
+bool printROCpoints = false;
+
+enum ETestParams {
+  kPionPt,
+  kCharginoEta,
+  kCharginoNlayers,
+  kMET,
+  kCharginoCharge,
+  kCharginoPt,
+  nTestParams
+};
+
+ETestParams testParam = kPionPt;
+
+xtracks::EDataType dataType = xtracks::kSignal;
+int setIter = kWino_M_300_cTau_10;
 
 vector<string> monitorTypes = {
   "avg_hits",
@@ -24,11 +39,71 @@ vector<string> monitorTypes = {
   "n_helices"
 };
 
-xtracks::EDataType dataType = xtracks::kSignal;
-int setIter = kWino_M_300_cTau_10;
-
-shared_ptr<Event> GetEvent(int iEvent);
 vector<shared_ptr<Point>> GetClustersNoEndcaps(const shared_ptr<Event> &event, bool removePionClusters);
+
+map<ETestParams, vector<range<double>>> paramRanges = {
+  { kPionPt,
+    {
+      range<double>(0, 150),
+      range<double>(150, 300),
+      range<double>(300, 450),
+      range<double>(450, 600),
+      range<double>(600, inf) }
+  },
+  { kCharginoEta,
+    { range<double>(0, 0.5),
+      range<double>(0.5, 1.0),
+      range<double>(1.0, 1.5),
+      range<double>(1.5, inf) }
+  },
+  { kCharginoNlayers,
+    { range<double>(3, 3),
+      range<double>(4, 4),
+      range<double>(5, 5),
+      range<double>(6, 6),
+      range<double>(7, inf) }
+  },
+  { kMET,
+    { range<double>(200, 400),
+      range<double>(400, 600),
+      range<double>(600, inf) }
+  },
+  { kCharginoCharge,
+    { range<double>(-inf, 0),
+      range<double>(0, inf) }
+  },
+  { kCharginoPt,
+    { range<double>(0, 200),
+      range<double>(200, 400),
+      range<double>(400, 600),
+      range<double>(600, inf) }
+  },
+};
+
+bool IsEventOk(const Event &event)
+{
+  if(testParam == kPionPt){
+    return event.GetGenPionHelices().size() == 1;
+  }
+  
+  if(testParam == kCharginoEta || testParam == kCharginoNlayers ||
+     testParam == kCharginoCharge || testParam == kCharginoPt){
+    return event.GetNtracks() == 1;
+  }
+  
+  return true;
+}
+
+double EventToParam(const Event &event)
+{
+  if(testParam == kPionPt)          return event.GetGenPionHelices().front().GetMomentum()->GetTransverse();
+  if(testParam == kCharginoEta)     return fabs(event.GetTrack(0)->GetEta());
+  if(testParam == kCharginoNlayers) return event.GetTrack(0)->GetNtrackerLayers();
+  if(testParam == kMET)             return event.GetMetPt();
+  if(testParam == kCharginoCharge)  return event.GetTrack(0)->GetCharge();
+  if(testParam == kCharginoPt)      return event.GetTrack(0)->GetPt();
+  return 0;
+}
 
 int main(int argc, char* argv[])
 {
@@ -41,9 +116,8 @@ int main(int argc, char* argv[])
   canvas->Divide(3,3);
   
   vector<map<string, PerformanceMonitor>> monitors; // [paramBin][monitorType]
-  const int nParamBins = 4;
   
-  for(int iParam=0; iParam<nParamBins; iParam++){
+  for(int iParam=0; iParam<paramRanges[testParam].size(); iParam++){
     map<string, PerformanceMonitor> monitorsForParam;
     
     for(auto monitorType : monitorTypes){
@@ -60,23 +134,24 @@ int main(int argc, char* argv[])
   
   auto start = now();
   
-  nAnalyzedEvents=0;
+  int nAnalyzedEvents=0;
   
   for(auto iEvent=0; iEvent<nEvents; iEvent++){
     cout<<"\n\n=================================================================\n"<<endl;
     cout<<"helixTagger -- processing event "<<iEvent<<endl;
     
-//    auto event = events[iEvent];
     auto event = events.At(dataType, setIter, iEvent);
     
-    if(event->GetGenPionHelices().size() != 1) continue;
-    double pionPt = event->GetGenPionHelices().front().GetMomentum()->GetTransverse();
+    if(!IsEventOk(*event)) continue;
+    double paramValue = EventToParam(*event);
     
     int iParam = -1;
-    if(pionPt < 150) iParam = 0;
-    if(pionPt > 150 && pionPt < 300) iParam = 1;
-    if(pionPt > 300 && pionPt < 450) iParam = 2;
-    if(pionPt > 450) iParam = 3;
+    
+    for(iParam=0; iParam<paramRanges[testParam].size(); iParam++){
+      if(paramRanges[testParam][iParam].IsInside(paramValue)) break;
+    }
+    if(iParam < 0 || iParam == paramRanges[testParam].size()) continue;
+    
     
     for(auto &track : event->GetTracks()){
       
@@ -90,7 +165,7 @@ int main(int argc, char* argv[])
       
       for(string monitorType : monitorTypes){
         monitors[iParam][monitorType].SetValues(helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesSignal, monitorType),
-                                        helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesBackground, monitorType));
+                                                helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesBackground, monitorType));
         
       }
     }
@@ -115,7 +190,7 @@ int main(int argc, char* argv[])
     
     for(auto &monitor : monitorsForParam){
       cout<<"\nMonitor: "<<monitor.first<<endl;
-      monitor.second.PrintFakesEfficiency();
+      if(printROCpoints) monitor.second.PrintFakesEfficiency();
       monitor.second.PrintParams();
     }
   }
@@ -138,21 +213,6 @@ int main(int argc, char* argv[])
   //  theApp.Run();
   return 0;
 }
-
-shared_ptr<Event> GetEvent(int iEvent)
-{
-  EventSet events;
-  events.LoadEventFromFiles(dataType, setIter, iEvent, cutLevel);
-  auto event = events.At(dataType, setIter, 0);
-  
-  if(!event){
-    cout<<"helixTagger -- event not found"<<endl;
-    exit(0);
-  }
-  
-  return event;
-}
-
 
 vector<shared_ptr<Point>> GetClustersNoEndcaps(const shared_ptr<Event> &event, bool removePionClusters)
 {
