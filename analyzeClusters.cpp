@@ -25,7 +25,7 @@ vector<tuple<string, int, double, double, string>> histOptions1D = {
   {"pion_n_clusters_TID"        , 50 , 0      , 50    , "# clusters"              },
   {"pion_n_clusters_TEC"        , 50 , 0      , 50    , "# clusters"              },
   {"pion_n_clusters_P1PXB"      , 50 , 0      , 50    , "# clusters"              },
-  {"pion_n_clusters_P1PXE"      , 50 , 0      , 50    , "# clusters"              },
+  {"pion_n_clusters_P1PXEC"      , 50 , 0      , 50    , "# clusters"              },
   {"pion_initial_radius"        , 50 , 0      , 1000  , "R_{max} (mm)"            },
   {"pion_final_radius"          , 50 , 0      , 1000  , "R_{min} (mm)"            },
   {"pion_range_z"               , 100, 0      , 3500  , "#Delta z (mm)"           },
@@ -57,13 +57,13 @@ vector<tuple<string, int, double, double, string>> histOptions1D = {
   {"pion_cluster_charge_TID"    , 100, 0      , 600   , ""                        },
   {"pion_cluster_charge_TEC"    , 100, 0      , 600   , ""                        },
   {"pion_cluster_charge_P1PXB"  , 100, 0      , 600   , ""                        },
-  {"pion_cluster_charge_P1PXE"  , 100, 0      , 600   , ""                        },
+  {"pion_cluster_charge_P1PXEC"  , 100, 0      , 600   , ""                        },
   {"tracker_cluster_charge_TIB"   , 100, 0      , 600   , ""                        },
   {"tracker_cluster_charge_TOB"   , 100, 0      , 600   , ""                        },
   {"tracker_cluster_charge_TID"   , 100, 0      , 600   , ""                        },
   {"tracker_cluster_charge_TEC"   , 100, 0      , 600   , ""                        },
   {"tracker_cluster_charge_P1PXB" , 100, 0      , 600   , ""                        },
-  {"tracker_cluster_charge_P1PXE" , 100, 0      , 600   , ""                        },
+  {"tracker_cluster_charge_P1PXEC" , 100, 0      , 600   , ""                        },
   
   {"num_chargino_q_efficiency_vs_gen_pt"  , 100, 0      , 1000  , "p_T (GeV)"           },
   {"den_chargino_q_efficiency_vs_gen_pt"  , 100, 0      , 1000  , "p_T (GeV)"           },
@@ -78,6 +78,9 @@ vector<tuple<string, int, double, double, string>> histOptions1D = {
   {"pion_vertex_z_noTIB"        , 50 , -1000  , 1000  , "v_{z} (mm)"              },
   {"noise_n_clusters"           , 100, 0      , 10000 , "# clusters"              },
   {"tracker_clusters_r"         , 1100,0      , 1500  , "R (mm)"                  },
+  {"tracker_clusters_z_PXE"     , 100 ,-600   , 600   , "z (mm)"                  },
+  {"tracker_clusters_z_TID"     , 400 ,-1200  , 1200  , "z (mm)"                  },
+  {"tracker_clusters_z_TEC"     , 300 ,-3000  , 3000  , "z (mm)"                  },
   
   {"last_to_avg_dedx_ratio"     , 500 ,0      , 10    , "dE/dx last / dE/dx avg"  },
 };
@@ -366,7 +369,7 @@ int main(int argc, char* argv[])
     hists1D["pion_n_clusters_TID"]->Fill(nClustersInDet["TID"]);
     hists1D["pion_n_clusters_TEC"]->Fill(nClustersInDet["TEC"]);
     hists1D["pion_n_clusters_P1PXB"]->Fill(nClustersInDet["P1PXB"]);
-    hists1D["pion_n_clusters_P1PXE"]->Fill(nClustersInDet["P1PXE"]);
+    hists1D["pion_n_clusters_P1PXEC"]->Fill(nClustersInDet["P1PXEC"]);
     
     // Fill special histograms
     if(nClustersInDet["TIB"] == 0){
@@ -394,7 +397,9 @@ int main(int argc, char* argv[])
          cluster->GetSubDetName() == "P1PXB"){
         hists1D["tracker_clusters_r"]->Fill(r);
       }
-      
+      else if(cluster->GetSubDetName() == "TID")    hists1D["tracker_clusters_z_TID"]->Fill(cluster->GetZ());
+      else if(cluster->GetSubDetName() == "TEC")    hists1D["tracker_clusters_z_TEC"]->Fill(cluster->GetZ());
+      else if(cluster->GetSubDetName() == "P1PXEC") hists1D["tracker_clusters_z_PXE"]->Fill(cluster->GetZ());
     }
     
     nLastHitsInDet[maxDet]++;
@@ -458,7 +463,7 @@ int main(int argc, char* argv[])
   chargeCanvas->Divide(2,3);
   clustersCanvas->Divide(2,3);
   
-  vector<string> detNames = {"TIB", "TOB", "TID", "TEC", "P1PXB", "P1PXE" };
+  vector<string> detNames = {"TIB", "TOB", "TID", "TEC", "P1PXB", "P1PXEC" };
   int nLastHits=0;
   for(auto &[key, val] : nLastHitsInDet) nLastHits += val;
   
@@ -485,7 +490,10 @@ int main(int argc, char* argv[])
   specialCanvas->cd(4);  hists1D["pion_vertex_z_noTIB"]->Draw();
   specialCanvas->cd(5);  hists1D["noise_n_clusters"]->Draw();
   specialCanvas->cd(6);  hists1D["tracker_clusters_r"]->Draw();
-  specialCanvas->cd(7);  hists1D["last_to_avg_dedx_ratio"]->Draw();
+  specialCanvas->cd(7);  hists1D["tracker_clusters_z_PXE"]->Draw();
+  specialCanvas->cd(8);  hists1D["tracker_clusters_z_TID"]->Draw();
+  specialCanvas->cd(9);  hists1D["tracker_clusters_z_TEC"]->Draw();
+//  specialCanvas->cd(8);  hists1D["last_to_avg_dedx_ratio"]->Draw();
   
   genPionCanvas->Update();
   trackingCanvas->Update();
