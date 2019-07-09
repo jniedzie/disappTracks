@@ -37,6 +37,12 @@ vector<vector<shared_ptr<Point>>> PointsProcessor::SortByLayer(const vector<shar
   for(int iLayer=0; iLayer<layerRanges.size(); iLayer++) pointsByLayer.push_back(vector<shared_ptr<Point>>());
   
   for(auto &p : points){
+    if(p->GetSubDetName() == "P1PXEC" ||
+       p->GetSubDetName() == "TID" ||
+       p->GetSubDetName() == "TEC"){
+      continue;
+    }
+    
     double pointR = sqrt(pow(p->GetX(), 2) + pow(p->GetY(), 2));
     
     for(int iLayer=0; iLayer<layerRanges.size(); iLayer++){
@@ -49,6 +55,35 @@ vector<vector<shared_ptr<Point>>> PointsProcessor::SortByLayer(const vector<shar
   }
   
   return pointsByLayer;
+}
+
+vector<vector<shared_ptr<Point>>> PointsProcessor::SortByDisk(const vector<shared_ptr<Point>> &points)
+{
+  vector<vector<shared_ptr<Point>>> pointsByDisk;
+  for(size_t iDisk= 0; iDisk<2*diskRanges.size()+1; iDisk++){
+    pointsByDisk.push_back(vector<shared_ptr<Point>>());
+  }
+  
+  for(auto &p : points){
+    if(p->GetSubDetName() == "P1PXB" ||
+       p->GetSubDetName() == "TIB" ||
+       p->GetSubDetName() == "TOB"){
+      continue;
+    }
+    
+    double pointZ = p->GetZ();
+    int signZ = sgn(p->GetZ());
+    
+    for(size_t iDisk=0; iDisk<diskRanges.size(); iDisk++){
+      if(diskRanges[iDisk].IsInside(fabs(pointZ))){
+        p->SetLayer((int)(signZ*(iDisk+1)));
+        pointsByDisk[diskRanges.size()+signZ*(iDisk+1)].push_back(p);
+        break;
+      }
+    }
+  }
+  
+  return pointsByDisk;
 }
 
 void PointsProcessor::SetPointsLayers(vector<shared_ptr<Point>> &points)

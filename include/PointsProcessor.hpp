@@ -37,6 +37,9 @@ public:
   /// Sorts provided points by layer 
   vector<vector<shared_ptr<Point>>> SortByLayer(const vector<shared_ptr<Point>> &points);
   
+  /// Sorts points by disk (from -N to -1 and from 1 to N)
+  vector<vector<shared_ptr<Point>>> SortByDisk(const vector<shared_ptr<Point>> &points);
+  
   /// Returns an angle between (p2-p1) vector and (p1-p0) vector shifted to start in p1
   double GetPointingAngle(const Point &p0, const Point &p1, const Point &p2);
   

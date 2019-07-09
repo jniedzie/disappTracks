@@ -131,6 +131,7 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
 vector<Helix> Fitter::PerformFittingCycle()
 {
   vector<vector<shared_ptr<Point>>> pointsByLayer = pointsProcessor.SortByLayer(points);
+  vector<vector<shared_ptr<Point>>> pointsByDisk  = pointsProcessor.SortByDisk(points);
   
   vector<Helix> fittedHelices = GetSeeds(pointsByLayer);
   ExtendSeeds(fittedHelices, pointsByLayer);
@@ -276,7 +277,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         bool crossesNextLayer = helixProcessor.GetIntersectionWithLayer(helix, nextPointLayer, pA, pB);
         
         // try to extend to next layer
-        if(crossesNextLayer || !config.params["allow_turning_back"]){
+        if(crossesNextLayer){
   
           // Find points that could extend this helix
           vector<shared_ptr<Point>> possiblePointsAll;
