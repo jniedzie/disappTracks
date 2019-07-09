@@ -27,7 +27,7 @@ void ProcessCuts(EventSet &events,
     events.PrintYields();
   }
   if(config.params["save_events"]){
-    string prefix = "after_L"+to_string(config.params["cuts_level"]);
+    string prefix = "after_L"+to_string((int)config.params["cuts_level"]);
     prefix = prefix + "/" + suffix + "/";
     if(config.params["cuts_level"]==10) prefix = "adish_cuts";
     events.SaveEventsToFiles(prefix);

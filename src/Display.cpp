@@ -24,11 +24,10 @@ void Display::DrawSimplePoints(const vector<shared_ptr<Point>> points, map<strin
   
   for(auto &p : points){
     if(p->GetSubDetName() != "TOB" &&
-       p->GetSubDetName() != "TIB"){
-//      simplePoints->Fill(scale*p->GetX(),scale*p->GetY(),scale*p->GetZ(), p->GetValue());
-      
+       p->GetSubDetName() != "TIB" &&
+       p->GetSubDetName() != "TID" &&
+       p->GetSubDetName() != "TEC"){
       AddStripCluster(pixelClusters, p, options);
-      
     }
     else{
       AddStripCluster(stripClusters, p, options);

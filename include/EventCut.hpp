@@ -39,6 +39,8 @@ public:
   inline void SetLeadingJetChHEF(range<double> val){leadingJetChHEF=val;}
   inline void SetLeadingJetNeHEF(range<double> val){leadingJetNeHEF=val;}
   
+  inline void SetGetPionPt(range<double> val){genPionsPt=val;}
+  
   inline void SetRequireMetNoMuTrigger(bool val){requiresMetNoMuTrigger = val;}
   inline void SetRequireMuonsFromZ(bool val){requiresMuonsFromZ = val;}
   inline void SetRequireTightMuon(bool val){requiresTightMuon = val;}
@@ -64,6 +66,8 @@ private:
   range<double> leadingJetEta;    ///< allowed pseudorapidity of the leading jet
   range<double> leadingJetChHEF;  ///< allowed charged hadron energy fraction of the leading jet
   range<double> leadingJetNeHEF;  ///< allowed neutral hadron energy fraction of the leading jet
+  
+  range<double> genPionsPt;       ///< At least one gen pion must be within this range
   
   bool requiresMetNoMuTrigger;    ///< should require MET no mu trigger
   bool requiresMuonsFromZ;        ///< should require two muons in the event with invariant mass close to Z mass

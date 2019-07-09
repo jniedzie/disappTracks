@@ -59,6 +59,9 @@ public:
   inline void SetX(double val){x = val;}
   inline void SetY(double val){y = val;}
   inline void SetZ(double val){z = val;}
+  inline void SetXerr(double val){errX = val;}
+  inline void SetYerr(double val){errY = val;}
+  inline void SetZerr(double val){errZ = val;}
   inline void SetIsPionHit(bool val){isPionHit = val;}
   inline void SetLayer(int val){layer = val;}
   inline void SetTime(double val){time = val;}

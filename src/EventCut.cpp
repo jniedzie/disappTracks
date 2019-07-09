@@ -24,6 +24,8 @@ leadingJetEta(range<double>()),
 leadingJetChHEF(range<double>()),
 leadingJetNeHEF(range<double>()),
 
+genPionsPt(range<double>()),
+
 requiresMetNoMuTrigger(false),
 requiresMuonsFromZ(false),
 requiresTightMuon(false),

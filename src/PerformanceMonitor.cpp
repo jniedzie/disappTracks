@@ -139,7 +139,7 @@ void PerformanceMonitor::CalcEfficiency()
   avgDistToSqrtFake /= nBins;
   
   rocGraph->Fit(rocFun,"Q");
-  auc = 0;// rocFun->Integral(0,1);
+  auc = rocFun->Integral(0,1);
 }
 
 

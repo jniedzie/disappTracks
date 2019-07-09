@@ -367,6 +367,19 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
     }
   }
   
+  bool pionPassed = false;
+  
+  if(cut.genPionsPt.GetMin() < -99999) pionPassed = true;
+  else{
+    for(auto &pion : event->GetGenPionHelices()){
+      if(cut.genPionsPt.IsInside(pion.GetMomentum()->GetTransverse())){
+        pionPassed=true;
+        break;
+      }
+    }
+  }
+  if(!pionPassed) return false;
+  
   survivingEvents.push_back(event);
   return true;
 }

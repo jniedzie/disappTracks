@@ -85,18 +85,18 @@ n_track_hits: 2
 double_hit_max_distance:            20.0
 
 ### Constraints on seeds parameters:
-seed_max_chi2:                           0.1
+seed_max_chi2:                           0.08
 
 seed_middle_hit_min_delta_phi:   -0.4
-seed_middle_hit_max_delta_phi:  0.5
-seed_middle_hit_max_delta_z:     200
+seed_middle_hit_max_delta_phi:  0.9
+seed_middle_hit_max_delta_z:     150
 
 seed_last_hit_min_delta_phi:       -0.4
-seed_last_hit_max_delta_phi:       0.5
-seed_last_hit_max_delta_z:          200
+seed_last_hit_max_delta_phi:       0.7
+seed_last_hit_max_delta_z:          250
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             0.1
+track_max_chi2:                             0.01
 
 next_point_min_delta_phi:             -0.5
 next_point_max_delta_phi:            0.5
@@ -145,17 +145,17 @@ max_R0: 1000
 min_Rslope:  0
 max_Rslope: 10000
 
-min_S0: -10000
-max_S0: 10000
-min_Sslope: -10000
+min_S0: -1000
+max_S0: 1000
+min_Sslope: -1000
 max_Sslope: 0
 
-min_X0: -2000
-max_X0: 2000
-min_Y0: -2000
-max_Y0: 2000
-min_Z0: -2000
-max_Z0: 2000
+min_X0: -5000
+max_X0: 5000
+min_Y0: -5000
+max_Y0: 5000
+min_Z0: -5000
+max_Z0: 5000
 
 **Benchmark parameters**
 

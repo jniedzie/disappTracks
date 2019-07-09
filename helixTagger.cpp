@@ -15,6 +15,7 @@ string cutLevel = "after_L1/all/";
 bool printROCpoints = false;
 
 enum ETestParams {
+  kNoBins,
   kPionPt,
   kCharginoEta,
   kCharginoNlayers,
@@ -42,6 +43,7 @@ vector<string> monitorTypes = {
 vector<shared_ptr<Point>> GetClustersNoEndcaps(const shared_ptr<Event> &event, bool removePionClusters);
 
 map<ETestParams, vector<range<double>>> paramRanges = {
+  { kNoBins, {range<double>()} },
   { kPionPt,
     {
       range<double>(0, 150),
@@ -73,10 +75,14 @@ map<ETestParams, vector<range<double>>> paramRanges = {
       range<double>(0, inf) }
   },
   { kCharginoPt,
-    { range<double>(0, 200),
+    {
+      range<double>(0, 200),
       range<double>(200, 400),
       range<double>(400, 600),
-      range<double>(600, inf) }
+      range<double>(600, 800),
+      range<double>(800, 1000),
+      range<double>(1000, inf)
+    }
   },
 };
 
@@ -108,7 +114,7 @@ double EventToParam(const Event &event)
 int main(int argc, char* argv[])
 {
   cout.imbue(locale("de_DE"));
-  // TApplication theApp("App", &argc, argv);
+  TApplication theApp("App", &argc, argv);
   
   config = ConfigManager(configPath);
   auto fitter = make_unique<Fitter>();
@@ -135,6 +141,9 @@ int main(int argc, char* argv[])
   auto start = now();
   
   int nAnalyzedEvents=0;
+  map<int, int> nAnalyzedEventsForParam; //[iParam]
+  for(int i=0; i<paramRanges[testParam].size(); i++) nAnalyzedEventsForParam[i] = 0;
+  
   
   for(auto iEvent=0; iEvent<nEvents; iEvent++){
     cout<<"\n\n=================================================================\n"<<endl;
@@ -170,6 +179,7 @@ int main(int argc, char* argv[])
       }
     }
     nAnalyzedEvents++;
+    nAnalyzedEventsForParam[iParam]++;
   }
   
   int iPad=1;
@@ -186,7 +196,8 @@ int main(int argc, char* argv[])
   int iParam=0;
   for(auto &monitorsForParam : monitors){
     cout<<"\n\n============================================================"<<endl;
-    cout<<"Param bin: "<<iParam++<<endl;
+    cout<<"Param bin: "<<iParam<<"\tevents analyzed: "<<nAnalyzedEventsForParam[iParam]<<endl;
+    iParam++;
     
     for(auto &monitor : monitorsForParam){
       cout<<"\nMonitor: "<<monitor.first<<endl;
