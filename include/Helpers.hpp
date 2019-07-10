@@ -415,6 +415,11 @@ const vector<range<double>> diskRanges = { // mm
   range<double>(2670, 2730),//
 };
 
+inline int GetDisksArrayIndex(int index, int signZ)
+{
+  return diskRanges.size()+signZ*(index+1);
+}
+
 const double solenoidField = 3.7; // T
 
 enum EVar{

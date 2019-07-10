@@ -43,6 +43,8 @@ public:
   /// Tells whether or not this point belongs to a true pion's helix
   inline bool IsPionHit() const {return isPionHit;}
   
+  inline bool IsEndcapHit() const {return disk!=0;}
+  
   // Trivial getters
   inline double GetX() const {return x;}
   inline double GetY() const {return y;}
@@ -54,6 +56,7 @@ public:
   inline double GetTime() const {return time;}
   inline string GetSubDetName() const {return subDetName;}
   inline int    GetLayer() const {return layer;}
+  inline int    GetDisk() const {return disk;}
   
   // Trivial setters
   inline void SetX(double val){x = val;}
@@ -64,6 +67,7 @@ public:
   inline void SetZerr(double val){errZ = val;}
   inline void SetIsPionHit(bool val){isPionHit = val;}
   inline void SetLayer(int val){layer = val;}
+  inline void SetDisk(int val){disk = val;}
   inline void SetTime(double val){time = val;}
   inline void SetSubDetName(string val){subDetName = val;}
 private:
@@ -71,7 +75,8 @@ private:
   double x,y,z;             ///< XYZ coordinates of the point
   double errX, errY, errZ;  ///< coordinates uncertainties
   double value;             ///< Value at this point
-  int layer;                ///< INdex of tracker layer in which the points is located
+  int layer;                ///< Index of the barrel layer
+  int disk;                 ///< Index of the end-cap disk
   double time;              ///< Timing informatino for the hit
   string subDetName;        ///< Can store name of the sub-detector
   

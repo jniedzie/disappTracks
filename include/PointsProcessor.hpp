@@ -60,6 +60,7 @@ public:
   double GetTforPoint(const Point &point, const Point &origin, int charge);
   
   void SetPointsLayers(vector<shared_ptr<Point>> &points);
+  void SetPointsDisks(vector<shared_ptr<Point>> &points);
   
   bool IsPhiGood(const vector<shared_ptr<Point>> &lastPoints,
                  const vector<shared_ptr<Point>> &secondToLastPoints,

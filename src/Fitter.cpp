@@ -134,7 +134,8 @@ vector<Helix> Fitter::PerformFittingCycle()
   vector<vector<shared_ptr<Point>>> pointsByDisk  = pointsProcessor.SortByDisk(points);
   
   vector<Helix> fittedHelices = GetSeeds(pointsByLayer, pointsByDisk);
-  ExtendSeeds(fittedHelices, pointsByLayer);
+  
+  ExtendSeeds(fittedHelices, pointsByLayer, pointsByDisk);
   if(config.params["merge_final_helices"]) MergeHelices(fittedHelices);
   RemoveShortHelices(fittedHelices);
   
@@ -150,30 +151,118 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer,
 {
   vector<Helix> seeds;
 
-  if(pointsByLayer[nTrackLayers].size() == 0 || pointsByLayer[nTrackLayers+1].size() == 0 ||
-     pointsByLayer.size() <= (nTrackLayers+1)){
-    return seeds;
-  }
+//  if(pointsByLayer[nTrackLayers].size() == 0 || pointsByLayer[nTrackLayers+1].size() == 0 ||
+//     pointsByLayer.size() <= (nTrackLayers+1)){
+//    return seeds;
+//  }
   
   Point trackPointMid = pointsProcessor.GetPointOnTrack(startL, track, eventVertex);
   
   // find possible middle and last seeds' points
   int lastHitIndex = track.GetNnotEmptyDedxHits()-1;
-  bool endcapTrack = track.GetDetTypeForHit(lastHitIndex) == 2;
+  bool endcapTrack = track.GetDetTypeForHit(lastHitIndex) == 2; // 2 is endcap
   
   vector<shared_ptr<Point>> middlePoints, lastPoints;
   
-  if(endcapTrack){
-    int lastPointLayer = track.GetLayerForHit(lastHitIndex);
-    int signZ = sgn(track.GetEta());
-    //                                28
-    middlePoints = pointsByDisk[diskRanges.size()+signZ*(lastPointLayer+1)];
-    lastPoints   = pointsByDisk[diskRanges.size()+signZ*(lastPointLayer+2)];
+  int signZ = sgn(track.GetEta());
+  
+  set<int> middleHitLayers;
+  set<int> middleHitDisks;
+  
+  set<int> lastHitLayers;
+  set<int> lastHitDisks;
+  
+  if(!endcapTrack){
+    int lastHitLayer = nTrackLayers-1;
     
+    // regardless of the case, for barrel tracks next hit can always be just in the next barrel layer:
+    middleHitLayers.insert(lastHitLayer+1);
+    lastHitLayers.insert(lastHitLayer+2);
+    
+    if(lastHitLayer <= 2){
+      middleHitDisks.insert(0);
+      lastHitDisks.insert(1);
+    }
+    else if(lastHitLayer >=4 && lastHitLayer <=6){
+      middleHitDisks.insert(3);
+      middleHitDisks.insert(4);
+      middleHitDisks.insert(5);
+      middleHitDisks.insert(6);
+      
+      lastHitDisks.insert(7);
+      lastHitDisks.insert(8);
+      lastHitDisks.insert(9);
+      lastHitDisks.insert(10);
+    }
+  }
+  else{
+    int lastHitDisk = track.GetLayerForHit(lastHitIndex)-1; // iterates from 1
+    
+    // regardless of the case, for endcap tracks next hit can always be just in the next endcap layer:
+    if(lastHitDisk >=0 && lastHitDisk <= 1){
+      middleHitDisks.insert(lastHitDisk+1);
+      lastHitDisks.insert(lastHitDisk+2);
+    }
+    else if(lastHitDisk == 2){
+      middleHitDisks.insert(3);
+      middleHitDisks.insert(4);
+      middleHitDisks.insert(5);
+      middleHitDisks.insert(6);
+      
+      lastHitDisks.insert(7);
+      lastHitDisks.insert(8);
+      lastHitDisks.insert(9);
+      lastHitDisks.insert(10);
+    }
+    else if(lastHitDisk >=3 && lastHitDisk <= 6){
+      middleHitDisks.insert(7);
+      middleHitDisks.insert(8);
+      middleHitDisks.insert(9);
+      middleHitDisks.insert(10);
+      
+      lastHitDisks.insert(11);
+      lastHitDisks.insert(12);
+      lastHitDisks.insert(13);
+      lastHitDisks.insert(14);
+      lastHitDisks.insert(15);
+    }
+    
+    if(lastHitDisk <= 3){
+      middleHitLayers.insert(4);
+      lastHitLayers.insert(5);
+    }
+    else if(lastHitDisk >= 4 && lastHitDisk <= 16 ){
+      middleHitLayers.insert(8);
+      lastHitLayers.insert(9);
+    }
   }
   
-  auto middlePointsRegrouped = pointsProcessor.RegroupNerbyPoints(pointsByLayer[nTrackLayers]);
-  auto lastPointsRegrouped   = pointsProcessor.RegroupNerbyPoints(pointsByLayer[nTrackLayers+1]);
+  for(int middleHitLayer : middleHitLayers){
+    middlePoints.insert(middlePoints.end(),
+                        pointsByLayer[middleHitLayer].begin(),
+                        pointsByLayer[middleHitLayer].end());
+  }
+  for(int middleHitDisk : middleHitDisks){
+    middlePoints.insert(middlePoints.end(),
+                        pointsByDisk[GetDisksArrayIndex(middleHitDisk, signZ)].begin(),
+                        pointsByDisk[GetDisksArrayIndex(middleHitDisk, signZ)].end());
+  }
+  
+  for(int lastHitLayer : lastHitLayers){
+    lastPoints.insert(lastPoints.end(),
+                        pointsByLayer[lastHitLayer].begin(),
+                        pointsByLayer[lastHitLayer].end());
+  }
+  for(int lastHitDisk : lastHitDisks){
+    lastPoints.insert(lastPoints.end(),
+                        pointsByDisk[GetDisksArrayIndex(lastHitDisk, signZ)].begin(),
+                        pointsByDisk[GetDisksArrayIndex(lastHitDisk, signZ)].end());
+  }
+  
+//  auto middlePointsRegrouped = pointsProcessor.RegroupNerbyPoints(pointsByLayer[nTrackLayers]);
+  
+  auto middlePointsRegrouped = pointsProcessor.RegroupNerbyPoints(middlePoints);
+  auto lastPointsRegrouped   = pointsProcessor.RegroupNerbyPoints(lastPoints);
   
   int nPairs=0;
   if(config.params["verbosity_level"]>0) cout<<"Looking for seeds..."<<endl;
@@ -193,11 +282,8 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer,
       if(goodLastPoints.size()==0) continue;
       
       nPairs++;
-      vector<shared_ptr<Point>> points;
-      points.insert(points.end(), goodMiddlePoints.begin(), goodMiddlePoints.end());
-      points.insert(points.end(), goodLastPoints.begin()  , goodLastPoints.end());
-
-      auto helix = FitSeed(points);
+      
+      auto helix = FitSeed(goodMiddlePoints, goodLastPoints);
   
       if(!helix) continue;
       if(helix->GetChi2() > config.params["seed_max_chi2"]) continue;
@@ -212,13 +298,15 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer,
   return seeds;
 }
 
-unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &seedPoints)
+unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &middleHits,
+                                  const vector<shared_ptr<Point>> &lastHits)
 {
-  auto fitter = GetSeedFitter(seedPoints);
+  auto fitter = GetSeedFitter();
   if(!fitter) return nullptr;
   
   fittingPoints = { make_shared<Point>(0,0,0) };
-  fittingPoints.insert(fittingPoints.end(), seedPoints.begin(), seedPoints.end());
+  fittingPoints.insert(fittingPoints.end(), middleHits.begin(), middleHits.end());
+  fittingPoints.insert(fittingPoints.end(), lastHits.begin(), lastHits.end());
   
   int nPar=8;
   auto fitFunction = ROOT::Math::Functor(chi2Function, nPar);
@@ -246,7 +334,9 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &seedPoints)
   
   Point origin(x0, y0, z0);
   
-  resultHelix = make_unique<Helix>(resultParams, vertex, origin, seedPoints, track);
+  resultHelix = make_unique<Helix>(resultParams, vertex, origin, track);
+  resultHelix->SetLastPoints(middleHits);
+  resultHelix->SetLastPoints(lastHits);
   resultHelix->SetCharge(charge);
   resultHelix->UpdateOrigin(origin);
   resultHelix->SetChi2(result.MinFcnValue());
@@ -255,7 +345,8 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &seedPoints)
 }
 
 void Fitter::ExtendSeeds(vector<Helix> &helices,
-                         const vector<vector<shared_ptr<Point>>> &pointsByLayer)
+                         const vector<vector<shared_ptr<Point>>> &pointsByLayer,
+                         const vector<vector<shared_ptr<Point>>> &pointsByDisk)
 {
   bool finished;
   int nSteps=0;
@@ -279,25 +370,88 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         auto lastPoints         = helix.GetLastPoints();
         auto secondToLastPoints = helix.GetSecontToLastPoints();
         
+        bool lastPointIsEndcap = lastPoints.front()->IsEndcapHit();
+        
         shared_ptr<Point> turningPoint = nullptr;
         if(helix.GetFirstTurningPointIndex() > 0) turningPoint = helixPoints[helix.GetFirstTurningPointIndex()];
         
         int lastPointLayer = lastPoints.front()->GetLayer();
-        if(lastPointLayer < 0) continue;
-        int nextPointLayer = helix.IsIncreasing() ? lastPointLayer+1 : lastPointLayer-1;
+        int lastPointDisk = abs(lastPoints.front()->GetDisk())-1;
+        if(lastPointLayer < 0 && lastPointDisk < 0) continue;
+        
+        set<int> nextPointLayers;
+        if(lastPointLayer >=0 ){
+          nextPointLayers.insert(helix.IsIncreasing() ? lastPointLayer+1 : lastPointLayer-1);
+        }
+        set<int> nextPointDisks;
+        if(lastPointDisk >=0 && lastPointDisk <= 1){
+          nextPointDisks.insert(lastPointDisk+1);
+        }
+        if(lastPointDisk ==2){
+          nextPointDisks.insert(3);
+          nextPointDisks.insert(4);
+          nextPointDisks.insert(5);
+          nextPointDisks.insert(6);
+        }
+        if(lastPointDisk >=3 && lastPointDisk <= 6){
+          nextPointDisks.insert(7);
+          nextPointDisks.insert(8);
+          nextPointDisks.insert(9);
+          nextPointDisks.insert(10);
+        }
+        if(lastPointDisk >=7 && lastPointDisk <= 10){
+          nextPointDisks.insert(11);
+          nextPointDisks.insert(12);
+          nextPointDisks.insert(13);
+          nextPointDisks.insert(14);
+          nextPointDisks.insert(15);
+        }
+        
+        if(lastPointDisk >= 0 && lastPointDisk <= 2) 	      nextPointLayers.insert(4);
+        else if(lastPointDisk >= 3 && lastPointDisk <= 14)  nextPointLayers.insert(8);
+        
+        if(lastPointLayer >=0){
+          if(lastPointLayer <= 3){
+            nextPointDisks.insert(0);
+          }
+          else if(lastPointLayer <= 7){
+            nextPointDisks.insert(3);
+            nextPointDisks.insert(4);
+            nextPointDisks.insert(5);
+            nextPointDisks.insert(6);
+          }
+          else{
+            nextPointDisks.insert(16);
+            nextPointDisks.insert(17);
+          }
+        }
+          
+        int signZ = sgn(track.GetEta());
         
         // fist, check if helix crosses next layer
         Point pA, pB;
-        bool crossesNextLayer = helixProcessor.GetIntersectionWithLayer(helix, nextPointLayer, pA, pB);
+        bool crossesNextLayer = helixProcessor.GetIntersectionWithLayer(helix, *nextPointLayers.begin(), pA, pB);
         
         // try to extend to next layer
-        if(crossesNextLayer){
+        if(crossesNextLayer || lastPointIsEndcap){
   
           // Find points that could extend this helix
           vector<shared_ptr<Point>> possiblePointsAll;
           if(lastPointLayer+1 < pointsByLayer.size() && lastPointLayer-1 >= 0){
-            possiblePointsAll = pointsByLayer[nextPointLayer];
+            
+            for(int nextPointLayer : nextPointLayers){
+              possiblePointsAll.insert(possiblePointsAll.end(),
+                                       pointsByLayer[nextPointLayer].begin(),
+                                       pointsByLayer[nextPointLayer].end());
+            }
           }
+            
+          for(int nextPointDisk : nextPointDisks){
+            possiblePointsAll.insert(possiblePointsAll.end(),
+                                     pointsByDisk[GetDisksArrayIndex(nextPointDisk, signZ)].begin(),
+                                     pointsByDisk[GetDisksArrayIndex(nextPointDisk, signZ)].end());
+          }
+          
           vector<shared_ptr<Point>> possiblePoints;
           
           // remove points that are already on helix
@@ -322,7 +476,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             for(auto &point : points){
               
               if(helix.GetNlayers() >= config.params["min_layers_for_delta_xy"]){
-                if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, nextPointLayer, true)) continue;
+                if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, *nextPointLayers.begin(), true)) continue;
               }
               else{
                 if(!pointsProcessor.IsPhiGood(lastPoints, secondToLastPoints, point, charge)) continue;
@@ -342,7 +496,8 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             
             /// Extend helix by the new point and refit its params
             Helix helixCopy(helix);
-            for(auto &point : goodPoints) helixCopy.AddPoint(point);
+            helixCopy.SetLastPoints(goodPoints);
+//            for(auto &point : goodPoints) helixCopy.AddPoint(point);
             RefitHelix(helixCopy);
             
             // check if chi2 is small enough
@@ -384,7 +539,8 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             
             /// Extend helix by the new point and refit its params
             Helix helixCopy(helix);
-            for(auto &point : goodTurningBackPoints) helixCopy.AddPoint(point);
+            helixCopy.SetLastPoints(goodTurningBackPoints);
+//            for(auto &point : goodTurningBackPoints) helixCopy.AddPoint(point);
             helixCopy.SetFirstTurningPointIndex(helixCopy.GetNpoints()-1);
             RefitHelix(helixCopy);
             
@@ -411,7 +567,10 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           
           // if not missing hits are allowed
           if(helix.GetNmissingHits()       >= config.params["max_n_missing_hits"] ||
-             helix.GetNmissingHitsInRow()  >= config.params["max_n_missing_hits_in_raw"]){
+             helix.GetNmissingHitsInRow()  >= config.params["max_n_missing_hits_in_raw"] ||
+             
+             // TODO: For the moment no missing hits if last one was in endcaps!!
+             lastPoints.front()->IsEndcapHit()){
             
             // if last hit was a missing hit, remove it
             if(helix.GetLastPoints().back()->GetSubDetName()=="missing"){
@@ -428,7 +587,8 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             if(!crossesNextLayer) missingHitLayer = lastPointLayer;
             shared_ptr<Point> missingHit = helixProcessor.GetPointCloseToHelixInLayer(helix, missingHitLayer);
 
-            helix.AddPoint(missingHit); // this will set missing hit's T
+            helix.SetLastPoints({missingHit});
+//            helix.AddPoint(missingHit); // this will set missing hit's T
             missingHit = helix.GetLastPoints().back();
 //            double t = missingHit->GetT();
 //            missingHit->SetZ(-helix.GetCharge()*helix.GetOrigin().GetZ() + helix.GetSlope(t)*t + 10*eventVertex.GetZ());
@@ -540,7 +700,7 @@ void Fitter::MergeHelices(vector<Helix> &helices)
   helices = helicesToMerge;
 }
 
-ROOT::Fit::Fitter* Fitter::GetSeedFitter(const vector<shared_ptr<Point>> &points)
+ROOT::Fit::Fitter* Fitter::GetSeedFitter()
 {
   auto fitter = new ROOT::Fit::Fitter();
   
@@ -762,7 +922,20 @@ bool Fitter::LinkAndMergeHelices(vector<Helix> &helices)
 
 void Fitter::InitLparams()
 {
-  minL   = layerRanges[nTrackLayers-1].GetMin();
-  maxL   = layerRanges[nTrackLayers].GetMax();
+  int lastHitIndex = track.GetNnotEmptyDedxHits()-1;
+  bool endcapTrack = track.GetDetTypeForHit(lastHitIndex) == 2; // 2 is endcap
+  
+  if(!endcapTrack){
+    minL   = layerRanges[nTrackLayers-1].GetMin();
+    maxL   = layerRanges[nTrackLayers].GetMax();
+    
+  }
+  else{
+    size_t diskIndex = track.GetLayerForHit(lastHitIndex);
+    
+    minL = fabs(diskRanges[diskIndex-1].GetMin() * tan(track.GetTheta()));
+    maxL = fabs(diskRanges[diskIndex].GetMax() * tan(track.GetTheta()));
+  }
+  
   startL = (minL+maxL)/2.;
 }

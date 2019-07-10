@@ -12,11 +12,15 @@ string cutLevel = "after_L1/all/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 19;
+int iEvent = 25;
+
+// endcap track: 7, 18
+// endcap hits: 11, 24
+// 17: nice endcap hits, but missing seed hits...
 
 bool fitHelix = true;
 
-bool pionHitsOnly = false;
+bool pionHitsOnly = true;
 bool removePionClusters = false;
 bool removeEncapClusters = false;
 
@@ -68,11 +72,12 @@ void DrawHitsOrClusters(const shared_ptr<Event> event, int pointsType)
     if(!config.params["draw_pion_clusters"]) return;
     
     hitsOrClusters = event->GetPionClusters();
-    pointsProcessor.SetPointsLayers(hitsOrClusters);
     drawingOptions["color"] = kBlue;
     typeName = "Pion clusters ";
   }
-  
+  pointsProcessor.SetPointsLayers(hitsOrClusters);
+  pointsProcessor.SetPointsDisks(hitsOrClusters);
+
   map<string, vector<shared_ptr<Point>>> hitsOrClustersBySubDet;
   
   map<int, string> subDetMap = {
@@ -178,7 +183,7 @@ int main(int argc, char* argv[])
 		{"color", kGreen}
 	};
 	
-  auto allSimplePoints = event->GetTrackerClusters();
+  auto allSimplePoints = event->GetClusters(removePionClusters, removeEncapClusters);
   
   vector<Helix> truePionHelices = event->GetGenPionHelices();
   
@@ -213,6 +218,21 @@ int main(int argc, char* argv[])
 		auto fitter = make_unique<Fitter>();
     
     auto pionClusters = event->GetPionClusters();
+    
+    for(auto p = pionClusters.begin(); p != pionClusters.end();){
+      shared_ptr<Point> point = *p;
+      if(   point->GetSubDetName() == "TID"
+         || point->GetSubDetName() == "TEC"
+         || point->GetSubDetName() == "P1PXEC"){
+        //      p = allSimplePoints.erase(p);
+        point->SetXerr(10.0);
+        point->SetYerr(10.0);
+        point->SetZerr(1.0);
+        p++;
+      }
+      else p++;
+    }
+    
     auto pointsByLayer = pointsProcessor.SortByLayer(allSimplePoints);
   
     for(auto &track : event->GetTracks()){
@@ -242,6 +262,7 @@ int main(int argc, char* argv[])
     
     
     pointsProcessor.SetPointsLayers(pionClusters);
+    pointsProcessor.SetPointsDisks(pionClusters);
     display->DrawSimplePoints(pionHitsOnly ? pionClusters : eventClusters, pionClustersOptions);
     
     auto start = now();

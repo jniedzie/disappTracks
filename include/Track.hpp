@@ -99,10 +99,10 @@ public:
   inline Point& GetDecayPoint(){return decayPoint;}
   
 private:
-  vector<float> dedx;         ///< dE/dx in consecutive layers
-  vector<int> subDetId;       ///< Sub-detector IDs for each layer
-  vector<int> sizeX;          ///< Cluster size X in each layer
-  vector<int> sizeY;          ///< Cluster size Y in each layer
+  vector<float> dedx;         ///< dE/dx in consecutive hits
+  vector<int> subDetId;       ///< Sub-detector IDs for each hit
+  vector<int> sizeX;          ///< Cluster size X of each hit
+  vector<int> sizeY;          ///< Cluster size Y of each hit
   vector<int> detType;        ///< Type of detector from which the hit comes (0 = strips, 1 = bpix, 2 = fpix)
   vector<int> layer;          ///< Layer for given dE/dx hit
   vector<int> ladder;         ///< Ladder for gien dE/dx hit

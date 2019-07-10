@@ -13,7 +13,7 @@ string configPath = "configs/helixTagger.md";
 string cutLevel = "after_L1/all/";
 
 bool printROCpoints = true;
-bool removeEndcapClusters = true;
+bool removeEndcapClusters = false;
 
 enum ETestParams {
   kNoBins,
@@ -26,7 +26,7 @@ enum ETestParams {
   nTestParams
 };
 
-ETestParams testParam = kCharginoNlayers;
+ETestParams testParam = kCharginoEta;
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
@@ -93,7 +93,7 @@ bool IsEventOk(const Event &event)
   
   if(testParam == kCharginoEta || testParam == kCharginoNlayers ||
      testParam == kCharginoCharge || testParam == kCharginoPt){
-    return (event.GetNtracks() == 1 && event.GetGenPionHelices().size()==1 && event.GetGenPionHelices().front().GetMomentum()->GetTransverse() >= 400);
+    return event.GetNtracks() == 1;
   }
   
   return true;

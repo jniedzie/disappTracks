@@ -76,7 +76,7 @@ vector<vector<shared_ptr<Point>>> PointsProcessor::SortByDisk(const vector<share
     
     for(size_t iDisk=0; iDisk<diskRanges.size(); iDisk++){
       if(diskRanges[iDisk].IsInside(fabs(pointZ))){
-        p->SetLayer((int)(signZ*(iDisk+1)));
+        p->SetDisk((int)(signZ*(iDisk+1)));
         pointsByDisk[diskRanges.size()+signZ*(iDisk+1)].push_back(p);
         break;
       }
@@ -89,11 +89,38 @@ vector<vector<shared_ptr<Point>>> PointsProcessor::SortByDisk(const vector<share
 void PointsProcessor::SetPointsLayers(vector<shared_ptr<Point>> &points)
 {
   for(auto &p : points){
+    if(p->GetSubDetName() == "P1PXEC" ||
+       p->GetSubDetName() == "TID" ||
+       p->GetSubDetName() == "TEC"){
+      continue;
+    }
+    
     double pointR = sqrt(pow(p->GetX(), 2) + pow(p->GetY(), 2));
     
     for(int iLayer=0; iLayer<layerRanges.size(); iLayer++){
       if(layerRanges[iLayer].IsInside(pointR)){
         p->SetLayer(iLayer);
+        break;
+      }
+    }
+  }
+}
+
+void PointsProcessor::SetPointsDisks(vector<shared_ptr<Point>> &points)
+{
+  for(auto &p : points){
+    if(p->GetSubDetName() == "P1PXB" ||
+       p->GetSubDetName() == "TIB" ||
+       p->GetSubDetName() == "TOB"){
+      continue;
+    }
+    
+    double pointZ = p->GetZ();
+    int signZ = sgn(p->GetZ());
+    
+    for(int iDisk=0; iDisk<diskRanges.size(); iDisk++){
+      if(diskRanges[iDisk].IsInside(fabs(pointZ))){
+        p->SetDisk((int)(signZ*(iDisk+1)));
         break;
       }
     }
@@ -331,7 +358,7 @@ bool PointsProcessor::IsGoodLastSeedHit(const Point &point,
     seedLastHitDeltaPhi = range<double>(0, config.params["seed_last_hit_max_delta_phi"]);
   }
   
-  if(seedLastHitDeltaPhi.IsOutside(lastHitDeltaPhi)){
+  if(seedLastHitDeltaPhi.IsOutside(lastHitDeltaPhi) && !point.IsEndcapHit()){
     if(config.params["verbosity_level"]>1) cout<<"Seed last hit Δφ too large"<<endl;
     return false;
   }

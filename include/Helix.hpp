@@ -40,7 +40,6 @@ public:
   Helix(const HelixParams &_params,
         const Point &_decayVertex,
         const Point &_origin,
-        const vector<shared_ptr<Point>> &_points,
         const Track &_track);
   
   /// Copy constructor
@@ -76,6 +75,8 @@ public:
   inline void   SetIsPreviousHitMissing(bool val){ isPreviousHitMissing = val; }
   inline void   SetFirstTurningPointIndex(int val){ firstTurningPointIndex = val; }
   
+  void SetLastPoints(vector<shared_ptr<Point>> _points);
+  
   /// Increases number of missing hits and missing hits in a row (based on isPreviousHitMissing
   /// variable, which should be set by the user).
   void   IncreaseMissingHits();
@@ -103,8 +104,8 @@ public:
   vector<double>              GetPointsT()  const {return pointsT;}
   
   double GetPointT(size_t index) const {return pointsT[index];}
-  vector<shared_ptr<Point>>   GetLastPoints() const;
-  vector<shared_ptr<Point>>   GetSecontToLastPoints() const;
+  vector<shared_ptr<Point>>   GetLastPoints() const { return lastPoints; }
+  vector<shared_ptr<Point>>   GetSecontToLastPoints() const {return secondToLastPoints; }
   
   vector<size_t>   GetLastPointsIndices() const;
   
@@ -127,6 +128,9 @@ public:
 private:
   Point origin;                     ///< Center of the helix
   vector<shared_ptr<Point>> points; ///< Vector of points laying on the helix
+  vector<shared_ptr<Point>> lastPoints;         ///< Last points on helix
+  vector<shared_ptr<Point>> secondToLastPoints; ///< Second to last points on helix
+  
   vector<double> pointsT;           ///< T values of points
   
   double tStep;   ///< Step determining drawing precision

@@ -13,6 +13,7 @@ errY(0),
 errZ(0),
 value(0),
 layer(-1),
+disk(0),
 subDetName(""),
 time(-1.0)
 {
@@ -31,6 +32,7 @@ errX(_errX),
 errY(_errY),
 errZ(_errZ),
 layer(_layer),
+disk(0),
 time(_time)
 {
   
@@ -48,6 +50,7 @@ Point::Point(const Point &p)
   errZ       = p.errZ;
   subDetName = p.subDetName;
   layer      = p.layer;
+  disk       = p.disk;
   time       = p.time;
 }
 
@@ -63,6 +66,7 @@ void Point::operator=(const Point &p)
   errZ       = p.errZ;
   subDetName = p.subDetName;
   layer      = p.layer;
+  disk       = p.disk;
   time       = p.time;
 }
 

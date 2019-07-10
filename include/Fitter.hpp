@@ -55,12 +55,14 @@ private:
   /// Fits helix of given charge to the collection of points provided
   /// \return Resulting helix may be a nullptr if something went wrong (e.g. parameters of helix fitting
   /// provided points were outside of assumed limits.
-  unique_ptr<Helix> FitSeed(const vector<shared_ptr<Point>> &points);
+  unique_ptr<Helix> FitSeed(const vector<shared_ptr<Point>> &middleHits,
+                            const vector<shared_ptr<Point>> &lastHits);
   
   /// Attempts to extend provided seeds to following layers. If not possible, tries to turn back to the
   /// same layer. If that's also not possible, assigns missing hit if still alloed by the limits.
   void ExtendSeeds(vector<Helix> &helices,
-                   const vector<vector<shared_ptr<Point>>> &pointsByLayer);
+                   const vector<vector<shared_ptr<Point>>> &pointsByLayer,
+                   const vector<vector<shared_ptr<Point>>> &pointsByDisk);
   
   /// Merges similar helices as long as there's nothing left to merge
   void MergeHelices(vector<Helix> &helices);
@@ -77,7 +79,7 @@ private:
   
   /// Creates a fitter for seeds, with the best guess of the initial parameters
   /// \return nullptr if parameters were outside of limits, but requested only good params
-  ROOT::Fit::Fitter* GetSeedFitter(const vector<shared_ptr<Point>> &points);
+  ROOT::Fit::Fitter* GetSeedFitter();
   
   /// Sets name, limits and starting value of a ROOT fitter's parameter
   void SetParameter(ROOT::Fit::Fitter *fitter, int i, string name, double start, double min, double max, bool fix=false);
