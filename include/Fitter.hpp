@@ -49,7 +49,8 @@ private:
   
   /// Checks parameters of all combinations of points in layers close to the decay point
   /// and returns vector of 3-layer helices constructed from them
-  vector<Helix> GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer);
+  vector<Helix> GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer,
+                         vector<vector<shared_ptr<Point>>> pointsByDisk);
   
   /// Fits helix of given charge to the collection of points provided
   /// \return Resulting helix may be a nullptr if something went wrong (e.g. parameters of helix fitting

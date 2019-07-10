@@ -133,7 +133,7 @@ vector<Helix> Fitter::PerformFittingCycle()
   vector<vector<shared_ptr<Point>>> pointsByLayer = pointsProcessor.SortByLayer(points);
   vector<vector<shared_ptr<Point>>> pointsByDisk  = pointsProcessor.SortByDisk(points);
   
-  vector<Helix> fittedHelices = GetSeeds(pointsByLayer);
+  vector<Helix> fittedHelices = GetSeeds(pointsByLayer, pointsByDisk);
   ExtendSeeds(fittedHelices, pointsByLayer);
   if(config.params["merge_final_helices"]) MergeHelices(fittedHelices);
   RemoveShortHelices(fittedHelices);
@@ -145,7 +145,8 @@ vector<Helix> Fitter::PerformFittingCycle()
   return fittedHelices;
 }
 
-vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
+vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer,
+                               vector<vector<shared_ptr<Point>>> pointsByDisk)
 {
   vector<Helix> seeds;
 
@@ -154,12 +155,25 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer)
     return seeds;
   }
   
-  // find possible middle and last seeds' points
-  auto middlePointsRegrouped = pointsProcessor.RegroupNerbyPoints(pointsByLayer[nTrackLayers]);
-  auto lastPointsRegrouped   = pointsProcessor.RegroupNerbyPoints(pointsByLayer[nTrackLayers+1]);
-  
   Point trackPointMid = pointsProcessor.GetPointOnTrack(startL, track, eventVertex);
   
+  // find possible middle and last seeds' points
+  int lastHitIndex = track.GetNnotEmptyDedxHits()-1;
+  bool endcapTrack = track.GetDetTypeForHit(lastHitIndex) == 2;
+  
+  vector<shared_ptr<Point>> middlePoints, lastPoints;
+  
+  if(endcapTrack){
+    int lastPointLayer = track.GetLayerForHit(lastHitIndex);
+    int signZ = sgn(track.GetEta());
+    //                                28
+    middlePoints = pointsByDisk[diskRanges.size()+signZ*(lastPointLayer+1)];
+    lastPoints   = pointsByDisk[diskRanges.size()+signZ*(lastPointLayer+2)];
+    
+  }
+  
+  auto middlePointsRegrouped = pointsProcessor.RegroupNerbyPoints(pointsByLayer[nTrackLayers]);
+  auto lastPointsRegrouped   = pointsProcessor.RegroupNerbyPoints(pointsByLayer[nTrackLayers+1]);
   
   int nPairs=0;
   if(config.params["verbosity_level"]>0) cout<<"Looking for seeds..."<<endl;

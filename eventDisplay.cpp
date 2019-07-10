@@ -7,61 +7,18 @@
 #include "HelixProcessor.hpp"
 #include "TrackProcessor.hpp"
 
-uint searchRun = 1;
-uint searchLumi = 1;
-unsigned long long searchEvent = 2662;
-
 string configPath = "configs/eventDisplay.md";
 string cutLevel = "after_L1/all/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 15;
+int iEvent = 19;
 
-bool injectPion = false;
 bool fitHelix = true;
 
 bool pionHitsOnly = false;
-
-// "after_L1/all/":
-// ok: 0,
-
-// no chance:
-// no hits: 1
-
-// "after_L2/all/":
-// ok: 1, 2, 4, 8, 14, 15, 17, 19, 40, 41, 42, 44
-//
-// ok, but could be improved:
-// 5: poor chi2
-// 16: touches next layer at turn back, so missing hit is added and prevents turning back
-//
-// no way:
-// not enough hits: 0, 9,
-// missing seed hits: 3, 11, 12, 13
-// endcaps only: 18, 20
-//
-// other:
-// 6: chargino goes to endcaps
-// 7: those hits got crazy
-// 10: missing hit poorly placed, as it's the first one after the seed. Then cannot extend from there.
-// 43: high middle Δφ, then scattered a bit
-
-
-// "after_L2/4layers/":
-
-// to improve:
-// turns back to previous layer: 11, 22
-// maybe different s(t) and r(t): 26
-// seeds fitting issues: 0
-// maybe with endcaps: 1, 21, 24, 29, 36
-// missing seed hits: 6, 8 (+ endcaps needed), 12, 14
-// special cases:
-// - 34: turns back to the same layer, but probably missing hits in the next one
-// - 2: this one is a mess and a bless, soo many hits that we have a huge number of possible helices
-
-// "no way" events: 4, 5, 9, 10, 16, 17, 20, 23, 32, 40
-
+bool removePionClusters = false;
+bool removeEncapClusters = false;
 
 Display *display;
 shared_ptr<EventSet> events;
@@ -161,11 +118,8 @@ void DrawHitsOrClusters(const shared_ptr<Event> event, int pointsType)
 shared_ptr<Event> GetEvent()
 {
   EventSet events;
-	//  events->LoadEventsFromFiles("/");
-//  events.LoadEventsFromFiles(cutLevel);
   events.LoadEventFromFiles(dataType, setIter, iEvent, cutLevel);
 	
-//  auto event = events.GetEvent(dataType, searchRun, searchLumi, searchEvent);
 	auto event = events.At(dataType, setIter, 0);
 	
 	if(!event){
@@ -244,8 +198,13 @@ int main(int argc, char* argv[])
     shared_ptr<Point> point = *p;
     if(   point->GetSubDetName() == "TID"
        || point->GetSubDetName() == "TEC"
-       || point->GetSubDetName() == "P1PXEC")
-      p = allSimplePoints.erase(p);
+       || point->GetSubDetName() == "P1PXEC"){
+//      p = allSimplePoints.erase(p);
+      point->SetXerr(1.0);
+      point->SetYerr(1.0);
+      point->SetZerr(1.0);
+      p++;
+    }
     else p++;
   }
   
@@ -279,19 +238,11 @@ int main(int argc, char* argv[])
 
     vector<int> rndIndices = {};
     
-    vector<shared_ptr<Point>> pointsNoEndcaps;
+    vector<shared_ptr<Point>> eventClusters = event->GetClusters(removePionClusters, removeEncapClusters);
     
-    for(auto &point : allSimplePoints){
-      if(point->GetSubDetName() == "TID" || point->GetSubDetName() == "TEC" || point->GetSubDetName() == "P1PXEC") continue;
-      
-      if(point->GetSubDetName() != "TIB" && point->GetSubDetName() != "TOB" && point->GetSubDetName() != "P1PXB"){
-        cout<<"Weird detector:"<<point->GetSubDetName()<<endl;
-      }
-      
-      pointsNoEndcaps.push_back(point);
-    }
+    
     pointsProcessor.SetPointsLayers(pionClusters);
-    display->DrawSimplePoints(pionHitsOnly ? pionClusters : pointsNoEndcaps, pionClustersOptions);
+    display->DrawSimplePoints(pionHitsOnly ? pionClusters : eventClusters, pionClustersOptions);
     
     auto start = now();
     vector<Helix> fittedHelices;
@@ -310,7 +261,10 @@ int main(int argc, char* argv[])
       cout<<"\n\nTrack charge ok: "<<(chargeOk ? "YES" : "NO")<<endl;
       cout<<"Fitting for track: "; track->Print();
       
-      vector<Helix> helices = fitter->FitHelices(pionHitsOnly ? pionClusters : pointsNoEndcaps, *track, *event->GetVertex());
+//      vector<Helix> helices = fitter->FitHelices(pionHitsOnly ? pionClusters : pointsNoEndcaps, *track, *event->GetVertex());
+      
+      vector<Helix> helices = fitter->FitHelices(pionHitsOnly ? pionClusters : allSimplePoints, *track, *event->GetVertex());
+      
       fittedHelices.insert(fittedHelices.end(), helices.begin(), helices.end());
     }
     auto end = now();

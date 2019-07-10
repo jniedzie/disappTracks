@@ -12,7 +12,8 @@
 string configPath = "configs/helixTagger.md";
 string cutLevel = "after_L1/all/";
 
-bool printROCpoints = false;
+bool printROCpoints = true;
+bool removeEndcapClusters = true;
 
 enum ETestParams {
   kNoBins,
@@ -25,7 +26,7 @@ enum ETestParams {
   nTestParams
 };
 
-ETestParams testParam = kPionPt;
+ETestParams testParam = kCharginoNlayers;
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
@@ -39,8 +40,6 @@ vector<string> monitorTypes = {
   "max_length",
   "n_helices"
 };
-
-vector<shared_ptr<Point>> GetClustersNoEndcaps(const shared_ptr<Event> &event, bool removePionClusters);
 
 map<ETestParams, vector<range<double>>> paramRanges = {
   { kNoBins, {range<double>()} },
@@ -94,7 +93,7 @@ bool IsEventOk(const Event &event)
   
   if(testParam == kCharginoEta || testParam == kCharginoNlayers ||
      testParam == kCharginoCharge || testParam == kCharginoPt){
-    return event.GetNtracks() == 1;
+    return (event.GetNtracks() == 1 && event.GetGenPionHelices().size()==1 && event.GetGenPionHelices().front().GetMomentum()->GetTransverse() >= 400);
   }
   
   return true;
@@ -163,9 +162,8 @@ int main(int argc, char* argv[])
     
     
     for(auto &track : event->GetTracks()){
-      
-      auto pointsNoEndcapsSignal = GetClustersNoEndcaps(event, false);
-      auto pointsNoEndcapsBackground = GetClustersNoEndcaps(event, true);
+      auto pointsNoEndcapsSignal     = event->GetClusters(false, removeEndcapClusters);
+      auto pointsNoEndcapsBackground = event->GetClusters(true, removeEndcapClusters);
       
       vector<Helix> fittedHelicesSignal     = fitter->FitHelices(pointsNoEndcapsSignal, *track, *event->GetVertex());
       vector<Helix> fittedHelicesBackground = fitter->FitHelices(pointsNoEndcapsBackground, *track, *event->GetVertex());
@@ -223,32 +221,4 @@ int main(int argc, char* argv[])
   
   //  theApp.Run();
   return 0;
-}
-
-vector<shared_ptr<Point>> GetClustersNoEndcaps(const shared_ptr<Event> &event, bool removePionClusters)
-{
-  vector<shared_ptr<Point>> pointsNoEndcaps;
-  
-  for(auto &point : event->GetTrackerClusters()){
-    if(point->GetSubDetName() == "TID" || point->GetSubDetName() == "TEC" || point->GetSubDetName() == "P1PXEC") continue;
-    
-    if(point->GetSubDetName() != "TIB" && point->GetSubDetName() != "TOB" && point->GetSubDetName() != "P1PXB"){
-      cout<<"Weird detector:"<<point->GetSubDetName()<<endl;
-    }
-    
-    if(removePionClusters){
-      bool isPionHit = false;
-      for(auto &pionCluster : event->GetPionClusters()){
-        if(*pionCluster == *point){
-          isPionHit = true;
-          break;
-        }
-      }
-      if(isPionHit) continue;
-    }
-    
-    pointsNoEndcaps.push_back(point);
-  }
-  
-  return pointsNoEndcaps;
 }

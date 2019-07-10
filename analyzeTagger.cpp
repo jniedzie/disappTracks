@@ -15,8 +15,9 @@ string cutLevel = "after_L1/all/";//after_L1/";
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
 
+bool removeEndcapClusters = false;
+
 shared_ptr<Event> GetEvent(int iEvent);
-vector<shared_ptr<Point>> GetClustersNoEndcaps(const shared_ptr<Event> &event, bool removePionClusters);
 
 int main(int argc, char* argv[])
 {
@@ -93,11 +94,11 @@ int main(int argc, char* argv[])
     vector<Helix> fittedHelicesPion = fitter->FitHelices(event->GetPionClusters(), *track, *event->GetVertex());
 
     bool removePionClusters = true;
-    auto pointsNoEndcapsNoPion = GetClustersNoEndcaps(event, removePionClusters);
+    auto pointsNoEndcapsNoPion = event->GetClusters(removePionClusters, removeEndcapClusters);
     vector<Helix> fittedHelicesNoise = fitter->FitHelices(pointsNoEndcapsNoPion, *track, *event->GetVertex());
     
     removePionClusters = false;
-    auto pointsNoEndcaps = GetClustersNoEndcaps(event, removePionClusters);
+    auto pointsNoEndcaps = event->GetClusters(removePionClusters, removeEndcapClusters);
     vector<Helix> fittedHelicesAll = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
     
     size_t maxNclusters = 0;
@@ -294,33 +295,4 @@ shared_ptr<Event> GetEvent(int iEvent)
   }
   
   return event;
-}
-
-
-vector<shared_ptr<Point>> GetClustersNoEndcaps(const shared_ptr<Event> &event, bool removePionClusters)
-{
-  vector<shared_ptr<Point>> pointsNoEndcaps;
-  
-  for(auto &point : event->GetTrackerClusters()){
-    if(point->GetSubDetName() == "TID" || point->GetSubDetName() == "TEC" || point->GetSubDetName() == "P1PXEC") continue;
-    
-    if(point->GetSubDetName() != "TIB" && point->GetSubDetName() != "TOB" && point->GetSubDetName() != "P1PXB"){
-      cout<<"Weird detector:"<<point->GetSubDetName()<<endl;
-    }
-    
-    if(removePionClusters){
-      bool isPionHit = false;
-      for(auto &pionCluster : event->GetPionClusters()){
-        if(*pionCluster == *point){
-          isPionHit = true;
-          break;
-        }
-      }
-      if(isPionHit) continue;
-    }
-    
-    pointsNoEndcaps.push_back(point);
-  }
-  
-  return pointsNoEndcaps;
 }

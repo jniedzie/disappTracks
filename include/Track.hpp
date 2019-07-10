@@ -41,6 +41,13 @@ public:
   int GetLastBarrelLayer();
   
   inline int     GetNdEdxHits(){return (int)dedx.size();}
+  inline int     GetNnotEmptyDedxHits(){
+    int maxHit=0;
+    for(int iHit=0; iHit<dedx.size(); iHit++){
+      if(dedx[iHit] > 0) maxHit = iHit;
+    }
+    return maxHit+1;
+  }
 	inline double  GetDeDxForHit(int iHit){return iHit < dedx.size() ? dedx[iHit] : 0;}
   inline double  GetTotalDedx(){return accumulate(dedx.begin(),dedx.end(),0.0);}
   double         GetAverageDedx();

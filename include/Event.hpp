@@ -160,6 +160,9 @@ public:
   inline vector<shared_ptr<Lepton>>  GetLeptons() const {return leptons;}
   inline vector<shared_ptr<Helix>>   GetHelices() const {return helices;}
 
+  vector<shared_ptr<Point>> GetClusters(bool removePionClusters,
+                                        bool removeEndcapClusters);
+  
 private:
   vector<shared_ptr<Track>>  tracks;   ///< Vector of isolated tracks
   vector<shared_ptr<Jet>>    jets;     ///< Vector of jets

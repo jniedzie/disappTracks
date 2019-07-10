@@ -15,12 +15,10 @@ string cutLevel = "after_L1/all/";//after_L1/";
 const int nEvents = 100;
 const int eventOffset = 100;
 
-int nAnalyzedEvents = 0;
+bool removeEndcapClusters = false;
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-
-vector<shared_ptr<Point>> GetClustersNoEndcaps(const shared_ptr<Event> &event, bool removePionClusters);
 
 auto helixFitter = make_unique<Fitter>();
 
@@ -67,8 +65,6 @@ vector<tuple<string, double, double, double>> paramsToTest = {
 
 void CheckParamForCurrentConfig(string paramName)
 {
-  nAnalyzedEvents=0;
-  
   map<string, PerformanceMonitor> monitors;
   
   for(auto monitorType : monitorTypes){
@@ -90,7 +86,6 @@ void CheckParamForCurrentConfig(string paramName)
         
       }
     }
-    nAnalyzedEvents++;
   }
   
   for(string monitorType : monitorTypes){
@@ -113,8 +108,8 @@ int main(int argc, char* argv[])
   for(auto iEvent=eventOffset; iEvent<eventOffset+nEvents; iEvent++){
     auto event = GetEvent(iEvent);
     events.push_back(event);
-    pointsNoEndcapsSignal.push_back(GetClustersNoEndcaps(event, false));
-    pointsNoEndcapsBackground.push_back(GetClustersNoEndcaps(event, true));
+    pointsNoEndcapsSignal.push_back(event->GetClusters(false, removeEndcapClusters));
+    pointsNoEndcapsBackground.push_back(event->GetClusters(true, removeEndcapClusters));
   }
   
   for(string monitorType : monitorTypes){
@@ -183,33 +178,4 @@ shared_ptr<Event> GetEvent(int iEvent)
   }
   
   return event;
-}
-
-
-vector<shared_ptr<Point>> GetClustersNoEndcaps(const shared_ptr<Event> &event, bool removePionClusters)
-{
-  vector<shared_ptr<Point>> pointsNoEndcaps;
-  
-  for(auto &point : event->GetTrackerClusters()){
-    if(point->GetSubDetName() == "TID" || point->GetSubDetName() == "TEC" || point->GetSubDetName() == "P1PXEC") continue;
-    
-    if(point->GetSubDetName() != "TIB" && point->GetSubDetName() != "TOB" && point->GetSubDetName() != "P1PXB"){
-      cout<<"Weird detector:"<<point->GetSubDetName()<<endl;
-    }
-    
-    if(removePionClusters){
-      bool isPionHit = false;
-      for(auto &pionCluster : event->GetPionClusters()){
-        if(*pionCluster == *point){
-          isPionHit = true;
-          break;
-        }
-      }
-      if(isPionHit) continue;
-    }
-    
-    pointsNoEndcaps.push_back(point);
-  }
-  
-  return pointsNoEndcaps;
 }

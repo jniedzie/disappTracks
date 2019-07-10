@@ -78,3 +78,39 @@ void Event::Print(){
   
   cout<<"================================================\n\n"<<endl;
 }
+
+vector<shared_ptr<Point>> Event::GetClusters(bool removePionClusters, bool removeEndcapClusters)
+{
+  vector<shared_ptr<Point>> resultClusters;
+  
+  for(auto &point : trackerClusters){
+    if(removeEndcapClusters &&
+       (point->GetSubDetName() == "TID" ||
+        point->GetSubDetName() == "TEC" ||
+        point->GetSubDetName() == "P1PXEC")) continue;
+    
+    if(point->GetSubDetName() != "TIB" &&
+       point->GetSubDetName() != "TOB" &&
+       point->GetSubDetName() != "P1PXB" &&
+       point->GetSubDetName() != "TID" &&
+       point->GetSubDetName() != "TEC" &&
+       point->GetSubDetName() != "P1PXEC"){
+      cout<<"Unknown detector:"<<point->GetSubDetName()<<endl;
+    }
+    
+    if(removePionClusters){
+      bool isPionHit = false;
+      for(auto &pionCluster : pionClusters){
+        if(*pionCluster == *point){
+          isPionHit = true;
+          break;
+        }
+      }
+      if(isPionHit) continue;
+    }
+    
+    resultClusters.push_back(point);
+  }
+  
+  return resultClusters;
+}
