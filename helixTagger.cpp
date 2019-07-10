@@ -162,11 +162,30 @@ int main(int argc, char* argv[])
     
     
     for(auto &track : event->GetTracks()){
-      auto pointsNoEndcapsSignal     = event->GetClusters(false, removeEndcapClusters);
-      auto pointsNoEndcapsBackground = event->GetClusters(true, removeEndcapClusters);
+      auto pointsSignal     = event->GetClusters(false, removeEndcapClusters);
+      auto pointsBackground = event->GetClusters(true, removeEndcapClusters);
       
-      vector<Helix> fittedHelicesSignal     = fitter->FitHelices(pointsNoEndcapsSignal, *track, *event->GetVertex());
-      vector<Helix> fittedHelicesBackground = fitter->FitHelices(pointsNoEndcapsBackground, *track, *event->GetVertex());
+      for(auto &p : pointsSignal){
+        if(   p->GetSubDetName() == "TID"
+           || p->GetSubDetName() == "TEC"
+           || p->GetSubDetName() == "P1PXEC"){
+          p->SetXerr(10.0);
+          p->SetYerr(10.0);
+          p->SetZerr(1.0);
+        }
+      }
+      for(auto &p : pointsBackground){
+        if(   p->GetSubDetName() == "TID"
+           || p->GetSubDetName() == "TEC"
+           || p->GetSubDetName() == "P1PXEC"){
+          p->SetXerr(10.0);
+          p->SetYerr(10.0);
+          p->SetZerr(1.0);
+        }
+      }
+      
+      vector<Helix> fittedHelicesSignal     = fitter->FitHelices(pointsSignal, *track, *event->GetVertex());
+      vector<Helix> fittedHelicesBackground = fitter->FitHelices(pointsBackground, *track, *event->GetVertex());
       
       // for(auto helix : fittedHelicesSignal) event->AddHelix(move(fittedHelix));
       

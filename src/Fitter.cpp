@@ -406,6 +406,13 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           nextPointDisks.insert(14);
           nextPointDisks.insert(15);
         }
+        if(lastPointDisk >=11 && lastPointDisk <= 15){
+          nextPointDisks.insert(16);
+          nextPointDisks.insert(17);
+        }
+        if(lastPointDisk >=16){
+          nextPointDisks.insert(lastPointDisk+1);
+        }
         
         if(lastPointDisk >= 0 && lastPointDisk <= 2) 	      nextPointLayers.insert(4);
         else if(lastPointDisk >= 3 && lastPointDisk <= 14)  nextPointLayers.insert(8);
@@ -475,7 +482,8 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
             
             for(auto &point : points){
               
-              if(helix.GetNlayers() >= config.params["min_layers_for_delta_xy"]){
+              if(helix.GetNlayers() >= config.params["min_layers_for_delta_xy"] &&
+                 !point->IsEndcapHit()){
                 if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, *nextPointLayers.begin(), true)) continue;
               }
               else{

@@ -55,7 +55,8 @@ public:
   void Print();
   
   /// Adds point to the collection of helix's points, sets correct t for this point and updates tMax
-  void AddPoint(const shared_ptr<Point> &point);
+  void AddPoint(const shared_ptr<Point> &point,
+                 vector<size_t> *_lastPointIndices = nullptr);
   
   /// Sets new origin, recalculates t params for all point on helix and updates tShift and tMax
   void UpdateOrigin(const Point &_origin);
@@ -88,7 +89,7 @@ public:
   inline uint64_t             GetSeedID()   const {return seedID; }
   
   inline double               GetTmin()     const {return pointsT.front();}
-         double               GetTmax()     const;
+         double               GetTmax(vector<size_t> *_lastPointIndices = nullptr)     const;
   inline double               GetTstep()    const {return tStep;}
   
   double                      GetRadius(double t) const;
@@ -130,6 +131,7 @@ private:
   vector<shared_ptr<Point>> points; ///< Vector of points laying on the helix
   vector<shared_ptr<Point>> lastPoints;         ///< Last points on helix
   vector<shared_ptr<Point>> secondToLastPoints; ///< Second to last points on helix
+  vector<shared_ptr<Point>> thirdToLastPoints; ///< Second to last points on helix
   
   vector<double> pointsT;           ///< T values of points
   

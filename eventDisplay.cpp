@@ -12,10 +12,12 @@ string cutLevel = "after_L1/all/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 25;
+int iEvent = 27;
 
-// endcap track: 7, 18
-// endcap hits: 11, 24
+double endcapXYsize = 20;
+
+// endcap track: 7, 18, 25
+// endcap hits: 11, 24, 25
 // 17: nice endcap hits, but missing seed hits...
 
 bool fitHelix = true;
@@ -205,8 +207,8 @@ int main(int argc, char* argv[])
        || point->GetSubDetName() == "TEC"
        || point->GetSubDetName() == "P1PXEC"){
 //      p = allSimplePoints.erase(p);
-      point->SetXerr(1.0);
-      point->SetYerr(1.0);
+      point->SetXerr(endcapXYsize);
+      point->SetYerr(endcapXYsize);
       point->SetZerr(1.0);
       p++;
     }
@@ -225,8 +227,8 @@ int main(int argc, char* argv[])
          || point->GetSubDetName() == "TEC"
          || point->GetSubDetName() == "P1PXEC"){
         //      p = allSimplePoints.erase(p);
-        point->SetXerr(10.0);
-        point->SetYerr(10.0);
+        point->SetXerr(endcapXYsize);
+        point->SetYerr(endcapXYsize);
         point->SetZerr(1.0);
         p++;
       }

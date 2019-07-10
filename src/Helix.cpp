@@ -89,6 +89,7 @@ firstTurningPointIndex(-1),
 momentum(make_unique<Point>(0, 0, 0))
 {
   points.push_back(make_shared<Point>(_decayVertex));
+  lastPoints.push_back(make_shared<Point>(_decayVertex));
   pointsT.push_back(pointsProcessor.GetTforPoint(_decayVertex, origin, charge));
   
   seedID = uniqueID = reinterpret_cast<uint64_t>(this);
@@ -103,6 +104,7 @@ seedID(h.seedID),
 points(h.points),
 lastPoints(h.lastPoints),
 secondToLastPoints(h.secondToLastPoints),
+thirdToLastPoints(h.thirdToLastPoints),
 pointsT(h.pointsT),
 tStep(h.tStep),
 origin(h.origin),
@@ -134,6 +136,7 @@ Helix& Helix::operator=(const Helix &h)
   points         = h.points;
   lastPoints     = h.lastPoints;
   secondToLastPoints = h.secondToLastPoints;
+  thirdToLastPoints = h.thirdToLastPoints;
   pointsT        = h.pointsT;
   tStep          = h.tStep;
   track          = h.track;
@@ -195,10 +198,10 @@ double Helix::GetSlope(double t) const
   return GetSofT(helixParams.s0, helixParams.b, GetTmin(), t, charge);
 }
 
-void Helix::AddPoint(const shared_ptr<Point> &point)
+void Helix::AddPoint(const shared_ptr<Point> &point, vector<size_t> *_lastPointIndices)
 {
   double t = pointsProcessor.GetTforPoint(*point, origin, charge);
-  double tMax = GetTmax();
+  double tMax = GetTmax(_lastPointIndices);
   
   if(charge > 0){ if(t > tMax) t -= 2*TMath::Pi(); }
   else          { if(t < tMax) t += 2*TMath::Pi(); }
@@ -239,6 +242,10 @@ void Helix::RemoveLastPoint()
   }
   points.pop_back();
   pointsT.pop_back();
+  
+  lastPoints = secondToLastPoints;
+  secondToLastPoints = thirdToLastPoints;
+  
 }
 /*
 vector<shared_ptr<Point>> Helix::GetLastPoints() const
@@ -317,11 +324,13 @@ vector<shared_ptr<Point>> Helix::GetSecontToLastPoints() const
 */
 void Helix::SetLastPoints(vector<shared_ptr<Point>> _points)
 {
+  vector<size_t> lastPointsIndices = GetLastPointsIndices();
+  thirdToLastPoints = secondToLastPoints;
   secondToLastPoints = lastPoints;
   lastPoints.clear();
   
   for(auto &p : _points){
-    AddPoint(p);
+    AddPoint(p, &lastPointsIndices);
     lastPoints.push_back(p);
   }
 }
@@ -343,9 +352,17 @@ size_t Helix::GetNlayers() const
   return layers.size();
 }
 
-double Helix::GetTmax() const
+double Helix::GetTmax(vector<size_t> *_lastPointIndices) const
 {
-  vector<size_t> lastPointsIndices = GetLastPointsIndices();
+  vector<size_t> lastPointsIndices;
+  
+  if(_lastPointIndices) lastPointsIndices = *_lastPointIndices;
+  else lastPointsIndices = GetLastPointsIndices();
+  
+  if(lastPointsIndices.size()==0){
+    
+  }
+  
   if(lastPointsIndices.size()==1) return pointsT[lastPointsIndices.front()];
   
   double extremeT=charge*inf;
