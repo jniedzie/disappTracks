@@ -93,6 +93,8 @@ vector<tuple<string, int, double, double, string, int, double, double, string>> 
   {"layers_gen_vs_rec"            ,10 ,0 , 10   , "N^{layers}_{rec}", 10 , 0, 10, "q^{layer}_{gen}" },
   {"pt_gen_vs_rec"                ,100 ,0 , 1000   , "pt_{rec}", 100 , 0, 1000, "pt_{gen}" },
   {"pt_gen_vs_rec_good_charge"    ,100 ,0 , 1000   , "pt_{rec}", 100 , 0, 1000, "pt_{gen}" },
+  {"pion_pt_vs_n_layers"          ,100 ,0 , 1000   , "pion pt (MeV)", 20 , 0, 20, "n chargino layers" },
+  {"eta_vs_n_layers"              ,50  ,0 , 2.5    , "track |#eta|" , 20 , 0, 20, "n chargino layers" },
 };
 map<string, TH1D *> hists1D;
 map<string, TH2D *> hists2D;
@@ -188,6 +190,9 @@ int main(int argc, char* argv[])
     vector<double> trackDedx;
     
     double avgTrackDedxWithoutLast=0;
+    
+    hists2D["pion_pt_vs_n_layers"]->Fill(pionHelix.GetMomentum()->GetTransverse(), track->GetNtrackerLayers());
+    hists2D["eta_vs_n_layers"]->Fill(fabs(track->GetEta()), track->GetNtrackerLayers());
     
     for(int iLayer=1; iLayer<(track->GetLastBarrelLayer()+1); iLayer++){
       avgTrackDedxWithoutLast += track->GetDedxInBarrelLayer(iLayer);
@@ -442,7 +447,7 @@ int main(int argc, char* argv[])
   trackingCanvas->cd(14);  hists1D["last_seed_hit_delta_phi_min"]->Draw();
   
   TCanvas *charginoCanvas = new TCanvas("chargino", "chargino", 2880, 1800);
-  charginoCanvas->Divide(2,3);
+  charginoCanvas->Divide(3,3);
   hists2D["charge_gen_vs_rec"]->SetMarkerSize(3.0);
   charginoCanvas->cd(1);  hists2D["charge_gen_vs_rec"]->DrawNormalized("text colz");
   hists2D["layers_gen_vs_rec"]->SetMarkerSize(3.0);
@@ -456,6 +461,9 @@ int main(int argc, char* argv[])
   
   charginoCanvas->cd(5); hists2D["pt_gen_vs_rec"]->DrawNormalized("colz");
   charginoCanvas->cd(6); hists2D["pt_gen_vs_rec_good_charge"]->DrawNormalized("colz");
+  
+  charginoCanvas->cd(7); hists2D["pion_pt_vs_n_layers"]->DrawNormalized("colz");
+  charginoCanvas->cd(8); hists2D["eta_vs_n_layers"]->DrawNormalized("colz");
   
   TCanvas *chargeCanvas   = new TCanvas("charge", "charge", 2880, 1800);
   TCanvas *clustersCanvas = new TCanvas("clusters", "clusters", 2880, 1800);
