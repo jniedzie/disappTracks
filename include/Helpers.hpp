@@ -377,42 +377,42 @@ const vector<range<double>> layerRanges = { // mm
   range<double>(1025, 1110),// 13 (1080)
 };
 
-const vector<range<double>> diskRanges = { // mm
+const vector<vector<range<double>>> diskRanges = { // mm
   // PXEC
-  range<double>(280, 350), // 0
-  range<double>(350, 440), // 1
-  range<double>(440, 600), // 2
+  {range<double>(280, 350)}, // 0
+  {range<double>(350, 440)}, // 1
+  {range<double>(440, 600)}, // 2
   
   // TID
-  range<double>(600, 760),  // 3
-  range<double>(760, 790),  //
-  range<double>(790, 820),  //
-  range<double>(820, 850),  //
+  {range<double>(600, 760),  // 3
+    range<double>(760, 790),  //
+    range<double>(790, 820),  //
+    range<double>(820, 850)},  //
   
-  range<double>(850, 880),  // 4?
-  range<double>(880, 905),  //
-  range<double>(905, 920),  //
-  range<double>(920, 960),  //
+  {range<double>(850, 880),  // 4?
+    range<double>(880, 905),  //
+    range<double>(905, 920),  //
+    range<double>(920, 960)},  //
   
-  range<double>(960, 980),   // 5?
-  range<double>(980, 1020),  //
-  range<double>(1020, 1050), //
-  range<double>(1050, 1080), //
-  range<double>(1080, 1200), //
+  {range<double>(960, 980),   // 5?
+    range<double>(980, 1020),  //
+    range<double>(1020, 1050), //
+    range<double>(1050, 1080), //
+    range<double>(1080, 1200)}, //
   
   // TEC
-  range<double>(1200, 1390),// 6
-  range<double>(1390, 1530),// 7
-  range<double>(1530, 1670),// 8
-  range<double>(1670, 1810),// 9
-  range<double>(1810, 1950),// 10
-  range<double>(1950, 2130),// 11
-  range<double>(2130, 2250),// 12
-  range<double>(2250, 2310),//
-  range<double>(2310, 2450),// 13
-  range<double>(2450, 2540),//
-  range<double>(2540, 2670),// 14
-  range<double>(2670, 2730),//
+  {range<double>(1200, 1390)},// 6
+  {range<double>(1390, 1530)},// 7
+  {range<double>(1530, 1670)},// 8
+  {range<double>(1670, 1810)},// 9
+  {range<double>(1810, 1950)},// 10
+  {range<double>(1950, 2130)},// 11
+  {range<double>(2130, 2250),// 12
+    range<double>(2250, 2310)},//
+  {range<double>(2310, 2450),// 13
+    range<double>(2450, 2540)},//
+  {range<double>(2540, 2670),// 14
+    range<double>(2670, 2730)},//
 };
 
 inline int GetDisksArrayIndex(int index, int signZ)

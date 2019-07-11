@@ -75,9 +75,12 @@ vector<vector<shared_ptr<Point>>> PointsProcessor::SortByDisk(const vector<share
     int signZ = sgn(p->GetZ());
     
     for(size_t iDisk=0; iDisk<diskRanges.size(); iDisk++){
-      if(diskRanges[iDisk].IsInside(fabs(pointZ))){
+      range<double> diskRange(diskRanges[iDisk].front().GetMin(),
+                              diskRanges[iDisk].back().GetMax());
+      
+      if(diskRange.IsInside(fabs(pointZ))){
         p->SetDisk((int)(signZ*(iDisk+1)));
-        pointsByDisk[diskRanges.size()+signZ*(iDisk+1)].push_back(p);
+        pointsByDisk[GetDisksArrayIndex((int)iDisk, signZ)].push_back(p);
         break;
       }
     }
@@ -119,7 +122,10 @@ void PointsProcessor::SetPointsDisks(vector<shared_ptr<Point>> &points)
     int signZ = sgn(p->GetZ());
     
     for(int iDisk=0; iDisk<diskRanges.size(); iDisk++){
-      if(diskRanges[iDisk].IsInside(fabs(pointZ))){
+      range<double> diskRange(diskRanges[iDisk].front().GetMin(),
+                              diskRanges[iDisk].back().GetMax());
+      
+      if(diskRange.IsInside(fabs(pointZ))){
         p->SetDisk((int)(signZ*(iDisk+1)));
         break;
       }

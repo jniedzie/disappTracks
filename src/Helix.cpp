@@ -401,6 +401,22 @@ void Helix::SetPointsAndSortByT(const vector<shared_ptr<Point>> &_points, const 
   points = _points;
   pointsT = _pointsT;
   SortPointsByT(charge > 0);
+  
+  lastPoints.clear();
+  
+  auto lastPoint = points.back();
+  if(lastPoint->IsEndcapHit()){
+    int lastPointDisk = lastPoint->GetDisk();
+    for(auto &p : points){
+      if(p->GetDisk() == lastPointDisk) lastPoints.push_back(p);
+    }
+  }
+  else{
+    int lastPointLayer = lastPoint->GetLayer();
+    for(auto &p : points){
+      if(p->GetLayer() == lastPointLayer) lastPoints.push_back(p);
+    }
+  }
 }
 
 void Helix::SetPoints(const vector<shared_ptr<Point>> &_points)

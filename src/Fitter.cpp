@@ -179,69 +179,28 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer,
     if(lastHitLayer+1 < pointsByLayer.size()) middleHitLayers.insert(lastHitLayer+1);
     if(lastHitLayer+2 < pointsByLayer.size()) lastHitLayers.insert(lastHitLayer+2);
     
-    if(lastHitLayer <= 2){
+    if(lastHitLayer >= 0 && lastHitLayer <= 2){
       middleHitDisks.insert(0);
       lastHitDisks.insert(1);
     }
-    else if(lastHitLayer >=4 && lastHitLayer <=6){
+    if(lastHitLayer >=4 && lastHitLayer <=6){
       middleHitDisks.insert(3);
-      middleHitDisks.insert(4);
-      middleHitDisks.insert(5);
-      middleHitDisks.insert(6);
-      
-      lastHitDisks.insert(7);
-      lastHitDisks.insert(8);
-      lastHitDisks.insert(9);
-      lastHitDisks.insert(10);
+      lastHitDisks.insert(4);
     }
   }
   else{
     int lastHitDisk = track.GetLayerForHit(lastHitIndex)-1; // iterates from 1
     
     // regardless of the case, for endcap tracks next hit can always be just in the next endcap layer:
-    if(lastHitDisk >=0 && lastHitDisk <= 1){
-      if(lastHitDisk+1 < pointsByDisk.size()) middleHitDisks.insert(lastHitDisk+1);
-      if(lastHitDisk+2 < pointsByDisk.size()) lastHitDisks.insert(lastHitDisk+2);
-    }
-    else if(lastHitDisk == 2){
-      middleHitDisks.insert(3);
-      middleHitDisks.insert(4);
-      middleHitDisks.insert(5);
-      middleHitDisks.insert(6);
-      
-      lastHitDisks.insert(7);
-      lastHitDisks.insert(8);
-      lastHitDisks.insert(9);
-      lastHitDisks.insert(10);
-    }
-    else if(lastHitDisk >=3 && lastHitDisk <= 6){
-      middleHitDisks.insert(7);
-      middleHitDisks.insert(8);
-      middleHitDisks.insert(9);
-      middleHitDisks.insert(10);
-      
-      lastHitDisks.insert(11);
-      lastHitDisks.insert(12);
-      lastHitDisks.insert(13);
-      lastHitDisks.insert(14);
-      lastHitDisks.insert(15);
-    }
-    else if(lastHitDisk >=7 && lastHitDisk <= 10){
-      middleHitDisks.insert(11);
-      middleHitDisks.insert(12);
-      middleHitDisks.insert(13);
-      middleHitDisks.insert(14);
-      middleHitDisks.insert(15);
-      
-      lastHitDisks.insert(16);
-      lastHitDisks.insert(17);
-    }
     
-    if(lastHitDisk <= 3){
+    if(lastHitDisk+1 < pointsByDisk.size()) middleHitDisks.insert(lastHitDisk+1);
+    if(lastHitDisk+2 < pointsByDisk.size()) lastHitDisks.insert(lastHitDisk+2);
+    
+    if(lastHitDisk >= 0 && lastHitDisk <= 2){
       middleHitLayers.insert(4);
       lastHitLayers.insert(5);
     }
-    else if(lastHitDisk >= 4 && lastHitDisk <= 16 ){
+    if(lastHitDisk >= 3 && lastHitDisk <= 5 ){
       middleHitLayers.insert(8);
       lastHitLayers.insert(9);
     }
@@ -399,54 +358,15 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           }
         }
         set<int> nextPointDisks;
-        if(lastPointDisk >=0 && lastPointDisk <= 1){
-          if(lastPointDisk+1 < pointsByDisk.size()) nextPointDisks.insert(lastPointDisk+1);
-        }
-        if(lastPointDisk ==2){
-          nextPointDisks.insert(3);
-          nextPointDisks.insert(4);
-          nextPointDisks.insert(5);
-          nextPointDisks.insert(6);
-        }
-        if(lastPointDisk >=3 && lastPointDisk <= 6){
-          nextPointDisks.insert(7);
-          nextPointDisks.insert(8);
-          nextPointDisks.insert(9);
-          nextPointDisks.insert(10);
-        }
-        if(lastPointDisk >=7 && lastPointDisk <= 10){
-          nextPointDisks.insert(11);
-          nextPointDisks.insert(12);
-          nextPointDisks.insert(13);
-          nextPointDisks.insert(14);
-          nextPointDisks.insert(15);
-        }
-        if(lastPointDisk >=11 && lastPointDisk <= 15){
-          nextPointDisks.insert(16);
-          nextPointDisks.insert(17);
-        }
-        if(lastPointDisk >=16){
-          if(lastPointDisk+1 < pointsByDisk.size()) nextPointDisks.insert(lastPointDisk+1);
-        }
         
-        if(lastPointDisk >= 0 && lastPointDisk <= 2) 	      nextPointLayers.insert(4);
-        else if(lastPointDisk >= 3 && lastPointDisk <= 14)  nextPointLayers.insert(8);
+        if(lastPointDisk+1 < pointsByDisk.size()) nextPointDisks.insert(lastPointDisk+1);
         
-        if(lastPointLayer >=0){
-          if(lastPointLayer <= 3){
-            nextPointDisks.insert(0);
-          }
-          else if(lastPointLayer <= 7){
-            nextPointDisks.insert(3);
-            nextPointDisks.insert(4);
-            nextPointDisks.insert(5);
-            nextPointDisks.insert(6);
-          }
-          else{
-            nextPointDisks.insert(16);
-            nextPointDisks.insert(17);
-          }
-        }
+        if(lastPointDisk >= 0 && lastPointDisk <= 2) 	  nextPointLayers.insert(4);
+        if(lastPointDisk >= 3 && lastPointDisk <= 5)  	nextPointLayers.insert(8);
+        
+        if(lastPointLayer >= 0 && lastPointLayer <= 2)  nextPointDisks.insert(0);
+        if(lastPointLayer >= 3 && lastPointLayer <= 7)  nextPointDisks.insert(3);
+        if(lastPointLayer >= 7 && lastPointLayer <= 13) nextPointDisks.insert(6);
           
         int signZ = sgn(track.GetEta());
         
@@ -459,15 +379,13 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
   
           // Find points that could extend this helix
           vector<shared_ptr<Point>> possiblePointsAll;
-          if(lastPointLayer+1 < pointsByLayer.size() && lastPointLayer-1 >= 0){
-            
-            for(int nextPointLayer : nextPointLayers){
-              possiblePointsAll.insert(possiblePointsAll.end(),
-                                       pointsByLayer[nextPointLayer].begin(),
-                                       pointsByLayer[nextPointLayer].end());
-            }
+          
+          for(int nextPointLayer : nextPointLayers){
+            possiblePointsAll.insert(possiblePointsAll.end(),
+                                     pointsByLayer[nextPointLayer].begin(),
+                                     pointsByLayer[nextPointLayer].end());
           }
-            
+ 
           for(int nextPointDisk : nextPointDisks){
             possiblePointsAll.insert(possiblePointsAll.end(),
                                      pointsByDisk[GetDisksArrayIndex(nextPointDisk, signZ)].begin(),
@@ -956,8 +874,8 @@ void Fitter::InitLparams()
   else{
     size_t diskIndex = track.GetLayerForHit(lastHitIndex);
     
-    minL = fabs(diskRanges[diskIndex-1].GetMin() * tan(track.GetTheta()));
-    maxL = fabs(diskRanges[diskIndex].GetMax() * tan(track.GetTheta()));
+    minL = fabs(diskRanges[diskIndex-1].front().GetMin() * tan(track.GetTheta()));
+    maxL = fabs(diskRanges[diskIndex].back().GetMax() * tan(track.GetTheta()));
   }
   
   startL = (minL+maxL)/2.;
