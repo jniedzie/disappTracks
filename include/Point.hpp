@@ -45,7 +45,10 @@ public:
   /// Tells whether or not this point belongs to a true pion's helix
   inline bool IsPionHit() const {return isPionHit;}
   
-  inline bool IsEndcapHit() const {return disk!=0;}
+  inline bool IsEndcapHit() const {
+    return (subDetName == "P1PXEC" || subDetName == "TID" || subDetName == "TEC");
+  }
+  
   
   // Trivial getters
   inline double GetX() const {return x;}

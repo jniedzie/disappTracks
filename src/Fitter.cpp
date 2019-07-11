@@ -8,69 +8,51 @@ Fitter::Fitter() :
 eventVertex(Point(0, 0, 0))
 {
   chi2Function = [&](const double *par) {
-    double R0 = par[0];
-    double a  = par[1];
-    double s0 = par[2];
-    double b  = par[3];
     double L  = par[4];
     double x0 = par[5];
     double y0 = par[6];
     double z0 = par[7];
 
-    // First add distance to the vertex
-    Point origin(x0, y0, z0);
+    // Use current L value to calculate decay vertex
     fittingPoints[0] = make_shared<Point>(pointsProcessor.GetPointOnTrack(L, track, eventVertex));
     
-    double tMin = pointsProcessor.GetTforPoint(*fittingPoints.front(), origin, charge);
+    double tMin = pointsProcessor.GetTforPoint(*fittingPoints.front(), Point(x0,y0,z0), charge);
     
-    double t, distX, distY, distZ, x, y, z;
     double f=0;
     
-    // Then add distances to all other points
+    // Then add distances between this helix and all fitting points
     for(auto &p : fittingPoints){
       if(p->GetSubDetName()=="missing") continue;
       
-      t = pointsProcessor.GetTforPoint(*p, origin, charge);
+      double totalDistance = GetMinHelixToPointDistance(par, tMin, *p, 0);
+      double totalDistEdge = inf;
       
-      x = x0 + GetRofT(R0, a, tMin, t, charge)*cos(t);
-      y = y0 + GetRofT(R0, a, tMin, t, charge)*sin(t);
-      z = -charge*z0 + GetSofT(s0, b, tMin, t, charge)*t;
-      
-      // In case of endcaps, rotate the point as is the strip rotated in XY plane
-      if(p->GetSubDetName() == "P1PXEC" || p->GetSubDetName() == "TID" || p->GetSubDetName() == "TEC"){
+      // In case of endcaps, check if one of the strip edges doesn't give better results
+      // In principle one should do something like a binary search and find t value for which
+      // the distance is the smallest. But even checking only 3 points works quite well.
+      if(p->IsEndcapHit()){
+        double alpha = -atan2(p->GetX(), p->GetY());
 
-        double rotationAngle = atan2(p->GetX(), p->GetY());
+        // Find helix point on one of the strip's edges:
+        Point p_a(p->GetX() + p->GetYerr()*sin(alpha),
+                  p->GetY() + p->GetYerr()*cos(alpha),
+                  p->GetZ());
 
-        double v_x = p->GetX() - x;
-        double v_y = p->GetY() - y;
-        x = p->GetX() - cos(rotationAngle)*v_x - sin(rotationAngle)*v_y;
-        y = p->GetY() - sin(rotationAngle)*v_x + cos(rotationAngle)*v_y;
+        // Find helix point on another strip's edge:
+        Point p_b(p->GetX() - p->GetYerr()*sin(alpha),
+                  p->GetY() - p->GetYerr()*cos(alpha),
+                  p->GetZ());
+
+        double totalDist_a = GetMinHelixToPointDistance(par, tMin, p_a, alpha);
+        double totalDist_b = GetMinHelixToPointDistance(par, tMin, p_b, alpha);
+
+        totalDistEdge = min(totalDist_a, totalDist_b);
       }
+      if(totalDistEdge < totalDistance) totalDistance = totalDistEdge;
       
-      // calculate distance between helix and point's boundary (taking into account its errors)
-      distX = distY = distZ = 0;
-      
-      if(fabs(x-p->GetX()) > p->GetXerr()){
-        double distX_1 = x - (p->GetX() + p->GetXerr());
-        double distX_2 = x - (p->GetX() - p->GetXerr());
-        distX = min(pow(distX_1, 2), pow(distX_2, 2));
-      }
-      if(fabs(y-p->GetY()) > p->GetYerr()){
-        double distY_1 = y - (p->GetY() + p->GetYerr());
-        double distY_2 = y - (p->GetY() - p->GetYerr());
-        distY = min(pow(distY_1, 2), pow(distY_2, 2));
-      }
-      if(fabs(z-p->GetZ()) > p->GetZerr()){
-        double distZ_1 = z - (p->GetZ() + p->GetZerr());
-        double distZ_2 = z - (p->GetZ() - p->GetZerr());
-        distZ = min(pow(distZ_1, 2), pow(distZ_2, 2));
-      }
-      distX /= fabs(p->GetX());
-      distY /= fabs(p->GetY());
-      distZ /= fabs(p->GetZ());
-      
-      f += distX + distY + distZ;
+      f += totalDistance;
     }
+    
     return f/(3*fittingPoints.size()+nDegreesOfFreedom);
   };
 }
@@ -80,7 +62,64 @@ Fitter::~Fitter()
   
 }
 
-vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
+double Fitter::GetMinHelixToPointDistance(const double *params, double tMin, const Point &point, double alpha)
+{
+  double R0 = params[0];
+  double a  = params[1];
+  double s0 = params[2];
+  double b  = params[3];
+  
+  double x0 = params[5];
+  double y0 = params[6];
+  double z0 = params[7];
+  
+  double t = pointsProcessor.GetTforPoint(point, Point(x0, y0, z0), charge);
+  double x = x0 + GetRofT(R0, a, tMin, t, charge)*cos(t);
+  double y = y0 + GetRofT(R0, a, tMin, t, charge)*sin(t);
+  double z = -charge*z0 + GetSofT(s0, b, tMin, t, charge)*t;
+  
+  if(point.IsEndcapHit()){
+    double v_x = point.GetX() - x;
+    double v_y = point.GetY() - y;
+    double cos_alpha = cos(alpha);
+    double sin_alpha = sin(alpha);
+    x = point.GetX() - cos_alpha*v_x + sin_alpha*v_y;
+    y = point.GetY() + sin_alpha*v_x + cos_alpha*v_y;
+  }
+  
+  double distX=0, distY=0, distZ=0;
+  
+  if(fabs(x-point.GetX()) > point.GetXerr()){
+    double distX_1 = x - (point.GetX() + point.GetXerr());
+    double distX_2 = x - (point.GetX() - point.GetXerr());
+    distX = min(pow(distX_1, 2), pow(distX_2, 2));
+  }
+  if(fabs(y-point.GetY()) > point.GetYerr()){
+    double distY_1 = y - (point.GetY() + point.GetYerr());
+    double distY_2 = y - (point.GetY() - point.GetYerr());
+    distY = min(pow(distY_1, 2), pow(distY_2, 2));
+  }
+  if(fabs(z-point.GetZ()) > point.GetZerr()){
+    double distZ_1 = z - (point.GetZ() + point.GetZerr());
+    double distZ_2 = z - (point.GetZ() - point.GetZerr());
+    distZ = min(pow(distZ_1, 2), pow(distZ_2, 2));
+  }
+  
+  double dist3D = distX + distY + distZ;
+  
+  dist3D /= sqrt(pow(point.GetX(), 2)+
+                 pow(point.GetY(), 2)+
+                 pow(point.GetZ(), 2));
+  
+  return dist3D;
+  
+//  distX /= fabs(point.GetX());
+//  distY /= fabs(point.GetY());
+//  distZ /= fabs(point.GetZ());
+//  return distX + distY + distZ;
+}
+
+vector<Helix> Fitter::FitHelices(const Points &_points,
                                  const Track &_track,
                                  const Point &_eventVertex)
 {
@@ -141,12 +180,13 @@ vector<Helix> Fitter::FitHelices(const vector<shared_ptr<Point>> &_points,
 
 vector<Helix> Fitter::PerformFittingCycle()
 {
-  vector<vector<shared_ptr<Point>>> pointsByLayer = pointsProcessor.SortByLayer(points);
-  vector<vector<shared_ptr<Point>>> pointsByDisk  = pointsProcessor.SortByDisk(points);
+  vector<Points> pointsByLayer = pointsProcessor.SortByLayer(points);
+  vector<Points> pointsByDisk  = pointsProcessor.SortByDisk(points);
   
-  vector<Helix> fittedHelices = GetSeeds(pointsByLayer, pointsByDisk);
-  
+  Helices fittedHelices = GetSeeds(pointsByLayer, pointsByDisk);
+
   ExtendSeeds(fittedHelices, pointsByLayer, pointsByDisk);
+  
   if(config.params["merge_final_helices"]) MergeHelices(fittedHelices);
   RemoveShortHelices(fittedHelices);
   
@@ -157,10 +197,9 @@ vector<Helix> Fitter::PerformFittingCycle()
   return fittedHelices;
 }
 
-vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer,
-                               vector<vector<shared_ptr<Point>>> pointsByDisk)
+vector<Helix> Fitter::GetSeeds(vector<Points> pointsByLayer, vector<Points> pointsByDisk)
 {
-  vector<Helix> seeds;
+  Helices seeds;
 
 //  if(pointsByLayer[nTrackLayers].size() == 0 || pointsByLayer[nTrackLayers+1].size() == 0 ||
 //     pointsByLayer.size() <= (nTrackLayers+1)){
@@ -173,7 +212,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer,
   int lastHitIndex = track.GetNnotEmptyDedxHits()-1;
   bool endcapTrack = track.GetDetTypeForHit(lastHitIndex) == 2; // 2 is endcap
   
-  vector<shared_ptr<Point>> middlePoints, lastPoints;
+  Points middlePoints, lastPoints;
   
   int signZ = sgn(track.GetEta());
   
@@ -278,8 +317,7 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer,
   return seeds;
 }
 
-unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &middleHits,
-                                  const vector<shared_ptr<Point>> &lastHits)
+unique_ptr<Helix> Fitter::FitSeed(const Points &middleHits, const Points &lastHits)
 {
   auto fitter = GetSeedFitter();
   if(!fitter) return nullptr;
@@ -324,9 +362,7 @@ unique_ptr<Helix> Fitter::FitSeed(const vector<shared_ptr<Point>> &middleHits,
   return resultHelix;
 }
 
-void Fitter::ExtendSeeds(vector<Helix> &helices,
-                         const vector<vector<shared_ptr<Point>>> &pointsByLayer,
-                         const vector<vector<shared_ptr<Point>>> &pointsByDisk)
+void Fitter::ExtendSeeds(Helices &helices, const vector<Points> &pointsByLayer, const vector<Points> &pointsByDisk)
 {
   bool finished;
   int nSteps=0;
@@ -335,7 +371,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
     if(config.params["verbosity_level"]>0) cout<<"Helices before "<<nSteps<<" step: "<<helices.size()<<endl;
     
     finished = true;
-    vector<Helix> nextStepHelices;
+    Helices nextStepHelices;
     
     // for all helices from previous step
     for(Helix &helix : helices){
@@ -344,7 +380,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         nextStepHelices.push_back(helix);
       }
       else{
-        vector<Helix> extendedHelices;
+        Helices extendedHelices;
         
         auto helixPoints        = helix.GetPoints();
         auto lastPoints         = helix.GetLastPoints();
@@ -389,7 +425,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         if(crossesNextLayer || lastPointIsEndcap){
   
           // Find points that could extend this helix
-          vector<shared_ptr<Point>> possiblePointsAll;
+          Points possiblePointsAll;
           
           for(int nextPointLayer : nextPointLayers){
             possiblePointsAll.insert(possiblePointsAll.end(),
@@ -403,7 +439,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
                                      pointsByDisk[GetDisksArrayIndex(nextPointDisk, signZ)].end());
           }
           
-          vector<shared_ptr<Point>> possiblePoints;
+          Points possiblePoints;
           
           // remove points that are already on helix
           for(auto &pointCandidate : possiblePointsAll){
@@ -416,7 +452,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           
           for(auto &points : possiblePointsRegrouped){
             
-            vector<shared_ptr<Point>> goodPoints;
+            Points goodPoints;
             
             vector<double> lastPointsT;
             
@@ -463,12 +499,12 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         else{
           // try to extend to the same layer (turning back)
           
-          vector<shared_ptr<Point>> turningBackPointsAll;
+          Points turningBackPointsAll;
           
           if(lastPointLayer<pointsByLayer.size()){
             turningBackPointsAll = pointsByLayer[lastPointLayer];
           }
-          vector<shared_ptr<Point>> turningBackPoints;
+          Points turningBackPoints;
           
           // remove points that are already on helix
           for(auto &pointCandidate : turningBackPointsAll){
@@ -480,7 +516,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           
           for(auto &turningBackPoints : turningBackPointsRegrouped){
 
-            vector<shared_ptr<Point>> goodTurningBackPoints;
+            Points goodTurningBackPoints;
             
             for(auto &point : turningBackPoints){
               if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, lastPointLayer, false)) continue;
@@ -634,8 +670,8 @@ void Fitter::MergeHelices(vector<Helix> &helices)
 {
   if(config.params["verbosity_level"]>0) cout<<"Merging overlapping helices...";
   
-  vector<Helix> helicesToMerge;
-  vector<Helix> tooShortToMerge;
+  Helices helicesToMerge;
+  Helices tooShortToMerge;
   // Remove very short candidates which should not even be merged with others
   for(auto helix : helices){
     if(helix.GetNpoints() >= config.params["candidate_min_n_points"]) helicesToMerge.push_back(helix);
@@ -752,7 +788,7 @@ void Fitter::GetXYranges(const Point &trackPoint,
 void Fitter::RemoveShortHelices(vector<Helix> &helices)
 {
   if(config.params["verbosity_level"]>0) cout<<"Removing very short merged helices...";
-  vector<Helix> longHelices;
+  Helices longHelices;
   for(auto helix : helices){
     if(helix.GetNpoints() >= config.params["track_min_n_points"] &&
        helix.GetNlayers() >= config.params["track_min_n_layers"]){
@@ -777,16 +813,16 @@ bool Fitter::LinkAndMergeHelices(vector<Helix> &helices)
   // build links between different helices
   for(int iHelix1=0; iHelix1<helixLinks.size(); iHelix1++){
     Helix &helix1 = helixLinks[iHelix1].first;
-    vector<shared_ptr<Point>> points1 = helix1.GetPoints();
+    Points points1 = helix1.GetPoints();
     
     sort(points1.begin(), points1.end());
     
     for(int iHelix2=iHelix1+1; iHelix2<helixLinks.size(); iHelix2++){
       Helix &helix2 = helixLinks[iHelix2].first;
-      vector<shared_ptr<Point>> points2 = helix2.GetPoints();
+      Points points2 = helix2.GetPoints();
       sort(points2.begin(), points2.end());
       
-      vector<shared_ptr<Point>> samePoints;
+      Points samePoints;
       set_intersection(points1.begin(), points1.end(),
                        points2.begin(), points2.end(),
                        back_inserter(samePoints));
@@ -812,7 +848,7 @@ bool Fitter::LinkAndMergeHelices(vector<Helix> &helices)
     Helix &helix1 = helixLinks[iHelix].first;
     Helix helix1Copy(helix1);
     
-    vector<shared_ptr<Point>> allPoints = helix1.GetPoints();
+    Points allPoints = helix1.GetPoints();
     vector<double> allPointsT = helix1.GetPointsT();
 
     alreadyUsedHelices.push_back(iHelix);
@@ -825,7 +861,7 @@ bool Fitter::LinkAndMergeHelices(vector<Helix> &helices)
       alreadyUsedHelices.push_back(iChild);
       
       Helix &helix2 = helices[iChild];
-      vector<shared_ptr<Point>> points2 = helix2.GetPoints();
+      Points points2 = helix2.GetPoints();
       vector<double> pointsT2 = helix2.GetPointsT();
       
       for(size_t index=0; index<points2.size(); index++){

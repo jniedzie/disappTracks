@@ -26,12 +26,12 @@ public:
   /// \param _points Collection of input points
   /// \param _track Track along which the helix starts
   /// \param _eventVertex Primary vertex of the event
-  vector<Helix> FitHelices(const vector<shared_ptr<Point>> &_points,
+  Helices FitHelices(const Points &_points,
                            const Track &_track,
                            const Point &_eventVertex);
   
 private:
-  vector<shared_ptr<Point>> points; ///< collection of all points in the events
+  Points points; ///< collection of all points in the events
   Track track;                      ///< track from which helix should start
   Point eventVertex;                ///< primary vertex of the event
   
@@ -39,43 +39,43 @@ private:
   int charge;                       ///< assumed charge of the helix
   
   int nDegreesOfFreedom = 6;        ///< number of free fit parameters
-  vector<shared_ptr<Point>> fittingPoints; ///< collection of points to which we are fitting at the moment
+  Points fittingPoints; ///< collection of points to which we are fitting at the moment
   function<double(const double*)> chi2Function; ///< chi2 function
   
   // Initial parameters and their limits:
   double startL, minL, maxL;
   
-  vector<Helix> PerformFittingCycle();
+  Helices PerformFittingCycle();
   
   /// Checks parameters of all combinations of points in layers close to the decay point
   /// and returns vector of 3-layer helices constructed from them
-  vector<Helix> GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer,
-                         vector<vector<shared_ptr<Point>>> pointsByDisk);
+  Helices GetSeeds(vector<Points> pointsByLayer,
+                         vector<Points> pointsByDisk);
   
   /// Fits helix of given charge to the collection of points provided
   /// \return Resulting helix may be a nullptr if something went wrong (e.g. parameters of helix fitting
   /// provided points were outside of assumed limits.
-  unique_ptr<Helix> FitSeed(const vector<shared_ptr<Point>> &middleHits,
-                            const vector<shared_ptr<Point>> &lastHits);
+  unique_ptr<Helix> FitSeed(const Points &middleHits,
+                            const Points &lastHits);
   
   /// Attempts to extend provided seeds to following layers. If not possible, tries to turn back to the
   /// same layer. If that's also not possible, assigns missing hit if still alloed by the limits.
-  void ExtendSeeds(vector<Helix> &helices,
-                   const vector<vector<shared_ptr<Point>>> &pointsByLayer,
-                   const vector<vector<shared_ptr<Point>>> &pointsByDisk);
+  void ExtendSeeds(Helices &helices,
+                   const vector<Points> &pointsByLayer,
+                   const vector<Points> &pointsByDisk);
   
   /// Merges similar helices as long as there's nothing left to merge
-  void MergeHelices(vector<Helix> &helices);
+  void MergeHelices(Helices &helices);
   
   /// Performs single merging operation (accorging to merging_max_different_point and candidate_min_n_points
   /// parameters). All helices that don't meet merging conditions are left intact.
-  bool LinkAndMergeHelices(vector<Helix> &helices);
+  bool LinkAndMergeHelices(Helices &helices);
   
   /// Refits helix params using points assigned to this helix
   void RefitHelix(Helix &helix);
   
   /// Removes helices that are below track_min_n_points threshold
-  void RemoveShortHelices(vector<Helix> &helices);
+  void RemoveShortHelices(Helices &helices);
   
   /// Creates a fitter for seeds, with the best guess of the initial parameters
   /// \return nullptr if parameters were outside of limits, but requested only good params
@@ -96,7 +96,7 @@ private:
   /// Sets L limits and starting value based on the curent number of tracker layers
   void InitLparams();
   
-
+  double GetMinHelixToPointDistance(const double *params, double tMin, const Point &point, double alpha);
 };
 
 #endif /* Fitter_hpp */
