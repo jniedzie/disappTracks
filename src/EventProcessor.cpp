@@ -551,29 +551,54 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   }
   
   for(uint i=0;i<arrayValuesFriendFloat["stripCluster_x"]->size();i++){
+    string detName = subDetMap[arrayValuesFriendInt["stripCluster_subDet"]->at(i)];
     // convert cm to mm
-    event->trackerClusters.push_back(make_shared<Point>(10*arrayValuesFriendFloat["stripCluster_x"]->at(i),
-                                                        10*arrayValuesFriendFloat["stripCluster_y"]->at(i),
-                                                        10*arrayValuesFriendFloat["stripCluster_z"]->at(i),
-                                                        arrayValuesFriendInt["stripCluster_charge"]->at(i),
-                                                        subDetMap[arrayValuesFriendInt["stripCluster_subDet"]->at(i)],
-                                                        10*arrayValuesFriendFloat["stripCluster_ex"]->at(i),
-                                                        10*arrayValuesFriendFloat["stripCluster_ey"]->at(i),
-                                                        10*arrayValuesFriendFloat["stripCluster_ez"]->at(i)));
-    
-    
+    if(detName == "P1PXEC" || detName == "TID" || detName == "TEC"){
+      event->trackerClusters.push_back(make_shared<Point>(10*arrayValuesFriendFloat["stripCluster_x"]->at(i),
+                                                          10*arrayValuesFriendFloat["stripCluster_y"]->at(i),
+                                                          10*arrayValuesFriendFloat["stripCluster_z"]->at(i),
+                                                          arrayValuesFriendInt["stripCluster_charge"]->at(i),
+                                                          subDetMap[arrayValuesFriendInt["stripCluster_subDet"]->at(i)],
+                                                          10*arrayValuesFriendFloat["stripCluster_ex"]->at(i),
+                                                          10*arrayValuesFriendFloat["stripCluster_ez"]->at(i),
+                                                          10*arrayValuesFriendFloat["stripCluster_ey"]->at(i)));
+    }
+    else{
+      
+      event->trackerClusters.push_back(make_shared<Point>(10*arrayValuesFriendFloat["stripCluster_x"]->at(i),
+                                                          10*arrayValuesFriendFloat["stripCluster_y"]->at(i),
+                                                          10*arrayValuesFriendFloat["stripCluster_z"]->at(i),
+                                                          arrayValuesFriendInt["stripCluster_charge"]->at(i),
+                                                          subDetMap[arrayValuesFriendInt["stripCluster_subDet"]->at(i)],
+                                                          10*arrayValuesFriendFloat["stripCluster_ex"]->at(i),
+                                                          10*arrayValuesFriendFloat["stripCluster_ey"]->at(i),
+                                                          10*arrayValuesFriendFloat["stripCluster_ez"]->at(i)));
+    }
   }
   
   for(uint i=0;i<arrayValuesFriendFloat["pionCluster_x"]->size();i++){
+    string detName = subDetMap[arrayValuesFriendInt["pionCluster_subDet"]->at(i)];
     // convert cm to mm
-    event->pionClusters.push_back(make_shared<Point>(10*arrayValuesFriendFloat["pionCluster_x"]->at(i),
-                                                     10*arrayValuesFriendFloat["pionCluster_y"]->at(i),
-                                                     10*arrayValuesFriendFloat["pionCluster_z"]->at(i),
-                                                     arrayValuesFriendInt["pionCluster_charge"]->at(i),
-                                                     subDetMap[arrayValuesFriendInt["pionCluster_subDet"]->at(i)],
-                                                     10*arrayValuesFriendFloat["pionCluster_ex"]->at(i),
-                                                     10*arrayValuesFriendFloat["pionCluster_ey"]->at(i),
-                                                     10*arrayValuesFriendFloat["pionCluster_ez"]->at(i)));
+    if(detName == "P1PXEC" || detName == "TID" || detName == "TEC"){
+      event->pionClusters.push_back(make_shared<Point>(10*arrayValuesFriendFloat["pionCluster_x"]->at(i),
+                                                       10*arrayValuesFriendFloat["pionCluster_y"]->at(i),
+                                                       10*arrayValuesFriendFloat["pionCluster_z"]->at(i),
+                                                       arrayValuesFriendInt["pionCluster_charge"]->at(i),
+                                                       subDetMap[arrayValuesFriendInt["pionCluster_subDet"]->at(i)],
+                                                       10*arrayValuesFriendFloat["pionCluster_ex"]->at(i),
+                                                       10*arrayValuesFriendFloat["pionCluster_ez"]->at(i),
+                                                       10*arrayValuesFriendFloat["pionCluster_ey"]->at(i)));
+    }
+    else{
+      event->pionClusters.push_back(make_shared<Point>(10*arrayValuesFriendFloat["pionCluster_x"]->at(i),
+                                                       10*arrayValuesFriendFloat["pionCluster_y"]->at(i),
+                                                       10*arrayValuesFriendFloat["pionCluster_z"]->at(i),
+                                                       arrayValuesFriendInt["pionCluster_charge"]->at(i),
+                                                       subDetMap[arrayValuesFriendInt["pionCluster_subDet"]->at(i)],
+                                                       10*arrayValuesFriendFloat["pionCluster_ex"]->at(i),
+                                                       10*arrayValuesFriendFloat["pionCluster_ey"]->at(i),
+                                                       10*arrayValuesFriendFloat["pionCluster_ez"]->at(i)));
+    }
   }
   
   

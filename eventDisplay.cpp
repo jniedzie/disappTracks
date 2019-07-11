@@ -12,7 +12,7 @@ string cutLevel = "after_L1/all/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 268;
+int iEvent = 11;
 
 double endcapXYsize = 20;
 
@@ -118,7 +118,7 @@ void DrawHitsOrClusters(const shared_ptr<Event> event, int pointsType)
     if(hitsVector.size() == 0) continue;
     
     drawingOptions["title"] = (typeName+name).c_str();
-    display->DrawSimplePoints(hitsVector, drawingOptions);
+    display->DrawPoints(hitsVector, drawingOptions);
   }
 }
 
@@ -200,40 +200,12 @@ int main(int argc, char* argv[])
     cout<<"\n\nTrue pion helix:"<<endl;
     helix.Print();
   }
-	
-  for(auto p = allSimplePoints.begin(); p != allSimplePoints.end();){
-    shared_ptr<Point> point = *p;
-    if(   point->GetSubDetName() == "TID"
-       || point->GetSubDetName() == "TEC"
-       || point->GetSubDetName() == "P1PXEC"){
-//      p = allSimplePoints.erase(p);
-      point->SetXerr(endcapXYsize);
-      point->SetYerr(endcapXYsize);
-      point->SetZerr(1.0);
-      p++;
-    }
-    else p++;
-  }
   
 	if(fitHelix){
 		cout<<"Fitting best helix"<<endl;
 		auto fitter = make_unique<Fitter>();
     
     auto pionClusters = event->GetPionClusters();
-    
-    for(auto p = pionClusters.begin(); p != pionClusters.end();){
-      shared_ptr<Point> point = *p;
-      if(   point->GetSubDetName() == "TID"
-         || point->GetSubDetName() == "TEC"
-         || point->GetSubDetName() == "P1PXEC"){
-        //      p = allSimplePoints.erase(p);
-        point->SetXerr(endcapXYsize);
-        point->SetYerr(endcapXYsize);
-        point->SetZerr(1.0);
-        p++;
-      }
-      else p++;
-    }
     
     auto pointsByLayer = pointsProcessor.SortByLayer(allSimplePoints);
   
@@ -265,7 +237,7 @@ int main(int argc, char* argv[])
     
     pointsProcessor.SetPointsLayers(pionClusters);
     pointsProcessor.SetPointsDisks(pionClusters);
-    display->DrawSimplePoints(pionHitsOnly ? pionClusters : eventClusters, pionClustersOptions);
+    display->DrawPoints(pionHitsOnly ? pionClusters : eventClusters, pionClustersOptions);
     
     auto start = now();
     vector<Helix> fittedHelices;
@@ -316,7 +288,7 @@ int main(int argc, char* argv[])
       bestHelixOptions["title"] = ("Helix "+to_string(helix.GetSeedID())).c_str();
       
       display->DrawShrinkingHelix(helix, bestHelixOptions);
-      display->DrawSimplePoints(helix.GetPoints(), helixPointsOptions);
+      display->DrawPoints(helix.GetPoints(), helixPointsOptions);
     }
   }
   

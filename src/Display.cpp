@@ -16,33 +16,15 @@ Display::~Display()
   
 }
 
-void Display::DrawSimplePoints(const vector<shared_ptr<Point>> points, map<string,any> options)
+void Display::DrawPoints(const vector<shared_ptr<Point>> points, map<string,any> options)
 {
-//  TEvePointSetArray *simplePoints = PreparePointsEventDisplay(options);
-  auto pixelClusters = new TEveElementList(any_cast<const char*>(options["title"]));
-  auto stripClusters = new TEveElementList(any_cast<const char*>(options["title"]));
-  
-  for(auto &p : points){
-    if(p->GetSubDetName() != "TOB" &&
-       p->GetSubDetName() != "TIB" &&
-       p->GetSubDetName() != "TID" &&
-       p->GetSubDetName() != "TEC"){
-      AddStripCluster(pixelClusters, p, options);
-    }
-    else{
-      AddStripCluster(stripClusters, p, options);
-    }
-  }
-  
-//  simplePoints->SetRnrSelf(kTRUE);
-  
-//  gEve->AddElement(simplePoints);
-  gEve->AddElement(pixelClusters);
-  gEve->AddElement(stripClusters);
+  auto clusters = new TEveElementList(any_cast<const char*>(options["title"]));
+  for(auto &p : points) AddCluster(clusters, p, options);
+  gEve->AddElement(clusters);
   gEve->Redraw3D();
 }
 
-void Display::AddStripCluster(TEveElementList *stripClusters,
+void Display::AddCluster(TEveElementList *stripClusters,
                               const shared_ptr<Point> &point,
                               map<string,any> options)
 {
@@ -60,13 +42,33 @@ void Display::AddStripCluster(TEveElementList *stripClusters,
   if(errY < minSize) errY = minSize;
   if(errZ < minSize) errZ = minSize;
   
+  bool doRotate = false;
+  double rotationAngle = 0;
+  
+  if(point->GetSubDetName() == "P1PXEC" ||
+     point->GetSubDetName() == "TID" ||
+     point->GetSubDetName() == "TEC"){
+    
+    doRotate = true;
+    rotationAngle = -atan2(point->GetX(), point->GetY());
+  }
+  
   TEveBox *stripBox = new TEveBox("Strip");
   for(int i=0;i<8;i++){
     double x  = point->GetX() + a[i] * errX;
     double y  = point->GetY() + b[i] * errY;
+    
+    if(doRotate){
+      double v_x = x - point->GetX();
+      double v_y = y - point->GetY();
+      x = point->GetX() + cos(rotationAngle)*v_x - sin(rotationAngle)*v_y;
+      y = point->GetY() + sin(rotationAngle)*v_x + cos(rotationAngle)*v_y;
+    }
+    
     double z  = point->GetZ() + c[i] * errZ;
     stripBox->SetVertex(i,scale*x,scale*y,scale*z);
   }
+  
   
   stripBox->SetMainColor(any_cast<EColor>(options["color"]));
   stripBox->SetRnrSelf(true);

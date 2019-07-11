@@ -26,7 +26,7 @@ enum ETestParams {
   nTestParams
 };
 
-ETestParams testParam = kCharginoEta;
+ETestParams testParam = kNoBins;
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
