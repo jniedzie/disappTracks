@@ -36,6 +36,17 @@ eventVertex(Point(0, 0, 0))
       y = y0 + GetRofT(R0, a, tMin, t, charge)*sin(t);
       z = -charge*z0 + GetSofT(s0, b, tMin, t, charge)*t;
       
+      // In case of endcaps, rotate the point as is the strip rotated in XY plane
+      if(p->GetSubDetName() == "P1PXEC" || p->GetSubDetName() == "TID" || p->GetSubDetName() == "TEC"){
+
+        double rotationAngle = atan2(p->GetX(), p->GetY());
+
+        double v_x = p->GetX() - x;
+        double v_y = p->GetY() - y;
+        x = p->GetX() - cos(rotationAngle)*v_x - sin(rotationAngle)*v_y;
+        y = p->GetY() - sin(rotationAngle)*v_x + cos(rotationAngle)*v_y;
+      }
+      
       // calculate distance between helix and point's boundary (taking into account its errors)
       distX = distY = distZ = 0;
       

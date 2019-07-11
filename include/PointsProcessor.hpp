@@ -10,10 +10,7 @@
 #include "ConfigManager.hpp"
 #include "Track.hpp"
 
-typedef vector<shared_ptr<Point>> PointsTriplet; ///< Vector containing three points
-typedef pair<shared_ptr<Point>, shared_ptr<Point>> PointsPair;
-typedef vector<PointsTriplet> TripletsVector;    ///< Vector of triplets of points
-typedef vector<pair<PointsTriplet, PointsTriplet>> TripletPairsVector; ///< Vector of pairs of point triplets
+typedef vector<shared_ptr<Point>> Points; ///< Vector of Point objects
 
 class PointsProcessor;
 extern PointsProcessor pointsProcessor;

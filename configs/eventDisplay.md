@@ -85,7 +85,7 @@ n_track_hits: 2
 double_hit_max_distance:            10.0
 
 ### Constraints on seeds parameters:
-seed_max_chi2:                           0.1
+seed_max_chi2:                           0.2
 
 seed_middle_hit_min_delta_phi:   -0.4
 seed_middle_hit_max_delta_phi:  1.0
@@ -96,7 +96,7 @@ seed_last_hit_max_delta_phi:       1.0
 seed_last_hit_max_delta_z:          500
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             0.2
+track_max_chi2:                             2.0
 
 next_point_min_delta_phi:             -0.5
 next_point_max_delta_phi:            2.0
@@ -135,8 +135,8 @@ exp_slope_function:         0
 
 ### Let pion helix start one layer before/after the chargino track
 allow_one_less_layer: 0
-allow_one_more_layer: 0
-check_opposite_charge_below_Nlayers: 0
+allow_one_more_layer: 1
+check_opposite_charge_below_Nlayers: 5
 
 ### Limits of helix parameters:
 start_R0: 320

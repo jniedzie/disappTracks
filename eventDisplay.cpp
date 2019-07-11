@@ -12,9 +12,7 @@ string cutLevel = "after_L1/all/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 11;
-
-double endcapXYsize = 20;
+int iEvent = 36;
 
 // endcap track: 7, 18, 25, 40
 // endcap hits: 11, 24, 25, 36, 40
@@ -26,7 +24,7 @@ bool pionHitsOnly = false;
 bool removePionClusters = false;
 bool removeEncapClusters = false;
 
-Display *display;
+unique_ptr<Display> display;
 shared_ptr<EventSet> events;
 
 map<string,any> filteredPointsOptions = {
@@ -150,7 +148,7 @@ int main(int argc, char* argv[])
   TApplication theApp("App", &argc, argv);
   // create event display
   config = ConfigManager(configPath);
-  display = new Display();
+  display = make_unique<Display>();
 	
 	auto event = GetEvent();
 	
@@ -165,10 +163,6 @@ int main(int argc, char* argv[])
 	
 	display->DrawEvent(event, dedxOptions);
   event->Print();
-
-  // -----------------------------------------------------------------------------------------------------
-  // Helix fitting part
-  // -----------------------------------------------------------------------------------------------------
   
   cout<<"Preparing hits, track and pion's helix"<<endl;
   
@@ -177,7 +171,6 @@ int main(int argc, char* argv[])
   DrawHitsOrClusters(event, 2); // tracker clusters
   DrawHitsOrClusters(event, 3); // pion rec clusters
   
-  
 	const map<string,any> trueHelixOptions = {
 		{"title", "True helix"},
 		{"markerStyle", 20},
@@ -185,32 +178,23 @@ int main(int argc, char* argv[])
 		{"color", kGreen}
 	};
 	
-  auto allSimplePoints = event->GetClusters(removePionClusters, removeEncapClusters);
-  
-  vector<Helix> truePionHelices = event->GetGenPionHelices();
+  Helices truePionHelices = event->GetGenPionHelices();
   
   for(auto &helix : truePionHelices){
     display->DrawHelix(helix,trueHelixOptions);
-    //      helix.SetPoints(allSimplePoints);
-    //      auto helixPoints = helix.GetPoints();
-    //      filteredPointsOptions["title"] = "true helix points";
-    //      filteredPointsOptions["color"] = kRed;
-    //      display->DrawSimplePoints(helixPoints, filteredPointsOptions);
-    
-    cout<<"\n\nTrue pion helix:"<<endl;
-    helix.Print();
+    cout<<"\n\nTrue pion helix:"<<endl; helix.Print();
   }
   
 	if(fitHelix){
 		cout<<"Fitting best helix"<<endl;
 		auto fitter = make_unique<Fitter>();
     
-    auto pionClusters = event->GetPionClusters();
-    
-    auto pointsByLayer = pointsProcessor.SortByLayer(allSimplePoints);
+    Points pionClusters = event->GetPionClusters();
+    Points eventClusters = event->GetClusters(removePionClusters, removeEncapClusters);
+    vector<Points> clustersByLayer = pointsProcessor.SortByLayer(eventClusters);
   
     for(auto &track : event->GetTracks()){
-      for(shared_ptr<Point> point : pointsByLayer[track->GetNtrackerLayers()]){
+      for(shared_ptr<Point> point : clustersByLayer[track->GetNtrackerLayers()]){
         auto trackPoint = pointsProcessor.GetPointOnTrack(layerR[track->GetNtrackerLayers()], *track, *event->GetVertex());
         
         if(pointsProcessor.distance(make_shared<Point>(trackPoint), point) < 100){
@@ -230,17 +214,12 @@ int main(int argc, char* argv[])
       {"color", kCyan}
     };
 
-    vector<int> rndIndices = {};
-    
-    vector<shared_ptr<Point>> eventClusters = event->GetClusters(removePionClusters, removeEncapClusters);
-    
-    
-    pointsProcessor.SetPointsLayers(pionClusters);
-    pointsProcessor.SetPointsDisks(pionClusters);
+    pointsProcessor.SetPointsLayers(pionHitsOnly ? pionClusters : eventClusters);
+    pointsProcessor.SetPointsDisks(pionHitsOnly ? pionClusters : eventClusters);
     display->DrawPoints(pionHitsOnly ? pionClusters : eventClusters, pionClustersOptions);
     
     auto start = now();
-    vector<Helix> fittedHelices;
+    Helices fittedHelices;
     
     for(auto &track : event->GetTracks()){
       bool trackLayersOk = false;
@@ -256,9 +235,7 @@ int main(int argc, char* argv[])
       cout<<"\n\nTrack charge ok: "<<(chargeOk ? "YES" : "NO")<<endl;
       cout<<"Fitting for track: "; track->Print();
       
-//      vector<Helix> helices = fitter->FitHelices(pionHitsOnly ? pionClusters : pointsNoEndcaps, *track, *event->GetVertex());
-      
-      vector<Helix> helices = fitter->FitHelices(pionHitsOnly ? pionClusters : allSimplePoints, *track, *event->GetVertex());
+      Helices helices = fitter->FitHelices(pionHitsOnly ? pionClusters : eventClusters, *track, *event->GetVertex());
       
       fittedHelices.insert(fittedHelices.end(), helices.begin(), helices.end());
     }
@@ -284,15 +261,12 @@ int main(int argc, char* argv[])
     
     for(auto helix : fittedHelices){
       cout<<endl; helix.Print();
-      
-      bestHelixOptions["title"] = ("Helix "+to_string(helix.GetSeedID())).c_str();
-      
+      bestHelixOptions["title"] = ("Helix "+to_string(helix.GetUniqueID())).c_str();
       display->DrawShrinkingHelix(helix, bestHelixOptions);
       display->DrawPoints(helix.GetPoints(), helixPointsOptions);
     }
   }
   
-     
   gEve->Redraw3D(true);
   theApp.Run();
   return 0;

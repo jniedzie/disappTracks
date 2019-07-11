@@ -13,6 +13,8 @@
 #include "PointsProcessor.hpp"
 #include "Track.hpp"
 
+typedef vector<Helix> Helices; ///< Vector of Helix objects
+
 class HelixProcessor;
 extern HelixProcessor helixProcessor;
 
