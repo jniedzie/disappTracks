@@ -12,17 +12,17 @@ string cutLevel = "after_L1/all/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
-int iEvent = 27;
+int iEvent = 268;
 
 double endcapXYsize = 20;
 
-// endcap track: 7, 18, 25
-// endcap hits: 11, 24, 25
+// endcap track: 7, 18, 25, 40
+// endcap hits: 11, 24, 25, 36, 40
 // 17: nice endcap hits, but missing seed hits...
 
 bool fitHelix = true;
 
-bool pionHitsOnly = true;
+bool pionHitsOnly = false;
 bool removePionClusters = false;
 bool removeEncapClusters = false;
 

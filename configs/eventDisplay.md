@@ -58,7 +58,7 @@ n_tracker_layers: 4
 ### Limit number of events loaded (-1 means load all available)
 max_N_events_signal:  -1
 
-verbosity_level: 0
+verbosity_level: 2
 
 **Pion's parameters**
 
@@ -82,27 +82,27 @@ n_track_hits: 2
 **Fitter parameters**
 
 ### Maximum distance in 3D to consider two hits as overlapping ones (in mm):
-double_hit_max_distance:            20.0
+double_hit_max_distance:            10.0
 
 ### Constraints on seeds parameters:
-seed_max_chi2:                           0.08
+seed_max_chi2:                           0.1
 
 seed_middle_hit_min_delta_phi:   -0.4
-seed_middle_hit_max_delta_phi:  0.9
-seed_middle_hit_max_delta_z:     150
+seed_middle_hit_max_delta_phi:  1.0
+seed_middle_hit_max_delta_z:     500
 
 seed_last_hit_min_delta_phi:       -0.4
-seed_last_hit_max_delta_phi:       0.7
-seed_last_hit_max_delta_z:          250
+seed_last_hit_max_delta_phi:       1.0
+seed_last_hit_max_delta_z:          500
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             0.01
+track_max_chi2:                             0.2
 
 next_point_min_delta_phi:             -0.5
-next_point_max_delta_phi:            0.5
-next_point_max_delta_z:                300
-next_point_max_delta_xy:              250
-next_point_max_delta_t:                0.6
+next_point_max_delta_phi:            2.0
+next_point_max_delta_z:                500
+next_point_max_delta_xy:              500
+next_point_max_delta_t:                2.0
 
 track_min_n_points:                       3
 track_min_n_layers:                       2
@@ -135,18 +135,18 @@ exp_slope_function:         0
 
 ### Let pion helix start one layer before/after the chargino track
 allow_one_less_layer: 0
-allow_one_more_layer: 1
-check_opposite_charge_below_Nlayers: 5
+allow_one_more_layer: 0
+check_opposite_charge_below_Nlayers: 0
 
 ### Limits of helix parameters:
 start_R0: 320
 min_R0: 50
-max_R0: 1000
+max_R0: 600
 min_Rslope:  0
 max_Rslope: 10000
 
-min_S0: -1000
-max_S0: 1000
+min_S0: -10000
+max_S0: 10000
 min_Sslope: -1000
 max_Sslope: 0
 

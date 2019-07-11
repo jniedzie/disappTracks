@@ -176,8 +176,8 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer,
     int lastHitLayer = nTrackLayers-1;
     
     // regardless of the case, for barrel tracks next hit can always be just in the next barrel layer:
-    middleHitLayers.insert(lastHitLayer+1);
-    lastHitLayers.insert(lastHitLayer+2);
+    if(lastHitLayer+1 < pointsByLayer.size()) middleHitLayers.insert(lastHitLayer+1);
+    if(lastHitLayer+2 < pointsByLayer.size()) lastHitLayers.insert(lastHitLayer+2);
     
     if(lastHitLayer <= 2){
       middleHitDisks.insert(0);
@@ -200,8 +200,8 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer,
     
     // regardless of the case, for endcap tracks next hit can always be just in the next endcap layer:
     if(lastHitDisk >=0 && lastHitDisk <= 1){
-      middleHitDisks.insert(lastHitDisk+1);
-      lastHitDisks.insert(lastHitDisk+2);
+      if(lastHitDisk+1 < pointsByDisk.size()) middleHitDisks.insert(lastHitDisk+1);
+      if(lastHitDisk+2 < pointsByDisk.size()) lastHitDisks.insert(lastHitDisk+2);
     }
     else if(lastHitDisk == 2){
       middleHitDisks.insert(3);
@@ -225,6 +225,16 @@ vector<Helix> Fitter::GetSeeds(vector<vector<shared_ptr<Point>>> pointsByLayer,
       lastHitDisks.insert(13);
       lastHitDisks.insert(14);
       lastHitDisks.insert(15);
+    }
+    else if(lastHitDisk >=7 && lastHitDisk <= 10){
+      middleHitDisks.insert(11);
+      middleHitDisks.insert(12);
+      middleHitDisks.insert(13);
+      middleHitDisks.insert(14);
+      middleHitDisks.insert(15);
+      
+      lastHitDisks.insert(16);
+      lastHitDisks.insert(17);
     }
     
     if(lastHitDisk <= 3){
@@ -381,11 +391,16 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
         
         set<int> nextPointLayers;
         if(lastPointLayer >=0 ){
-          nextPointLayers.insert(helix.IsIncreasing() ? lastPointLayer+1 : lastPointLayer-1);
+          if(helix.IsIncreasing()){
+            if(lastPointLayer+1 < pointsByLayer.size()) nextPointLayers.insert(lastPointLayer+1);
+          }
+          else{
+            if(lastPointLayer-1 >= 0) nextPointLayers.insert(lastPointLayer-1);
+          }
         }
         set<int> nextPointDisks;
         if(lastPointDisk >=0 && lastPointDisk <= 1){
-          nextPointDisks.insert(lastPointDisk+1);
+          if(lastPointDisk+1 < pointsByDisk.size()) nextPointDisks.insert(lastPointDisk+1);
         }
         if(lastPointDisk ==2){
           nextPointDisks.insert(3);
@@ -411,7 +426,7 @@ void Fitter::ExtendSeeds(vector<Helix> &helices,
           nextPointDisks.insert(17);
         }
         if(lastPointDisk >=16){
-          nextPointDisks.insert(lastPointDisk+1);
+          if(lastPointDisk+1 < pointsByDisk.size()) nextPointDisks.insert(lastPointDisk+1);
         }
         
         if(lastPointDisk >= 0 && lastPointDisk <= 2) 	      nextPointLayers.insert(4);
