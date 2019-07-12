@@ -16,7 +16,7 @@ Display::~Display()
   
 }
 
-void Display::DrawPoints(const vector<shared_ptr<Point>> points, map<string,any> options)
+void Display::DrawPoints(const Points points, map<string,any> options)
 {
   auto clusters = new TEveElementList(any_cast<const char*>(options["title"]));
   for(auto &p : points) AddCluster(clusters, p, options);

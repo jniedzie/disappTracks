@@ -248,9 +248,9 @@ void Helix::RemoveLastPoint()
   
 }
 /*
-vector<shared_ptr<Point>> Helix::GetLastPoints() const
+Points Helix::GetLastPoints() const
 {
-  vector<shared_ptr<Point>> resultPoints;
+  Points resultPoints;
   
   if(points.back()->GetSubDetName()=="missing"){
     resultPoints.push_back(points.back());
@@ -291,9 +291,9 @@ vector<size_t> Helix::GetLastPointsIndices() const
   return resultIndices;
 }
 /*
-vector<shared_ptr<Point>> Helix::GetSecontToLastPoints() const
+Points Helix::GetSecontToLastPoints() const
 {
-  vector<shared_ptr<Point>> resultPoints;
+  Points resultPoints;
   
   int lastPointLayerOrDisk;
   bool endcapHit = points.back()->IsEndcapHit();
@@ -322,7 +322,7 @@ vector<shared_ptr<Point>> Helix::GetSecontToLastPoints() const
   return resultPoints;
 }
 */
-void Helix::SetLastPoints(vector<shared_ptr<Point>> _points)
+void Helix::SetLastPoints(Points _points)
 {
   vector<size_t> lastPointsIndices = GetLastPointsIndices();
   thirdToLastPoints = secondToLastPoints;
@@ -385,7 +385,7 @@ void Helix::SortPointsByT(bool inverted)
   sort(idx.begin(), idx.end(),
        [&](size_t i1, size_t i2) {return inverted ? pointsT[i1] > pointsT[i2] : pointsT[i1] < pointsT[i2];});
   
-  vector<shared_ptr<Point>> sortedPoints;
+  Points sortedPoints;
   vector<double> sortedPointsT;
   
   for(auto iter : idx){
@@ -396,7 +396,7 @@ void Helix::SortPointsByT(bool inverted)
   pointsT = sortedPointsT;
 }
 
-void Helix::SetPointsAndSortByT(const vector<shared_ptr<Point>> &_points, const vector<double> &_pointsT)
+void Helix::SetPointsAndSortByT(const Points &_points, const vector<double> &_pointsT)
 {
   points = _points;
   pointsT = _pointsT;
@@ -419,7 +419,7 @@ void Helix::SetPointsAndSortByT(const vector<shared_ptr<Point>> &_points, const 
   }
 }
 
-void Helix::SetPoints(const vector<shared_ptr<Point>> &_points)
+void Helix::SetPoints(const Points &_points)
 {
   points = _points;
 }

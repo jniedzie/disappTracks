@@ -39,7 +39,7 @@ map<string,any> filteredPointsOptions = {
 void DrawHitsOrClusters(const shared_ptr<Event> event, int pointsType)
 {
   
-  vector<shared_ptr<Point>> hitsOrClusters;
+  Points hitsOrClusters;
   
   map<string,any> drawingOptions = {
     {"markerStyle", (pointsType==2) ? 20 : 22},
@@ -78,7 +78,7 @@ void DrawHitsOrClusters(const shared_ptr<Event> event, int pointsType)
   pointsProcessor.SetPointsLayers(hitsOrClusters);
   pointsProcessor.SetPointsDisks(hitsOrClusters);
 
-  map<string, vector<shared_ptr<Point>>> hitsOrClustersBySubDet;
+  map<string, Points> hitsOrClustersBySubDet;
   
   map<int, string> subDetMap = {
     {0,  "PixelBarrel"},
@@ -105,7 +105,7 @@ void DrawHitsOrClusters(const shared_ptr<Event> event, int pointsType)
   };
   
   for(auto &[iter, name] : subDetMap){
-    hitsOrClustersBySubDet[name] = vector<shared_ptr<Point>>();
+    hitsOrClustersBySubDet[name] = Points();
   }
   
   for(auto &hit : hitsOrClusters){

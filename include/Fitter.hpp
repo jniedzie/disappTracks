@@ -50,7 +50,7 @@ private:
   /// Checks parameters of all combinations of points in layers close to the decay point
   /// and returns vector of 3-layer helices constructed from them
   Helices GetSeeds(vector<Points> pointsByLayer,
-                         vector<Points> pointsByDisk);
+                   vector<Points> pointsByDisk);
   
   /// Fits helix of given charge to the collection of points provided
   /// \return Resulting helix may be a nullptr if something went wrong (e.g. parameters of helix fitting
@@ -95,8 +95,6 @@ private:
   
   /// Sets L limits and starting value based on the curent number of tracker layers
   void InitLparams();
-  
-  double GetMinHelixToPointDistance(const double *params, double tMin, const Point &point, double alpha);
 };
 
 #endif /* Fitter_hpp */

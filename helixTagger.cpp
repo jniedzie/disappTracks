@@ -165,8 +165,8 @@ int main(int argc, char* argv[])
       auto pointsSignal     = event->GetClusters(false, removeEndcapClusters);
       auto pointsBackground = event->GetClusters(true, removeEndcapClusters);
       
-      vector<Helix> fittedHelicesSignal     = fitter->FitHelices(pointsSignal, *track, *event->GetVertex());
-      vector<Helix> fittedHelicesBackground = fitter->FitHelices(pointsBackground, *track, *event->GetVertex());
+      Helices fittedHelicesSignal     = fitter->FitHelices(pointsSignal, *track, *event->GetVertex());
+      Helices fittedHelicesBackground = fitter->FitHelices(pointsBackground, *track, *event->GetVertex());
       
       // for(auto helix : fittedHelicesSignal) event->AddHelix(move(fittedHelix));
       

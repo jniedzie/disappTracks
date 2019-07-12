@@ -79,9 +79,9 @@ void Event::Print(){
   cout<<"================================================\n\n"<<endl;
 }
 
-vector<shared_ptr<Point>> Event::GetClusters(bool removePionClusters, bool removeEndcapClusters)
+Points Event::GetClusters(bool removePionClusters, bool removeEndcapClusters)
 {
-  vector<shared_ptr<Point>> resultClusters;
+  Points resultClusters;
   
   for(auto &point : trackerClusters){
     if(removeEndcapClusters &&

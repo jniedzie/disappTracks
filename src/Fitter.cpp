@@ -24,7 +24,7 @@ eventVertex(Point(0, 0, 0))
     for(auto &p : fittingPoints){
       if(p->GetSubDetName()=="missing") continue;
       
-      double totalDistance = GetMinHelixToPointDistance(par, tMin, *p, 0);
+      double totalDistance = pointsProcessor.GetMinHelixToPointDistance(par, tMin, *p, 0, charge);
       double totalDistEdge = inf;
       
       // In case of endcaps, check if one of the strip edges doesn't give better results
@@ -46,8 +46,8 @@ eventVertex(Point(0, 0, 0))
                     p_m.GetY() - (sizeY * cos(alpha))/pow(2, i),
                     p_m.GetZ());
         
-          double dist_l = GetMinHelixToPointDistance(par, tMin, p_l, alpha);
-          double dist_r = GetMinHelixToPointDistance(par, tMin, p_r, alpha);
+          double dist_l = pointsProcessor.GetMinHelixToPointDistance(par, tMin, p_l, alpha, charge);
+          double dist_r = pointsProcessor.GetMinHelixToPointDistance(par, tMin, p_r, alpha, charge);
           
           if(dist_l < dist_r) p_m = p_l;
           else                p_m = p_r;
@@ -75,64 +75,7 @@ Fitter::~Fitter()
   
 }
 
-double Fitter::GetMinHelixToPointDistance(const double *params, double tMin, const Point &point, double alpha)
-{
-  double R0 = params[0];
-  double a  = params[1];
-  double s0 = params[2];
-  double b  = params[3];
-  
-  double x0 = params[5];
-  double y0 = params[6];
-  double z0 = params[7];
-  
-  double t = pointsProcessor.GetTforPoint(point, Point(x0, y0, z0), charge);
-  double x = x0 + GetRofT(R0, a, tMin, t, charge)*cos(t);
-  double y = y0 + GetRofT(R0, a, tMin, t, charge)*sin(t);
-  double z = -charge*z0 + GetSofT(s0, b, tMin, t, charge)*t;
-  
-  if(point.IsEndcapHit()){
-    double v_x = point.GetX() - x;
-    double v_y = point.GetY() - y;
-    double cos_alpha = cos(alpha);
-    double sin_alpha = sin(alpha);
-    x = point.GetX() - cos_alpha*v_x + sin_alpha*v_y;
-    y = point.GetY() + sin_alpha*v_x + cos_alpha*v_y;
-  }
-  
-  double distX=0, distY=0, distZ=0;
-  
-  if(fabs(x-point.GetX()) > point.GetXerr()){
-    double distX_1 = x - (point.GetX() + point.GetXerr());
-    double distX_2 = x - (point.GetX() - point.GetXerr());
-    distX = min(pow(distX_1, 2), pow(distX_2, 2));
-  }
-  if(fabs(y-point.GetY()) > point.GetYerr()){
-    double distY_1 = y - (point.GetY() + point.GetYerr());
-    double distY_2 = y - (point.GetY() - point.GetYerr());
-    distY = min(pow(distY_1, 2), pow(distY_2, 2));
-  }
-  if(fabs(z-point.GetZ()) > point.GetZerr()){
-    double distZ_1 = z - (point.GetZ() + point.GetZerr());
-    double distZ_2 = z - (point.GetZ() - point.GetZerr());
-    distZ = min(pow(distZ_1, 2), pow(distZ_2, 2));
-  }
-  
-  double dist3D = distX + distY + distZ;
-  
-  dist3D /= sqrt(pow(point.GetX(), 2)+
-                 pow(point.GetY(), 2)+
-                 pow(point.GetZ(), 2));
-  
-  return dist3D;
-  
-//  distX /= fabs(point.GetX());
-//  distY /= fabs(point.GetY());
-//  distZ /= fabs(point.GetZ());
-//  return distX + distY + distZ;
-}
-
-vector<Helix> Fitter::FitHelices(const Points &_points,
+Helices Fitter::FitHelices(const Points &_points,
                                  const Track &_track,
                                  const Point &_eventVertex)
 {
@@ -143,12 +86,12 @@ vector<Helix> Fitter::FitHelices(const Points &_points,
   InitLparams();
   charge = track.GetCharge();
 
-  vector<Helix> fittedHelices = PerformFittingCycle();
+  Helices fittedHelices = PerformFittingCycle();
   
   if(nTrackLayers < config.params["check_opposite_charge_below_Nlayers"]){
     if(config.params["verbosity_level"]>0) cout<<"Checking opposite charge for default n layers"<<endl;
     charge = -charge;
-    vector<Helix> fittedHelicesOpposite = PerformFittingCycle();
+    Helices fittedHelicesOpposite = PerformFittingCycle();
     fittedHelices.insert(fittedHelices.end(), fittedHelicesOpposite.begin(), fittedHelicesOpposite.end());
     charge = -charge;
   }
@@ -157,13 +100,13 @@ vector<Helix> Fitter::FitHelices(const Points &_points,
     if(config.params["verbosity_level"]>0) cout<<"Assuming one less layer"<<endl;
     nTrackLayers-=1;
     InitLparams();
-    vector<Helix> fittedHelicesOneLess = PerformFittingCycle();
+    Helices fittedHelicesOneLess = PerformFittingCycle();
     fittedHelices.insert(fittedHelices.end(), fittedHelicesOneLess.begin(), fittedHelicesOneLess.end());
     
     if(nTrackLayers < config.params["check_opposite_charge_below_Nlayers"]){
       if(config.params["verbosity_level"]>0) cout<<"Checking opposite charge for one less layer"<<endl;
       charge = -charge;
-      vector<Helix> fittedHelicesOpposite = PerformFittingCycle();
+      Helices fittedHelicesOpposite = PerformFittingCycle();
       fittedHelices.insert(fittedHelices.end(), fittedHelicesOpposite.begin(), fittedHelicesOpposite.end());
       charge = -charge;
     }
@@ -174,13 +117,13 @@ vector<Helix> Fitter::FitHelices(const Points &_points,
     if(config.params["verbosity_level"]>0) cout<<"Assuming one more layer"<<endl;
     nTrackLayers+=1;
     InitLparams();
-    vector<Helix> fittedHelicesOneMore = PerformFittingCycle();
+    Helices fittedHelicesOneMore = PerformFittingCycle();
     fittedHelices.insert(fittedHelices.end(), fittedHelicesOneMore.begin(), fittedHelicesOneMore.end());
     
     if(nTrackLayers < config.params["check_opposite_charge_below_Nlayers"]){
       if(config.params["verbosity_level"]>0) cout<<"Checking opposite charge for one more layer"<<endl;
       charge = -charge;
-      vector<Helix> fittedHelicesOpposite = PerformFittingCycle();
+      Helices fittedHelicesOpposite = PerformFittingCycle();
       fittedHelices.insert(fittedHelices.end(), fittedHelicesOpposite.begin(), fittedHelicesOpposite.end());
       charge = -charge;
     }
@@ -191,7 +134,7 @@ vector<Helix> Fitter::FitHelices(const Points &_points,
   return fittedHelices;
 }
 
-vector<Helix> Fitter::PerformFittingCycle()
+Helices Fitter::PerformFittingCycle()
 {
   vector<Points> pointsByLayer = pointsProcessor.SortByLayer(points);
   vector<Points> pointsByDisk  = pointsProcessor.SortByDisk(points);
@@ -210,7 +153,7 @@ vector<Helix> Fitter::PerformFittingCycle()
   return fittedHelices;
 }
 
-vector<Helix> Fitter::GetSeeds(vector<Points> pointsByLayer, vector<Points> pointsByDisk)
+Helices Fitter::GetSeeds(vector<Points> pointsByLayer, vector<Points> pointsByDisk)
 {
   Helices seeds;
 
@@ -679,7 +622,7 @@ void Fitter::RefitHelix(Helix &helix)
   helix.SetChi2(result.MinFcnValue());
 }
 
-void Fitter::MergeHelices(vector<Helix> &helices)
+void Fitter::MergeHelices(Helices &helices)
 {
   if(config.params["verbosity_level"]>0) cout<<"Merging overlapping helices...";
   
@@ -798,7 +741,7 @@ void Fitter::GetXYranges(const Point &trackPoint,
   else              maxY0 += config.params["max_R0"]/sqrt(pow(y/x, 2)+1);
 }
 
-void Fitter::RemoveShortHelices(vector<Helix> &helices)
+void Fitter::RemoveShortHelices(Helices &helices)
 {
   if(config.params["verbosity_level"]>0) cout<<"Removing very short merged helices...";
   Helices longHelices;
@@ -812,7 +755,7 @@ void Fitter::RemoveShortHelices(vector<Helix> &helices)
   helices = longHelices;
 }
 
-bool Fitter::LinkAndMergeHelices(vector<Helix> &helices)
+bool Fitter::LinkAndMergeHelices(Helices &helices)
 {
   // Merge helices that are very similar to each other
   bool merged = false;
@@ -911,7 +854,7 @@ bool Fitter::LinkAndMergeHelices(vector<Helix> &helices)
   }
   
   // Store all helices that were not merged into another helix
-  vector<Helix> goodHelices;
+  Helices goodHelices;
   for(int iHelix=0; iHelix<helixLinks.size(); iHelix++){
     if(find(toRemove.begin(), toRemove.end(), iHelix) != toRemove.end()) continue;
     goodHelices.push_back(helixLinks[iHelix].first);

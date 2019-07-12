@@ -113,7 +113,7 @@ void SetupHists()
   }
 }
 
-range<double> GetPointsRingSize(vector<shared_ptr<Point>> points)
+range<double> GetPointsRingSize(Points points)
 {
   sort(points.begin(), points.end(), PointsProcessor::ComparePointByX());
   double minX = points.front()->GetX();
@@ -136,7 +136,7 @@ range<double> GetPointsRingSize(vector<shared_ptr<Point>> points)
   return range<double>(minDistanceToCenter, maxDistanceToCenter);
 }
 
-shared_ptr<Point> FindClusterForHit(const Point &hit, const vector<shared_ptr<Point>> &clusters)
+shared_ptr<Point> FindClusterForHit(const Point &hit, const Points &clusters)
 {
   for(auto &cluster : clusters){
     if(fabs(hit.GetX() - cluster->GetX()) < 1 &&

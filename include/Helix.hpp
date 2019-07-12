@@ -64,9 +64,9 @@ public:
   // Setters
   inline void   SetCharge(int val)            { charge = val; }
   inline void   SetMomentum(const Point &val) { momentum = make_unique<Point>(val); }
-  void          SetPointsAndSortByT(const vector<shared_ptr<Point>> &points,
+  void          SetPointsAndSortByT(const Points &points,
                                     const vector<double> &_pointsT);
-  void          SetPoints(const vector<shared_ptr<Point>> &_points);
+  void          SetPoints(const Points &_points);
   
   void          SetVertex(const Point &_vertex);
   inline void   SetShouldRefit(bool val) { shouldRefit = val; }
@@ -76,7 +76,7 @@ public:
   inline void   SetIsPreviousHitMissing(bool val){ isPreviousHitMissing = val; }
   inline void   SetFirstTurningPointIndex(int val){ firstTurningPointIndex = val; }
   
-  void SetLastPoints(vector<shared_ptr<Point>> _points);
+  void SetLastPoints(Points _points);
   
   /// Increases number of missing hits and missing hits in a row (based on isPreviousHitMissing
   /// variable, which should be set by the user).
@@ -101,12 +101,12 @@ public:
   inline shared_ptr<Point>    GetVertex()   const {return points.front();}
   inline unique_ptr<Point>    GetMomentum() const {return make_unique<Point>(*momentum);}
   
-  vector<shared_ptr<Point>>   GetPoints()   const {return points;}
+  Points   GetPoints()   const {return points;}
   vector<double>              GetPointsT()  const {return pointsT;}
   
   double GetPointT(size_t index) const {return pointsT[index];}
-  vector<shared_ptr<Point>>   GetLastPoints() const { return lastPoints; }
-  vector<shared_ptr<Point>>   GetSecontToLastPoints() const {return secondToLastPoints; }
+  Points   GetLastPoints() const { return lastPoints; }
+  Points   GetSecontToLastPoints() const {return secondToLastPoints; }
   
   vector<size_t>   GetLastPointsIndices() const;
   
@@ -128,10 +128,10 @@ public:
   
 private:
   Point origin;                     ///< Center of the helix
-  vector<shared_ptr<Point>> points; ///< Vector of points laying on the helix
-  vector<shared_ptr<Point>> lastPoints;         ///< Last points on helix
-  vector<shared_ptr<Point>> secondToLastPoints; ///< Second to last points on helix
-  vector<shared_ptr<Point>> thirdToLastPoints; ///< Second to last points on helix
+  Points points; ///< Vector of points laying on the helix
+  Points lastPoints;         ///< Last points on helix
+  Points secondToLastPoints; ///< Second to last points on helix
+  Points thirdToLastPoints; ///< Second to last points on helix
   
   vector<double> pointsT;           ///< T values of points
   

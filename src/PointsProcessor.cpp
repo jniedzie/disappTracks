@@ -31,10 +31,10 @@ double PointsProcessor::distanceXY(Point p1, Point p2) const
   return sqrt(pow(p1.x-p2.x,2)+pow(p1.y-p2.y,2));
 }
 
-vector<vector<shared_ptr<Point>>> PointsProcessor::SortByLayer(const vector<shared_ptr<Point>> &points)
+vector<Points> PointsProcessor::SortByLayer(const Points &points)
 {
-  vector<vector<shared_ptr<Point>>> pointsByLayer;
-  for(int iLayer=0; iLayer<layerRanges.size(); iLayer++) pointsByLayer.push_back(vector<shared_ptr<Point>>());
+  vector<Points> pointsByLayer;
+  for(int iLayer=0; iLayer<layerRanges.size(); iLayer++) pointsByLayer.push_back(Points());
   
   for(auto &p : points){
     if(p->GetSubDetName() == "P1PXEC" ||
@@ -57,11 +57,11 @@ vector<vector<shared_ptr<Point>>> PointsProcessor::SortByLayer(const vector<shar
   return pointsByLayer;
 }
 
-vector<vector<shared_ptr<Point>>> PointsProcessor::SortByDisk(const vector<shared_ptr<Point>> &points)
+vector<Points> PointsProcessor::SortByDisk(const Points &points)
 {
-  vector<vector<shared_ptr<Point>>> pointsByDisk;
+  vector<Points> pointsByDisk;
   for(size_t iDisk= 0; iDisk<2*diskRanges.size()+1; iDisk++){
-    pointsByDisk.push_back(vector<shared_ptr<Point>>());
+    pointsByDisk.push_back(Points());
   }
   
   for(auto &p : points){
@@ -89,7 +89,7 @@ vector<vector<shared_ptr<Point>>> PointsProcessor::SortByDisk(const vector<share
   return pointsByDisk;
 }
 
-void PointsProcessor::SetPointsLayers(vector<shared_ptr<Point>> &points)
+void PointsProcessor::SetPointsLayers(Points &points)
 {
   for(auto &p : points){
     if(p->GetSubDetName() == "P1PXEC" ||
@@ -109,7 +109,7 @@ void PointsProcessor::SetPointsLayers(vector<shared_ptr<Point>> &points)
   }
 }
 
-void PointsProcessor::SetPointsDisks(vector<shared_ptr<Point>> &points)
+void PointsProcessor::SetPointsDisks(Points &points)
 {
   for(auto &p : points){
     if(p->GetSubDetName() == "P1PXB" ||
@@ -227,9 +227,9 @@ double PointsProcessor::GetTforPoint(const Point &point, const Point &origin, in
 }
 
 
-vector<vector<shared_ptr<Point>>> PointsProcessor::RegroupNerbyPoints(const vector<shared_ptr<Point>> &points)
+vector<Points> PointsProcessor::RegroupNerbyPoints(const Points &points)
 {
-  vector<vector<shared_ptr<Point>>> regroupedPoints;
+  vector<Points> regroupedPoints;
   vector<int> alreadyRegroupedIndices;
   
   for(int iPoint1=0; iPoint1<points.size(); iPoint1++){
@@ -237,7 +237,7 @@ vector<vector<shared_ptr<Point>>> PointsProcessor::RegroupNerbyPoints(const vect
       continue;
     }
     
-    vector<shared_ptr<Point>> thisPointNeighbours;
+    Points thisPointNeighbours;
     thisPointNeighbours.push_back(points[iPoint1]);
     
     for(int iPoint2=iPoint1+1; iPoint2<points.size(); iPoint2++){
@@ -253,8 +253,8 @@ vector<vector<shared_ptr<Point>>> PointsProcessor::RegroupNerbyPoints(const vect
   return regroupedPoints;
 }
 
-bool PointsProcessor::IsPhiGood(const vector<shared_ptr<Point>> &lastPoints,
-                                const vector<shared_ptr<Point>> &secondToLastPoints,
+bool PointsProcessor::IsPhiGood(const Points &lastPoints,
+                                const Points &secondToLastPoints,
                                 const shared_ptr<Point> &point,
                                 int charge)
 {
@@ -285,7 +285,7 @@ bool PointsProcessor::IsPhiGood(const vector<shared_ptr<Point>> &lastPoints,
   return goodPhi;
 }
 
-bool PointsProcessor::IsZgood(const vector<shared_ptr<Point>> &lastPoints,
+bool PointsProcessor::IsZgood(const Points &lastPoints,
                               const shared_ptr<Point> &point)
 {
   bool goodZ = false;
@@ -377,12 +377,12 @@ bool PointsProcessor::IsGoodLastSeedHit(const Point &point,
   return true;
 }
 
-vector<shared_ptr<Point>> PointsProcessor::GetGoodMiddleSeedHits(const vector<shared_ptr<Point>> &middlePoints,
+Points PointsProcessor::GetGoodMiddleSeedHits(const Points &middlePoints,
                                                                  const Point &trackMidPoint,
                                                                  const Point &eventVertex,
                                                                  int charge)
 {
-  vector<shared_ptr<Point>> goodMiddlePoints;
+  Points goodMiddlePoints;
   for(auto &point : middlePoints){
     if(!pointsProcessor.IsGoodMiddleSeedHit(*point, trackMidPoint, eventVertex, charge)) continue;
     goodMiddlePoints.push_back(point);
@@ -390,12 +390,12 @@ vector<shared_ptr<Point>> PointsProcessor::GetGoodMiddleSeedHits(const vector<sh
   return goodMiddlePoints;
 }
 
-vector<shared_ptr<Point>> PointsProcessor::GetGoodLastSeedHits(const vector<shared_ptr<Point>> &lastPoints,
-                                                               const vector<shared_ptr<Point>> &goodMiddlePoints,
+Points PointsProcessor::GetGoodLastSeedHits(const Points &lastPoints,
+                                                               const Points &goodMiddlePoints,
                                                                const Point &trackMidPoint,
                                                                int charge)
 {
-  vector<shared_ptr<Point>> goodLastPoints;
+  Points goodLastPoints;
   for(auto &point : lastPoints){
     for(auto &middlePoint : goodMiddlePoints){
       if(!pointsProcessor.IsGoodLastSeedHit(*point, *middlePoint, trackMidPoint, charge)) continue;
@@ -404,4 +404,57 @@ vector<shared_ptr<Point>> PointsProcessor::GetGoodLastSeedHits(const vector<shar
     }
   }
   return goodLastPoints;
+}
+
+double PointsProcessor::GetMinHelixToPointDistance(const double *params, double tMin,
+                                                   const Point &point, double alpha, int charge)
+{
+  double R0 = params[0];
+  double a  = params[1];
+  double s0 = params[2];
+  double b  = params[3];
+  
+  double x0 = params[5];
+  double y0 = params[6];
+  double z0 = params[7];
+  
+  double t = pointsProcessor.GetTforPoint(point, Point(x0, y0, z0), charge);
+  double x = x0 + GetRofT(R0, a, tMin, t, charge)*cos(t);
+  double y = y0 + GetRofT(R0, a, tMin, t, charge)*sin(t);
+  double z = -charge*z0 + GetSofT(s0, b, tMin, t, charge)*t;
+  
+  if(point.IsEndcapHit()){
+    double v_x = point.GetX() - x;
+    double v_y = point.GetY() - y;
+    double cos_alpha = cos(alpha);
+    double sin_alpha = sin(alpha);
+    x = point.GetX() - cos_alpha*v_x + sin_alpha*v_y;
+    y = point.GetY() + sin_alpha*v_x + cos_alpha*v_y;
+  }
+  
+  double distX=0, distY=0, distZ=0;
+  
+  if(fabs(x-point.GetX()) > point.GetXerr()){
+    double distX_1 = x - (point.GetX() + point.GetXerr());
+    double distX_2 = x - (point.GetX() - point.GetXerr());
+    distX = min(pow(distX_1, 2), pow(distX_2, 2));
+  }
+  if(fabs(y-point.GetY()) > point.GetYerr()){
+    double distY_1 = y - (point.GetY() + point.GetYerr());
+    double distY_2 = y - (point.GetY() - point.GetYerr());
+    distY = min(pow(distY_1, 2), pow(distY_2, 2));
+  }
+  if(fabs(z-point.GetZ()) > point.GetZerr()){
+    double distZ_1 = z - (point.GetZ() + point.GetZerr());
+    double distZ_2 = z - (point.GetZ() - point.GetZerr());
+    distZ = min(pow(distZ_1, 2), pow(distZ_2, 2));
+  }
+  
+  double dist3D = distX + distY + distZ;
+  
+  dist3D /= sqrt(pow(point.GetX(), 2)+
+                 pow(point.GetY(), 2)+
+                 pow(point.GetZ(), 2));
+  
+  return dist3D;
 }

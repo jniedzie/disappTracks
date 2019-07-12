@@ -27,7 +27,7 @@ public:
   /// Visualizes vector of points
   /// \param points Points to be visualized
   /// \param options Map containing plotting options
-  void DrawPoints(const vector<shared_ptr<Point>> points, map<string,any> options);
+  void DrawPoints(const Points points, map<string,any> options);
   
   /// Visualizes a helix
   /// \param helix Helix to be visualized

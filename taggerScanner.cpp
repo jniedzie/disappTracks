@@ -25,8 +25,8 @@ auto helixFitter = make_unique<Fitter>();
 shared_ptr<Event> GetEvent(int iEvent);
 
 vector<shared_ptr<Event>> events;
-vector<vector<shared_ptr<Point>>> pointsNoEndcapsSignal;
-vector<vector<shared_ptr<Point>>> pointsNoEndcapsBackground;
+vector<Points> pointsNoEndcapsSignal;
+vector<Points> pointsNoEndcapsBackground;
 
 vector<string> monitorTypes = {
   "avg_hits",
@@ -77,8 +77,8 @@ void CheckParamForCurrentConfig(string paramName)
     auto event = events[iEvent];
     
     for(auto &track : event->GetTracks()){
-      vector<Helix> fittedHelicesSignal = helixFitter->FitHelices(pointsNoEndcapsSignal[iEvent], *track, *event->GetVertex());
-      vector<Helix> fittedHelicesBackground = helixFitter->FitHelices(pointsNoEndcapsBackground[iEvent], *track, *event->GetVertex());
+      Helices fittedHelicesSignal = helixFitter->FitHelices(pointsNoEndcapsSignal[iEvent], *track, *event->GetVertex());
+      Helices fittedHelicesBackground = helixFitter->FitHelices(pointsNoEndcapsBackground[iEvent], *track, *event->GetVertex());
       
       for(string monitorType : monitorTypes){
         monitors[monitorType].SetValues(helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesSignal, monitorType),

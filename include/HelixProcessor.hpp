@@ -52,7 +52,7 @@ public:
   
   size_t GetNcommonPoints(const Helix &helix1, const Helix &helix2);
   
-  double GetHelicesParamsByMonitorName(vector<Helix> helices, string monitorName){
+  double GetHelicesParamsByMonitorName(Helices helices, string monitorName){
     if(monitorName == "avg_hits")   return GetAvgNhits(helices);
     if(monitorName == "max_hits")   return GetMaxNhits(helices);
     if(monitorName == "avg_layers") return GetAvgNlayers(helices);
@@ -63,15 +63,15 @@ public:
     return -inf;
   }
   
-  double GetAvgNhits(vector<Helix> helices);
-  int GetMaxNhits(vector<Helix> helices);
-  int GetAvgNlayers(vector<Helix> helices);
-  int GetMaxNlayers(vector<Helix> helices);
-  double GetAvgLength(vector<Helix> helices);
-  double GetMaxLength(vector<Helix> helices);
-  double GetMinChi2(vector<Helix> helices);
-  double GetMinChi2overNhits(vector<Helix> helices);
-  bool DidTurnBack(vector<Helix> helices);
+  double GetAvgNhits(Helices helices);
+  int GetMaxNhits(Helices helices);
+  int GetAvgNlayers(Helices helices);
+  int GetMaxNlayers(Helices helices);
+  double GetAvgLength(Helices helices);
+  double GetMaxLength(Helices helices);
+  double GetMinChi2(Helices helices);
+  double GetMinChi2overNhits(Helices helices);
+  bool DidTurnBack(Helices helices);
   
 private:
   static const int maxNhelices = 1000;   ///< Maximum supported number of helices per event

@@ -32,10 +32,10 @@ public:
   double distanceXY(Point p1, Point p2) const;
   
   /// Sorts provided points by layer 
-  vector<vector<shared_ptr<Point>>> SortByLayer(const vector<shared_ptr<Point>> &points);
+  vector<Points> SortByLayer(const Points &points);
   
   /// Sorts points by disk (from -N to -1 and from 1 to N)
-  vector<vector<shared_ptr<Point>>> SortByDisk(const vector<shared_ptr<Point>> &points);
+  vector<Points> SortByDisk(const Points &points);
   
   /// Returns an angle between (p2-p1) vector and (p1-p0) vector shifted to start in p1
   double GetPointingAngle(const Point &p0, const Point &p1, const Point &p2);
@@ -52,32 +52,41 @@ public:
   Point GetPointOnTrack(double L, const Track &track, const Point &eventVertex);
   
   
-  vector<vector<shared_ptr<Point>>> RegroupNerbyPoints(const vector<shared_ptr<Point>> &points);
+  vector<Points> RegroupNerbyPoints(const Points &points);
   
   double GetTforPoint(const Point &point, const Point &origin, int charge);
   
-  void SetPointsLayers(vector<shared_ptr<Point>> &points);
-  void SetPointsDisks(vector<shared_ptr<Point>> &points);
+  void SetPointsLayers(Points &points);
+  void SetPointsDisks(Points &points);
   
-  bool IsPhiGood(const vector<shared_ptr<Point>> &lastPoints,
-                 const vector<shared_ptr<Point>> &secondToLastPoints,
+  bool IsPhiGood(const Points &lastPoints,
+                 const Points &secondToLastPoints,
                  const shared_ptr<Point> &point,
                  int charge);
   
-  bool IsZgood(const vector<shared_ptr<Point>> &lastPoints,
+  bool IsZgood(const Points &lastPoints,
                const shared_ptr<Point> &point);
   
   bool IsTgood(const vector<double> &lastPointsT, double pointT);
   
-  vector<shared_ptr<Point>> GetGoodMiddleSeedHits(const vector<shared_ptr<Point>> &middlePoints,
+  Points GetGoodMiddleSeedHits(const Points &middlePoints,
                                                   const Point &trackMidPoint,
                                                   const Point &eventVertex,
                                                   int charge);
   
-  vector<shared_ptr<Point>> GetGoodLastSeedHits(const vector<shared_ptr<Point>> &lastPoints,
-                                                const vector<shared_ptr<Point>> &goodMiddlePoints,
+  Points GetGoodLastSeedHits(const Points &lastPoints,
+                                                const Points &goodMiddlePoints,
                                                 const Point &trackMidPoint,
                                                 int charge);
+  
+  /// Finds minimum distance between helix and point
+  /// \param params Helix parameters: {R0, a, s0, b, L, x0, y0, z0}
+  /// \param tMin t param of the decay vertex
+  /// \param point Point to which the distane will be calculated
+  /// \param alpha Rotation angle of the cluster in transverse plane
+  /// \param charge Assumed track's charge
+  double GetMinHelixToPointDistance(const double *params, double tMin,
+                                    const Point &point, double alpha, int charge);
   
   /// Structs for sorting points
   struct ComparePointByZ{

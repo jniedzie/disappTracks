@@ -23,13 +23,13 @@ int setIter = kWino_M_300_cTau_10;
 string monitorType = "";
 string optimizationParam = "";
 
-vector<shared_ptr<Point>> GetClustersNoEndcaps(const shared_ptr<Event> &event, bool removePionClusters);
+Points GetClustersNoEndcaps(const shared_ptr<Event> &event, bool removePionClusters);
 
-double GetAvgNhits(vector<Helix> helices);
-int    GetMaxNhits(vector<Helix> helices);
-int    GetMaxNlayers(vector<Helix> helices);
-double GetAvgLength(vector<Helix> helices);
-double GetMaxLength(vector<Helix> helices);
+double GetAvgNhits(Helices helices);
+int    GetMaxNhits(Helices helices);
+int    GetMaxNlayers(Helices helices);
+double GetAvgLength(Helices helices);
+double GetMaxLength(Helices helices);
 
 shared_ptr<Event> GetEvent(int iEvent);
 
@@ -45,8 +45,8 @@ void SetParameter(TFitter *fitter, int i,
 
 auto helixFitter = make_unique<Fitter>();
 vector<shared_ptr<Event>> events;
-vector<vector<shared_ptr<Point>>> pointsNoEndcapsSignal;
-vector<vector<shared_ptr<Point>>> pointsNoEndcapsBackground;
+vector<Points> pointsNoEndcapsSignal;
+vector<Points> pointsNoEndcapsBackground;
 
 int nFreeParams=0;
 
@@ -92,8 +92,8 @@ void chi2Function(Int_t&, Double_t*, Double_t &f, Double_t *par, Int_t)
     auto event = events[iEvent];
     
     for(auto &track : event->GetTracks()){
-      vector<Helix> fittedHelicesSignal = helixFitter->FitHelices(pointsNoEndcapsSignal[iEvent], *track, *event->GetVertex());
-      vector<Helix> fittedHelicesBackground = helixFitter->FitHelices(pointsNoEndcapsBackground[iEvent], *track, *event->GetVertex());
+      Helices fittedHelicesSignal = helixFitter->FitHelices(pointsNoEndcapsSignal[iEvent], *track, *event->GetVertex());
+      Helices fittedHelicesBackground = helixFitter->FitHelices(pointsNoEndcapsBackground[iEvent], *track, *event->GetVertex());
       
       if(monitorType=="avg_hits"){
         monitor.SetValues(GetAvgNhits(fittedHelicesSignal), GetAvgNhits(fittedHelicesBackground));
@@ -246,9 +246,9 @@ shared_ptr<Event> GetEvent(int iEvent)
 }
 
 
-vector<shared_ptr<Point>> GetClustersNoEndcaps(const shared_ptr<Event> &event, bool removePionClusters)
+Points GetClustersNoEndcaps(const shared_ptr<Event> &event, bool removePionClusters)
 {
-  vector<shared_ptr<Point>> pointsNoEndcaps;
+  Points pointsNoEndcaps;
   
   for(auto &point : event->GetTrackerClusters()){
     if(point->GetSubDetName() == "TID" || point->GetSubDetName() == "TEC" || point->GetSubDetName() == "P1PXEC") continue;
@@ -274,7 +274,7 @@ vector<shared_ptr<Point>> GetClustersNoEndcaps(const shared_ptr<Event> &event, b
   return pointsNoEndcaps;
 }
 
-double GetAvgNhits(vector<Helix> helices)
+double GetAvgNhits(Helices helices)
 {
   if(helices.size()==0) return 0;
   double avgHits = 0;
@@ -283,7 +283,7 @@ double GetAvgNhits(vector<Helix> helices)
   return avgHits;
 }
 
-int GetMaxNhits(vector<Helix> helices)
+int GetMaxNhits(Helices helices)
 {
   int maxNhits = 0;
   for(auto helix : helices){
@@ -292,7 +292,7 @@ int GetMaxNhits(vector<Helix> helices)
   return maxNhits;
 }
 
-int GetMaxNlayers(vector<Helix> helices)
+int GetMaxNlayers(Helices helices)
 {
   int maxNlayers = 0;
   
@@ -310,7 +310,7 @@ int GetMaxNlayers(vector<Helix> helices)
   return maxNlayers;
 }
 
-double GetAvgLength(vector<Helix> helices)
+double GetAvgLength(Helices helices)
 {
   if(helices.size()==0) return 0;
   double avgLength = 0;
@@ -323,7 +323,7 @@ double GetAvgLength(vector<Helix> helices)
   return avgLength;
 }
 
-double GetMaxLength(vector<Helix> helices)
+double GetMaxLength(Helices helices)
 {
   if(helices.size()==0) return 0;
   double maxLength = -inf;

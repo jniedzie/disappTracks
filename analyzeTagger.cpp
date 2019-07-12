@@ -91,15 +91,15 @@ int main(int argc, char* argv[])
     auto pionHelix = event->GetGenPionHelices().front();
     pionHelix.SetPoints(event->GetPionClusters());
     
-    vector<Helix> fittedHelicesPion = fitter->FitHelices(event->GetPionClusters(), *track, *event->GetVertex());
+    Helices fittedHelicesPion = fitter->FitHelices(event->GetPionClusters(), *track, *event->GetVertex());
 
     bool removePionClusters = true;
     auto pointsNoEndcapsNoPion = event->GetClusters(removePionClusters, removeEndcapClusters);
-    vector<Helix> fittedHelicesNoise = fitter->FitHelices(pointsNoEndcapsNoPion, *track, *event->GetVertex());
+    Helices fittedHelicesNoise = fitter->FitHelices(pointsNoEndcapsNoPion, *track, *event->GetVertex());
     
     removePionClusters = false;
     auto pointsNoEndcaps = event->GetClusters(removePionClusters, removeEndcapClusters);
-    vector<Helix> fittedHelicesAll = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
+    Helices fittedHelicesAll = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
     
     size_t maxNclusters = 0;
 
