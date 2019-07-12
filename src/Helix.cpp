@@ -1,37 +1,35 @@
-//
 //  Helix.cpp
 //
 //  Created by Jeremi Niedziela on 18/12/2018.
-//
 
 #include "Helix.hpp"
 #include "Fitter.hpp"
 
 Helix::Helix(const Point &_decayVertex,
-             const unique_ptr<Point> &_momentum,
+             const Point &_momentum,
              int _charge) :
 origin(_decayVertex),
-momentum(make_unique<Point>(*_momentum)),
+firstTurningPointIndex(-1),
+momentum(_momentum),
 charge(_charge),
-iCycles(0),
-isFinished(false),
 helixParams(HelixParams()),
-chi2(inf),
+tStep(0.01),
+isFinished(false),
 shouldRefit(false),
+chi2(inf),
 nMissingHits(0),
 nMissingHitsInRow(0),
-isPreviousHitMissing(false),
-firstTurningPointIndex(-1)
+isPreviousHitMissing(false)
 {
   seedID = uniqueID = reinterpret_cast<uint64_t>(this);
   
-  helixParams.R0 = GetRadiusInMagField(momentum->GetX(), momentum->GetY(), solenoidField);
-  helixParams.s0 = helixParams.R0 * charge * momentum->GetVectorSlopeC();
+  helixParams.R0 = GetRadiusInMagField(momentum.GetX(), momentum.GetY(), solenoidField);
+  helixParams.s0 = helixParams.R0 * charge * momentum.GetVectorSlopeC();
   helixParams.a = 0;
   helixParams.b = 0;
   
   // take a vector perpendicular to the pion's momentum vector
-  Point v = Point(charge * momentum->GetY(),charge * -momentum->GetX(), 0.0);
+  Point v = Point(charge * momentum.GetY(),charge * -momentum.GetX(), 0.0);
   const double scale = helixParams.R0/sqrt(pow(v.GetX(),2)+pow(v.GetY(),2));
   
   v.SetX(scale * v.GetX());
@@ -42,11 +40,11 @@ firstTurningPointIndex(-1)
  
   double tShift=0;
   
-  if(momentum->GetZ() > 0){
+  if(momentum.GetZ() > 0){
     if(charge > 0) tShift = TMath::Pi() - atan2(-v.GetX(), v.GetY());
     if(charge < 0) tShift = TMath::Pi() - atan2(-v.GetY(), v.GetX());
   }
-  if(momentum->GetZ() < 0){
+  if(momentum.GetZ() < 0){
     if(charge > 0) tShift = TMath::Pi() - atan2(-v.GetY(), v.GetX());
     if(charge < 0) tShift = TMath::Pi() - atan2(-v.GetX(), v.GetY());
   }
@@ -67,38 +65,33 @@ firstTurningPointIndex(-1)
   points.push_back(lastPoint);
   lastPoints.push_back(lastPoint);
   pointsT.push_back(tMax);
-  
-  tStep = 0.01;
 }
 
 Helix::Helix(const HelixParams &_params,
              const Point &_decayVertex,
              const Point &_origin,
-             const Track &_track) :
+             int _charge) :
 origin(_origin),
+firstTurningPointIndex(-1),
+momentum(Point(0, 0, 0)),
+charge(_charge),
 helixParams(_params),
-track(_track),
-iCycles(0),
+tStep(0.01),
 isFinished(false),
-chi2(inf),
 shouldRefit(false),
+chi2(inf),
 nMissingHits(0),
 nMissingHitsInRow(0),
-isPreviousHitMissing(false),
-firstTurningPointIndex(-1),
-momentum(make_unique<Point>(0, 0, 0))
+isPreviousHitMissing(false)
 {
+  seedID = uniqueID = reinterpret_cast<uint64_t>(this);
+  
   points.push_back(make_shared<Point>(_decayVertex));
   lastPoints.push_back(make_shared<Point>(_decayVertex));
   pointsT.push_back(pointsProcessor.GetTforPoint(_decayVertex, origin, charge));
-  
-  seedID = uniqueID = reinterpret_cast<uint64_t>(this);
-  charge = track.GetCharge();
-  tStep   = 0.01;
 }
 
 Helix::Helix(const Helix &h) :
-iCycles(h.iCycles),
 isFinished(h.isFinished),
 seedID(h.seedID),
 points(h.points),
@@ -108,8 +101,7 @@ thirdToLastPoints(h.thirdToLastPoints),
 pointsT(h.pointsT),
 tStep(h.tStep),
 origin(h.origin),
-momentum(make_unique<Point>(*h.momentum)),
-track(h.track),
+momentum(h.momentum),
 charge(h.charge),
 helixParams(h.helixParams),
 chi2(h.chi2),
@@ -124,13 +116,12 @@ firstTurningPointIndex(h.firstTurningPointIndex)
 
 Helix& Helix::operator=(const Helix &h)
 {
-  origin = h.origin;
-  momentum = make_unique<Point>(*h.momentum);
-  charge = h.charge;
+  origin   = h.origin;
+  momentum = h.momentum;
+  charge   = h.charge;
   
   uniqueID = reinterpret_cast<uint64_t>(this);
 
-  iCycles        = h.iCycles;
   isFinished     = h.isFinished;
   seedID         = h.seedID;
   points         = h.points;
@@ -139,7 +130,6 @@ Helix& Helix::operator=(const Helix &h)
   thirdToLastPoints = h.thirdToLastPoints;
   pointsT        = h.pointsT;
   tStep          = h.tStep;
-  track          = h.track;
   helixParams    = h.helixParams;
   chi2           = h.chi2;
   shouldRefit    = h.shouldRefit;
@@ -170,7 +160,7 @@ void Helix::Print()
   cout<<"\tuniqueID: "<<uniqueID<<endl;
   if(points.size()>0){ cout<<"\tVertex: "; points.front()->Print(); cout<<"\n";}
   cout<<"\tOrigin:("<<origin.GetX()<<","<<origin.GetY()<<","<<origin.GetZ()<<")\n";
-  cout<<"\tMomentum:("<<momentum->GetX()<<","<<momentum->GetY()<<","<<momentum->GetZ()<<")\n";
+  cout<<"\tMomentum:("<<momentum.GetX()<<","<<momentum.GetY()<<","<<momentum.GetZ()<<")\n";
   cout<<"\tCharge: "<<charge<<"\n";
   cout<<"\ts0: "<<helixParams.s0<<"\tb: "<<helixParams.b<<"\tR0: "<<helixParams.R0<<"\t a: "<<helixParams.a<<endl;
   cout<<"\tnPoints:"<<points.size()<<"\tnLayers: "<<GetNlayers()<<"\tnMissingHits: "<<nMissingHits<<"\n";
@@ -178,14 +168,9 @@ void Helix::Print()
   cout<<"\tchi2:"<<chi2<<endl;
 }
 
-void Helix::SetVertex(const Point &_vertex)
-{
-  points[0] = make_shared<Point>(_vertex);
-}
-
 double Helix::GetNcycles() const
 {
-  return sgn(momentum->GetZ())*((sgn(momentum->GetZ())*trackerZsize) - origin.GetZ())/(fabs(GetSlope(GetTmin()))*2*TMath::Pi());
+  return sgn(momentum.GetZ())*((sgn(momentum.GetZ())*trackerZsize) - origin.GetZ())/(fabs(GetSlope(GetTmin()))*2*TMath::Pi());
 }
 
 double Helix::GetRadius(double t) const
@@ -234,94 +219,38 @@ void Helix::IncreaseMissingHits(){
   isPreviousHitMissing = true;
 }
 
-void Helix::RemoveLastPoint()
+void Helix::RemoveLastPoints()
 {
   if(points.back()->GetSubDetName()=="missing"){
     nMissingHits--;
     nMissingHitsInRow--;
   }
-  points.pop_back();
-  pointsT.pop_back();
+  for(auto &p : lastPoints){
+    for(size_t i=0; i<points.size();){
+      if(*p == *points[i]){
+        points.erase(points.begin()+i);
+        pointsT.erase(pointsT.begin()+i);
+      }
+      else i++;
+    }
+  }
   
   lastPoints = secondToLastPoints;
   secondToLastPoints = thirdToLastPoints;
-  
 }
-/*
-Points Helix::GetLastPoints() const
-{
-  Points resultPoints;
-  
-  if(points.back()->GetSubDetName()=="missing"){
-    resultPoints.push_back(points.back());
-    return resultPoints;
-  }
-  
-  int lastPointLayerOrDisk;
-  bool endcapHit = points.back()->IsEndcapHit();
-  if(endcapHit) lastPointLayerOrDisk = points.back()->GetDisk();
-  else          lastPointLayerOrDisk = points.back()->GetLayer();
-  
-  for(int iPoint=0; iPoint<points.size(); iPoint++){
-    auto point = points[iPoint];
-    
-    if(((endcapHit ? point->GetDisk() : point->GetLayer()) == lastPointLayerOrDisk) &&
-       (iPoint>=firstTurningPointIndex)){
-      resultPoints.push_back(point);
-    }
-      
-  }
-  return resultPoints;
-}
-*/
+
 vector<size_t> Helix::GetLastPointsIndices() const
 {
   vector<size_t> resultIndices;
-//  int lastPointLayer = points.back()->GetLayer();
 
   for(int iPoint=0; iPoint<points.size(); iPoint++){
     for(auto &p : lastPoints){
       if(*p == *points[iPoint]) resultIndices.push_back(iPoint);
     }
-//    if((points[iPoint]->GetLayer() == lastPointLayer) &&
-//       (iPoint>=firstTurningPointIndex)){
-//      resultIndices.push_back(iPoint);
-//    }
   }
   return resultIndices;
 }
-/*
-Points Helix::GetSecontToLastPoints() const
-{
-  Points resultPoints;
-  
-  int lastPointLayerOrDisk;
-  bool endcapHit = points.back()->IsEndcapHit();
-  if(endcapHit) lastPointLayerOrDisk = points.back()->GetDisk();
-  else          lastPointLayerOrDisk = points.back()->GetLayer();
-  
-  for(int iPoint=0; iPoint<points.size(); iPoint++){
-    auto point = points[iPoint];
-    
-    if(!endcapHit){
-      if(firstTurningPointIndex<0){
-        if(point->GetLayer() == lastPointLayerOrDisk-1) resultPoints.push_back(point);
-      }
-      else if(iPoint<firstTurningPointIndex){
-        if(point->GetLayer() == lastPointLayerOrDisk) resultPoints.push_back(point);
-      }
-      else{
-        if(point->GetLayer() == lastPointLayerOrDisk+1) resultPoints.push_back(point);
-      }
-    }
-    else{
-      if(point->GetDisk())
-    }
-  }
-  
-  return resultPoints;
-}
-*/
+
 void Helix::SetLastPoints(Points _points)
 {
   vector<size_t> lastPointsIndices = GetLastPointsIndices();
@@ -358,10 +287,6 @@ double Helix::GetTmax(vector<size_t> *_lastPointIndices) const
   
   if(_lastPointIndices) lastPointsIndices = *_lastPointIndices;
   else lastPointsIndices = GetLastPointsIndices();
-  
-  if(lastPointsIndices.size()==0){
-    
-  }
   
   if(lastPointsIndices.size()==1) return pointsT[lastPointsIndices.front()];
   
@@ -417,9 +342,4 @@ void Helix::SetPointsAndSortByT(const Points &_points, const vector<double> &_po
       if(p->GetLayer() == lastPointLayer) lastPoints.push_back(p);
     }
   }
-}
-
-void Helix::SetPoints(const Points &_points)
-{
-  points = _points;
 }

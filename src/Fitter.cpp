@@ -308,7 +308,7 @@ unique_ptr<Helix> Fitter::FitSeed(const Points &middleHits, const Points &lastHi
   
   Point origin(x0, y0, z0);
   
-  resultHelix = make_unique<Helix>(resultParams, vertex, origin, track);
+  resultHelix = make_unique<Helix>(resultParams, vertex, origin, charge);
   resultHelix->SetLastPoints(middleHits);
   resultHelix->SetLastPoints(lastHits);
   resultHelix->SetCharge(charge);
@@ -345,7 +345,7 @@ void Fitter::ExtendSeeds(Helices &helices, const vector<Points> &pointsByLayer, 
         bool lastPointIsEndcap = lastPoints.front()->IsEndcapHit();
         
         shared_ptr<Point> turningPoint = nullptr;
-        if(helix.GetFirstTurningPointIndex() > 0) turningPoint = helixPoints[helix.GetFirstTurningPointIndex()];
+        if(!helix.IsIncreasing()) turningPoint = helixPoints[helix.GetFirstTurningPointIndex()];
         
         int lastPointLayer = lastPoints.front()->GetLayer();
         int lastPointDisk = abs(lastPoints.front()->GetDisk())-1;
@@ -518,7 +518,7 @@ void Fitter::ExtendSeeds(Helices &helices, const vector<Points> &pointsByLayer, 
             
             // if last hit was a missing hit, remove it
             if(helix.GetLastPoints().back()->GetSubDetName()=="missing"){
-              helix.RemoveLastPoint();
+              helix.RemoveLastPoints();
               RefitHelix(helix);
             }
             
@@ -532,7 +532,6 @@ void Fitter::ExtendSeeds(Helices &helices, const vector<Points> &pointsByLayer, 
             shared_ptr<Point> missingHit = helixProcessor.GetPointCloseToHelixInLayer(helix, missingHitLayer);
 
             helix.SetLastPoints({missingHit});
-//            helix.AddPoint(missingHit); // this will set missing hit's T
             missingHit = helix.GetLastPoints().back();
 //            double t = missingHit->GetT();
 //            missingHit->SetZ(-helix.GetCharge()*helix.GetOrigin().GetZ() + helix.GetSlope(t)*t + 10*eventVertex.GetZ());

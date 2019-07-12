@@ -13,7 +13,7 @@ string configPath = "configs/helixTagger.md";
 string cutLevel = "after_L1/all/";
 
 bool printROCpoints = true;
-bool removeEndcapClusters = false;
+bool removeEndcapClusters = true;
 
 enum ETestParams {
   kNoBins,
@@ -101,7 +101,7 @@ bool IsEventOk(const Event &event)
 
 double EventToParam(const Event &event)
 {
-  if(testParam == kPionPt)          return event.GetGenPionHelices().front().GetMomentum()->GetTransverse();
+  if(testParam == kPionPt)          return event.GetGenPionHelices().front().GetMomentum().GetTransverse();
   if(testParam == kCharginoEta)     return fabs(event.GetTrack(0)->GetEta());
   if(testParam == kCharginoNlayers) return event.GetTrack(0)->GetNtrackerLayers();
   if(testParam == kMET)             return event.GetMetPt();

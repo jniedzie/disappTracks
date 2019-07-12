@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
     
     double avgTrackDedxWithoutLast=0;
     
-    hists2D["pion_pt_vs_n_layers"]->Fill(pionHelix.GetMomentum()->GetTransverse(), track->GetNtrackerLayers());
+    hists2D["pion_pt_vs_n_layers"]->Fill(pionHelix.GetMomentum().GetTransverse(), track->GetNtrackerLayers());
     hists2D["eta_vs_n_layers"]->Fill(fabs(track->GetEta()), track->GetNtrackerLayers());
     
     for(int iLayer=1; iLayer<(track->GetLastBarrelLayer()+1); iLayer++){
@@ -229,20 +229,20 @@ int main(int argc, char* argv[])
     hists1D["den_chargino_q_efficiency_vs_track_pt"]->Fill(track->GetPt());
     
     // Fill gen-pion histograms
-    double pionPt = sqrt(pow(pionHelix.GetMomentum()->GetX(), 2) + pow(pionHelix.GetMomentum()->GetY(), 2));
-    double pionPz = pionHelix.GetMomentum()->GetZ();
-    double phiPion = atan2(pionHelix.GetMomentum()->GetY(), pionHelix.GetMomentum()->GetX());
+    double pionPt = sqrt(pow(pionHelix.GetMomentum().GetX(), 2) + pow(pionHelix.GetMomentum().GetY(), 2));
+    double pionPz = pionHelix.GetMomentum().GetZ();
+    double phiPion = atan2(pionHelix.GetMomentum().GetY(), pionHelix.GetMomentum().GetX());
     double pionVertexXY = sqrt(pow(pionHelix.GetVertex()->GetX(), 2) + pow(pionHelix.GetVertex()->GetY(), 2));
     double pionVertexZ = pionHelix.GetVertex()->GetZ();
     
-    hists1D["pion_px"]->Fill(fabs(pionHelix.GetMomentum()->GetX()));
-    hists1D["pion_py"]->Fill(fabs(pionHelix.GetMomentum()->GetY()));
+    hists1D["pion_px"]->Fill(fabs(pionHelix.GetMomentum().GetX()));
+    hists1D["pion_py"]->Fill(fabs(pionHelix.GetMomentum().GetY()));
     hists1D["pion_pz"]->Fill(fabs(pionPz));
     hists1D["pion_pt"]->Fill(pionPt);
     hists1D["pion_vertex_z"]->Fill(pionVertexZ);
     hists1D["pion_vertex_xy"]->Fill(pionVertexXY);
     
-    double pionTheta = TMath::Pi()/2-pionHelix.GetMomentum()->GetVectorSlopeC();
+    double pionTheta = TMath::Pi()/2-pionHelix.GetMomentum().GetVectorSlopeC();
     
     hists1D["delta_phi_pion_chargino"]->Fill(fabs(phiPion - track->GetPhi()));
     hists1D["delta_theta_pion_chargino"]->Fill(track->GetTheta() - pionTheta);

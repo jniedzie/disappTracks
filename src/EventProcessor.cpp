@@ -372,7 +372,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
   if(cut.genPionsPt.GetMin() < -99999) pionPassed = true;
   else{
     for(auto &pion : event->GetGenPionHelices()){
-      if(cut.genPionsPt.IsInside(pion.GetMomentum()->GetTransverse())){
+      if(cut.genPionsPt.IsInside(pion.GetMomentum().GetTransverse())){
         pionPassed=true;
         break;
       }
@@ -514,9 +514,9 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
                            Helix(Point(10*arrayValuesFriendFloat["pion_vx"]->at(i),
                                        10*arrayValuesFriendFloat["pion_vy"]->at(i),
                                        10*arrayValuesFriendFloat["pion_vz"]->at(i)),
-                                 make_unique<Point>(1000*arrayValuesFriendFloat["pion_px"]->at(i),
-                                                    1000*arrayValuesFriendFloat["pion_py"]->at(i),
-                                                    1000*arrayValuesFriendFloat["pion_pz"]->at(i)),
+                                 Point(1000*arrayValuesFriendFloat["pion_px"]->at(i),
+                                       1000*arrayValuesFriendFloat["pion_py"]->at(i),
+                                       1000*arrayValuesFriendFloat["pion_pz"]->at(i)),
                                  1*arrayValuesFriendInt["pion_charge"]->at(i)));
   }
   

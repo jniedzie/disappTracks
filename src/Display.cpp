@@ -97,7 +97,7 @@ void Display::DrawHelix(const Helix &helix, const map<string,any> options)
   double tMax  = helix.GetTmax();
   double tStep = helix.GetTstep();
   
-  int zSign = sgn(helix.GetMomentum()->GetZ());
+  int zSign = sgn(helix.GetMomentum().GetZ());
   
   auto fillPointForT = [&](double t){
     double x = helix.GetOrigin().GetX();

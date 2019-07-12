@@ -415,7 +415,7 @@ const vector<vector<range<double>>> diskRanges = { // mm
     range<double>(2670, 2730)},//
 };
 
-inline int GetDisksArrayIndex(int index, int signZ)
+inline size_t GetDisksArrayIndex(int index, int signZ)
 {
   return diskRanges.size()+signZ*(index+1);
 }

@@ -34,13 +34,13 @@ public:
   /// \param _momentum  Momentum of the particle that creates a helix
   /// \param _charge Charge of the particle (determines helix direction)
   Helix(const Point &_decayVertex,
-        const unique_ptr<Point> &_momentum,
+        const Point &_momentum,
         int _charge);
   
   Helix(const HelixParams &_params,
         const Point &_decayVertex,
         const Point &_origin,
-        const Track &_track);
+        int _charge);
   
   /// Copy constructor
   Helix(const Helix &h);
@@ -54,107 +54,116 @@ public:
   /// Prints basic information about the helix
   void Print();
   
-  /// Adds point to the collection of helix's points, sets correct t for this point and updates tMax
-  void AddPoint(const shared_ptr<Point> &point,
-                 vector<size_t> *_lastPointIndices = nullptr);
+  /// Replaces all points on helix and corresponding t params. Then sorts points by
+  /// t param. Will also set collection last points (but not second to last).
+  void SetPointsAndSortByT(const Points &points, const vector<double> &_pointsT);
   
-  /// Sets new origin, recalculates t params for all point on helix and updates tShift and tMax
-  void UpdateOrigin(const Point &_origin);
-  
-  // Setters
-  inline void   SetCharge(int val)            { charge = val; }
-  inline void   SetMomentum(const Point &val) { momentum = make_unique<Point>(val); }
-  void          SetPointsAndSortByT(const Points &points,
-                                    const vector<double> &_pointsT);
-  void          SetPoints(const Points &_points);
-  
-  void          SetVertex(const Point &_vertex);
-  inline void   SetShouldRefit(bool val) { shouldRefit = val; }
-  inline void   SetChi2(double val) { chi2 = val; }
-  inline void   SetIsFinished(bool val) { isFinished = val; }
-  inline void   SetParams(HelixParams val) { helixParams = val; }
-  inline void   SetIsPreviousHitMissing(bool val){ isPreviousHitMissing = val; }
-  inline void   SetFirstTurningPointIndex(int val){ firstTurningPointIndex = val; }
-  
+  /// Will shift current last points to second to last points, save second to last in
+  /// third to last. Then puts all provided points in last points collection
+  /// (and all points collection too). T params will be calculated for all points
+  /// and tMax will be updated.
   void SetLastPoints(Points _points);
   
-  /// Increases number of missing hits and missing hits in a row (based on isPreviousHitMissing
-  /// variable, which should be set by the user).
-  void   IncreaseMissingHits();
-  void   RemoveLastPoint();
+  /// Increases number of missing hits and missing hits in a row (based on
+  /// isPreviousHitMissing variable, which should be set by the user).
+  void IncreaseMissingHits();
   
-  // Getters
-  inline int                  GetCharge()   const {return charge; }
-  inline uint64_t             GetUniqueID() const {return uniqueID; }
-  inline uint64_t             GetSeedID()   const {return seedID; }
+  /// Removes all last points, shifts second to last to last and third to last to
+  /// second to last. If last point was missing, the missing points counters will
+  /// be decreased.
+  void RemoveLastPoints();
   
-  inline double               GetTmin()     const {return pointsT.front();}
-         double               GetTmax(vector<size_t> *_lastPointIndices = nullptr)     const;
-  inline double               GetTstep()    const {return tStep;}
+  /// Adds point to the collection of helix's points, sets correct t for this point
+  /// and updates tMax
+  void AddPoint(const shared_ptr<Point> &point, vector<size_t> *_lastPointIndices = nullptr);
   
-  double                      GetRadius(double t) const;
-  inline double               GetRadiusFactor()   const {return helixParams.a; }
-  double                      GetSlope(double t)  const;
-  inline double               GetSlopeFactor()    const {return helixParams.b; }
+  /// Sets new origin, recalculates t params for all point on helix and updates
+  /// tShift and tMax
+  void UpdateOrigin(const Point &_origin);
   
-  inline Point                GetOrigin()   const {return origin;}
-  inline shared_ptr<Point>    GetVertex()   const {return points.front();}
-  inline unique_ptr<Point>    GetMomentum() const {return make_unique<Point>(*momentum);}
+  //------------------------------------------------//
+  //                    Getters                     //
+  //------------------------------------------------//
   
-  Points   GetPoints()   const {return points;}
-  vector<double>              GetPointsT()  const {return pointsT;}
+  // Basic helix info
+  inline int      GetCharge()         const {return charge;}
+  inline uint64_t GetUniqueID()       const {return uniqueID;}
+  inline uint64_t GetSeedID()         const {return seedID;}
+  inline Point    GetMomentum()       const {return momentum;}
+  inline double   GetTstep()          const {return tStep;}
+  inline double   GetTmin()           const {return pointsT.front();}
+         double   GetTmax(vector<size_t> *_lastPointIndices = nullptr) const;
+         double   GetNcycles()        const;
+         size_t   GetNlayers()        const;
+         double   GetRadius(double t) const;
+         double   GetSlope(double t)  const;
+  inline double   GetRadiusFactor()   const {return helixParams.a;}
+  inline double   GetSlopeFactor()    const {return helixParams.b;}
+  inline bool     IsIncreasing()      const {return firstTurningPointIndex<0;}
+  inline double   GetChi2()           const {return chi2;}
+  inline bool     GetShouldRefit()    const {return shouldRefit;}
+  inline bool     GetIsFinished()     const {return isFinished;}
   
-  double GetPointT(size_t index) const {return pointsT[index];}
-  Points   GetLastPoints() const { return lastPoints; }
-  Points   GetSecontToLastPoints() const {return secondToLastPoints; }
+  // Helix points
+  inline Point              GetOrigin()                 const {return origin;}
+  inline shared_ptr<Point>  GetVertex()                 const {return points.front();}
+  inline Points             GetPoints()                 const {return points;}
+  inline size_t             GetNpoints()                const {return points.size();}
+  inline vector<double>     GetPointsT()                const {return pointsT;}
+  inline double             GetPointT(size_t index)     const {return pointsT[index];}
+  inline Points             GetLastPoints()             const {return lastPoints;}
+  inline Points             GetSecontToLastPoints()     const {return secondToLastPoints;}
+         vector<size_t>     GetLastPointsIndices()      const;
+  inline int                GetFirstTurningPointIndex() const {return firstTurningPointIndex;}
   
-  vector<size_t>   GetLastPointsIndices() const;
+  // Missing hits
+  inline int  GetNmissingHits() 	    const {return nMissingHits;}
+  inline int  GetNmissingHitsInRow()  const {return nMissingHitsInRow;}
+  inline bool IsPreviousHitMissing()  const {return isPreviousHitMissing;}
   
-  inline uint                 GetNpoints()  const {return (uint)(points.size());}
+  //------------------------------------------------//
+  //                    Setters                     //
+  //------------------------------------------------//
   
-  inline int                  GetNmissingHits() const {return nMissingHits;}
-  inline int                  GetNmissingHitsInRow() const {return nMissingHitsInRow;}
-  inline bool                 IsPreviousHitMissing() const {return isPreviousHitMissing;}
-  
-  inline int   GetFirstTurningPointIndex(){ return firstTurningPointIndex; }
-  
-  double                      GetNcycles()  const;
-  size_t                      GetNlayers() const;
-  
-  inline bool GetShouldRefit() const { return shouldRefit; }
-  inline double GetChi2() const { return chi2; }
-  inline bool GetIsFinished() const { return isFinished; }
-  inline bool IsIncreasing() const { return firstTurningPointIndex<0; }
+  inline void SetCharge(int val)                 {charge = val;}
+  inline void SetMomentum(const Point &val)      {momentum = val;}
+  inline void SetShouldRefit(bool val)           {shouldRefit = val;}
+  inline void SetChi2(double val)                {chi2 = val;}
+  inline void SetIsFinished(bool val)            {isFinished = val;}
+  inline void SetParams(HelixParams val)         {helixParams = val;}
+  inline void SetIsPreviousHitMissing(bool val)  {isPreviousHitMissing = val;}
+  inline void SetFirstTurningPointIndex(int val) {firstTurningPointIndex = val;}
+  inline void SetPoints(const Points &_points)   {points = _points;};
+  inline void SetVertex(const Point &_vertex)    {points[0] = make_shared<Point>(_vertex);}
   
 private:
-  Point origin;                     ///< Center of the helix
-  Points points; ///< Vector of points laying on the helix
-  Points lastPoints;         ///< Last points on helix
-  Points secondToLastPoints; ///< Second to last points on helix
-  Points thirdToLastPoints; ///< Second to last points on helix
+  Point           origin;             ///< Center of the helix
+  Points          points;             ///< Vector of points laying on the helix
+  vector<double>  pointsT;            ///< T values of points
+  Points          lastPoints;         ///< Last points on helix
+  Points          secondToLastPoints; ///< Second to last points on helix
+  Points          thirdToLastPoints;  ///< Second to last points on helix
   
-  vector<double> pointsT;           ///< T values of points
+  int firstTurningPointIndex; ///< Index of the first point after helix turns back to the same layer
   
-  double tStep;   ///< Step determining drawing precision
+  uint64_t  seedID;   ///< Unique ID of the helix's seed (can be the same as for other helices)
+  uint64_t  uniqueID; ///< Unique ID of this helix
+  Point     momentum; ///< Pion's momentum vector
+  int       charge;   ///< Charge of the particle (determines helix direction)
+  HelixParams helixParams; ///< Parameters defining radius, slope and their changes with time
+  double tStep;       ///< Step determining drawing precision
   
-  unique_ptr<Point> momentum;   ///< Pion's momentum vector
-  Track track;
-  int charge;                ///< Charge of the particle (determines helix direction)
+  bool   isFinished;  ///< Is extending of this helix over?
+  bool   shouldRefit; ///< Does this helix require refitting?
+  double chi2;        ///< Chi2 of the fit to helix points
   
-  int iCycles;
-  bool isFinished;
-  uint64_t seedID;
-  uint64_t uniqueID;
-  HelixParams helixParams;
-  double chi2;
-  bool shouldRefit;
+  int  nMissingHits;          ///< Total number of missing hits along the trajectory
+  int  nMissingHitsInRow;     ///< Max number of consecutive missing hits
+  bool isPreviousHitMissing;  ///< Is the point on helix a missing hit?
   
-  int firstTurningPointIndex;
   
-  int nMissingHits;
-  int nMissingHitsInRow;
-  bool isPreviousHitMissing;
-  
+  /// Sorts collection of all points by t param in increasing order (or decreasing
+  /// if inverted==true).
   void SortPointsByT(bool inverted);
   
   friend class HelixProcessor;

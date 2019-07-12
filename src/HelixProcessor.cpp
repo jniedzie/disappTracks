@@ -36,9 +36,9 @@ vector<int> HelixProcessor::AreIdentical(const Helix &h1, const Helix &h2)
   if(fabs(h1.GetOrigin().GetX() - h2.GetOrigin().GetX()) > config.params["tolerance_x"]) reasons.push_back(1);
   if(fabs(h1.GetOrigin().GetY() - h2.GetOrigin().GetY()) > config.params["tolerance_y"]) reasons.push_back(2);
   if(fabs(h1.GetOrigin().GetZ() - h2.GetOrigin().GetZ()) > config.params["tolerance_z"]) reasons.push_back(3);
-  if(fabs(h1.GetMomentum()->GetX() - h2.GetMomentum()->GetX()) > config.params["tolerance_px"]) reasons.push_back(4);
-  if(fabs(h1.GetMomentum()->GetY() - h2.GetMomentum()->GetY()) > config.params["tolerance_py"]) reasons.push_back(5);
-  if(fabs(h1.GetMomentum()->GetZ() - h2.GetMomentum()->GetZ()) > config.params["tolerance_pz"]) reasons.push_back(6);
+  if(fabs(h1.GetMomentum().GetX() - h2.GetMomentum().GetX()) > config.params["tolerance_px"]) reasons.push_back(4);
+  if(fabs(h1.GetMomentum().GetY() - h2.GetMomentum().GetY()) > config.params["tolerance_py"]) reasons.push_back(5);
+  if(fabs(h1.GetMomentum().GetZ() - h2.GetMomentum().GetZ()) > config.params["tolerance_pz"]) reasons.push_back(6);
   if(h1.GetCharge() != h2.GetCharge()) reasons.push_back(7);
   
   return reasons;
@@ -53,9 +53,9 @@ vector<shared_ptr<Helix>> HelixProcessor::GetHelicesFromTree()
                           arrayValuesFloat["helix_y"][iHelix],
                           arrayValuesFloat["helix_z"][iHelix]);
     
-    auto momentum = make_unique<Point>(arrayValuesFloat["helix_px"][iHelix],
-                                       arrayValuesFloat["helix_py"][iHelix],
-                                       arrayValuesFloat["helix_pz"][iHelix]);
+    auto momentum = Point(arrayValuesFloat["helix_px"][iHelix],
+                          arrayValuesFloat["helix_py"][iHelix],
+                          arrayValuesFloat["helix_pz"][iHelix]);
     
     auto helix    = make_shared<Helix>(origin, momentum, arrayValuesInt["helix_charge"][iHelix]);
     
@@ -75,9 +75,9 @@ void HelixProcessor::SaveHelicesToTree(vector<shared_ptr<Helix>> helices)
     arrayValuesFloat["helix_x"][iHelix]    = helices[iHelix]->GetOrigin().GetX();
     arrayValuesFloat["helix_y"][iHelix]    = helices[iHelix]->GetOrigin().GetY();
     arrayValuesFloat["helix_z"][iHelix]    = helices[iHelix]->GetOrigin().GetZ();
-    arrayValuesFloat["helix_px"][iHelix]   = helices[iHelix]->GetMomentum()->GetX();
-    arrayValuesFloat["helix_py"][iHelix]   = helices[iHelix]->GetMomentum()->GetY();
-    arrayValuesFloat["helix_pz"][iHelix]   = helices[iHelix]->GetMomentum()->GetZ();
+    arrayValuesFloat["helix_px"][iHelix]   = helices[iHelix]->GetMomentum().GetX();
+    arrayValuesFloat["helix_py"][iHelix]   = helices[iHelix]->GetMomentum().GetY();
+    arrayValuesFloat["helix_pz"][iHelix]   = helices[iHelix]->GetMomentum().GetZ();
     arrayValuesInt["helix_charge"][iHelix] = helices[iHelix]->GetCharge();
   }
 }
@@ -233,7 +233,7 @@ int HelixProcessor::GetMaxNhits(Helices helices)
 {
   int maxNhits = 0;
   for(auto helix : helices){
-    if(helix.GetNpoints() > maxNhits) maxNhits = helix.GetNpoints();
+    if((int)helix.GetNpoints() > maxNhits) maxNhits = (int)helix.GetNpoints();
   }
   return maxNhits;
 }
