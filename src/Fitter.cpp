@@ -19,7 +19,7 @@ eventVertex(Point(0, 0, 0))
     double tMin = pointsProcessor.GetTforPoint(*fittingPoints.front(), Point(x0,y0,z0), charge);
     
     double f=0;
-    
+    int nPointFitted=0;
     // Then add distances between this helix and all fitting points
     for(auto &p : fittingPoints){
       if(p->GetSubDetName()=="missing") continue;
@@ -28,32 +28,45 @@ eventVertex(Point(0, 0, 0))
       double totalDistEdge = inf;
       
       // In case of endcaps, check if one of the strip edges doesn't give better results
-      // In principle one should do something like a binary search and find t value for which
-      // the distance is the smallest. But even checking only 3 points works quite well.
       if(p->IsEndcapHit()){
         double alpha = -atan2(p->GetX(), p->GetY());
 
-        // Find helix point on one of the strip's edges:
-        Point p_a(p->GetX() + p->GetYerr()*sin(alpha),
-                  p->GetY() + p->GetYerr()*cos(alpha),
-                  p->GetZ());
-
-        // Find helix point on another strip's edge:
-        Point p_b(p->GetX() - p->GetYerr()*sin(alpha),
-                  p->GetY() - p->GetYerr()*cos(alpha),
-                  p->GetZ());
-
-        double totalDist_a = GetMinHelixToPointDistance(par, tMin, p_a, alpha);
-        double totalDist_b = GetMinHelixToPointDistance(par, tMin, p_b, alpha);
-
-        totalDistEdge = min(totalDist_a, totalDist_b);
+        double minImprovement = 0.01;
+        Point p_m = *p;
+        double prevDist = totalDistance;
+        double sizeY = p->GetYerr();
+        int i=1;
+        do{
+          
+          Point p_l(p_m.GetX() + (sizeY * sin(alpha))/pow(2, i),
+                    p_m.GetY() + (sizeY * cos(alpha))/pow(2, i),
+                    p_m.GetZ());
+          
+          Point p_r(p_m.GetX() - (sizeY * sin(alpha))/pow(2, i),
+                    p_m.GetY() - (sizeY * cos(alpha))/pow(2, i),
+                    p_m.GetZ());
+        
+          double dist_l = GetMinHelixToPointDistance(par, tMin, p_l, alpha);
+          double dist_r = GetMinHelixToPointDistance(par, tMin, p_r, alpha);
+          
+          if(dist_l < dist_r) p_m = p_l;
+          else                p_m = p_r;
+          
+          if(min(dist_l, dist_r) > totalDistEdge) break;
+          
+          prevDist = totalDistEdge;
+          totalDistEdge = min(dist_l, dist_r);
+          i++;
+        }
+        while( (prevDist-totalDistEdge)/prevDist > minImprovement );
       }
       if(totalDistEdge < totalDistance) totalDistance = totalDistEdge;
       
       f += totalDistance;
+      nPointFitted++;
     }
     
-    return f/(3*fittingPoints.size()+nDegreesOfFreedom);
+    return f/(nPointFitted+nDegreesOfFreedom);
   };
 }
 

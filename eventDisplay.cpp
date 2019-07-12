@@ -20,7 +20,7 @@ int iEvent = 36;
 
 bool fitHelix = true;
 
-bool pionHitsOnly = false;
+bool pionHitsOnly = true;
 bool removePionClusters = false;
 bool removeEncapClusters = false;
 

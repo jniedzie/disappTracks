@@ -165,25 +165,6 @@ int main(int argc, char* argv[])
       auto pointsSignal     = event->GetClusters(false, removeEndcapClusters);
       auto pointsBackground = event->GetClusters(true, removeEndcapClusters);
       
-      for(auto &p : pointsSignal){
-        if(   p->GetSubDetName() == "TID"
-           || p->GetSubDetName() == "TEC"
-           || p->GetSubDetName() == "P1PXEC"){
-          p->SetXerr(10.0);
-          p->SetYerr(10.0);
-          p->SetZerr(1.0);
-        }
-      }
-      for(auto &p : pointsBackground){
-        if(   p->GetSubDetName() == "TID"
-           || p->GetSubDetName() == "TEC"
-           || p->GetSubDetName() == "P1PXEC"){
-          p->SetXerr(10.0);
-          p->SetYerr(10.0);
-          p->SetZerr(1.0);
-        }
-      }
-      
       vector<Helix> fittedHelicesSignal     = fitter->FitHelices(pointsSignal, *track, *event->GetVertex());
       vector<Helix> fittedHelicesBackground = fitter->FitHelices(pointsBackground, *track, *event->GetVertex());
       

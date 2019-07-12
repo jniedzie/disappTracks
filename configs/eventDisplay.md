@@ -82,30 +82,30 @@ n_track_hits: 2
 **Fitter parameters**
 
 ### Maximum distance in 3D to consider two hits as overlapping ones (in mm):
-double_hit_max_distance:            10.0
+double_hit_max_distance:            20.0
 
 ### Constraints on seeds parameters:
-seed_max_chi2:                           0.2
+seed_max_chi2:                           1e-6
 
 seed_middle_hit_min_delta_phi:   -0.4
-seed_middle_hit_max_delta_phi:  1.0
-seed_middle_hit_max_delta_z:     500
+seed_middle_hit_max_delta_phi:  0.1
+seed_middle_hit_max_delta_z:     150
 
 seed_last_hit_min_delta_phi:       -0.4
-seed_last_hit_max_delta_phi:       1.0
-seed_last_hit_max_delta_z:          500
+seed_last_hit_max_delta_phi:       0.1
+seed_last_hit_max_delta_z:          300
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             2.0
+track_max_chi2:                             0.5
 
 next_point_min_delta_phi:             -0.5
-next_point_max_delta_phi:            2.0
-next_point_max_delta_z:                500
-next_point_max_delta_xy:              500
-next_point_max_delta_t:                2.0
+next_point_max_delta_phi:            1.5
+next_point_max_delta_z:                350
+next_point_max_delta_xy:              0
+next_point_max_delta_t:                0.4
 
 track_min_n_points:                       3
-track_min_n_layers:                       2
+track_min_n_layers:                       7
 
 ### Use distance to helix only when it passed through at least N layers:
 min_layers_for_delta_xy:                5
@@ -136,18 +136,18 @@ exp_slope_function:         0
 ### Let pion helix start one layer before/after the chargino track
 allow_one_less_layer: 0
 allow_one_more_layer: 1
-check_opposite_charge_below_Nlayers: 5
+check_opposite_charge_below_Nlayers: 0
 
 ### Limits of helix parameters:
 start_R0: 320
 min_R0: 50
-max_R0: 600
+max_R0: 1000
 min_Rslope:  0
 max_Rslope: 10000
 
 min_S0: -10000
 max_S0: 10000
-min_Sslope: -1000
+min_Sslope: -150
 max_Sslope: 0
 
 min_X0: -5000
