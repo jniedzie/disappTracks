@@ -156,11 +156,6 @@ Helices Fitter::PerformFittingCycle()
 Helices Fitter::GetSeeds(vector<Points> pointsByLayer, vector<Points> pointsByDisk)
 {
   Helices seeds;
-
-//  if(pointsByLayer[nTrackLayers].size() == 0 || pointsByLayer[nTrackLayers+1].size() == 0 ||
-//     pointsByLayer.size() <= (nTrackLayers+1)){
-//    return seeds;
-//  }
   
   Point trackPointMid = pointsProcessor.GetPointOnTrack(startL, track, eventVertex);
   

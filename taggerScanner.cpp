@@ -10,12 +10,12 @@
 #include "EventSet.hpp"
 
 string configPath = "configs/helixTagger.md";
-string cutLevel = "after_L1/all/";//after_L1/";
+string cutLevel = "after_L1/all_met_ge_700/";//after_L1/";
 
-const int nEvents = 100;
-const int eventOffset = 100;
+const int nEvents = 50;
+const int eventOffset = 0;
 
-bool removeEndcapClusters = false;
+bool removeEndcapClusters = true;
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
@@ -46,7 +46,7 @@ vector<string> optimizationVars = {
 //  "max_eff",
 //  "min_fake",
   "max_dist_fake",
-  "avg_dist_fake",
+//  "avg_dist_fake",
 };
 
 map<string, map<string, double>> bestMonitorValue; //[monitorType][optimizeFor]
@@ -55,12 +55,19 @@ map<string, map<string, map<string, double>>> bestParamValue; //[monitorType][op
 //           name     start    stop   step
 vector<tuple<string, double, double, double>> paramsToTest = {
 //  {"double_hit_max_distance", 20, 0, -1},
-//  {"seed_max_chi2", 0.01, 0.10, 0.01},
-//  {"seed_middle_hit_max_delta_phi", 0, 1.0, 0.1},
+  {"seed_max_chi2", 0.001, 0.010, 0.001},
+//    {"seed_middle_hit_min_delta_phi", 0, -0.9, -0.1},
+//  {"seed_middle_hit_max_delta_phi", 0, 0.9, 0.1},
 //  {"seed_middle_hit_max_delta_z", 50, 300, 50},
-//  {"seed_last_hit_max_delta_phi", 0.0, 1.0, 0.1},
+//  {"seed_last_hit_min_delta_phi", 0.0, -0.9, -0.1},
+//    {"seed_last_hit_max_delta_phi", 0.0, 0.5, 0.3},
 //  {"seed_last_hit_max_delta_z", 50, 300, 50},
-  {"track_max_chi2", 0.001, 0.05, 0.002},
+//  {"track_max_chi2", 0.001, 0.010, 0.001},
+//  {"double_hit_max_distance", 0.0, 30.0, 5.0},
+//  {"next_point_min_delta_phi", 0.0, -0.9, -0.1},
+//  {"next_point_max_delta_phi", 0.0, 0.9, 0.1},
+//    {"next_point_max_delta_z", 50, 400, 50},
+//  {"next_point_max_delta_xy", 50, 400, 50},
 };
 
 void CheckParamForCurrentConfig(string paramName)
@@ -73,8 +80,9 @@ void CheckParamForCurrentConfig(string paramName)
     monitors[monitorType] = PerformanceMonitor(monitorType, nBins, 0, max);
   }
 
-  for(auto iEvent=0; iEvent<nEvents; iEvent++){
+  for(auto iEvent=0; iEvent<events.size(); iEvent++){
     auto event = events[iEvent];
+    cout<<"Event: "<<iEvent<<endl;
     
     for(auto &track : event->GetTracks()){
       Helices fittedHelicesSignal = helixFitter->FitHelices(pointsNoEndcapsSignal[iEvent], *track, *event->GetVertex());

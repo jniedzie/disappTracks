@@ -86,6 +86,7 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
   else if(config.category == "all"){
 //    eventCut.SetNtracks(range<int>(1,inf));
     trackCut.SetCaloEmEnergy(range<double>(0.0,2.0));
+//    eventCut.SetMetPt(range<double>(700, inf));
   }
   
   if(config.params["cuts_level"] == 1) return;

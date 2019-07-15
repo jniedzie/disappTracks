@@ -26,7 +26,7 @@ enum ETestParams {
   nTestParams
 };
 
-ETestParams testParam = kNoBins;
+ETestParams testParam = kMET;
 
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
@@ -65,9 +65,11 @@ map<ETestParams, vector<range<double>>> paramRanges = {
       range<double>(7, inf) }
   },
   { kMET,
-    { range<double>(200, 400),
-      range<double>(400, 600),
-      range<double>(600, inf) }
+    {
+      range<double>(200, 500),
+      range<double>(500, 600),
+      range<double>(600, 700),
+      range<double>(700, inf) }
   },
   { kCharginoCharge,
     { range<double>(-inf, 0),
