@@ -27,11 +27,14 @@ public:
   /// \param _track Track along which the helix starts
   /// \param _eventVertex Primary vertex of the event
   Helices FitHelices(const Points &_points,
-                           const Track &_track,
-                           const Point &_eventVertex);
+                     const Track &_track,
+                     const Point &_eventVertex);
   
 private:
-  Points points; ///< collection of all points in the events
+  Points points;                    ///< collection of all points in the event
+  vector<Points> pointsByLayer;     ///< all points in event grouped by layer index
+  vector<Points> pointsByDisk;      ///< all points in event grouped by disk index
+  
   Track track;                      ///< track from which helix should start
   Point eventVertex;                ///< primary vertex of the event
   
@@ -49,26 +52,25 @@ private:
   
   /// Checks parameters of all combinations of points in layers close to the decay point
   /// and returns vector of 3-layer helices constructed from them
-  Helices GetSeeds(vector<Points> pointsByLayer,
-                   vector<Points> pointsByDisk);
+  Helices GetSeeds();
   
   /// Fits helix of given charge to the collection of points provided
-  /// \return Resulting helix may be a nullptr if something went wrong (e.g. parameters of helix fitting
-  /// provided points were outside of assumed limits.
+  /// \return Resulting helix may be a nullptr if something went wrong (e.g. parameters
+  /// of helix fitting provided points were outside of assumed limits.
   unique_ptr<Helix> FitSeed(const Points &middleHits,
                             const Points &lastHits);
   
-  /// Attempts to extend provided seeds to following layers. If not possible, tries to turn back to the
-  /// same layer. If that's also not possible, assigns missing hit if still alloed by the limits.
-  void ExtendSeeds(Helices &helices,
-                   const vector<Points> &pointsByLayer,
-                   const vector<Points> &pointsByDisk);
+  /// Attempts to extend provided seeds to following layers. If not possible, tries to turn
+  /// back to the same layer. If that's also not possible, assigns missing hit if still
+  /// allowed by the limits.
+  void ExtendSeeds(Helices &helices);
   
   /// Merges similar helices as long as there's nothing left to merge
   void MergeHelices(Helices &helices);
   
-  /// Performs single merging operation (accorging to merging_max_different_point and candidate_min_n_points
-  /// parameters). All helices that don't meet merging conditions are left intact.
+  /// Performs single merging operation (accorging to merging_max_different_point
+  /// and candidate_min_n_points parameters). All helices that don't meet merging
+  /// conditions are left intact.
   bool LinkAndMergeHelices(Helices &helices);
   
   /// Refits helix params using points assigned to this helix
@@ -95,6 +97,25 @@ private:
   
   /// Sets L limits and starting value based on the curent number of tracker layers
   void InitLparams();
+  
+  
+  vector<set<int>> GetLayersAndDisks();
+  
+  pair<Points, Points> GetSeedPoints();
+  
+  unique_ptr<Helix> CreateHelixFromFitResult(const ROOT::Fit::FitResult &result);
+  
+  vector<set<int>> GetNextPointLayersAndDisks(const Helix &helix);
+  
+  Points GetPossibleNextPoints(const Helix &helix);
+  Points GetPossibleTurningBackPoints(const Helix &helix);
+  
+  Points GetGoodNextPoints(const Helix &helix,
+                           const Points &points,
+                           const set<int> &nextPointLayers);
+  
+  Points GetGoodTurningBackPoints(const Helix &helix,
+                                  const Points &points);
 };
 
 #endif /* Fitter_hpp */

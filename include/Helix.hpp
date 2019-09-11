@@ -42,6 +42,11 @@ public:
         const Point &_origin,
         int _charge);
   
+  Helix(const ROOT::Fit::FitResult &result,
+        const Track &track,
+        const Point &eventVertex,
+        int _charge);
+  
   /// Copy constructor
   Helix(const Helix &h);
   

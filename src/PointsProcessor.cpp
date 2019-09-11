@@ -3,6 +3,7 @@
 //  Created by Jeremi Niedziela on 16/01/2019.
 
 #include "PointsProcessor.hpp"
+#include "Logger.hpp"
 
 PointsProcessor pointsProcessor = PointsProcessor();
 
@@ -332,13 +333,13 @@ bool PointsProcessor::IsGoodMiddleSeedHit(const Point &point,
   }
   
   if(seedMiddleHitDeltaPhi.IsOutside(middleHitDeltaPhi)){
-    if(config.params["verbosity_level"]>1) cout<<"Seed middle hit Δφ too large"<<endl;
+    Log(2)<<"Seed middle hit Δφ too large\n";
     return false;
   }
   
   double middleHitDeltaZ = fabs(point.GetZ() - trackMidPoint.GetZ());
   if(middleHitDeltaZ > config.params["seed_middle_hit_max_delta_z"]){
-    if(config.params["verbosity_level"]>1) cout<<"Seed middle hit Δz too large"<<endl;
+    Log(2)<<"Seed middle hit Δz too large\n";
     return false;
   }
   return true;
@@ -365,13 +366,13 @@ bool PointsProcessor::IsGoodLastSeedHit(const Point &point,
   }
   
   if(seedLastHitDeltaPhi.IsOutside(lastHitDeltaPhi) && !point.IsEndcapHit()){
-    if(config.params["verbosity_level"]>1) cout<<"Seed last hit Δφ too large"<<endl;
+    Log(2)<<"Seed last hit Δφ too large\n";
     return false;
   }
   
   double lastPointDeltaZ = fabs(middlePoint.GetZ() - point.GetZ());
   if(lastPointDeltaZ > config.params["seed_last_hit_max_delta_z"]){
-    if(config.params["verbosity_level"]>1) cout<<"Seed last hit Δz too large"<<endl;
+    Log(2)<<"Seed last hit Δz too large\n";
     return false;
   }
   return true;

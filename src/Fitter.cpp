@@ -3,6 +3,7 @@
 //  Created by Jeremi Niedziela on 14/12/2018.
 
 #include "Fitter.hpp"
+#include "Logger.hpp"
 
 Fitter::Fitter() :
 eventVertex(Point(0, 0, 0))
@@ -37,7 +38,6 @@ eventVertex(Point(0, 0, 0))
         double sizeY = p->GetYerr();
         int i=1;
         do{
-          
           Point p_l(p_m.GetX() + (sizeY * sin(alpha))/pow(2, i),
                     p_m.GetY() + (sizeY * cos(alpha))/pow(2, i),
                     p_m.GetZ());
@@ -76,20 +76,23 @@ Fitter::~Fitter()
 }
 
 Helices Fitter::FitHelices(const Points &_points,
-                                 const Track &_track,
-                                 const Point &_eventVertex)
+                           const Track &_track,
+                           const Point &_eventVertex)
 {
-  points       = _points;
-  track        = _track;
-  eventVertex  = _eventVertex;
-  nTrackLayers = track.GetNtrackerLayers();
+  points        = _points;
+  pointsByLayer = pointsProcessor.SortByLayer(points);
+  pointsByDisk  = pointsProcessor.SortByDisk(points);
+  track         = _track;
+  eventVertex   = _eventVertex;
+  nTrackLayers  = track.GetNtrackerLayers();
+  
   InitLparams();
-  charge = track.GetCharge();
+  charge        = track.GetCharge();
 
   Helices fittedHelices = PerformFittingCycle();
   
   if(nTrackLayers < config.params["check_opposite_charge_below_Nlayers"]){
-    if(config.params["verbosity_level"]>0) cout<<"Checking opposite charge for default n layers"<<endl;
+    Log(1)<<"Checking opposite charge for default n layers\n";
     charge = -charge;
     Helices fittedHelicesOpposite = PerformFittingCycle();
     fittedHelices.insert(fittedHelices.end(), fittedHelicesOpposite.begin(), fittedHelicesOpposite.end());
@@ -97,14 +100,14 @@ Helices Fitter::FitHelices(const Points &_points,
   }
   
   if(config.params["allow_one_less_layer"]){
-    if(config.params["verbosity_level"]>0) cout<<"Assuming one less layer"<<endl;
+    Log(1)<<"Assuming one less layer\n";
     nTrackLayers-=1;
     InitLparams();
     Helices fittedHelicesOneLess = PerformFittingCycle();
     fittedHelices.insert(fittedHelices.end(), fittedHelicesOneLess.begin(), fittedHelicesOneLess.end());
     
     if(nTrackLayers < config.params["check_opposite_charge_below_Nlayers"]){
-      if(config.params["verbosity_level"]>0) cout<<"Checking opposite charge for one less layer"<<endl;
+      Log(1)<<"Checking opposite charge for one less layer\n";
       charge = -charge;
       Helices fittedHelicesOpposite = PerformFittingCycle();
       fittedHelices.insert(fittedHelices.end(), fittedHelicesOpposite.begin(), fittedHelicesOpposite.end());
@@ -114,14 +117,14 @@ Helices Fitter::FitHelices(const Points &_points,
     nTrackLayers+=1;
   }
   if(config.params["allow_one_more_layer"]){
-    if(config.params["verbosity_level"]>0) cout<<"Assuming one more layer"<<endl;
+    Log(1)<<"Assuming one more layer\n";
     nTrackLayers+=1;
     InitLparams();
     Helices fittedHelicesOneMore = PerformFittingCycle();
     fittedHelices.insert(fittedHelices.end(), fittedHelicesOneMore.begin(), fittedHelicesOneMore.end());
     
     if(nTrackLayers < config.params["check_opposite_charge_below_Nlayers"]){
-      if(config.params["verbosity_level"]>0) cout<<"Checking opposite charge for one more layer"<<endl;
+      Log(1)<<"Checking opposite charge for one more layer\n";
       charge = -charge;
       Helices fittedHelicesOpposite = PerformFittingCycle();
       fittedHelices.insert(fittedHelices.end(), fittedHelicesOpposite.begin(), fittedHelicesOpposite.end());
@@ -136,40 +139,20 @@ Helices Fitter::FitHelices(const Points &_points,
 
 Helices Fitter::PerformFittingCycle()
 {
-  vector<Points> pointsByLayer = pointsProcessor.SortByLayer(points);
-  vector<Points> pointsByDisk  = pointsProcessor.SortByDisk(points);
-  
-  Helices fittedHelices = GetSeeds(pointsByLayer, pointsByDisk);
-
-  ExtendSeeds(fittedHelices, pointsByLayer, pointsByDisk);
-  
+  Helices fittedHelices = GetSeeds();
+  ExtendSeeds(fittedHelices);
   if(config.params["merge_final_helices"]) MergeHelices(fittedHelices);
   RemoveShortHelices(fittedHelices);
-  
-  if(config.params["verbosity_level"]>0) cout<<"Refitting surviving helices...";
-  for(auto &helix : fittedHelices){
-    if(helix.GetShouldRefit()) RefitHelix(helix);
-  }
   return fittedHelices;
 }
 
-Helices Fitter::GetSeeds(vector<Points> pointsByLayer, vector<Points> pointsByDisk)
+vector<set<int>> Fitter::GetLayersAndDisks()
 {
-  Helices seeds;
-  
-  Point trackPointMid = pointsProcessor.GetPointOnTrack(startL, track, eventVertex);
-  
-  // find possible middle and last seeds' points
   int lastHitIndex = track.GetNnotEmptyDedxHits()-1;
   bool endcapTrack = track.GetDetTypeForHit(lastHitIndex) == 2; // 2 is endcap
   
-  Points middlePoints, lastPoints;
-  
-  int signZ = sgn(track.GetEta());
-  
   set<int> middleHitLayers;
   set<int> middleHitDisks;
-  
   set<int> lastHitLayers;
   set<int> lastHitDisks;
   
@@ -206,6 +189,21 @@ Helices Fitter::GetSeeds(vector<Points> pointsByLayer, vector<Points> pointsByDi
       lastHitLayers.insert(9);
     }
   }
+  vector<set<int>> result = { middleHitLayers, middleHitDisks, lastHitLayers, lastHitDisks };
+  return result;
+}
+
+pair<Points, Points> Fitter::GetSeedPoints()
+{
+  Points middlePoints, lastPoints;
+  
+  auto layersAndDisks = GetLayersAndDisks();
+  set<int> middleHitLayers = layersAndDisks[0];
+  set<int> middleHitDisks  = layersAndDisks[1];
+  set<int> lastHitLayers   = layersAndDisks[2];
+  set<int> lastHitDisks    = layersAndDisks[3];
+  
+  int signZ = sgn(track.GetEta());
   
   for(int middleHitLayer : middleHitLayers){
     middlePoints.insert(middlePoints.end(),
@@ -220,22 +218,30 @@ Helices Fitter::GetSeeds(vector<Points> pointsByLayer, vector<Points> pointsByDi
   
   for(int lastHitLayer : lastHitLayers){
     lastPoints.insert(lastPoints.end(),
-                        pointsByLayer[lastHitLayer].begin(),
-                        pointsByLayer[lastHitLayer].end());
+                      pointsByLayer[lastHitLayer].begin(),
+                      pointsByLayer[lastHitLayer].end());
   }
   for(int lastHitDisk : lastHitDisks){
     lastPoints.insert(lastPoints.end(),
-                        pointsByDisk[GetDisksArrayIndex(lastHitDisk, signZ)].begin(),
-                        pointsByDisk[GetDisksArrayIndex(lastHitDisk, signZ)].end());
+                      pointsByDisk[GetDisksArrayIndex(lastHitDisk, signZ)].begin(),
+                      pointsByDisk[GetDisksArrayIndex(lastHitDisk, signZ)].end());
   }
+  return make_pair(middlePoints, lastPoints);
+}
+
+Helices Fitter::GetSeeds()
+{
+  Helices seeds;
   
-//  auto middlePointsRegrouped = pointsProcessor.RegroupNerbyPoints(pointsByLayer[nTrackLayers]);
-  
+  // Prepare points
+  Point trackPointMid = pointsProcessor.GetPointOnTrack(startL, track, eventVertex);
+  auto [middlePoints, lastPoints] = GetSeedPoints();
   auto middlePointsRegrouped = pointsProcessor.RegroupNerbyPoints(middlePoints);
   auto lastPointsRegrouped   = pointsProcessor.RegroupNerbyPoints(lastPoints);
   
   int nPairs=0;
-  if(config.params["verbosity_level"]>0) cout<<"Looking for seeds..."<<endl;
+  Log(1)<<"Looking for seeds...\n";
+  
   for(auto &middlePoints : middlePointsRegrouped){
     auto goodMiddlePoints = pointsProcessor.GetGoodMiddleSeedHits(middlePoints,
                                                                   trackPointMid,
@@ -261,10 +267,10 @@ Helices Fitter::GetSeeds(vector<Points> pointsByLayer, vector<Points> pointsByDi
       seeds.push_back(*helix);
     }
   }
-  if(config.params["verbosity_level"]>0){
-    cout<<"Tested pairs: "<<nPairs<<endl;
-    cout<<"Number of valid seeds: "<<seeds.size()<<endl;
-  }
+  
+  Log(1)<<"Tested pairs: "<<nPairs<<"\n";
+  Log(1)<<"Number of valid seeds: "<<seeds.size()<<"\n";
+  
   return seeds;
 }
 
@@ -277,49 +283,161 @@ unique_ptr<Helix> Fitter::FitSeed(const Points &middleHits, const Points &lastHi
   fittingPoints.insert(fittingPoints.end(), middleHits.begin(), middleHits.end());
   fittingPoints.insert(fittingPoints.end(), lastHits.begin(), lastHits.end());
   
-  int nPar=8;
-  auto fitFunction = ROOT::Math::Functor(chi2Function, nPar);
-  double pStart[nPar];
-  for(int i=0; i<nPar; i++) pStart[i] = fitter->Config().ParSettings(i).Value();
-  fitter->SetFCN(fitFunction, pStart);
-  
-  unique_ptr<Helix> resultHelix = nullptr;
-  
   fitter->FitFCN();
   auto result = fitter->Result();
-  
-  HelixParams resultParams;
-  resultParams.R0 = result.GetParams()[0];
-  resultParams.a  = result.GetParams()[1];
-  resultParams.s0 = result.GetParams()[2];
-  resultParams.b  = result.GetParams()[3];
-  
-  double L  = result.GetParams()[4];
-  Point vertex = pointsProcessor.GetPointOnTrack(L, track, eventVertex);
-  
-  double x0 = result.GetParams()[5];
-  double y0 = result.GetParams()[6];
-  double z0 = result.GetParams()[7];
-  
-  Point origin(x0, y0, z0);
-  
-  resultHelix = make_unique<Helix>(resultParams, vertex, origin, charge);
+  auto resultHelix = make_unique<Helix>(result, track, eventVertex, charge);
   resultHelix->SetLastPoints(middleHits);
   resultHelix->SetLastPoints(lastHits);
-  resultHelix->SetCharge(charge);
-  resultHelix->UpdateOrigin(origin);
-  resultHelix->SetChi2(result.MinFcnValue());
-  
+
   return resultHelix;
 }
 
-void Fitter::ExtendSeeds(Helices &helices, const vector<Points> &pointsByLayer, const vector<Points> &pointsByDisk)
+vector<set<int>> Fitter::GetNextPointLayersAndDisks(const Helix &helix)
+{
+  auto lastPoints = helix.GetLastPoints();
+  int lastPointLayer = lastPoints.front()->GetLayer();
+  int lastPointDisk = abs(lastPoints.front()->GetDisk())-1;
+  
+  set<int> nextPointLayers;
+  set<int> nextPointDisks;
+  
+  if(lastPointLayer >=0 ){
+    if(helix.IsIncreasing()){
+      if(lastPointLayer+1 < pointsByLayer.size()) nextPointLayers.insert(lastPointLayer+1);
+    }
+    else{
+      if(lastPointLayer-1 >= 0) nextPointLayers.insert(lastPointLayer-1);
+    }
+  }
+  
+  if(lastPointDisk+1 < pointsByDisk.size()) nextPointDisks.insert(lastPointDisk+1);
+  
+  if(lastPointDisk >= 0 && lastPointDisk <= 2)     nextPointLayers.insert(4);
+  if(lastPointDisk >= 3 && lastPointDisk <= 5)    nextPointLayers.insert(8);
+  
+  if(lastPointLayer >= 0 && lastPointLayer <= 2)  nextPointDisks.insert(0);
+  if(lastPointLayer >= 3 && lastPointLayer <= 7)  nextPointDisks.insert(3);
+  if(lastPointLayer >= 7 && lastPointLayer <= 13) nextPointDisks.insert(6);
+  
+  vector<set<int>> result = { nextPointLayers, nextPointDisks };
+  return result;
+}
+
+Points Fitter::GetPossibleNextPoints(const Helix &helix)
+{
+  auto nextPointLayersAndDisks = GetNextPointLayersAndDisks(helix);
+  set<int> nextPointLayers = nextPointLayersAndDisks[0];
+  set<int> nextPointDisks  = nextPointLayersAndDisks[1];
+  
+  int signZ = sgn(track.GetEta());
+  
+  Points possiblePointsAll, possiblePoints;
+  
+  for(int nextPointLayer : nextPointLayers){
+    possiblePointsAll.insert(possiblePointsAll.end(),
+                             pointsByLayer[nextPointLayer].begin(),
+                             pointsByLayer[nextPointLayer].end());
+  }
+  
+  for(int nextPointDisk : nextPointDisks){
+    possiblePointsAll.insert(possiblePointsAll.end(),
+                             pointsByDisk[GetDisksArrayIndex(nextPointDisk, signZ)].begin(),
+                             pointsByDisk[GetDisksArrayIndex(nextPointDisk, signZ)].end());
+  }
+  
+  // remove points that are already on helix
+  auto helixPoints = helix.GetPoints();
+  
+  for(auto &pointCandidate : possiblePointsAll){
+    if(find_if(helixPoints.begin(), helixPoints.end(),
+               [&](const shared_ptr<Point> &p){ return *pointCandidate == *p;}) == helixPoints.end()){
+      possiblePoints.push_back(pointCandidate);
+    }
+  }
+  
+  return possiblePoints;
+}
+
+Points Fitter::GetPossibleTurningBackPoints(const Helix &helix)
+{
+  auto lastPoints = helix.GetLastPoints();
+  int lastPointLayer = lastPoints.front()->GetLayer();
+  Points turningBackPointsAll;
+  
+  
+  if(lastPointLayer<pointsByLayer.size()){
+    turningBackPointsAll = pointsByLayer[lastPointLayer];
+  }
+  Points turningBackPoints;
+  
+  // remove points that are already on helix
+  auto helixPoints = helix.GetPoints();
+  
+  for(auto &pointCandidate : turningBackPointsAll){
+    if(find_if(helixPoints.begin(), helixPoints.end(),
+               [&](const shared_ptr<Point> &p){ return *pointCandidate == *p;}) == helixPoints.end()){
+      turningBackPoints.push_back(pointCandidate);
+    }
+  }
+  return turningBackPoints;
+}
+
+Points Fitter::GetGoodNextPoints(const Helix &helix, const Points &points, const set<int> &nextPointLayers)
+{
+  vector<double> lastPointsT;
+  
+  for(size_t index : helix.GetLastPointsIndices()){
+    lastPointsT.push_back(helix.GetPointT(index));
+  }
+ 
+  Points goodPoints;
+  auto lastPoints         = helix.GetLastPoints();
+  auto secondToLastPoints = helix.GetSecontToLastPoints();
+  
+  for(shared_ptr<Point> point : points){
+    if(helix.GetNlayers() >= config.params["min_layers_for_delta_xy"] &&
+       !point->IsEndcapHit()){
+      if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, *nextPointLayers.begin(), true)) continue;
+    }
+    else{
+      if(!pointsProcessor.IsPhiGood(lastPoints, secondToLastPoints, point, charge)) continue;
+    }
+    if(!pointsProcessor.IsZgood(lastPoints, point)) continue;
+    
+    double previousT = lastPointsT.front();
+    double t = pointsProcessor.GetTforPoint(*point, helix.GetOrigin(), helix.GetCharge());
+    while(fabs(t+2*TMath::Pi()-previousT) < fabs(t-previousT)) t += 2*TMath::Pi();
+    while(fabs(t-2*TMath::Pi()-previousT) < fabs(t-previousT)) t -= 2*TMath::Pi();
+    
+    if(!pointsProcessor.IsTgood(lastPointsT, t)) continue;
+    goodPoints.push_back(point);
+  }
+  return goodPoints;
+}
+
+Points Fitter::GetGoodTurningBackPoints(const Helix &helix,
+                                        const Points &points)
+{
+  Points goodTurningBackPoints;
+  auto lastPoints = helix.GetLastPoints();
+  int lastPointLayer = lastPoints.front()->GetLayer();
+  
+  for(auto &point : points){
+    if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, lastPointLayer, false)) continue;
+    if(!pointsProcessor.IsZgood(lastPoints, point)) continue;
+    goodTurningBackPoints.push_back(point);
+  }
+  return goodTurningBackPoints;
+}
+
+void Fitter::ExtendSeeds(Helices &helices)
 {
   bool finished;
   int nSteps=0;
-  if(config.params["verbosity_level"]>0) cout<<"Extending seeds..."<<endl;
+  Log(1)<<"Extending seeds...\n";
+  
   do{
-    if(config.params["verbosity_level"]>0) cout<<"Helices before "<<nSteps<<" step: "<<helices.size()<<endl;
+    Log(1)<<"Helices before "<<nSteps<<" step: "<<helices.size()<<"\n";
     
     finished = true;
     Helices nextStepHelices;
@@ -346,155 +464,39 @@ void Fitter::ExtendSeeds(Helices &helices, const vector<Points> &pointsByLayer, 
         int lastPointDisk = abs(lastPoints.front()->GetDisk())-1;
         if(lastPointLayer < 0 && lastPointDisk < 0) continue;
         
-        set<int> nextPointLayers;
-        if(lastPointLayer >=0 ){
-          if(helix.IsIncreasing()){
-            if(lastPointLayer+1 < pointsByLayer.size()) nextPointLayers.insert(lastPointLayer+1);
-          }
-          else{
-            if(lastPointLayer-1 >= 0) nextPointLayers.insert(lastPointLayer-1);
-          }
-        }
-        set<int> nextPointDisks;
+        auto nextPointLayersAndDisks = GetNextPointLayersAndDisks(helix);
         
-        if(lastPointDisk+1 < pointsByDisk.size()) nextPointDisks.insert(lastPointDisk+1);
-        
-        if(lastPointDisk >= 0 && lastPointDisk <= 2) 	  nextPointLayers.insert(4);
-        if(lastPointDisk >= 3 && lastPointDisk <= 5)  	nextPointLayers.insert(8);
-        
-        if(lastPointLayer >= 0 && lastPointLayer <= 2)  nextPointDisks.insert(0);
-        if(lastPointLayer >= 3 && lastPointLayer <= 7)  nextPointDisks.insert(3);
-        if(lastPointLayer >= 7 && lastPointLayer <= 13) nextPointDisks.insert(6);
-          
-        int signZ = sgn(track.GetEta());
+        set<int> nextPointLayers = nextPointLayersAndDisks[0];
+        set<int> nextPointDisks  = nextPointLayersAndDisks[1];
         
         // fist, check if helix crosses next layer
         Point pA, pB;
         bool crossesNextLayer = helixProcessor.GetIntersectionWithLayer(helix, *nextPointLayers.begin(), pA, pB);
+        bool turnsBack = !(crossesNextLayer || lastPointIsEndcap);
         
-        // try to extend to next layer
-        if(crossesNextLayer || lastPointIsEndcap){
-  
-          // Find points that could extend this helix
-          Points possiblePointsAll;
+        Points possiblePoints = turnsBack ? GetPossibleTurningBackPoints(helix) : GetPossibleNextPoints(helix);
+        vector<Points> possiblePointsRegrouped = pointsProcessor.RegroupNerbyPoints(possiblePoints);
+        
+        
+        // Find points that could extend this helix
+        for(Points &points : possiblePointsRegrouped){
           
-          for(int nextPointLayer : nextPointLayers){
-            possiblePointsAll.insert(possiblePointsAll.end(),
-                                     pointsByLayer[nextPointLayer].begin(),
-                                     pointsByLayer[nextPointLayer].end());
-          }
- 
-          for(int nextPointDisk : nextPointDisks){
-            possiblePointsAll.insert(possiblePointsAll.end(),
-                                     pointsByDisk[GetDisksArrayIndex(nextPointDisk, signZ)].begin(),
-                                     pointsByDisk[GetDisksArrayIndex(nextPointDisk, signZ)].end());
-          }
+          Points goodPoints = turnsBack ? GetGoodTurningBackPoints(helix, points) : GetGoodNextPoints(helix, points, nextPointLayers);
+          if(goodPoints.size()==0) continue;
           
-          Points possiblePoints;
+          /// Extend helix by the new point and refit its params
+          Helix helixCopy(helix);
+          helixCopy.SetLastPoints(goodPoints);
+          if(turnsBack) helixCopy.SetFirstTurningPointIndex((int)helixCopy.GetNpoints()-1);
+          RefitHelix(helixCopy);
           
-          // remove points that are already on helix
-          for(auto &pointCandidate : possiblePointsAll){
-            if(find_if(helixPoints.begin(), helixPoints.end(), [&](const shared_ptr<Point> &p){ return *pointCandidate == *p;}) == helixPoints.end()){
-              possiblePoints.push_back(pointCandidate);
-            }
-          }
+          // check if chi2 is small enough
+          if(helixCopy.GetChi2() > config.params["track_max_chi2"]) continue;
           
-          auto possiblePointsRegrouped = pointsProcessor.RegroupNerbyPoints(possiblePoints);
-          
-          for(auto &points : possiblePointsRegrouped){
-            
-            Points goodPoints;
-            
-            vector<double> lastPointsT;
-            
-            for(size_t index : helix.GetLastPointsIndices()){
-              lastPointsT.push_back(helix.GetPointT(index));
-            }
-            
-            for(auto &point : points){
-              
-              if(helix.GetNlayers() >= config.params["min_layers_for_delta_xy"] &&
-                 !point->IsEndcapHit()){
-                if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, *nextPointLayers.begin(), true)) continue;
-              }
-              else{
-                if(!pointsProcessor.IsPhiGood(lastPoints, secondToLastPoints, point, charge)) continue;
-              }
-              if(!pointsProcessor.IsZgood(lastPoints, point)) continue;
-              
-              double previousT = lastPointsT.front();
-              double t = pointsProcessor.GetTforPoint(*point, helix.GetOrigin(), helix.GetCharge());
-              while(fabs(t+2*TMath::Pi()-previousT) < fabs(t-previousT)) t += 2*TMath::Pi();
-              while(fabs(t-2*TMath::Pi()-previousT) < fabs(t-previousT)) t -= 2*TMath::Pi();
-              
-              if(!pointsProcessor.IsTgood(lastPointsT, t)) continue;
-              goodPoints.push_back(point);
-            }
-            
-            if(goodPoints.size()==0) continue;
-            
-            /// Extend helix by the new point and refit its params
-            Helix helixCopy(helix);
-            helixCopy.SetLastPoints(goodPoints);
-//            for(auto &point : goodPoints) helixCopy.AddPoint(point);
-            RefitHelix(helixCopy);
-            
-            // check if chi2 is small enough
-            if(helixCopy.GetChi2() > config.params["track_max_chi2"]) continue;
-            
-            // if we reached this point, it means that this hit is not missing
-            helixCopy.SetIsPreviousHitMissing(false);
-            extendedHelices.push_back(helixCopy);
-          }
+          helixCopy.SetIsPreviousHitMissing(false);
+          extendedHelices.push_back(helixCopy);
         }
-        else{
-          // try to extend to the same layer (turning back)
-          
-          Points turningBackPointsAll;
-          
-          if(lastPointLayer<pointsByLayer.size()){
-            turningBackPointsAll = pointsByLayer[lastPointLayer];
-          }
-          Points turningBackPoints;
-          
-          // remove points that are already on helix
-          for(auto &pointCandidate : turningBackPointsAll){
-            if(find_if(helixPoints.begin(), helixPoints.end(), [&](const shared_ptr<Point> &p){ return *pointCandidate == *p;}) == helixPoints.end()){
-              turningBackPoints.push_back(pointCandidate);
-            }
-          }
-          auto turningBackPointsRegrouped = pointsProcessor.RegroupNerbyPoints(turningBackPoints);
-          
-          for(auto &turningBackPoints : turningBackPointsRegrouped){
 
-            Points goodTurningBackPoints;
-            
-            for(auto &point : turningBackPoints){
-              if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, lastPointLayer, false)) continue;
-              if(!pointsProcessor.IsZgood(lastPoints, point)) continue;
-              goodTurningBackPoints.push_back(point);
-            }
-            if(goodTurningBackPoints.size()==0) continue;
-            
-            /// Extend helix by the new point and refit its params
-            Helix helixCopy(helix);
-            helixCopy.SetLastPoints(goodTurningBackPoints);
-//            for(auto &point : goodTurningBackPoints) helixCopy.AddPoint(point);
-            helixCopy.SetFirstTurningPointIndex(helixCopy.GetNpoints()-1);
-            RefitHelix(helixCopy);
-            
-            // check if chi2 is small enough
-            if(helixCopy.GetChi2() > config.params["track_max_chi2"]) continue;
-            
-            // if we reached this point, it means that this hit is not missing
-            helixCopy.SetIsPreviousHitMissing(false);
-            
-            extendedHelices.push_back(helixCopy);
-          }
-        
-          if(config.params["merge_at_turn_back"]) while(LinkAndMergeHelices(extendedHelices));
-        }
-         
         // if it was possible to extend the helix
         if(extendedHelices.size() != 0){
           nextStepHelices.insert(nextStepHelices.end(),
@@ -528,10 +530,7 @@ void Fitter::ExtendSeeds(Helices &helices, const vector<Points> &pointsByLayer, 
 
             helix.SetLastPoints({missingHit});
             missingHit = helix.GetLastPoints().back();
-//            double t = missingHit->GetT();
-//            missingHit->SetZ(-helix.GetCharge()*helix.GetOrigin().GetZ() + helix.GetSlope(t)*t + 10*eventVertex.GetZ());
             missingHit->SetZ(lastPoints.front()->GetZ());
-            
             missingHit->SetSubDetName("missing");
             helix.IncreaseMissingHits();
             
@@ -547,7 +546,7 @@ void Fitter::ExtendSeeds(Helices &helices, const vector<Points> &pointsByLayer, 
     nSteps++;
   }
   while(!finished);
-  if(config.params["verbosity_level"]>0) cout<<"Candidates found: "<<helices.size()<<endl;
+  Log(1)<<"Candidates found: "<<helices.size()<<"\n";
 }
 
 void Fitter::RefitHelix(Helix &helix)
@@ -577,7 +576,7 @@ void Fitter::RefitHelix(Helix &helix)
      startX0      < config.params["min_X0"]      || startX0     > config.params["max_X0"]     ||
      startY0      < config.params["min_Y0"]      || startY0     > config.params["max_Y0"]     ||
      startZ0      < config.params["min_Z0"]      || startZ0     > config.params["max_Z0"]){
-    if(config.params["verbosity_level"]>0) cout<<"ERROR -- wrong params in RefitHelix, which should never happen..."<<endl;
+    Log(1)<<"ERROR -- wrong params in RefitHelix, which should never happen...\n";
     return;
   }
   
@@ -618,7 +617,7 @@ void Fitter::RefitHelix(Helix &helix)
 
 void Fitter::MergeHelices(Helices &helices)
 {
-  if(config.params["verbosity_level"]>0) cout<<"Merging overlapping helices...";
+  Log(1)<<"Merging overlapping helices...";
   
   Helices helicesToMerge;
   Helices tooShortToMerge;
@@ -634,20 +633,15 @@ void Fitter::MergeHelices(Helices &helices)
   // Insert back those that were too short to merge
   helicesToMerge.insert(helicesToMerge.end(), tooShortToMerge.begin(), tooShortToMerge.end());
   
-  if(config.params["verbosity_level"]>0) cout<<" merged down to: "<<helicesToMerge.size()<<endl;
+  Log(1)<<" merged down to: "<<helicesToMerge.size()<<"\n";
   helices = helicesToMerge;
 }
 
 ROOT::Fit::Fitter* Fitter::GetSeedFitter()
 {
   auto fitter = new ROOT::Fit::Fitter();
-  
-  // This is a stupid hack to be able to set fit parameters before actually setting a fitting function
-  // Params we want to set only once, but function will change in each iteration of the loop, because
-  // it captures loop iterators.
-  auto f = [&](const double*) {return 0;};
   int nPar = 8;
-  ROOT::Math::Functor fitFunction = ROOT::Math::Functor(f, nPar);
+  auto fitFunction = ROOT::Math::Functor(chi2Function, nPar);
   double pStart[nPar];
   fitter->SetFCN(fitFunction, pStart);
   
@@ -658,11 +652,11 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter()
   GetXYranges(trackPoint, startX0, minX0, maxX0, startY0, minY0, maxY0);
   
   if(startX0 < minX0 || startX0 > maxX0){
-    if(config.params["verbosity_level"]>0) cout<<"ERROR -- x0:"<<startX0<<"\tmin:"<<minX0<<"\tmax:"<<maxX0<<endl;
+    Log(1)<<"ERROR -- x0:"<<startX0<<"\tmin:"<<minX0<<"\tmax:"<<maxX0<<"\n";
     if(config.params["require_good_starting_values"]) return nullptr;
   }
   if(startY0 < minY0 || startY0 > maxY0){
-    if(config.params["verbosity_level"]>0) cout<<"ERROR -- y0:"<<startY0<<"\tmin:"<<minY0<<"\tmax:"<<maxY0<<endl;
+    Log(1)<<"ERROR -- y0:"<<startY0<<"\tmin:"<<minY0<<"\tmax:"<<maxY0<<"\n";
     if(config.params["require_good_starting_values"]) return nullptr;
   }
   
@@ -670,7 +664,7 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter()
   double startS0 = config.params["start_R0"] * trackPoint.GetVectorSlopeC();
   
   if(startS0 < config.params["min_S0"] || startS0 > config.params["max_S0"]){
-    if(config.params["verbosity_level"]>0) cout<<"ERROR -- S0:"<<startS0<<"\tmin:"<<config.params["min_S0"]<<"\tmax:"<<config.params["max_S0"]<<endl;
+    Log(1)<<"ERROR -- S0:"<<startS0<<"\tmin:"<<config.params["min_S0"]<<"\tmax:"<<config.params["max_S0"]<<"\n";
     if(config.params["require_good_starting_values"]) return nullptr;
   }
   
@@ -680,7 +674,7 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter()
   double startZ0 = -charge * (trackPoint.GetZ() - startS0 * tTrack);
 
   if(startZ0 < config.params["min_Z0"] || startZ0 > config.params["max_Z0"]){
-    if(config.params["verbosity_level"]>0) cout<<"ERROR -- z0:"<<startZ0<<"\tmin:"<<config.params["min_Z0"]<<"\tmax:"<<config.params["max_Z0"]<<endl;
+    Log(1)<<"ERROR -- z0:"<<startZ0<<"\tmin:"<<config.params["min_Z0"]<<"\tmax:"<<config.params["max_Z0"]<<"\n";
     if(config.params["require_good_starting_values"]) return nullptr;
   }
   
@@ -695,6 +689,9 @@ ROOT::Fit::Fitter* Fitter::GetSeedFitter()
   // With 3 points we don't know how fast will radius and slope decrease:
   FixParameter(fitter, 1, "a" ,  0.0000001);
   FixParameter(fitter, 3, "b" , -0.0000001);
+  
+//  for(int i=0; i<nPar; i++) pStart[i] = fitter->Config().ParSettings(i).Value();
+//  fitter->SetFCN(fitFunction, pStart);
   
   return fitter;
 }
@@ -737,7 +734,7 @@ void Fitter::GetXYranges(const Point &trackPoint,
 
 void Fitter::RemoveShortHelices(Helices &helices)
 {
-  if(config.params["verbosity_level"]>0) cout<<"Removing very short merged helices...";
+  Log(1)<<"Removing very short merged helices...";
   Helices longHelices;
   for(auto helix : helices){
     if(helix.GetNpoints() >= config.params["track_min_n_points"] &&
@@ -745,7 +742,7 @@ void Fitter::RemoveShortHelices(Helices &helices)
       longHelices.push_back(helix);
     }
   }
-  if(config.params["verbosity_level"]>0) cout<<" long merged helices: "<<longHelices.size()<<endl;
+  Log(1)<<" long merged helices: "<<longHelices.size()<<"\n";
   helices = longHelices;
 }
 

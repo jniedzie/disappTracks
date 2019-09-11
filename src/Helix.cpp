@@ -91,6 +91,45 @@ isPreviousHitMissing(false)
   pointsT.push_back(pointsProcessor.GetTforPoint(_decayVertex, origin, charge));
 }
 
+Helix::Helix(const ROOT::Fit::FitResult &result,
+             const Track &track,
+             const Point &eventVertex,
+             int _charge) :
+charge(_charge),
+firstTurningPointIndex(-1),
+momentum(Point(0, 0, 0)),
+tStep(0.01),
+isFinished(false),
+shouldRefit(false),
+chi2(inf),
+nMissingHits(0),
+nMissingHitsInRow(0),
+isPreviousHitMissing(false)
+{
+  helixParams = HelixParams(result.GetParams()[0],
+                            result.GetParams()[1],
+                            result.GetParams()[2],
+                            result.GetParams()[3]);
+  
+  double L  = result.GetParams()[4];
+  Point _decayVertex = pointsProcessor.GetPointOnTrack(L, track, eventVertex);
+  
+  seedID = uniqueID = reinterpret_cast<uint64_t>(this);
+  
+  points.push_back(make_shared<Point>(_decayVertex));
+  lastPoints.push_back(make_shared<Point>(_decayVertex));
+  pointsT.push_back(pointsProcessor.GetTforPoint(_decayVertex, origin, charge));
+  
+  double x0 = result.GetParams()[5];
+  double y0 = result.GetParams()[6];
+  double z0 = result.GetParams()[7];
+  
+  origin = Point(x0, y0, z0);
+  UpdateOrigin(origin);
+  SetChi2(result.MinFcnValue());
+}
+
+
 Helix::Helix(const Helix &h) :
 isFinished(h.isFinished),
 seedID(h.seedID),
