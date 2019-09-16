@@ -397,12 +397,21 @@ Points Fitter::GetGoodNextPoints(const Helix &helix, const Points &points, const
   for(shared_ptr<Point> point : points){
     if(helix.GetNlayers() >= config.params["min_layers_for_delta_xy"] &&
        !point->IsEndcapHit()){
-      if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, *nextPointLayers.begin(), true)) continue;
+      if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, *nextPointLayers.begin(), true)){
+        Log(3)<<"Δxy too high\n";
+        continue;
+      }
     }
     else{
-      if(!pointsProcessor.IsPhiGood(lastPoints, secondToLastPoints, point, charge)) continue;
+      if(!pointsProcessor.IsPhiGood(lastPoints, secondToLastPoints, point, charge)){
+        Log(3)<<"Δφ too high\n";
+        continue;
+      }
     }
-    if(!pointsProcessor.IsZgood(lastPoints, point)) continue;
+    if(!pointsProcessor.IsZgood(lastPoints, point)){
+      Log(3)<<"Δz too high\n";
+      continue;
+    }
     
     double previousT = lastPointsT.front();
     double t = pointsProcessor.GetTforPoint(*point, helix.GetOrigin(), helix.GetCharge());
@@ -423,11 +432,37 @@ Points Fitter::GetGoodTurningBackPoints(const Helix &helix,
   int lastPointLayer = lastPoints.front()->GetLayer();
   
   for(auto &point : points){
-    if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, lastPointLayer, false)) continue;
-    if(!pointsProcessor.IsZgood(lastPoints, point)) continue;
+    if(!helixProcessor.IsPointCloseToHelixInLayer(helix, *point, lastPointLayer, false)){
+      Log(3)<<"Δxy too high\n";
+      continue;
+    }
+    if(!pointsProcessor.IsZgood(lastPoints, point)){
+      Log(3)<<"Δz too high\n";
+      continue;
+    }
     goodTurningBackPoints.push_back(point);
   }
   return goodTurningBackPoints;
+}
+
+unique_ptr<Helix> Fitter::TryToExtendHelix(const Helix &helix, const Points &points, bool turnsBack)
+{
+  if(points.size()==0) return nullptr;
+  
+  /// Extend helix by the new point and refit its params
+  Helix helixCopy(helix);
+  helixCopy.SetLastPoints(points);
+  if(turnsBack) helixCopy.SetFirstTurningPointIndex((int)helixCopy.GetNpoints()-1);
+  RefitHelix(helixCopy);
+  
+  // check if chi2 is small enough
+  if(helixCopy.GetChi2() > config.params["track_max_chi2"]){
+    Log(3)<<"Chi2 too high\n";
+    return nullptr;
+  }
+  helixCopy.SetIsPreviousHitMissing(false);
+  
+  return make_unique<Helix>(helixCopy);
 }
 
 void Fitter::ExtendSeeds(Helices &helices)
@@ -449,52 +484,32 @@ void Fitter::ExtendSeeds(Helices &helices)
         nextStepHelices.push_back(helix);
       }
       else{
-        Helices extendedHelices;
-        
-        auto helixPoints        = helix.GetPoints();
-        auto lastPoints         = helix.GetLastPoints();
-        auto secondToLastPoints = helix.GetSecontToLastPoints();
-        
-        bool lastPointIsEndcap = lastPoints.front()->IsEndcapHit();
-        
-        shared_ptr<Point> turningPoint = nullptr;
-        if(!helix.IsIncreasing()) turningPoint = helixPoints[helix.GetFirstTurningPointIndex()];
-        
+        auto lastPoints    = helix.GetLastPoints();
         int lastPointLayer = lastPoints.front()->GetLayer();
-        int lastPointDisk = abs(lastPoints.front()->GetDisk())-1;
+        int lastPointDisk  = abs(lastPoints.front()->GetDisk())-1;
         if(lastPointLayer < 0 && lastPointDisk < 0) continue;
         
         auto nextPointLayersAndDisks = GetNextPointLayersAndDisks(helix);
-        
         set<int> nextPointLayers = nextPointLayersAndDisks[0];
-        set<int> nextPointDisks  = nextPointLayersAndDisks[1];
         
         // fist, check if helix crosses next layer
         Point pA, pB;
         bool crossesNextLayer = helixProcessor.GetIntersectionWithLayer(helix, *nextPointLayers.begin(), pA, pB);
+        
+        bool lastPointIsEndcap = lastPoints.front()->IsEndcapHit();
         bool turnsBack = !(crossesNextLayer || lastPointIsEndcap);
         
         Points possiblePoints = turnsBack ? GetPossibleTurningBackPoints(helix) : GetPossibleNextPoints(helix);
         vector<Points> possiblePointsRegrouped = pointsProcessor.RegroupNerbyPoints(possiblePoints);
-        
+        Helices extendedHelices;
         
         // Find points that could extend this helix
         for(Points &points : possiblePointsRegrouped){
           
           Points goodPoints = turnsBack ? GetGoodTurningBackPoints(helix, points) : GetGoodNextPoints(helix, points, nextPointLayers);
-          if(goodPoints.size()==0) continue;
-          
-          /// Extend helix by the new point and refit its params
-          Helix helixCopy(helix);
-          helixCopy.SetLastPoints(goodPoints);
-          if(turnsBack) helixCopy.SetFirstTurningPointIndex((int)helixCopy.GetNpoints()-1);
-          RefitHelix(helixCopy);
-          
-          // check if chi2 is small enough
-          if(helixCopy.GetChi2() > config.params["track_max_chi2"]) continue;
-          
-          helixCopy.SetIsPreviousHitMissing(false);
-          extendedHelices.push_back(helixCopy);
+        
+          unique_ptr<Helix> extendedHelix = TryToExtendHelix(helix, goodPoints, turnsBack);
+          if(extendedHelix) extendedHelices.push_back(*extendedHelix);
         }
 
         // if it was possible to extend the helix

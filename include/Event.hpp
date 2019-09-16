@@ -160,8 +160,12 @@ public:
   inline vector<shared_ptr<Lepton>>  GetLeptons() const {return leptons;}
   inline vector<shared_ptr<Helix>>   GetHelices() const {return helices;}
 
-  Points GetClusters(bool removePionClusters,
-                                        bool removeEndcapClusters);
+  /**
+   Returns tracker clusters. End-caps are included or not based on `include_endcaps` option
+   in the config. Pion clusters are removed from the collection or not, according to
+   `fit_noise_clusters_only` option in the config.
+   */
+  Points GetClusters();
   
 private:
   vector<shared_ptr<Track>>  tracks;   ///< Vector of isolated tracks

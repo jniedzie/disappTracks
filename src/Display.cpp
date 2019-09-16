@@ -42,6 +42,12 @@ void Display::AddCluster(TEveElementList *stripClusters,
   if(errY < minSize) errY = minSize;
   if(errZ < minSize) errZ = minSize;
   
+  if(options.count("emphasis") ? any_cast<bool>(options["emphasis"]) : false){
+    errX *= 0.8;
+    errY *= 0.8;
+    errZ *= 1.5;
+  }
+  
   bool doRotate = false;
   double rotationAngle = 0;
   

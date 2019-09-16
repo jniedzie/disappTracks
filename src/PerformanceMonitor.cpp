@@ -62,12 +62,16 @@ void PerformanceMonitor::operator=(const PerformanceMonitor &pm)
   name             = pm.name;
 }
 
-void PerformanceMonitor::SetValues(double valueSignal, double valueBackground)
+void PerformanceMonitor::SetValue(double value, bool signal)
 {
-  valuesSignal.push_back(valueSignal);
-  valuesBackground.push_back(valueBackground);
-  histSignal->Fill(valueSignal);
-  histBackground->Fill(valueBackground);
+  if(signal){
+    valuesSignal.push_back(value);
+    histSignal->Fill(value);
+  }
+  else{
+    valuesBackground.push_back(value);
+    histBackground->Fill(value);
+  }
 }
 
 void PerformanceMonitor::CalcEfficiency()

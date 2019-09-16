@@ -8,12 +8,16 @@
 #include "HelixProcessor.hpp"
 #include "PerformanceMonitor.hpp"
 #include "EventSet.hpp"
+#include "Logger.hpp"
 
 string configPath = "configs/helixTagger.md";
 string cutLevel = "after_L1/all/";
+xtracks::EDataType dataType = xtracks::kSignal;
+int setIter = kWino_M_300_cTau_10;
+
+vector<int> eventsToSkip = { };
 
 bool printROCpoints = true;
-bool removeEndcapClusters = true;
 
 enum ETestParams {
   kNoBins,
@@ -26,10 +30,7 @@ enum ETestParams {
   nTestParams
 };
 
-ETestParams testParam = kMET;
-
-xtracks::EDataType dataType = xtracks::kSignal;
-int setIter = kWino_M_300_cTau_10;
+ETestParams testParam = kNoBins;
 
 vector<string> monitorTypes = {
   "avg_hits",
@@ -147,8 +148,13 @@ int main(int argc, char* argv[])
   
   
   for(auto iEvent=0; iEvent<nEvents; iEvent++){
-    cout<<"\n\n=================================================================\n"<<endl;
-    cout<<"helixTagger -- processing event "<<iEvent<<endl;
+    if(find(eventsToSkip.begin(), eventsToSkip.end(), iEvent) != eventsToSkip.end()){
+      Log(0)<<"Skipping event "<<iEvent<<"\n";
+      continue;
+    }
+    
+    Log(0)<<"\n\n=================================================================\n";
+    Log(0)<<"helixTagger -- processing event "<<iEvent<<"\n";
     
     auto event = events.At(dataType, setIter, iEvent);
     
@@ -164,18 +170,24 @@ int main(int argc, char* argv[])
     
     
     for(auto &track : event->GetTracks()){
-      auto pointsSignal     = event->GetClusters(false, removeEndcapClusters);
-      auto pointsBackground = event->GetClusters(true, removeEndcapClusters);
+      auto pointsSignal     = event->GetClusters();
+      auto pointsBackground = event->GetClusters();
       
       Helices fittedHelicesSignal     = fitter->FitHelices(pointsSignal, *track, *event->GetVertex());
       Helices fittedHelicesBackground = fitter->FitHelices(pointsBackground, *track, *event->GetVertex());
       
-      // for(auto helix : fittedHelicesSignal) event->AddHelix(move(fittedHelix));
+      for(auto helix : fittedHelicesSignal) event->AddHelix(make_shared<Helix>(helix));
       
       for(string monitorType : monitorTypes){
-        monitors[iParam][monitorType].SetValues(helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesSignal, monitorType),
-                                                helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesBackground, monitorType));
+        double value = helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesSignal, monitorType);
+        bool isSignal = true;
         
+        monitors[iParam][monitorType].SetValue(value, isSignal);
+        
+        value = helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesBackground, monitorType);
+        isSignal = false;
+        
+        monitors[iParam][monitorType].SetValue(value, isSignal);
       }
     }
     nAnalyzedEvents++;
@@ -195,24 +207,24 @@ int main(int argc, char* argv[])
   
   int iParam=0;
   for(auto &monitorsForParam : monitors){
-    cout<<"\n\n============================================================"<<endl;
-    cout<<"Param bin: "<<iParam<<"\tevents analyzed: "<<nAnalyzedEventsForParam[iParam]<<endl;
+    Log(0)<<"\n\n============================================================\n";
+    Log(0)<<"Param bin: "<<iParam<<"\tevents analyzed: "<<nAnalyzedEventsForParam[iParam]<<"\n";
     iParam++;
     
     for(auto &monitor : monitorsForParam){
-      cout<<"\nMonitor: "<<monitor.first<<endl;
+      Log(0)<<"\nMonitor: "<<monitor.first<<"\n";
       if(printROCpoints) monitor.second.PrintFakesEfficiency();
       monitor.second.PrintParams();
     }
   }
   
-  cout<<"N events analyzed: "<<nAnalyzedEvents<<endl;
+  Log(0)<<"N events analyzed: "<<nAnalyzedEvents<<"\n";
   
-  //  cout<<"helixTagger -- saving events"<<endl;
-  //  events.SaveEventsToFiles("afterHelixTagging/");
-  //  cout<<"helixTagger -- finished"<<endl;
+  cout<<"helixTagger -- saving events"<<endl;
+  events.SaveEventsToFiles("afterHelixTagging/");
+  cout<<"helixTagger -- finished"<<endl;
   
-  cout<<"Time: "<<duration(start, now());
+  Log(0)<<"Time: "<<duration(start, now())<<"\n";
   
   canvas->Update();
   

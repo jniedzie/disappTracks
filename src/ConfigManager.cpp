@@ -158,4 +158,13 @@ ConfigManager::ConfigManager(string _path)
   params["draw_pion_simhits"]       = configFile->GetValue("draw_pion_simhits",1);
   params["draw_pion_clusters"]      = configFile->GetValue("draw_pion_clusters",1);
   params["draw_chargino_simhits"]   = configFile->GetValue("draw_chargino_simhits",1);
+  
+  
+  params["draw_true_helices"]            = configFile->GetValue("draw_true_helices",1);
+  params["draw_fitted_helices"]          = configFile->GetValue("draw_fitted_helices",1);
+  params["draw_fitted_helices_clusters"] = configFile->GetValue("draw_fitted_helices_clusters",1);
+  params["fit_helices"]                  = configFile->GetValue("fit_helices",0);
+  params["fit_pion_clusters_only"]       = configFile->GetValue("fit_pion_clusters_only",0);
+  params["fit_noise_clusters_only"]      = configFile->GetValue("fit_noise_clusters_only",0);
+  params["include_endcaps"]              = configFile->GetValue("include_endcaps",1);
 }

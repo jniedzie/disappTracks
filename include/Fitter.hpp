@@ -116,6 +116,8 @@ private:
   
   Points GetGoodTurningBackPoints(const Helix &helix,
                                   const Points &points);
+  
+  unique_ptr<Helix> TryToExtendHelix(const Helix &helix, const Points &points, bool turnsBack);
 };
 
 #endif /* Fitter_hpp */

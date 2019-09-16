@@ -79,12 +79,12 @@ void Event::Print(){
   cout<<"================================================\n\n"<<endl;
 }
 
-Points Event::GetClusters(bool removePionClusters, bool removeEndcapClusters)
+Points Event::GetClusters()
 {
   Points resultClusters;
   
   for(auto &point : trackerClusters){
-    if(removeEndcapClusters &&
+    if(!config.params["include_endcaps"] &&
        (point->GetSubDetName() == "TID" ||
         point->GetSubDetName() == "TEC" ||
         point->GetSubDetName() == "P1PXEC")) continue;
@@ -98,7 +98,7 @@ Points Event::GetClusters(bool removePionClusters, bool removeEndcapClusters)
       cout<<"Unknown detector:"<<point->GetSubDetName()<<endl;
     }
     
-    if(removePionClusters){
+    if(config.params["fit_noise_clusters_only"]){
       bool isPionHit = false;
       for(auto &pionCluster : pionClusters){
         if(*pionCluster == *point){

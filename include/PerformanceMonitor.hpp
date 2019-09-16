@@ -7,48 +7,68 @@
 
 #include "Helpers.hpp"
 
+/**
+ Monitors performance of the looper tagger, by storing values of some discriminating
+ variable (e.g. number of hits on helix) and calculating efficiency and fake rate.
+ */
 class PerformanceMonitor
 {
 public:
+  /// Default constructor
   PerformanceMonitor();
   
+  /**
+   Constructor that creates histograms and prepares all internals
+   \param _name Name of the monitor
+   \param _nBins Number of histogram bins, used also as a variable step for efficiency
+   \param min Minimum variable value
+   \param max Maximum variable value
+   */
   PerformanceMonitor(string _name, int _nBins, double min, double max);
   
+  /// Assignment operator
   void operator=(const PerformanceMonitor &pm);
   
-  void SetValues(double valueSignal, double valueBackground);
+  /**
+   Adds value of monitored parameter to the monitor for signal or background
+   \param value Value of the parameter to be monitored
+   \param signal Set to `true` for signal, `false` for background
+   */
+  void SetValue(double value, bool signal);
   
+  /**
+   Calculated values of all internal parameters: AUC, Z-score at different cut levels,
+   max efficiency, min fake rate, max and average distance to √f curve.
+   */
   void CalcEfficiency();
   
+  /**
+   Draws ROC curve in the current pad
+   \param first Specify whether this is the first time a graph is drawn in this pad or not
+  */
   void DrawRocGraph(bool first);
+  
+  /// Draws signal and background histograms in the current pad
   void DrawHists();
   
+  /// Prints two columns: fake rate and efficiency, for different values of threshold
   void PrintFakesEfficiency();
+  
+  /// Prints values of internal parameters
   void PrintParams();
   
-  // trivial getters
-  
+  /// Returns internal parameter given its name, or `-inf` if name is incorrect
   inline double GetValueByName(string name){
-    if(name=="auc") return auc;
-    if(name=="sigma_init") return significanceInitial;
-    if(name=="sigma_L0") return significanceAfterL0;
-    if(name=="sigma_L1") return significanceAfterL1;
-    if(name=="max_eff") return maxEfficiency;
-    if(name=="min_fake") return invFakeAtHighestEff;
+    if(name=="auc")           return auc;
+    if(name=="sigma_init")    return significanceInitial;
+    if(name=="sigma_L0")      return significanceAfterL0;
+    if(name=="sigma_L1")      return significanceAfterL1;
+    if(name=="max_eff")       return maxEfficiency;
+    if(name=="min_fake")      return invFakeAtHighestEff;
     if(name=="max_dist_fake") return maxDistToSqrtFake;
     if(name=="avg_dist_fake") return avgDistToSqrtFake;
-    
     return -inf;
   }
-  
-  inline double GetAUC(){ return auc; }
-  inline double GetMaxEfficiency(){ return maxEfficiency; }
-  inline double GetSignificanceInitial(){ return significanceInitial; }
-  inline double GetSignificanceAfterL0(){ return significanceAfterL0; }
-  inline double GetSignificanceAfterL1(){ return significanceAfterL1; }
-  inline double GetInvFakeAtHighestEff(){ return invFakeAtHighestEff; }
-  inline double GetMaxDistToSqrtFake(){ return maxDistToSqrtFake; }
-  inline double GetAvgDistToSqrtFake(){ return avgDistToSqrtFake; }
   
 private:
   double thresholdMin;
