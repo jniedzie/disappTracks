@@ -16,11 +16,17 @@ HelixProcessor::HelixProcessor()
     "helix_z",
     "helix_px",
     "helix_py",
-    "helix_pz"
+    "helix_pz",
+    "helix_chi2",
+    "helix_t_min",
+    "helix_t_max",
   };
   
   arrayNamesInt = {
-    "helix_charge"
+    "helix_charge",
+    "helix_n_hits",
+    "helix_n_missing_hits",
+    "helix_n_layers",
   };
 }
 
@@ -59,6 +65,16 @@ vector<shared_ptr<Helix>> HelixProcessor::GetHelicesFromTree()
     
     auto helix    = make_shared<Helix>(origin, momentum, arrayValuesInt["helix_charge"][iHelix]);
     
+    helix->chi2 = arrayValuesFloat["helix_chi2"][iHelix];
+    helix->pointsT[0] = arrayValuesFloat["helix_t_min"][iHelix];
+    helix->pointsT[helix->pointsT.size()-1] = arrayValuesFloat["helix_t_max"][iHelix];
+    
+    for(int iHit=0; iHit<arrayValuesInt["helix_n_hits"][iHelix]; iHit++){
+      helix->points.push_back(make_shared<Point>(0,0,0));
+    }
+    helix->nMissingHits = arrayValuesFloat["helix_n_missing_hits"][iHelix];
+//    helix->nLayers = arrayValuesFloat["helix_n_layers"][iHelix];
+    
     helices.push_back(helix);
   }
 
@@ -78,7 +94,14 @@ void HelixProcessor::SaveHelicesToTree(vector<shared_ptr<Helix>> helices)
     arrayValuesFloat["helix_px"][iHelix]   = helices[iHelix]->GetMomentum().GetX();
     arrayValuesFloat["helix_py"][iHelix]   = helices[iHelix]->GetMomentum().GetY();
     arrayValuesFloat["helix_pz"][iHelix]   = helices[iHelix]->GetMomentum().GetZ();
-    arrayValuesInt["helix_charge"][iHelix] = helices[iHelix]->GetCharge();
+    arrayValuesFloat["helix_chi2"][iHelix] = helices[iHelix]->GetChi2();
+    arrayValuesFloat["helix_t_min"][iHelix] = helices[iHelix]->GetTmin();
+    arrayValuesFloat["helix_t_max"][iHelix] = helices[iHelix]->GetTmax();
+    
+    arrayValuesInt["helix_charge"][iHelix]         =      helices[iHelix]->GetCharge();
+    arrayValuesInt["helix_n_hits"][iHelix]         = (int)helices[iHelix]->GetNpoints();
+    arrayValuesInt["helix_n_missing_hits"][iHelix] =      helices[iHelix]->GetNmissingHits();
+    arrayValuesInt["helix_n_layers"][iHelix]       = (int)helices[iHelix]->GetNlayers();
   }
 }
 

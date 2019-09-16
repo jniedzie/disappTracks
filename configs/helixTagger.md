@@ -3,10 +3,12 @@
 ### Path of the output file:
 output_path: helixFittingResults/tests.root
 
-verbosity_level:  0
+verbosity_level:  1
 
 ### Limit number of events loaded (-1 means load all available)
-max_N_events_signal:  -1
+max_N_events_signal:  10
+
+include_endcaps:              0
 
 **Fitter parameters**
 
@@ -14,24 +16,24 @@ max_N_events_signal:  -1
 double_hit_max_distance:            20.0
 
 ### Constraints on seeds parameters:
-seed_max_chi2:                             0.08
+seed_max_chi2:                             0.002
 
 seed_middle_hit_min_delta_phi:   -0.6
-seed_middle_hit_max_delta_phi:   0.9
+seed_middle_hit_max_delta_phi:   0.8
 seed_middle_hit_max_delta_z:     150
 
 seed_last_hit_min_delta_phi:       -0.6
-seed_last_hit_max_delta_phi:       0.7
-seed_last_hit_max_delta_z:          250
+seed_last_hit_max_delta_phi:       0.5
+seed_last_hit_max_delta_z:          200
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             0.01
+track_max_chi2:                             0.011
 
 next_point_min_delta_phi:             -0.6
-next_point_max_delta_phi:             0.5
-next_point_max_delta_z:                300
-next_point_max_delta_xy:              250
-next_point_max_delta_t:                0.6
+next_point_max_delta_phi:             1.5
+next_point_max_delta_z:                500
+next_point_max_delta_xy:              50
+next_point_max_delta_t:                1.5
 
 track_min_n_points:                       3
 track_min_n_layers:                       2
