@@ -7,6 +7,9 @@
 
 #include "Helpers.hpp"
 
+class PerformanceMonitor;
+typedef map<string, PerformanceMonitor> Monitors;
+
 /**
  Monitors performance of the looper tagger, by storing values of some discriminating
  variable (e.g. number of hits on helix) and calculating efficiency and fake rate.

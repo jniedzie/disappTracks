@@ -9,24 +9,74 @@
 #include "HelixProcessor.hpp"
 #include "PerformanceMonitor.hpp"
 
-string configPath = "configs/helixTagger.md";
+string configPath = "configs/taggerPlotting.md";
 string cutLevel = "afterHelixTagging/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 
-vector<string> monitorTypes = {
-  "avg_hits",
-  "max_hits",
-  "avg_layers",
-  "max_layers",
-  "avg_length",
-  "max_length",
-  "n_helices"
-};
+/// Defines types of monitors and initializes them
+Monitors CreateMonitors()
+{
+  vector<string> monitorTypes = {
+    "avg_hits",
+    "max_hits",
+    "avg_layers",
+    "max_layers",
+    "avg_length",
+    "max_length",
+    "n_helices"
+  };
+  
+  Monitors monitors;
+  
+  for(auto monitorType : monitorTypes){
+    int max = 20, nBins = 20;
+    if(monitorType=="avg_length" || monitorType=="max_length"){ max = 10; nBins = 40; }
+    monitors[monitorType] = PerformanceMonitor(monitorType, nBins, 0, max);
+  }
+  return monitors;
+}
 
-/**
- The program execution starting point.
- */
+/// Fills `monitors` with data found in `events`. Will use signal or background events, depending on `isSignal` value
+void FillMonitors(Monitors &monitors, const EventSet &events, bool isSignal)
+{
+  for(int iEvent=0;
+          iEvent<events.size(dataType, isSignal ? kTaggerSignal : kTaggerBackground);
+          iEvent++){
+    auto event = events.At(dataType, kTaggerSignal, iEvent);
+    
+    for(auto &[name, monitor] : monitors){
+      double value = helixProcessor.GetHelicesParamsByMonitorName(event->GetHelices(), name);
+      monitor.SetValue(value, isSignal);
+    }
+  }
+}
+
+/// Calculates internal parameters of monitors and draws resulting plots
+void DrawMonitors(Monitors &monitors)
+{
+  TCanvas *canvasROC    = new TCanvas("canvasROC", "canvasROC", 1000, 1500);
+  TCanvas *canvasDists  = new TCanvas("canvasDists", "canvasDists", 1000, 1500);
+  canvasROC->Divide(2, 3);
+  canvasDists->Divide(2, 3);
+  
+  int iPad=1;
+  for(auto &[name, monitor] : monitors){
+    monitor.CalcEfficiency();
+    canvasROC->cd(iPad);
+    monitor.DrawRocGraph(true);
+    canvasDists->cd(iPad++);
+    monitor.DrawHists();
+  }
+  
+  canvasROC->Update();
+  canvasDists->Update();
+  
+  canvasROC->SaveAs("plots/tagger_roc.pdf");
+  canvasDists->SaveAs("plots/tagger_distributions.pdf");
+}
+
+/// The program execution starting point.
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
@@ -36,51 +86,13 @@ int main(int argc, char* argv[])
   EventSet events;
   events.LoadEventsFromFiles(cutLevel);
   
-  TCanvas *canvas = new TCanvas("canvas", "canvas", 2880,1800);
-  canvas->Divide(4,3);
+  map<string, PerformanceMonitor> monitors = CreateMonitors();
   
-  TH1D *maxNhitsSignal     = new TH1D("maxNhitsSignal", "maxNhitsSignal", 50, 0, 50);
-  TH1D *maxNhitsBackground = new TH1D("maxNhitsBackground", "maxNhitsBackground", 50, 0, 50);
+  FillMonitors(monitors, events, true);
+  FillMonitors(monitors, events, false);
   
+  DrawMonitors(monitors);
   
-  map<string, PerformanceMonitor> monitors;
-    
-  for(auto monitorType : monitorTypes){
-    int max = 20, nBins = 20;
-    if(monitorType=="avg_length" || monitorType=="max_length"){ max = 10; nBins = 40; }
-    monitors[monitorType] = PerformanceMonitor(monitorType, nBins, 0, max);
-  }
-  
-  for(int iEvent=0; iEvent<events.size(dataType, kTaggerSignal); iEvent++){
-    auto event = events.At(dataType, kTaggerSignal, iEvent);
-    maxNhitsSignal->Fill(helixProcessor.GetMaxNhits(event->GetHelices()));
-    
-    for(string monitorType : monitorTypes){
-      double value = helixProcessor.GetHelicesParamsByMonitorName(event->GetHelices(), monitorType);
-      monitors[monitorType].SetValue(value, true);
-    }
-  }
-  
-  for(int iEvent=0; iEvent<events.size(dataType, kTaggerBackground); iEvent++){
-    auto event = events.At(dataType, kTaggerBackground, iEvent);
-    maxNhitsBackground->Fill(helixProcessor.GetMaxNhits(event->GetHelices()));
-    for(string monitorType : monitorTypes){
-      double value = helixProcessor.GetHelicesParamsByMonitorName(event->GetHelices(), monitorType);
-      monitors[monitorType].SetValue(value, false);
-    }
-  }
-  
-  
-  int iPad=1;
-  for(auto &[name, monitor] : monitors){
-    monitor.CalcEfficiency();
-    canvas->cd(iPad++);
-    monitor.DrawRocGraph(true);
-    canvas->cd(iPad++);
-    monitor.DrawHists();
-  }
- 
-  canvas->Update();
   theApp.Run();
   return 0;
 }
