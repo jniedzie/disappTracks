@@ -28,7 +28,12 @@ invFakeAtHighestEff(0)
                             nBins, min, max);
   
   histSignal->SetFillColorAlpha(kGreen+1, 0.3);
+  histSignal->SetLineColor(kGreen+1);
+  histSignal->SetMarkerColor(kGreen+1);
+  
   histBackground->SetFillColorAlpha(kRed, 0.3);
+  histBackground->SetLineColor(kRed);
+  histBackground->SetMarkerColor(kRed);
   
   rocFun = GetRocFunction();
   rocGraph = new TGraph();
@@ -142,7 +147,7 @@ void PerformanceMonitor::CalcEfficiency()
   }
   avgDistToSqrtFake /= nBins;
   
-  rocGraph->Fit(rocFun,"Q");
+//  rocGraph->Fit(rocFun,"Q");
   auc = rocFun->Integral(0,1);
 }
 
@@ -178,11 +183,21 @@ TF1* PerformanceMonitor::GetRocFunction()
 
 void PerformanceMonitor::DrawRocGraph(bool first)
 {
-  rocGraph->Draw(first ? "AP" : "Psame");
+  rocGraph->Draw(first ? "APL" : "PLsame");
+  if(first){
+    rocGraph->GetYaxis()->SetRangeUser(0,1);
+    rocGraph->GetXaxis()->SetLimits(0,1);
+    
+    TLine *line = new TLine(0,0,1,1);
+    line->SetLineColor(kBlack);
+    line->Draw("same");
+  }
 }
 
 void PerformanceMonitor::DrawHists()
 {
-  histSignal->Draw();
-  histBackground->Draw("same");
+  histSignal->Sumw2();
+  histSignal->DrawNormalized();
+  histBackground->Sumw2();
+  histBackground->DrawNormalized("same");
 }

@@ -45,6 +45,8 @@ ConfigManager::ConfigManager(string _path)
   runSignal[kWino_M_800_cTau_20]  = configFile->GetValue("do_800_20",0);
   runSignal[kWino_M_1000_cTau_10] = configFile->GetValue("do_1000_10",0);
   runSignal[kWino_M_1000_cTau_20] = configFile->GetValue("do_1000_20",0);
+  runSignal[kTaggerSignal]        = configFile->GetValue("do_tagger_signal",0);
+  runSignal[kTaggerBackground]    = configFile->GetValue("do_tagger_background",0);
   
   runData[kElectron_Run2017B] = configFile->GetValue("do_2017",0);
   

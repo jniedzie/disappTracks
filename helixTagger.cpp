@@ -11,11 +11,12 @@
 #include "Logger.hpp"
 
 string configPath = "configs/helixTagger.md";
-string cutLevel = "after_L1/all/";
-xtracks::EDataType dataType = xtracks::kSignal;
-int setIter = kWino_M_300_cTau_10;
+string cutLevel = "after_L0/";
 
-vector<int> eventsToSkip = { };
+xtracks::EDataType dataType = xtracks::kSignal;
+int setIter = kTaggerSignal;
+
+vector<int> eventsToSkip = {  };
 
 bool printROCpoints = true;
 

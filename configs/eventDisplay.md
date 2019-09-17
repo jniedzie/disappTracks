@@ -1,16 +1,26 @@
 **Event display options**
 
-show_geometry_pixel:  1
+show_geometry_pixel:  0
 show_geometry_strip:  0
 show_geometry_ecal:  0
 show_geometry_hcal:  0
 
-draw_tracker_clusters:      0
 draw_met:                         0
 draw_jets:                          1
+
+draw_tracker_clusters:      0
 draw_pion_simhits:           0
 draw_pion_clusters:          0
-draw_chargino_simhits:    1
+draw_chargino_simhits:    0
+
+draw_true_helices:                    1
+draw_fitted_helices:                  1
+draw_fitted_helices_clusters:    1
+
+fit_helices:                         1
+fit_pion_clusters_only:       1
+fit_noise_clusters_only:     0
+include_endcaps:              1
 
 **Input options**
 
@@ -58,7 +68,7 @@ n_tracker_layers: 4
 ### Limit number of events loaded (-1 means load all available)
 max_N_events_signal:  -1
 
-verbosity_level: 2
+verbosity_level: 3
 
 **Pion's parameters**
 
@@ -85,27 +95,27 @@ n_track_hits: 2
 double_hit_max_distance:            20.0
 
 ### Constraints on seeds parameters:
-seed_max_chi2:                           1e-6
+seed_max_chi2:                           0.01
 
 seed_middle_hit_min_delta_phi:   -0.4
-seed_middle_hit_max_delta_phi:  0.1
+seed_middle_hit_max_delta_phi:  0.8
 seed_middle_hit_max_delta_z:     150
 
 seed_last_hit_min_delta_phi:       -0.4
-seed_last_hit_max_delta_phi:       0.1
-seed_last_hit_max_delta_z:          300
+seed_last_hit_max_delta_phi:       0.8
+seed_last_hit_max_delta_z:          150
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             0.5
+track_max_chi2:                             0.005
 
 next_point_min_delta_phi:             -0.5
 next_point_max_delta_phi:            1.5
-next_point_max_delta_z:                350
-next_point_max_delta_xy:              0
-next_point_max_delta_t:                0.4
+next_point_max_delta_z:                500
+next_point_max_delta_xy:              500
+next_point_max_delta_t:                0.7
 
-track_min_n_points:                       3
-track_min_n_layers:                       7
+track_min_n_points:                       2
+track_min_n_layers:                       3
 
 ### Use distance to helix only when it passed through at least N layers:
 min_layers_for_delta_xy:                5
@@ -136,7 +146,7 @@ exp_slope_function:         0
 ### Let pion helix start one layer before/after the chargino track
 allow_one_less_layer: 0
 allow_one_more_layer: 1
-check_opposite_charge_below_Nlayers: 0
+check_opposite_charge_below_Nlayers: 1
 
 ### Limits of helix parameters:
 start_R0: 320

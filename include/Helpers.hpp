@@ -233,9 +233,7 @@ const vector<vector<string>> inFileNameBackground = {
 
 const vector<string> inFileNameSignal = {
   "../data/SIG-SR/Wino_M_300_cTau_3/",
-  /*"../data/SIG-SR/Wino_M_300_cTau_10/",*/
-  "../pionSignal/",
-//  "../pionBackground/",
+  "../data/SIG-SR/Wino_M_300_cTau_10/",
   "../data/SIG-SR/Wino_M_300_cTau_30/",
   "../data/SIG-SR/Wino_M_500_cTau_10/",
   "../data/SIG-SR/Wino_M_500_cTau_20/",
@@ -245,6 +243,8 @@ const vector<string> inFileNameSignal = {
   "../data/SIG-SR/Wino_M_800_cTau_20/",
   "../data/SIG-SR/Wino_M_1000_cTau_10/",
   "../data/SIG-SR/Wino_M_1000_cTau_20/",
+  "../pionSignal/",
+  "../pionBackground/",
 };
 
 const vector<vector<string>> inFileNameData = {
@@ -272,6 +272,8 @@ enum ESignal{
   kWino_M_800_cTau_20,
   kWino_M_1000_cTau_10,
   kWino_M_1000_cTau_20,
+  kTaggerSignal,
+  kTaggerBackground,
   kNsignals
 };
 
