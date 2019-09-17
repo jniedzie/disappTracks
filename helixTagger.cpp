@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
       Helices fittedHelicesSignal     = fitter->FitHelices(pointsSignal, *track, *event->GetVertex());
       Helices fittedHelicesBackground = fitter->FitHelices(pointsBackground, *track, *event->GetVertex());
       
-      for(auto helix : fittedHelicesSignal) event->AddHelix(make_shared<Helix>(helix));
+      for(auto helix : fittedHelicesSignal) event->AddHelix(helix);
       
       for(string monitorType : monitorTypes){
         double value = helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesSignal, monitorType);

@@ -35,14 +35,14 @@ public:
   void SetupBranchesForReading(TTree *tree);
   
   /// Returns a vector of fitted helices read from tree previously set with SetupBranchesForReading(..)
-  vector<shared_ptr<Helix>> GetHelicesFromTree();
+  Helices GetHelicesFromTree();
   
   /// Link class variables to branches of a specified tree
   /// \param tree Tree to which fitted helices parameters will be saved
   void SetupBranchesForWriting(TTree *tree);
   
   /// Writes all fitted helices in the vector to the tree previously set with SetupBranchesForWriting(...)
-  void SaveHelicesToTree(vector<shared_ptr<Helix>> helices);
+  void SaveHelicesToTree(Helices helices);
   
   bool GetIntersectionWithLayer(const Helix &helix, int layerIndex, Point &pA, Point &pB);
   

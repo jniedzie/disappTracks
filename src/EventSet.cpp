@@ -723,7 +723,7 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
       event->AddTrack(track);
     }
     
-    vector<shared_ptr<Helix>> helices = helixProcessor.GetHelicesFromTree();
+    Helices helices = helixProcessor.GetHelicesFromTree();
     
     for(auto helix : helices){
       event->AddHelix(helix);

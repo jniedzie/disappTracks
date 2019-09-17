@@ -50,9 +50,9 @@ vector<int> HelixProcessor::AreIdentical(const Helix &h1, const Helix &h2)
   return reasons;
 }
 
-vector<shared_ptr<Helix>> HelixProcessor::GetHelicesFromTree()
+Helices HelixProcessor::GetHelicesFromTree()
 {
-  vector<shared_ptr<Helix>> helices = vector<shared_ptr<Helix>>();
+  Helices helices;
   
   for(int iHelix=0;iHelix<nHelices;iHelix++){
     auto origin   = Point(arrayValuesFloat["helix_x"][iHelix],
@@ -63,16 +63,16 @@ vector<shared_ptr<Helix>> HelixProcessor::GetHelicesFromTree()
                           arrayValuesFloat["helix_py"][iHelix],
                           arrayValuesFloat["helix_pz"][iHelix]);
     
-    auto helix    = make_shared<Helix>(origin, momentum, arrayValuesInt["helix_charge"][iHelix]);
+    Helix helix(origin, momentum, arrayValuesInt["helix_charge"][iHelix]);
     
-    helix->chi2 = arrayValuesFloat["helix_chi2"][iHelix];
-    helix->pointsT[0] = arrayValuesFloat["helix_t_min"][iHelix];
-    helix->pointsT[helix->pointsT.size()-1] = arrayValuesFloat["helix_t_max"][iHelix];
+    helix.chi2 = arrayValuesFloat["helix_chi2"][iHelix];
+    helix.pointsT[0] = arrayValuesFloat["helix_t_min"][iHelix];
+    helix.pointsT[helix.pointsT.size()-1] = arrayValuesFloat["helix_t_max"][iHelix];
     
     for(int iHit=0; iHit<arrayValuesInt["helix_n_hits"][iHelix]; iHit++){
-      helix->points.push_back(make_shared<Point>(0,0,0));
+      helix.points.push_back(make_shared<Point>(0,0,0));
     }
-    helix->nMissingHits = arrayValuesFloat["helix_n_missing_hits"][iHelix];
+    helix.nMissingHits = arrayValuesFloat["helix_n_missing_hits"][iHelix];
 //    helix->nLayers = arrayValuesFloat["helix_n_layers"][iHelix];
     
     helices.push_back(helix);
@@ -81,27 +81,27 @@ vector<shared_ptr<Helix>> HelixProcessor::GetHelicesFromTree()
   return helices;
 }
 
-void HelixProcessor::SaveHelicesToTree(vector<shared_ptr<Helix>> helices)
+void HelixProcessor::SaveHelicesToTree(Helices helices)
 {
   nHelices = (int)helices.size();
   
   for(int iHelix=0;iHelix<nHelices;iHelix++){
-    if(!helices[iHelix]) continue;
+//    if(!helices[iHelix]) continue;
     
-    arrayValuesFloat["helix_x"][iHelix]    = helices[iHelix]->GetOrigin().GetX();
-    arrayValuesFloat["helix_y"][iHelix]    = helices[iHelix]->GetOrigin().GetY();
-    arrayValuesFloat["helix_z"][iHelix]    = helices[iHelix]->GetOrigin().GetZ();
-    arrayValuesFloat["helix_px"][iHelix]   = helices[iHelix]->GetMomentum().GetX();
-    arrayValuesFloat["helix_py"][iHelix]   = helices[iHelix]->GetMomentum().GetY();
-    arrayValuesFloat["helix_pz"][iHelix]   = helices[iHelix]->GetMomentum().GetZ();
-    arrayValuesFloat["helix_chi2"][iHelix] = helices[iHelix]->GetChi2();
-    arrayValuesFloat["helix_t_min"][iHelix] = helices[iHelix]->GetTmin();
-    arrayValuesFloat["helix_t_max"][iHelix] = helices[iHelix]->GetTmax();
+    arrayValuesFloat["helix_x"][iHelix]    = helices[iHelix].GetOrigin().GetX();
+    arrayValuesFloat["helix_y"][iHelix]    = helices[iHelix].GetOrigin().GetY();
+    arrayValuesFloat["helix_z"][iHelix]    = helices[iHelix].GetOrigin().GetZ();
+    arrayValuesFloat["helix_px"][iHelix]   = helices[iHelix].GetMomentum().GetX();
+    arrayValuesFloat["helix_py"][iHelix]   = helices[iHelix].GetMomentum().GetY();
+    arrayValuesFloat["helix_pz"][iHelix]   = helices[iHelix].GetMomentum().GetZ();
+    arrayValuesFloat["helix_chi2"][iHelix] = helices[iHelix].GetChi2();
+    arrayValuesFloat["helix_t_min"][iHelix] = helices[iHelix].GetTmin();
+    arrayValuesFloat["helix_t_max"][iHelix] = helices[iHelix].GetTmax();
     
-    arrayValuesInt["helix_charge"][iHelix]         =      helices[iHelix]->GetCharge();
-    arrayValuesInt["helix_n_hits"][iHelix]         = (int)helices[iHelix]->GetNpoints();
-    arrayValuesInt["helix_n_missing_hits"][iHelix] =      helices[iHelix]->GetNmissingHits();
-    arrayValuesInt["helix_n_layers"][iHelix]       = (int)helices[iHelix]->GetNlayers();
+    arrayValuesInt["helix_charge"][iHelix]         =      helices[iHelix].GetCharge();
+    arrayValuesInt["helix_n_hits"][iHelix]         = (int)helices[iHelix].GetNpoints();
+    arrayValuesInt["helix_n_missing_hits"][iHelix] =      helices[iHelix].GetNmissingHits();
+    arrayValuesInt["helix_n_layers"][iHelix]       = (int)helices[iHelix].GetNlayers();
   }
 }
 

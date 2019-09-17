@@ -55,7 +55,7 @@ public:
   inline void AddTrack(shared_ptr<Track> track){tracks.push_back(track);}
   inline void AddJet(shared_ptr<Jet> jet){jets.push_back(jet);}
   inline void AddLepton(shared_ptr<Lepton> lepton){leptons.push_back(lepton);}
-  inline void AddHelix(shared_ptr<Helix> helix){helices.push_back(helix);}
+  inline void AddHelix(Helix helix){helices.push_back(helix);}
   
   inline void SetLumiSection(uint val){lumiSection = val;}
   inline void SetRunNumber(uint val){runNumber = val;}
@@ -153,12 +153,12 @@ public:
   inline shared_ptr<Track>  GetTrack(int i) const {return tracks[i];}
   inline shared_ptr<Jet>    GetJet(int i) const {return jets[i];}
   inline shared_ptr<Lepton> GetLepton(int i) const {return leptons[i];}
-  inline shared_ptr<Helix>  GetHelix(int i) const {return helices[i];}
+  inline Helix              GetHelix(int i) const {return helices[i];}
 	
-	inline vector<shared_ptr<Track>>   GetTracks() const {return tracks;}
-  inline vector<shared_ptr<Jet>>     GetJets() const {return jets;}
-  inline vector<shared_ptr<Lepton>>  GetLeptons() const {return leptons;}
-  inline vector<shared_ptr<Helix>>   GetHelices() const {return helices;}
+	inline vector<shared_ptr<Track>>    GetTracks() const {return tracks;}
+  inline vector<shared_ptr<Jet>>      GetJets() const {return jets;}
+  inline vector<shared_ptr<Lepton>>   GetLeptons() const {return leptons;}
+  inline Helices                      GetHelices() const {return helices;}
 
   /**
    Returns tracker clusters. End-caps are included or not based on `include_endcaps` option
@@ -171,7 +171,7 @@ private:
   vector<shared_ptr<Track>>  tracks;   ///< Vector of isolated tracks
   vector<shared_ptr<Jet>>    jets;     ///< Vector of jets
   vector<shared_ptr<Lepton>> leptons;  ///< Vector of leptons
-  vector<shared_ptr<Helix>>  helices;  ///< Parameters of the fitted helices (one per track)
+  Helices  helices;  ///< Parameters of the fitted helices (one per track)
   
   xtracks::EDataType dataType;     ///< Type of the event (signal/background/data)
   int setIter;            ///< Iterator of the dataset (e.g. which type of background it is)

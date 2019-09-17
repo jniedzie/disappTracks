@@ -24,24 +24,6 @@ vector<string> monitorTypes = {
   "n_helices"
 };
 
-int GetMaxHits(const vector<shared_ptr<Helix>> &helices)
-{
-  int max=0;
-  for(auto &helix : helices){
-    if(helix->GetNpoints() > max) max = (int)helix->GetNpoints();
-  }
-  return max;
-}
-
-Helices GetHelices(const shared_ptr<Event> &event){
-  Helices helices;
-  
-  for(auto &helix : event->GetHelices()){
-    helices.push_back(*helix);
-  }
-  return helices;
-}
-
 /**
  The program execution starting point.
  */
@@ -71,19 +53,19 @@ int main(int argc, char* argv[])
   
   for(int iEvent=0; iEvent<events.size(dataType, kTaggerSignal); iEvent++){
     auto event = events.At(dataType, kTaggerSignal, iEvent);
-    maxNhitsSignal->Fill(GetMaxHits(event->GetHelices()));
+    maxNhitsSignal->Fill(helixProcessor.GetMaxNhits(event->GetHelices()));
     
     for(string monitorType : monitorTypes){
-      double value = helixProcessor.GetHelicesParamsByMonitorName(GetHelices(event), monitorType);
+      double value = helixProcessor.GetHelicesParamsByMonitorName(event->GetHelices(), monitorType);
       monitors[monitorType].SetValue(value, true);
     }
   }
   
   for(int iEvent=0; iEvent<events.size(dataType, kTaggerBackground); iEvent++){
     auto event = events.At(dataType, kTaggerBackground, iEvent);
-    maxNhitsBackground->Fill(GetMaxHits(event->GetHelices()));
+    maxNhitsBackground->Fill(helixProcessor.GetMaxNhits(event->GetHelices()));
     for(string monitorType : monitorTypes){
-      double value = helixProcessor.GetHelicesParamsByMonitorName(GetHelices(event), monitorType);
+      double value = helixProcessor.GetHelicesParamsByMonitorName(event->GetHelices(), monitorType);
       monitors[monitorType].SetValue(value, false);
     }
   }

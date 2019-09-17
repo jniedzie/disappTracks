@@ -128,13 +128,13 @@ void HistSet::Fill(const shared_ptr<TH1D> &hist,
     }
     if(IsPerHelixVariable(var)){
       for(int iHelix=0;iHelix<event->GetNhelices();iHelix++){
-        if(var == kHelixX)            value = event->GetHelix(iHelix)->GetOrigin().GetX();
-        else if(var == kHelixY)       value = event->GetHelix(iHelix)->GetOrigin().GetY();
-        else if(var == kHelixZ)       value = event->GetHelix(iHelix)->GetOrigin().GetZ();
-        else if(var == kHelixPx)      value = event->GetHelix(iHelix)->GetMomentum().GetX();
-        else if(var == kHelixPy)      value = event->GetHelix(iHelix)->GetMomentum().GetY();
-        else if(var == kHelixPz)      value = event->GetHelix(iHelix)->GetMomentum().GetZ();
-        else if(var == kHelixCharge)  value = event->GetHelix(iHelix)->GetCharge();
+        if(var == kHelixX)            value = event->GetHelix(iHelix).GetOrigin().GetX();
+        else if(var == kHelixY)       value = event->GetHelix(iHelix).GetOrigin().GetY();
+        else if(var == kHelixZ)       value = event->GetHelix(iHelix).GetOrigin().GetZ();
+        else if(var == kHelixPx)      value = event->GetHelix(iHelix).GetMomentum().GetX();
+        else if(var == kHelixPy)      value = event->GetHelix(iHelix).GetMomentum().GetY();
+        else if(var == kHelixPz)      value = event->GetHelix(iHelix).GetMomentum().GetZ();
+        else if(var == kHelixCharge)  value = event->GetHelix(iHelix).GetCharge();
         hist->Fill(value, event->GetWeight());
       }
     }
