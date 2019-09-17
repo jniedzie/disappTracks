@@ -3,28 +3,27 @@
 //  Created by Jeremi Niedziela on 17/06/2019.
 
 #include "PerformanceMonitor.hpp"
+#include "Logger.hpp"
 
 PerformanceMonitor::PerformanceMonitor()
 {
   
 }
 
-PerformanceMonitor::PerformanceMonitor(string _name, int _nBins, double min, double max) :
+PerformanceMonitor::PerformanceMonitor(string _name, string _title,
+                                       int _nBins, double min, double max,
+                                       EColor color) :
 name(_name),
+title(_title),
 thresholdMin(min),
 thresholdMax(max),
-nBins(_nBins),
-auc(0),
-maxEfficiency(0),
-significanceInitial(0),
-significanceAfterL0(0),
-invFakeAtHighestEff(0)
+nBins(_nBins)
 {
   histSignal     = new TH1D(Form("%s%i", name.c_str(), RandInt(0, inf)),
-                            Form("%s%i", name.c_str(), RandInt(0, inf)),
+                            title.c_str(),
                             nBins, min, max);
   histBackground = new TH1D(Form("%s%i", name.c_str(), RandInt(0, inf)),
-                            Form("%s%i", name.c_str(), RandInt(0, inf)),
+                            title.c_str(),
                             nBins, min, max);
   
   histSignal->SetFillColorAlpha(kGreen+1, 0.3);
@@ -37,10 +36,14 @@ invFakeAtHighestEff(0)
   
   rocFun = GetRocFunction();
   rocGraph = new TGraph();
-  rocGraph->SetTitle(name.c_str());
+  rocGraph->SetTitle("Looper tagger ROC curves");
+  rocGraph->GetXaxis()->SetTitle("Fake rate");
+  rocGraph->GetYaxis()->SetTitle("Efficiency");
   rocGraph->SetMarkerStyle(20);
-  rocGraph->SetMarkerSize(1.0);
-  rocGraph->SetMarkerColor(kRed);
+  rocGraph->SetMarkerSize(0.8);
+  rocGraph->SetMarkerColor(color);
+  rocGraph->SetLineColor(color);
+  rocGraph->SetLineStyle(2);
   
   thresholdStep = (max-min)/(nBins+1);
   
@@ -48,6 +51,21 @@ invFakeAtHighestEff(0)
     efficiency.push_back(0);
     fakeRate.push_back(0);
   }
+  ResetParams();
+}
+
+void PerformanceMonitor::ResetParams()
+{
+  params = {
+    {"auc"            , -inf}, // area under ROC curve
+    {"sigma_init"     , -inf}, // maximum efficiency lower than 1.0
+    {"sigma_L0"       , -inf}, // max significance assuming initial N_sig and N_bck, only when fake rate !=0
+    {"sigma_L1"       , -inf}, // max significance assuming L0 N_sig and N_bck, only when fake rate !=0
+    {"max_eff"        , -inf}, // max significance assuming L1 N_sig and N_bck, only when fake rate !=0
+    {"min_fake"       , -inf}, // 1/fake_rate for the highest efficiency lower than 1.0
+    {"max_dist_fake"  , -inf}, // (max) Distance to √c_fake, which is a minimum to be useful
+    {"avg_dist_fake"  , -inf}, // (avg) Distance to √c_fake, which is a minimum to be useful
+  };
 }
 
 void PerformanceMonitor::operator=(const PerformanceMonitor &pm)
@@ -65,6 +83,8 @@ void PerformanceMonitor::operator=(const PerformanceMonitor &pm)
   rocFun           = pm.rocFun;
   rocGraph         = pm.rocGraph;
   name             = pm.name;
+  title            = pm.title;
+  params           = pm.params;
 }
 
 void PerformanceMonitor::SetValue(double value, bool signal)
@@ -79,7 +99,7 @@ void PerformanceMonitor::SetValue(double value, bool signal)
   }
 }
 
-void PerformanceMonitor::CalcEfficiency()
+void PerformanceMonitor::CountEventsAboveThreshold()
 {
   for(int iThreshold=0; iThreshold<nBins; iThreshold++){
     efficiency[iThreshold] = 0.0;
@@ -93,14 +113,12 @@ void PerformanceMonitor::CalcEfficiency()
       if(nPoints >= threshold) fakeRate[iThreshold]+=1;
     }
   }
-  
-  maxEfficiency = -inf;
-  significanceInitial = -inf;
-  significanceAfterL0 = -inf;
-  significanceAfterL1 = -inf;
-  invFakeAtHighestEff = -inf;
-  maxDistToSqrtFake = -inf;
-  avgDistToSqrtFake = -inf;
+}
+
+void PerformanceMonitor::CalcEfficiency()
+{
+  CountEventsAboveThreshold();
+  ResetParams();
   
   bool first=true;
   
@@ -108,47 +126,47 @@ void PerformanceMonitor::CalcEfficiency()
   
   for(int iThreshold=0; iThreshold<nBins; iThreshold++){
     efficiency[iThreshold]  /= valuesSignal.size();
-    fakeRate[iThreshold]    /= valuesSignal.size();
+    fakeRate[iThreshold]    /= valuesBackground.size();
     
-    if(efficiency[iThreshold] > maxEfficiency && efficiency[iThreshold] != 1.0){
-      maxEfficiency = efficiency[iThreshold];
-      invFakeAtHighestEff = 1/fakeRate[iThreshold];
+    if(efficiency[iThreshold] > params["max_eff"] && efficiency[iThreshold] != 1.0){
+      params["max_eff"]   = efficiency[iThreshold];
+      params["min_fake"]  = 1/fakeRate[iThreshold];
     }
     double sigmaApproxInitial = 3986*efficiency[iThreshold]/sqrt(3986*efficiency[iThreshold]+6E+07*fakeRate[iThreshold]);
     
-    if(sigmaApproxInitial > significanceInitial && fakeRate[iThreshold] > 0)
-      significanceInitial = sigmaApproxInitial;
+    if(sigmaApproxInitial > params["sigma_init"] && fakeRate[iThreshold] > 0)
+      params["sigma_init"] = sigmaApproxInitial;
     
     double sigmaApproxL0all = 1388*efficiency[iThreshold]/sqrt(1388*efficiency[iThreshold]+1E+05*fakeRate[iThreshold]);
     
-    if(sigmaApproxL0all > significanceAfterL0 && fakeRate[iThreshold] > 0)
-      significanceAfterL0 = sigmaApproxL0all;
+    if(sigmaApproxL0all > params["sigma_L0"] && fakeRate[iThreshold] > 0)
+      params["sigma_L0"] = sigmaApproxL0all;
     
     double sigmaApproxL1all = 1166*efficiency[iThreshold]/sqrt(1166*efficiency[iThreshold]+6573*fakeRate[iThreshold]);
     
-    if(sigmaApproxL1all > significanceAfterL1 && fakeRate[iThreshold] > 0)
-      significanceAfterL1 = sigmaApproxL1all;
+    if(sigmaApproxL1all > params["sigma_L1"] && fakeRate[iThreshold] > 0)
+      params["sigma_L1"] = sigmaApproxL1all;
     
     double distToSqrtFake = efficiency[iThreshold]-sqrt(fakeRate[iThreshold]);
     
     if(fakeRate[iThreshold] > 0.01 && fakeRate[iThreshold] < 0.99){
-      if(distToSqrtFake > maxDistToSqrtFake) maxDistToSqrtFake = distToSqrtFake;
+      if(distToSqrtFake > params["max_dist_fake"]) params["max_dist_fake"] = distToSqrtFake;
       if(first){
-        avgDistToSqrtFake = distToSqrtFake;
+        params["avg_dist_fake"] = distToSqrtFake;
         first = false;
       }
       else{
-        avgDistToSqrtFake += distToSqrtFake;
+        params["avg_dist_fake"] += distToSqrtFake;
       }
     }
     
     rocGraph->SetPoint(iThreshold, fakeRate[iThreshold], efficiency[iThreshold]);
     rocXY.insert(make_pair(fakeRate[iThreshold], efficiency[iThreshold]));
   }
-  avgDistToSqrtFake /= nBins;
+  params["avg_dist_fake"] /= nBins;
   
 //  rocGraph->Fit(rocFun,"Q");
-  auc = rocFun->Integral(0,1);
+  params["auc"] = rocFun->Integral(0,1);
 }
 
 
@@ -163,11 +181,9 @@ void PerformanceMonitor::PrintFakesEfficiency()
 
 void PerformanceMonitor::PrintParams()
 {
-//  cout<<"AUC: "<<auc<<"\tmax eff: "<<maxEfficiency<<"\t";
-//  cout<<"sign Initial: "<<significanceInitial<<"\t";
-//  cout<<"sign L0 all: "<<significanceAfterL0<<endl;
-  cout<<"Max dist to sqrt fake: "<<maxDistToSqrtFake<<"\t";
-//  cout<<"avg dist to sqrt fake: "<<avgDistToSqrtFake<<"\t";
+  for(auto &[name, value] : params){
+    Log(1)<<name<<": "<<value<<"\t";
+  }
 }
 
 TF1* PerformanceMonitor::GetRocFunction()
@@ -181,7 +197,7 @@ TF1* PerformanceMonitor::GetRocFunction()
   return fun;
 }
 
-void PerformanceMonitor::DrawRocGraph(bool first)
+void PerformanceMonitor::DrawRocGraph(bool first, TLegend *legend)
 {
   rocGraph->Draw(first ? "APL" : "PLsame");
   if(first){
@@ -191,6 +207,9 @@ void PerformanceMonitor::DrawRocGraph(bool first)
     TLine *line = new TLine(0,0,1,1);
     line->SetLineColor(kBlack);
     line->Draw("same");
+  }
+  if(legend){
+    legend->AddEntry(rocGraph, title.c_str(), "PL");
   }
 }
 

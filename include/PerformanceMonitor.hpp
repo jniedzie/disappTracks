@@ -26,8 +26,9 @@ public:
    \param _nBins Number of histogram bins, used also as a variable step for efficiency
    \param min Minimum variable value
    \param max Maximum variable value
+   \param color Optionally, color of the ROC graph points and curve
    */
-  PerformanceMonitor(string _name, int _nBins, double min, double max);
+  PerformanceMonitor(string _name, string _title, int _nBins, double min, double max, EColor color = kRed);
   
   /// Assignment operator
   void operator=(const PerformanceMonitor &pm);
@@ -48,8 +49,9 @@ public:
   /**
    Draws ROC curve in the current pad
    \param first Specify whether this is the first time a graph is drawn in this pad or not
+   \param legend Is legend is provided, graph will be added to it
   */
-  void DrawRocGraph(bool first);
+  void DrawRocGraph(bool first, TLegend *legend = nullptr);
   
   /// Draws signal and background histograms in the current pad
   void DrawHists();
@@ -60,18 +62,8 @@ public:
   /// Prints values of internal parameters
   void PrintParams();
   
-  /// Returns internal parameter given its name, or `-inf` if name is incorrect
-  inline double GetValueByName(string name){
-    if(name=="auc")           return auc;
-    if(name=="sigma_init")    return significanceInitial;
-    if(name=="sigma_L0")      return significanceAfterL0;
-    if(name=="sigma_L1")      return significanceAfterL1;
-    if(name=="max_eff")       return maxEfficiency;
-    if(name=="min_fake")      return invFakeAtHighestEff;
-    if(name=="max_dist_fake") return maxDistToSqrtFake;
-    if(name=="avg_dist_fake") return avgDistToSqrtFake;
-    return -inf;
-  }
+  /// Returns internal parameter given its name
+  inline double GetValueByName(string name){ return params[name];}
   
 private:
   double thresholdMin;
@@ -88,21 +80,16 @@ private:
   TF1* rocFun;
   TGraph* rocGraph;
   
-  string name;
+  string name, title;
   
   vector<double> efficiency;  ///< efficiency for given threshold
   vector<double> fakeRate;    ///< fake rate for given threshold
   
-  double auc;                 ///< area under ROC curve
-  double maxEfficiency;       ///< maximum efficiency lower than 1.0
-  double significanceInitial; ///< max significance assuming initial N_sig and N_bck, only when fake rate !=0
-  double significanceAfterL0; ///< max significance assuming L0 N_sig and N_bck, only when fake rate !=0
-  double significanceAfterL1; ///< max significance assuming L1 N_sig and N_bck, only when fake rate !=0
-  double invFakeAtHighestEff; ///< 1/fake_rate for the highest efficiency lower than 1.0
-  double maxDistToSqrtFake;   ///< (max) Distance to √c_fake, which is a minimum to be useful
-  double avgDistToSqrtFake;   ///< (avg) Distance to √c_fake, which is a minimum to be useful
+  map<string, double> params;
   
   TF1* GetRocFunction();
+  void CountEventsAboveThreshold();
+  void ResetParams();
 };
 
 #endif /* PerformanceMonitor_hpp */

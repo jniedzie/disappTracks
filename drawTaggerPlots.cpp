@@ -17,22 +17,22 @@ xtracks::EDataType dataType = xtracks::kSignal;
 /// Defines types of monitors and initializes them
 Monitors CreateMonitors()
 {
-  vector<string> monitorTypes = {
-    "avg_hits",
-    "max_hits",
-    "avg_layers",
-    "max_layers",
-    "avg_length",
-    "max_length",
-    "n_helices"
+  vector<tuple<string, string, int>> monitorTypes = {
+    {"avg_hits"   , "Average number of hits on helix", 40 },
+    {"max_hits"   , "Maximum number of hits on helix", 46 },
+    {"avg_layers" , "Average number of helix layers" , 30 },
+    {"max_layers" , "Maximum number of helix layers" , 33 },
+    {"avg_length" , "Average length of helix"        , 9  },
+    {"max_length" , "Maximum length of helix"        , 49 },
+    {"n_helices"  , "Number of helices per event"    , 29 },
   };
   
   Monitors monitors;
   
-  for(auto monitorType : monitorTypes){
+  for(auto &[name, title, color] : monitorTypes){
     int max = 20, nBins = 20;
-    if(monitorType=="avg_length" || monitorType=="max_length"){ max = 10; nBins = 40; }
-    monitors[monitorType] = PerformanceMonitor(monitorType, nBins, 0, max);
+    if(name=="avg_length" || name=="max_length"){ max = 10; nBins = 40; }
+    monitors[name] = PerformanceMonitor(name, title, nBins, 0, max, (EColor)color);
   }
   return monitors;
 }
@@ -55,19 +55,28 @@ void FillMonitors(Monitors &monitors, const EventSet &events, bool isSignal)
 /// Calculates internal parameters of monitors and draws resulting plots
 void DrawMonitors(Monitors &monitors)
 {
-  TCanvas *canvasROC    = new TCanvas("canvasROC", "canvasROC", 1000, 1500);
+  TCanvas *canvasROC    = new TCanvas("canvasROC", "canvasROC", 800, 600);
   TCanvas *canvasDists  = new TCanvas("canvasDists", "canvasDists", 1000, 1500);
-  canvasROC->Divide(2, 3);
-  canvasDists->Divide(2, 3);
+  canvasDists->Divide(2, 4);
+  
+  TLegend *legend = new TLegend(0.5, 0.1, 0.9, 0.4);
   
   int iPad=1;
+  bool first = true;
   for(auto &[name, monitor] : monitors){
     monitor.CalcEfficiency();
-    canvasROC->cd(iPad);
-    monitor.DrawRocGraph(true);
+    canvasROC->cd();
+    monitor.DrawRocGraph(first, legend);
+    if(first) first = false;
     canvasDists->cd(iPad++);
     monitor.DrawHists();
+    
+    
+    monitor.PrintFakesEfficiency();
   }
+  
+  canvasROC->cd();
+  legend->Draw("same");
   
   canvasROC->Update();
   canvasDists->Update();
