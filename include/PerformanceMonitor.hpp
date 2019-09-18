@@ -68,6 +68,9 @@ public:
   /// Returns internal parameter given its name
   inline double GetValueByName(string name){ return params[name];}
   
+  /// Returns the highest distance between efficiency and c_eff = sqrt(c_fake) curve
+  double GetMaxDistanceFromSqrtFake();
+  
 private:
   double thresholdMin;
   double thresholdMax;

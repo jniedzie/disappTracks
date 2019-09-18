@@ -175,6 +175,17 @@ void PerformanceMonitor::CalcEfficiency()
   params["auc"] = rocFun->Integral(0,1);
 }
 
+double PerformanceMonitor::GetMaxDistanceFromSqrtFake()
+{
+  double maxDistance = -inf;
+  
+  for(int iThreshold=0; iThreshold<efficiency.size(); iThreshold++){
+    if(efficiency[iThreshold]==0 || efficiency[iThreshold]==1) continue;
+    double distance = efficiency[iThreshold] - sqrt(fakeRate[iThreshold]);
+    if(distance > maxDistance) maxDistance = distance;
+  }
+  return maxDistance;
+}
 
 void PerformanceMonitor::PrintFakesEfficiency()
 {
@@ -211,6 +222,13 @@ void PerformanceMonitor::DrawRocGraph(bool first, TLegend *legend)
     TLine *line = new TLine(0,0,1,1);
     line->SetLineColor(kBlack);
     line->Draw("same");
+    
+    TF1 *sqrtFun = new TF1("sqrt(fake)","sqrt(x)",0,1);
+    sqrtFun->SetLineColor(kRed);
+    sqrtFun->SetLineStyle(1);
+    sqrtFun->SetLineWidth(2.0);
+    sqrtFun->Draw("same");
+    legend->AddEntry(sqrtFun, "c_{eff} = #sqrt{c_{fake}}", "L");
   }
   if(legend){
     legend->AddEntry(rocGraph, title.c_str(), "PL");

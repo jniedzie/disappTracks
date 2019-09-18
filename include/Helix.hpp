@@ -165,6 +165,8 @@ private:
   int  nMissingHits;          ///< Total number of missing hits along the trajectory
   int  nMissingHitsInRow;     ///< Max number of consecutive missing hits
   bool isPreviousHitMissing;  ///< Is the point on helix a missing hit?
+  int nRecLayers;             ///< Total number of reconstructed layers (should be set when fitting is done)
+  int nRecHits;               ///< Total number of reconstructed hits (should be set when fitting is done)
   
   
   /// Sorts collection of all points by t param in increasing order (or decreasing

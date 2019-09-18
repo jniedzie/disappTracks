@@ -69,11 +69,10 @@ Helices HelixProcessor::GetHelicesFromTree()
     helix.pointsT[0] = arrayValuesFloat["helix_t_min"][iHelix];
     helix.pointsT[helix.pointsT.size()-1] = arrayValuesFloat["helix_t_max"][iHelix];
     
-    for(int iHit=0; iHit<arrayValuesInt["helix_n_hits"][iHelix]; iHit++){
-      helix.points.push_back(make_shared<Point>(0,0,0));
-    }
+    helix.nRecLayers = arrayValuesInt["helix_n_layers"][iHelix];
+    helix.nRecHits = arrayValuesInt["helix_n_hits"][iHelix];
     helix.nMissingHits = arrayValuesFloat["helix_n_missing_hits"][iHelix];
-//    helix->nLayers = arrayValuesFloat["helix_n_layers"][iHelix];
+
     
     helices.push_back(helix);
   }
@@ -88,20 +87,20 @@ void HelixProcessor::SaveHelicesToTree(Helices helices)
   for(int iHelix=0;iHelix<nHelices;iHelix++){
 //    if(!helices[iHelix]) continue;
     
-    arrayValuesFloat["helix_x"][iHelix]    = helices[iHelix].GetOrigin().GetX();
-    arrayValuesFloat["helix_y"][iHelix]    = helices[iHelix].GetOrigin().GetY();
-    arrayValuesFloat["helix_z"][iHelix]    = helices[iHelix].GetOrigin().GetZ();
-    arrayValuesFloat["helix_px"][iHelix]   = helices[iHelix].GetMomentum().GetX();
-    arrayValuesFloat["helix_py"][iHelix]   = helices[iHelix].GetMomentum().GetY();
-    arrayValuesFloat["helix_pz"][iHelix]   = helices[iHelix].GetMomentum().GetZ();
-    arrayValuesFloat["helix_chi2"][iHelix] = helices[iHelix].GetChi2();
+    arrayValuesFloat["helix_x"][iHelix]     = helices[iHelix].origin.GetX();
+    arrayValuesFloat["helix_y"][iHelix]     = helices[iHelix].origin.GetY();
+    arrayValuesFloat["helix_z"][iHelix]     = helices[iHelix].origin.GetZ();
+    arrayValuesFloat["helix_px"][iHelix]    = helices[iHelix].momentum.GetX();
+    arrayValuesFloat["helix_py"][iHelix]    = helices[iHelix].momentum.GetY();
+    arrayValuesFloat["helix_pz"][iHelix]    = helices[iHelix].momentum.GetZ();
+    arrayValuesFloat["helix_chi2"][iHelix]  = helices[iHelix].chi2;
     arrayValuesFloat["helix_t_min"][iHelix] = helices[iHelix].GetTmin();
     arrayValuesFloat["helix_t_max"][iHelix] = helices[iHelix].GetTmax();
     
-    arrayValuesInt["helix_charge"][iHelix]         =      helices[iHelix].GetCharge();
-    arrayValuesInt["helix_n_hits"][iHelix]         = (int)helices[iHelix].GetNpoints();
-    arrayValuesInt["helix_n_missing_hits"][iHelix] =      helices[iHelix].GetNmissingHits();
-    arrayValuesInt["helix_n_layers"][iHelix]       = (int)helices[iHelix].GetNlayers();
+    arrayValuesInt["helix_charge"][iHelix]         = helices[iHelix].charge;
+    arrayValuesInt["helix_n_hits"][iHelix]         = helices[iHelix].nRecHits;
+    arrayValuesInt["helix_n_missing_hits"][iHelix] = helices[iHelix].nMissingHits;
+    arrayValuesInt["helix_n_layers"][iHelix]       = helices[iHelix].nRecLayers;
   }
 }
 
@@ -247,7 +246,7 @@ double HelixProcessor::GetAvgNhits(Helices helices)
 {
   if(helices.size()==0) return 0;
   double avgHits = 0;
-  for(auto helix : helices) avgHits += helix.GetNpoints();
+  for(auto helix : helices) avgHits += helix.nRecHits;
   avgHits /= helices.size();
   return avgHits;
 }
@@ -256,7 +255,7 @@ int HelixProcessor::GetMaxNhits(Helices helices)
 {
   int maxNhits = 0;
   for(auto helix : helices){
-    if((int)helix.GetNpoints() > maxNhits) maxNhits = (int)helix.GetNpoints();
+    if((int)helix.GetNpoints() > maxNhits) maxNhits = helix.nRecHits;
   }
   return maxNhits;
 }
@@ -265,7 +264,7 @@ int HelixProcessor::GetAvgNlayers(Helices helices)
 {
   if(helices.size()==0) return 0;
   double avgLayers = 0;
-  for(auto helix : helices) avgLayers += helix.GetNlayers();
+  for(auto &helix : helices) avgLayers += helix.nRecLayers;
   avgLayers /= helices.size();
   return avgLayers;
 }
@@ -275,7 +274,7 @@ int HelixProcessor::GetMaxNlayers(Helices helices)
   size_t maxNlayers = 0;
   
   for(auto helix : helices){
-    size_t nLayers = helix.GetNlayers();
+    size_t nLayers = helix.nRecLayers;
     if(nLayers > maxNlayers) maxNlayers = nLayers;
   }
   return (int)maxNlayers;

@@ -19,7 +19,9 @@ shouldRefit(false),
 chi2(inf),
 nMissingHits(0),
 nMissingHitsInRow(0),
-isPreviousHitMissing(false)
+isPreviousHitMissing(false),
+nRecLayers(0),
+nRecHits(0)
 {
   seedID = uniqueID = reinterpret_cast<uint64_t>(this);
   
@@ -82,7 +84,9 @@ shouldRefit(false),
 chi2(inf),
 nMissingHits(0),
 nMissingHitsInRow(0),
-isPreviousHitMissing(false)
+isPreviousHitMissing(false),
+nRecLayers(0),
+nRecHits(0)
 {
   seedID = uniqueID = reinterpret_cast<uint64_t>(this);
   
@@ -148,7 +152,9 @@ shouldRefit(h.shouldRefit),
 nMissingHits(h.nMissingHits),
 nMissingHitsInRow(h.nMissingHitsInRow),
 isPreviousHitMissing(h.isPreviousHitMissing),
-firstTurningPointIndex(h.firstTurningPointIndex)
+firstTurningPointIndex(h.firstTurningPointIndex),
+nRecLayers(h.nRecLayers),
+nRecHits(h.nRecHits)
 {
   uniqueID = reinterpret_cast<uint64_t>(this);
 }
@@ -177,6 +183,9 @@ Helix& Helix::operator=(const Helix &h)
   nMissingHits         = h.nMissingHits;
   nMissingHitsInRow    = h.nMissingHitsInRow;
   isPreviousHitMissing = h.isPreviousHitMissing;
+  
+  nRecLayers  = h.nRecLayers;
+  nRecHits    = h.nRecHits;
   
   return *this;
 }
