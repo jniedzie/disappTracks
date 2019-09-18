@@ -6,7 +6,7 @@ output_path: helixFittingResults/tests.root
 verbosity_level:  1
 
 ### Limit number of events loaded (-1 means load all available)
-max_N_events_signal:  -1
+max_N_events_signal:  10
 
 include_endcaps:              0
 
@@ -115,6 +115,6 @@ do_tagger_background:   1
 do_2017:         0
 
 ### Do we need additional information stored in the friend trees
-load_friend_tree: 0
+load_friend_tree: 1
 
 

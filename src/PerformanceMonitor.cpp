@@ -220,7 +220,9 @@ void PerformanceMonitor::DrawRocGraph(bool first, TLegend *legend)
 void PerformanceMonitor::DrawHists()
 {
   histSignal->Sumw2();
-  histSignal->DrawNormalized();
+  histSignal->Scale(1/histSignal->GetEntries());
+  histSignal->Draw();
+  histSignal->SetMaximum(1.0);
   histBackground->Sumw2();
   histBackground->DrawNormalized("same");
 }
