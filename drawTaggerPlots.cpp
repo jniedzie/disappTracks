@@ -143,24 +143,31 @@ void DrawMonitors(Monitors &monitors)
   TCanvas *canvasDists  = new TCanvas("canvasDists", "canvasDists", 1000, 1500);
   canvasDists->Divide(2, 4);
   
-  TLegend *legend = new TLegend(0.5, 0.1, 0.9, 0.4);
+  TLegend *legendROC   = new TLegend(0.5, 0.1, 0.9, 0.4);
+  TLegend *legendDists = new TLegend(0.1, 0.1, 0.4, 0.4);
+  
+  gStyle->SetOptStat(0);
   
   int iPad=1;
   bool first = true;
   for(auto &[name, monitor] : monitors){
     monitor.CalcEfficiency();
     canvasROC->cd();
-    monitor.DrawRocGraph(first, legend);
-    if(first) first = false;
-    canvasDists->cd(iPad++);
-    monitor.DrawHists();
+    monitor.DrawRocGraph(first, legendROC);
     
+    canvasDists->cd(iPad++);
+    monitor.DrawHists(first ? legendDists : nullptr);
     
     monitor.PrintFakesEfficiency();
+    
+    if(first) first = false;
   }
   
   canvasROC->cd();
-  legend->Draw("same");
+  legendROC->Draw("same");
+  
+  canvasDists->cd(iPad);
+  legendDists->Draw("same");
   
   canvasROC->Update();
   canvasDists->Update();

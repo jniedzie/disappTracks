@@ -6,7 +6,7 @@ output_path: helixFittingResults/tests.root
 verbosity_level:  1
 
 ### Limit number of events loaded (-1 means load all available)
-max_N_events_signal:  10
+max_N_events_signal:  1000
 
 include_endcaps:              0
 
@@ -110,7 +110,7 @@ do_800_20:     0
 do_1000_10:   0
 do_1000_20:   0
 do_tagger_signal:             1
-do_tagger_background:   1
+do_tagger_background:   0
 
 do_2017:         0
 

@@ -49,12 +49,15 @@ public:
   /**
    Draws ROC curve in the current pad
    \param first Specify whether this is the first time a graph is drawn in this pad or not
-   \param legend Is legend is provided, graph will be added to it
+   \param legend If legend is provided, graph will be added to it
   */
   void DrawRocGraph(bool first, TLegend *legend = nullptr);
   
-  /// Draws signal and background histograms in the current pad
-  void DrawHists();
+  /**
+   Draws signal and background histograms in the current pad
+   \param legend If legend is provided, hists will be added to it
+   */
+  void DrawHists(TLegend *legend = nullptr);
   
   /// Prints two columns: fake rate and efficiency, for different values of threshold
   void PrintFakesEfficiency();

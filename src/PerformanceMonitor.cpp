@@ -217,7 +217,7 @@ void PerformanceMonitor::DrawRocGraph(bool first, TLegend *legend)
   }
 }
 
-void PerformanceMonitor::DrawHists()
+void PerformanceMonitor::DrawHists(TLegend *legend)
 {
   histSignal->Sumw2();
   histSignal->Scale(1/histSignal->GetEntries());
@@ -225,4 +225,10 @@ void PerformanceMonitor::DrawHists()
   histSignal->SetMaximum(1.0);
   histBackground->Sumw2();
   histBackground->DrawNormalized("same");
+  
+  if(legend){
+    legend->AddEntry(histSignal     , "Signal"      , "PE");
+    legend->AddEntry(histBackground , "Background"  , "PE");
+  }
+  
 }
