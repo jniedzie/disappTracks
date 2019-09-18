@@ -78,7 +78,7 @@ private:
   TH1D *histBackground;
   
   TF1* rocFun;
-  TGraph* rocGraph;
+  TGraphErrors* rocGraph;
   
   string name, title;
   

@@ -28,6 +28,7 @@
 #include <TMath.h>
 #include <TGraph2D.h>
 #include <TGraph.h>
+#include <TGraphErrors.h>
 #include <Fit/Fitter.h>
 #include <Math/Functor.h>
 #include <TEllipse.h>
@@ -161,6 +162,20 @@ const vector<string> signalTitle = {
   "Wino m=800 c#tau=20",
   "Wino m=1000 c#tau=10",
   "Wino m=1000 c#tau=20",
+};
+
+const vector<string> signalName = {
+  "Wino_m300_ct3",
+  "Wino_m300_ct10",
+  "Wino_m300_ct30",
+  "Wino_m500_ct10",
+  "Wino_m500_ct20",
+  "Wino_m650_ct10",
+  "Wino_m650_ct20",
+  "Wino_m800_ct10",
+  "Wino_m800_ct20",
+  "Wino_m1000_ct10",
+  "Wino_m1000_ct20",
 };
 
 const vector<string> dataTitle = {
@@ -684,6 +699,15 @@ inline double GetRofT(double R0, double a, double tMin, double t, int charge){
 
 inline double GetSofT(double s0, double b, double tMin, double t, int charge){
   return s0 + charge*sgn(tMin)*b*(t-tMin);
+}
+
+template <typename T>
+string to_string_with_precision(const T a_value, const int n = 6)
+{
+  ostringstream out;
+  out.precision(n);
+  out << fixed << a_value;
+  return out.str();
 }
 
 #endif /* Helpers_h */

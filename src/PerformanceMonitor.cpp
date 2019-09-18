@@ -35,7 +35,7 @@ nBins(_nBins)
   histBackground->SetMarkerColor(kRed);
   
   rocFun = GetRocFunction();
-  rocGraph = new TGraph();
+  rocGraph = new TGraphErrors();
   rocGraph->SetTitle("Looper tagger ROC curves");
   rocGraph->GetXaxis()->SetTitle("Fake rate");
   rocGraph->GetYaxis()->SetTitle("Efficiency");
@@ -125,8 +125,13 @@ void PerformanceMonitor::CalcEfficiency()
   set<pair<double, double>> rocXY;
   
   for(int iThreshold=0; iThreshold<nBins; iThreshold++){
+    double effError = sqrt(1/valuesSignal.size() + 1/efficiency[iThreshold]);
     efficiency[iThreshold]  /= valuesSignal.size();
+    effError *= efficiency[iThreshold];
+    
+    double fakeError = sqrt(1/valuesBackground.size() + 1/fakeRate[iThreshold]);
     fakeRate[iThreshold]    /= valuesBackground.size();
+    fakeError *= fakeRate[iThreshold];
     
     if(efficiency[iThreshold] > params["max_eff"] && efficiency[iThreshold] != 1.0){
       params["max_eff"]   = efficiency[iThreshold];
@@ -161,6 +166,7 @@ void PerformanceMonitor::CalcEfficiency()
     }
     
     rocGraph->SetPoint(iThreshold, fakeRate[iThreshold], efficiency[iThreshold]);
+    rocGraph->SetPointError(iThreshold, fakeError, effError);
     rocXY.insert(make_pair(fakeRate[iThreshold], efficiency[iThreshold]));
   }
   params["avg_dist_fake"] /= nBins;
@@ -181,9 +187,7 @@ void PerformanceMonitor::PrintFakesEfficiency()
 
 void PerformanceMonitor::PrintParams()
 {
-  for(auto &[name, value] : params){
-    Log(1)<<name<<": "<<value<<"\t";
-  }
+  for(auto &[name, value] : params) Log(1)<<name<<": "<<value<<"\t";
 }
 
 TF1* PerformanceMonitor::GetRocFunction()
@@ -199,7 +203,7 @@ TF1* PerformanceMonitor::GetRocFunction()
 
 void PerformanceMonitor::DrawRocGraph(bool first, TLegend *legend)
 {
-  rocGraph->Draw(first ? "APL" : "PLsame");
+  rocGraph->Draw(first ? "APLE" : "PLEsame");
   if(first){
     rocGraph->GetYaxis()->SetRangeUser(0,1);
     rocGraph->GetXaxis()->SetLimits(0,1);

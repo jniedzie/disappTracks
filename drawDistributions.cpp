@@ -22,6 +22,8 @@ int main(int argc, char* argv[])
     cout<<"ERROR -- unknown cuts level: "<<config.params["cuts_level"]<<endl;
     exit(0);
   }
+  inputPrefix += config.category;
+  inputPrefix += "/";
   
   events.LoadEventsFromFiles(inputPrefix);
   

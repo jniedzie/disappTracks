@@ -22,9 +22,9 @@ Monitors CreateMonitors()
     {"max_hits"   , "Maximum number of hits on helix", 46 },
     {"avg_layers" , "Average number of helix layers" , 30 },
     {"max_layers" , "Maximum number of helix layers" , 33 },
-    {"avg_length" , "Average length of helix"        , 9  },
+    {"avg_length" , "Average length of helix"        , kGreen+2  },
     {"max_length" , "Maximum length of helix"        , 49 },
-    {"n_helices"  , "Number of helices per event"    , 29 },
+    {"n_helices"  , "Number of helices per event"    , kRed+1 },
   };
   
   Monitors monitors;
