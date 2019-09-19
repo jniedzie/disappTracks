@@ -55,14 +55,6 @@ EventProcessor::EventProcessor()
   
   arrayNamesFriendInt = {
     "pion_charge",
-    "pixelCluster_charge",
-    "stripCluster_charge",
-    "pionCluster_charge",
-    "pion_simHits_subDet",
-    "chargino_simHits_subDet",
-    "pixelCluster_subDet",
-    "stripCluster_subDet",
-    "pionCluster_subDet",
     "chargino_charge",
     "chargino_nTrackerLayers"
   };
@@ -74,32 +66,50 @@ EventProcessor::EventProcessor()
     "pion_px",
     "pion_py",
     "pion_pz",
-    "pion_simHits_x",
-    "pion_simHits_y",
-    "pion_simHits_z",
-    "pion_simHits_t",
-    "chargino_simHits_x",
-    "chargino_simHits_y",
-    "chargino_simHits_z",
-    "pixelCluster_x",
-    "pixelCluster_y",
-    "pixelCluster_z",
-    "stripCluster_x",
-    "stripCluster_y",
-    "stripCluster_z",
-    "stripCluster_ex",
-    "stripCluster_ey",
-    "stripCluster_ez",
-    "pionCluster_x",
-    "pionCluster_y",
-    "pionCluster_z",
-    "pionCluster_ex",
-    "pionCluster_ey",
-    "pionCluster_ez",
     "chargino_eta",
     "chargino_phi",
     "chargino_pt"
   };
+  
+  if(config.params["load_hits"]){
+    vector<string> tmp = {
+      "pion_simHits_x",
+      "pion_simHits_y",
+      "pion_simHits_z",
+      "pion_simHits_t",
+      "chargino_simHits_x",
+      "chargino_simHits_y",
+      "chargino_simHits_z",
+      "pixelCluster_x",
+      "pixelCluster_y",
+      "pixelCluster_z",
+      "stripCluster_x",
+      "stripCluster_y",
+      "stripCluster_z",
+      "stripCluster_ex",
+      "stripCluster_ey",
+      "stripCluster_ez",
+      "pionCluster_x",
+      "pionCluster_y",
+      "pionCluster_z",
+      "pionCluster_ex",
+      "pionCluster_ey",
+      "pionCluster_ez",
+    };
+    arrayNamesFriendFloat.insert(arrayNamesFriendFloat.end(), tmp.begin(), tmp.end());
+    
+    vector<string> tmp2 = {
+      "pixelCluster_charge",
+      "stripCluster_charge",
+      "pionCluster_charge",
+      "pion_simHits_subDet",
+      "chargino_simHits_subDet",
+      "pixelCluster_subDet",
+      "stripCluster_subDet",
+      "pionCluster_subDet",
+    };
+    arrayNamesFriendInt.insert(arrayNamesFriendInt.end(), tmp2.begin(), tmp2.end());
+  }
   
 }
 
@@ -511,96 +521,97 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   for(uint i=0;i<arrayValuesFriendFloat["pion_vx"]->size();i++){
     // change units from cm to mm and from GeV to MeV
     event->genPionHelices.emplace(event->genPionHelices.end(),
-                           Helix(Point(10*arrayValuesFriendFloat["pion_vx"]->at(i),
-                                       10*arrayValuesFriendFloat["pion_vy"]->at(i),
-                                       10*arrayValuesFriendFloat["pion_vz"]->at(i)),
-                                 Point(1000*arrayValuesFriendFloat["pion_px"]->at(i),
-                                       1000*arrayValuesFriendFloat["pion_py"]->at(i),
-                                       1000*arrayValuesFriendFloat["pion_pz"]->at(i)),
-                                 1*arrayValuesFriendInt["pion_charge"]->at(i)));
+                                  Helix(Point(10*arrayValuesFriendFloat["pion_vx"]->at(i),
+                                              10*arrayValuesFriendFloat["pion_vy"]->at(i),
+                                              10*arrayValuesFriendFloat["pion_vz"]->at(i)),
+                                        Point(1000*arrayValuesFriendFloat["pion_px"]->at(i),
+                                              1000*arrayValuesFriendFloat["pion_py"]->at(i),
+                                              1000*arrayValuesFriendFloat["pion_pz"]->at(i)),
+                                        1*arrayValuesFriendInt["pion_charge"]->at(i)));
   }
   
-  for(uint i=0;i<arrayValuesFriendFloat["pion_simHits_x"]->size();i++){
-    // convert cm to mm
-    event->pionSimHits.push_back(make_shared<Point>(10*arrayValuesFriendFloat["pion_simHits_x"]->at(i),
-                                                    10*arrayValuesFriendFloat["pion_simHits_y"]->at(i),
-                                                    10*arrayValuesFriendFloat["pion_simHits_z"]->at(i),
-                                             0,
-                                             subDetMap[arrayValuesFriendInt["pion_simHits_subDet"]->at(i)],
-                                                    0,0,0,0,-1,
-                                                    arrayValuesFriendFloat["pion_simHits_t"]->at(i)));
-  }
-  
-  for(uint i=0;i<arrayValuesFriendFloat["chargino_simHits_x"]->size();i++){
-    // convert cm to mm
-    event->charginoSimHits.push_back(make_shared<Point>(10*arrayValuesFriendFloat["chargino_simHits_x"]->at(i),
-                                                        10*arrayValuesFriendFloat["chargino_simHits_y"]->at(i),
-                                                        10*arrayValuesFriendFloat["chargino_simHits_z"]->at(i),
-                                                        0,
-                                                        subDetMap[arrayValuesFriendInt["chargino_simHits_subDet"]->at(i)]));
-  }
-  
-  // Parameters for all hits in the pixel barrel
-  for(uint i=0;i<arrayValuesFriendFloat["pixelCluster_x"]->size();i++){
-    // convert cm to mm
-    event->trackerClusters.push_back(make_shared<Point>(10*arrayValuesFriendFloat["pixelCluster_x"]->at(i),
-                                                        10*arrayValuesFriendFloat["pixelCluster_y"]->at(i),
-                                                        10*arrayValuesFriendFloat["pixelCluster_z"]->at(i),
-                                                        arrayValuesFriendInt["pixelCluster_charge"]->at(i),
-                                                        subDetMap[arrayValuesFriendInt["pixelCluster_subDet"]->at(i)]));
-  }
-  
-  for(uint i=0;i<arrayValuesFriendFloat["stripCluster_x"]->size();i++){
-    string detName = subDetMap[arrayValuesFriendInt["stripCluster_subDet"]->at(i)];
-    // convert cm to mm
-    if(detName == "P1PXEC" || detName == "TID" || detName == "TEC"){
-      event->trackerClusters.push_back(make_shared<Point>(10*arrayValuesFriendFloat["stripCluster_x"]->at(i),
-                                                          10*arrayValuesFriendFloat["stripCluster_y"]->at(i),
-                                                          10*arrayValuesFriendFloat["stripCluster_z"]->at(i),
-                                                          arrayValuesFriendInt["stripCluster_charge"]->at(i),
-                                                          subDetMap[arrayValuesFriendInt["stripCluster_subDet"]->at(i)],
-                                                          10*arrayValuesFriendFloat["stripCluster_ex"]->at(i),
-                                                          10*arrayValuesFriendFloat["stripCluster_ez"]->at(i),
-                                                          10*arrayValuesFriendFloat["stripCluster_ey"]->at(i)));
+  if(config.params["load_hits"]){
+    for(uint i=0;i<arrayValuesFriendFloat["pion_simHits_x"]->size();i++){
+      // convert cm to mm
+      event->pionSimHits.push_back(make_shared<Point>(10*arrayValuesFriendFloat["pion_simHits_x"]->at(i),
+                                                      10*arrayValuesFriendFloat["pion_simHits_y"]->at(i),
+                                                      10*arrayValuesFriendFloat["pion_simHits_z"]->at(i),
+                                                      0,
+                                                      subDetMap[arrayValuesFriendInt["pion_simHits_subDet"]->at(i)],
+                                                      0,0,0,0,-1,
+                                                      arrayValuesFriendFloat["pion_simHits_t"]->at(i)));
     }
-    else{
-      
-      event->trackerClusters.push_back(make_shared<Point>(10*arrayValuesFriendFloat["stripCluster_x"]->at(i),
-                                                          10*arrayValuesFriendFloat["stripCluster_y"]->at(i),
-                                                          10*arrayValuesFriendFloat["stripCluster_z"]->at(i),
-                                                          arrayValuesFriendInt["stripCluster_charge"]->at(i),
-                                                          subDetMap[arrayValuesFriendInt["stripCluster_subDet"]->at(i)],
-                                                          10*arrayValuesFriendFloat["stripCluster_ex"]->at(i),
-                                                          10*arrayValuesFriendFloat["stripCluster_ey"]->at(i),
-                                                          10*arrayValuesFriendFloat["stripCluster_ez"]->at(i)));
+    
+    for(uint i=0;i<arrayValuesFriendFloat["chargino_simHits_x"]->size();i++){
+      // convert cm to mm
+      event->charginoSimHits.push_back(make_shared<Point>(10*arrayValuesFriendFloat["chargino_simHits_x"]->at(i),
+                                                          10*arrayValuesFriendFloat["chargino_simHits_y"]->at(i),
+                                                          10*arrayValuesFriendFloat["chargino_simHits_z"]->at(i),
+                                                          0,
+                                                          subDetMap[arrayValuesFriendInt["chargino_simHits_subDet"]->at(i)]));
+    }
+    
+    // Parameters for all hits in the pixel barrel
+    for(uint i=0;i<arrayValuesFriendFloat["pixelCluster_x"]->size();i++){
+      // convert cm to mm
+      event->trackerClusters.push_back(make_shared<Point>(10*arrayValuesFriendFloat["pixelCluster_x"]->at(i),
+                                                          10*arrayValuesFriendFloat["pixelCluster_y"]->at(i),
+                                                          10*arrayValuesFriendFloat["pixelCluster_z"]->at(i),
+                                                          arrayValuesFriendInt["pixelCluster_charge"]->at(i),
+                                                          subDetMap[arrayValuesFriendInt["pixelCluster_subDet"]->at(i)]));
+    }
+    
+    for(uint i=0;i<arrayValuesFriendFloat["stripCluster_x"]->size();i++){
+      string detName = subDetMap[arrayValuesFriendInt["stripCluster_subDet"]->at(i)];
+      // convert cm to mm
+      if(detName == "P1PXEC" || detName == "TID" || detName == "TEC"){
+        event->trackerClusters.push_back(make_shared<Point>(10*arrayValuesFriendFloat["stripCluster_x"]->at(i),
+                                                            10*arrayValuesFriendFloat["stripCluster_y"]->at(i),
+                                                            10*arrayValuesFriendFloat["stripCluster_z"]->at(i),
+                                                            arrayValuesFriendInt["stripCluster_charge"]->at(i),
+                                                            subDetMap[arrayValuesFriendInt["stripCluster_subDet"]->at(i)],
+                                                            10*arrayValuesFriendFloat["stripCluster_ex"]->at(i),
+                                                            10*arrayValuesFriendFloat["stripCluster_ez"]->at(i),
+                                                            10*arrayValuesFriendFloat["stripCluster_ey"]->at(i)));
+      }
+      else{
+        
+        event->trackerClusters.push_back(make_shared<Point>(10*arrayValuesFriendFloat["stripCluster_x"]->at(i),
+                                                            10*arrayValuesFriendFloat["stripCluster_y"]->at(i),
+                                                            10*arrayValuesFriendFloat["stripCluster_z"]->at(i),
+                                                            arrayValuesFriendInt["stripCluster_charge"]->at(i),
+                                                            subDetMap[arrayValuesFriendInt["stripCluster_subDet"]->at(i)],
+                                                            10*arrayValuesFriendFloat["stripCluster_ex"]->at(i),
+                                                            10*arrayValuesFriendFloat["stripCluster_ey"]->at(i),
+                                                            10*arrayValuesFriendFloat["stripCluster_ez"]->at(i)));
+      }
+    }
+    
+    for(uint i=0;i<arrayValuesFriendFloat["pionCluster_x"]->size();i++){
+      string detName = subDetMap[arrayValuesFriendInt["pionCluster_subDet"]->at(i)];
+      // convert cm to mm
+      if(detName == "P1PXEC" || detName == "TID" || detName == "TEC"){
+        event->pionClusters.push_back(make_shared<Point>(10*arrayValuesFriendFloat["pionCluster_x"]->at(i),
+                                                         10*arrayValuesFriendFloat["pionCluster_y"]->at(i),
+                                                         10*arrayValuesFriendFloat["pionCluster_z"]->at(i),
+                                                         arrayValuesFriendInt["pionCluster_charge"]->at(i),
+                                                         subDetMap[arrayValuesFriendInt["pionCluster_subDet"]->at(i)],
+                                                         10*arrayValuesFriendFloat["pionCluster_ex"]->at(i),
+                                                         10*arrayValuesFriendFloat["pionCluster_ez"]->at(i),
+                                                         10*arrayValuesFriendFloat["pionCluster_ey"]->at(i)));
+      }
+      else{
+        event->pionClusters.push_back(make_shared<Point>(10*arrayValuesFriendFloat["pionCluster_x"]->at(i),
+                                                         10*arrayValuesFriendFloat["pionCluster_y"]->at(i),
+                                                         10*arrayValuesFriendFloat["pionCluster_z"]->at(i),
+                                                         arrayValuesFriendInt["pionCluster_charge"]->at(i),
+                                                         subDetMap[arrayValuesFriendInt["pionCluster_subDet"]->at(i)],
+                                                         10*arrayValuesFriendFloat["pionCluster_ex"]->at(i),
+                                                         10*arrayValuesFriendFloat["pionCluster_ey"]->at(i),
+                                                         10*arrayValuesFriendFloat["pionCluster_ez"]->at(i)));
+      }
     }
   }
-  
-  for(uint i=0;i<arrayValuesFriendFloat["pionCluster_x"]->size();i++){
-    string detName = subDetMap[arrayValuesFriendInt["pionCluster_subDet"]->at(i)];
-    // convert cm to mm
-    if(detName == "P1PXEC" || detName == "TID" || detName == "TEC"){
-      event->pionClusters.push_back(make_shared<Point>(10*arrayValuesFriendFloat["pionCluster_x"]->at(i),
-                                                       10*arrayValuesFriendFloat["pionCluster_y"]->at(i),
-                                                       10*arrayValuesFriendFloat["pionCluster_z"]->at(i),
-                                                       arrayValuesFriendInt["pionCluster_charge"]->at(i),
-                                                       subDetMap[arrayValuesFriendInt["pionCluster_subDet"]->at(i)],
-                                                       10*arrayValuesFriendFloat["pionCluster_ex"]->at(i),
-                                                       10*arrayValuesFriendFloat["pionCluster_ez"]->at(i),
-                                                       10*arrayValuesFriendFloat["pionCluster_ey"]->at(i)));
-    }
-    else{
-      event->pionClusters.push_back(make_shared<Point>(10*arrayValuesFriendFloat["pionCluster_x"]->at(i),
-                                                       10*arrayValuesFriendFloat["pionCluster_y"]->at(i),
-                                                       10*arrayValuesFriendFloat["pionCluster_z"]->at(i),
-                                                       arrayValuesFriendInt["pionCluster_charge"]->at(i),
-                                                       subDetMap[arrayValuesFriendInt["pionCluster_subDet"]->at(i)],
-                                                       10*arrayValuesFriendFloat["pionCluster_ex"]->at(i),
-                                                       10*arrayValuesFriendFloat["pionCluster_ey"]->at(i),
-                                                       10*arrayValuesFriendFloat["pionCluster_ez"]->at(i)));
-    }
-  }
-  
   
   auto charginoSimHitsByLayer = pointsProcessor.SortByLayer(event->charginoSimHits);
   int maxCharginoLayer = -1;

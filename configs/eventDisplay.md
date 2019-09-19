@@ -48,6 +48,7 @@ do_2017:         0
 
 ### Do we need additional information stored in the friend trees
 load_friend_tree: 1
+load_hits:             1
 
 **General settings**
 ### Add hits coming from random pion to the collection of all hits (0 - false, 1 - true):

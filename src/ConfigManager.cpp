@@ -146,6 +146,7 @@ ConfigManager::ConfigManager(string _path)
   params["max_N_events_data"]       = configFile->GetValue("max_N_events_data",-1);
   
   params["load_friend_tree"]        = configFile->GetValue("load_friend_tree",0);
+  params["load_hits"]               = configFile->GetValue("load_hits",0);
   
   params["total_luminosity"]        = configFile->GetValue("total_luminosity",146.91);
   

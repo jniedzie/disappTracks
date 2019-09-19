@@ -14,6 +14,7 @@ save_events:  1
 
 ### Do we need additional information stored in the friend trees
 load_friend_tree: 0
+load_hits:             0
 
 ### turn on/off different backgrounds, signals and data samples
 do_QCD:         1

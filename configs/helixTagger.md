@@ -116,5 +116,6 @@ do_2017:         0
 
 ### Do we need additional information stored in the friend trees
 load_friend_tree: 1
+load_hits:             1
 
 

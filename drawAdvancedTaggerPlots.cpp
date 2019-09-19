@@ -26,41 +26,51 @@ enum ETestParams {
   nTestParams
 };
 
-ETestParams testParam = kCharginoEta;
+map<ETestParams, string> paramTitles = {
+  {kNoBins          , "No binning"        },
+  {kPionPt          , "Pion p_{T} (MeV)"  },
+  {kCharginoEta     , "Track |#eta|"      },
+  {kCharginoNlayers , "Track N layers"    },
+  {kMET             , "MET p_{T} (GeV)"   },
+  {kCharginoCharge  , "Track charge"      },
+  {kCharginoPt      , "Track p_{T} (GeV)" },
+};
 
 map<ETestParams, vector<range<double>>> paramRanges = {
-  { kNoBins, {range<double>()} },
+  { kNoBins, {range<double>(-1, 1)} },
   { kPionPt,
     {
       range<double>(0, 150),
       range<double>(150, 300),
       range<double>(300, 450),
       range<double>(450, 600),
-      range<double>(600, inf) }
+      range<double>(600, 750) }
   },
   { kCharginoEta,
     { range<double>(0, 0.5),
       range<double>(0.5, 1.0),
       range<double>(1.0, 1.5),
-      range<double>(1.5, 3.0) }
+      range<double>(1.5, 2.0),
+      range<double>(2.0, 2.5) }
   },
   { kCharginoNlayers,
     { range<double>(3, 3),
       range<double>(4, 4),
       range<double>(5, 5),
       range<double>(6, 6),
-      range<double>(7, inf) }
+      range<double>(7, 7) }
   },
   { kMET,
     {
-      range<double>(200, 500),
-      range<double>(500, 600),
-      range<double>(600, 700),
-      range<double>(700, inf) }
+      range<double>(0  , 200),
+      range<double>(200, 400),
+      range<double>(400, 600),
+      range<double>(600, 800),
+      range<double>(800,1000) }
   },
   { kCharginoCharge,
-    { range<double>(-inf, 0),
-      range<double>(0, inf) }
+    { range<double>(-2, 0),
+      range<double>(0, 2) }
   },
   { kCharginoPt,
     {
@@ -69,14 +79,14 @@ map<ETestParams, vector<range<double>>> paramRanges = {
       range<double>(400, 600),
       range<double>(600, 800),
       range<double>(800, 1000),
-      range<double>(1000, inf)
+      range<double>(1000,1200)
     }
   },
 };
 
-void GetBinsForRanges(float *binsArray, int &arraySize)
+void GetBinsForRanges(float *binsArray, int &arraySize, ETestParams param)
 {
-  vector<range<double>> ranges = paramRanges[testParam];
+  vector<range<double>> ranges = paramRanges[param];
   vector<double> bins;
   bins.push_back(ranges[0].GetMin());
   
@@ -86,28 +96,28 @@ void GetBinsForRanges(float *binsArray, int &arraySize)
   arraySize = (int)bins.size()-1;
 }
 
-bool IsEventOk(const Event &event)
+bool IsEventOk(const Event &event, ETestParams param)
 {
-  if(testParam == kPionPt){
+  if(param == kPionPt){
     return event.GetGenPionHelices().size() == 1;
   }
   
-  if(testParam == kCharginoEta || testParam == kCharginoNlayers ||
-     testParam == kCharginoCharge || testParam == kCharginoPt){
+  if(param == kCharginoEta || param == kCharginoNlayers ||
+     param == kCharginoCharge || param == kCharginoPt){
     return event.GetNtracks() == 1;
   }
   
   return true;
 }
 
-double EventToParam(const Event &event)
+double EventToParam(const Event &event, ETestParams param)
 {
-  if(testParam == kPionPt)          return event.GetGenPionHelices().front().GetMomentum().GetTransverse();
-  if(testParam == kCharginoEta)     return fabs(event.GetTrack(0)->GetEta());
-  if(testParam == kCharginoNlayers) return event.GetTrack(0)->GetNtrackerLayers();
-  if(testParam == kMET)             return event.GetMetPt();
-  if(testParam == kCharginoCharge)  return event.GetTrack(0)->GetCharge();
-  if(testParam == kCharginoPt)      return event.GetTrack(0)->GetPt();
+  if(param == kPionPt)          return event.GetGenPionHelices().front().GetMomentum().GetTransverse();
+  if(param == kCharginoEta)     return fabs(event.GetTrack(0)->GetEta());
+  if(param == kCharginoNlayers) return event.GetTrack(0)->GetNtrackerLayers();
+  if(param == kMET)             return event.GetMetPt();
+  if(param == kCharginoCharge)  return event.GetTrack(0)->GetCharge();
+  if(param == kCharginoPt)      return event.GetTrack(0)->GetPt();
   return 0;
 }
 
@@ -123,11 +133,11 @@ map<string, tuple<string, int, int>> monitorTypes = {
 };
 
 /// Defines types of monitors and initializes them
-vector<Monitors> CreateMonitors()
+vector<Monitors> CreateMonitors(ETestParams param)
 {
   vector<Monitors> monitors;
   
-  for(range<double> r : paramRanges[testParam]){ // This gives a range of variable, e.g. eta
+  for(range<double> r : paramRanges[param]){ // This gives a range of variable, e.g. eta
     Monitors monitorsForParamValue;
     for(auto &[name, params] : monitorTypes){
       auto [title, color, pad] = params;
@@ -141,31 +151,25 @@ vector<Monitors> CreateMonitors()
 }
 
 /// Fills `monitors` with data found in `events`. Will use signal or background events, depending on `isSignal` value
-void FillMonitors(vector<Monitors> &monitors, const EventSet &events, bool isSignal)
+void FillMonitors(vector<Monitors> &monitors, const EventSet &events, bool isSignal, ETestParams param)
 {
   for(int iEvent=0;
           iEvent<events.size(dataType, isSignal ? kTaggerSignal : kTaggerBackground);
           iEvent++){
     auto event = events.At(dataType, isSignal ? kTaggerSignal : kTaggerBackground, iEvent);
-    if(!IsEventOk(*event)) continue;
+    if(!IsEventOk(*event, param)) continue;
     
-    double value = -inf;
-    
-    if(testParam == kCharginoEta) value = fabs(event->GetTrack(0)->GetEta());
-    
+    double value = EventToParam(*event, param);
     int monitorBin = -1;
     
-    for(int bin=0; bin<paramRanges[testParam].size(); bin++){
-      if(paramRanges[testParam][bin].IsInside(value)){
+    for(int bin=0; bin<paramRanges[param].size(); bin++){
+      if(paramRanges[param][bin].IsInside(value)){
         monitorBin = bin;
         break;
       }
     }
     
-    if(monitorBin < 0){
-      Log(0)<<"Could not find bin for parameter value!!\n";
-      continue;
-    }
+    if(monitorBin < 0) continue;
     
     for(auto &[name, monitor] : monitors[monitorBin]){
       double value = helixProcessor.GetHelicesParamsByMonitorName(event->GetHelices(), name);
@@ -175,11 +179,8 @@ void FillMonitors(vector<Monitors> &monitors, const EventSet &events, bool isSig
 }
 
 /// Calculates internal parameters of monitors and draws resulting plots
-void DrawMonitors(vector<Monitors> &monitors)
+void DrawMonitors(vector<Monitors> &monitors, ETestParams param, bool first)
 {
-  TCanvas *canvasPerformance  = new TCanvas("canvasPerformance", "canvasPerformance", 800, 600);
-  canvasPerformance->Divide(1, 1);
-  
   TLegend *legend = new TLegend(0.5, 0.6, 0.9, 0.9);
   
   gStyle->SetOptStat(0);
@@ -188,12 +189,9 @@ void DrawMonitors(vector<Monitors> &monitors)
   float histBins[100];
   int nBins;
   
-  GetBinsForRanges(histBins, nBins);
+  GetBinsForRanges(histBins, nBins, param);
   
   map<string, TH1D*> maxDistance;
-  
-  
-  canvasPerformance->cd();
   
   int nameIter=0;
   double max=-inf, min=inf;
@@ -201,13 +199,15 @@ void DrawMonitors(vector<Monitors> &monitors)
   for(auto &[name, params] : monitorTypes){
     auto [title, color, pad] = params;
     
-    maxDistance[name] = new TH1D("maxDistance", "maxDistance", nBins, histBins);
+    maxDistance[name] = new TH1D(to_string(RandInt(0, inf)).c_str(), "", nBins, histBins);
+    maxDistance[name]->GetXaxis()->SetTitle(paramTitles[param].c_str());
+    maxDistance[name]->GetYaxis()->SetTitle("Max distance from #sqrt{c_{fake}}");
     maxDistance[name]->SetBarWidth(0.1);
     maxDistance[name]->SetBarOffset(0.1 + nameIter * 0.1);
     maxDistance[name]->SetFillColor(color);
     maxDistance[name]->SetStats(0);
     
-    for(int paramBin=0; paramBin<paramRanges[testParam].size(); paramBin++){
+    for(int paramBin=0; paramBin<paramRanges[param].size(); paramBin++){
       
       PerformanceMonitor monitor = monitors[paramBin][name];
       monitor.CalcEfficiency();
@@ -227,12 +227,7 @@ void DrawMonitors(vector<Monitors> &monitors)
   maxDistance["avg_hits"]->SetMaximum(2);
   maxDistance["avg_hits"]->SetMinimum(-2);
   
-  
-  canvasPerformance->cd();
-  legend->Draw("same");
-  
-  canvasPerformance->Update();
-  canvasPerformance->SaveAs("plots/tagger_performance.pdf");
+  if(first) legend->Draw("same");
 }
 
 /// The program execution starting point.
@@ -245,12 +240,21 @@ int main(int argc, char* argv[])
   EventSet events;
   events.LoadEventsFromFiles(cutLevel);
   
-  vector<Monitors> monitors = CreateMonitors();
+  TCanvas *canvasPerformance  = new TCanvas("canvasPerformance", "canvasPerformance", 1000, 1500);
+  canvasPerformance->Divide(2, 3);
   
-  FillMonitors(monitors, events, true);
-  FillMonitors(monitors, events, false);
-  
-  DrawMonitors(monitors);
+  for(int testParam=1; testParam<nTestParams; testParam++){
+    canvasPerformance->cd(testParam);
+    
+    vector<Monitors> monitors = CreateMonitors((ETestParams)testParam);
+    FillMonitors(monitors, events, true, (ETestParams)testParam);
+    FillMonitors(monitors, events, false, (ETestParams)testParam);
+    
+    DrawMonitors(monitors, (ETestParams)testParam, testParam==1);
+  }
+    
+  canvasPerformance->Update();
+  canvasPerformance->SaveAs("plots/tagger_performance.pdf");
   
   theApp.Run();
   return 0;

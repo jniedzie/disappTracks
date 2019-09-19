@@ -125,13 +125,25 @@ void PerformanceMonitor::CalcEfficiency()
   set<pair<double, double>> rocXY;
   
   for(int iThreshold=0; iThreshold<nBins; iThreshold++){
-    double effError = sqrt(1/valuesSignal.size() + 1/efficiency[iThreshold]);
-    efficiency[iThreshold]  /= valuesSignal.size();
-    effError *= efficiency[iThreshold];
+    double effError;
+    if(valuesSignal.size()==0 || efficiency[iThreshold]==0){
+      effError = 0;
+    }
+    else{
+      effError = sqrt(1/valuesSignal.size() + 1/efficiency[iThreshold]);
+      efficiency[iThreshold]  /= valuesSignal.size();
+      effError *= efficiency[iThreshold];
+    }
     
-    double fakeError = sqrt(1/valuesBackground.size() + 1/fakeRate[iThreshold]);
-    fakeRate[iThreshold]    /= valuesBackground.size();
-    fakeError *= fakeRate[iThreshold];
+    double fakeError;
+    if(valuesBackground.size()==0 || fakeRate[iThreshold]==0){
+      fakeError=0;
+    }
+    else{
+      fakeError = sqrt(1/valuesBackground.size() + 1/fakeRate[iThreshold]);
+      fakeRate[iThreshold]    /= valuesBackground.size();
+      fakeError *= fakeRate[iThreshold];
+    }
     
     if(efficiency[iThreshold] > params["max_eff"] && efficiency[iThreshold] != 1.0){
       params["max_eff"]   = efficiency[iThreshold];
