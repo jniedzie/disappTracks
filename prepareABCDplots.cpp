@@ -30,23 +30,16 @@ vector<vector<double>> GetABCD(const TH2D *metVsDedxHist,
   binsMet.push_back(inf);
   binsDedx.push_back(inf);
   
-  vector<vector<double>> abcd;
-  for(int iMet=0; iMet<binsMet.size()-1; iMet++){
-    vector<double> tmp;
-    for(int iDedx=0; iDedx<binsDedx.size()-1; iDedx++){
-      tmp.push_back(0.0);
-    }
-    abcd.push_back(tmp);
-  }
+  vector<vector<double>> abcd(binsMet.size()-1, vector<double>(binsDedx.size()-1));
   
   for(int iMet=0; iMet<binsMet.size()-1; iMet++){
     for(int iDedx=0; iDedx<binsDedx.size()-1; iDedx++){
       
       int binX1 = metVsDedxHist->GetXaxis()->FindFixBin(binsDedx[iDedx]);
-      int binX2 = metVsDedxHist->GetXaxis()->FindFixBin(binsDedx[iDedx+1]);
+      int binX2 = metVsDedxHist->GetXaxis()->FindFixBin(binsDedx[iDedx+1])-1;
       
       int binY1 = metVsDedxHist->GetYaxis()->FindFixBin(binsMet[iMet]);
-      int binY2 = metVsDedxHist->GetYaxis()->FindFixBin(binsMet[iMet+1]);
+      int binY2 = metVsDedxHist->GetYaxis()->FindFixBin(binsMet[iMet+1])-1;
       
       abcd[iMet][iDedx] = metVsDedxHist->Integral(binX1, binX2, binY1, binY2);
     }
@@ -335,8 +328,7 @@ int main(int argc, char* argv[])
     metVsDedxHistsSignal[iSig] = GetMetVsDedxHist(events, xtracks::kSignal, iSig);
   }
   
-  double bestVariance = inf;
-  
+//  double bestVariance = inf;
 //  for(int i=0; i<10; i++){
 //    Log(0)<<"\n\nStarting "<<i+1<<" iteration\n";
 //    auto result = GetBestMetAndDedx(metVsDedxHistBackground,
