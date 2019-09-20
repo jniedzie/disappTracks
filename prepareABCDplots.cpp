@@ -279,6 +279,8 @@ void DrawAndSaveABCDplots(TH2D *metVsDedxHistBackground,
   abcdPlotBackgrounds->SetMarkerSize(3.0);
   abcdPlotBackgrounds->Draw("colzText");
   outFile->cd();
+  abcdPlotBackgrounds->SetName("W+jets_background");
+  abcdPlotBackgrounds->SetTitle("W+jets_background");
   abcdPlotBackgrounds->Write();
   
   for(int iSig=0; iSig<kNsignals; iSig++){
@@ -289,12 +291,72 @@ void DrawAndSaveABCDplots(TH2D *metVsDedxHistBackground,
     abcdPlot->SetMarkerSize(3.0);
     abcdPlot->Draw("colzText");
     outFile->cd();
+    abcdPlot->SetName(signalName[iSig].c_str());
+    abcdPlot->SetTitle(signalName[iSig].c_str());
     abcdPlot->Write();
   }
   
   abcdCanvas->Update();
   abcdCanvas->Write();
   outFile->Close();
+}
+
+void NextForLoop(vector<vector<double>> &groups, double max, double step, int nLines)
+{
+  if(groups[0].size()==nLines) return;
+  
+  vector<vector<double>> newGroups;
+  
+  for(vector<double> &group : groups){
+    vector<vector<double>> replacementForGroup;
+    
+    for(double value=group[group.size()-1]+step; value<max; value+=step){
+      vector<double> newGroup;
+      for(double element : group) newGroup.push_back(element);
+      newGroup.push_back(value);
+      replacementForGroup.push_back(newGroup);
+    }
+    for(auto element : replacementForGroup) newGroups.push_back(element);
+  }
+  groups = newGroups;
+  
+  NextForLoop(groups, max, step, nLines);
+}
+
+tuple<vector<double>,vector<double>> PossibleLineCombinations(const TH2D *metVsDedxHist,
+                                                              int nDedxBins, int nMetBins,
+                                                              double minDedx, double maxDedx, double stepDedx,
+                                                              double minMet, double maxMet, double stepMet)
+{
+  vector<vector<double>> groupsDedx;
+  for(double startingDedx=minDedx; startingDedx<maxDedx; startingDedx+=stepDedx) groupsDedx.push_back({startingDedx});
+  NextForLoop(groupsDedx, maxDedx, stepDedx, nDedxBins-1);
+  
+  vector<vector<double>> groupsMet;
+  for(double startingMet=minMet; startingMet<maxMet; startingMet+=stepMet) groupsMet.push_back({startingMet});
+  NextForLoop(groupsMet, maxMet, stepMet, nMetBins-1);
+  
+  cout<<"Combinations in vector: "<<groupsDedx.size()*groupsDedx[0].size()*groupsMet.size()*groupsMet[0].size()<<endl;
+ 
+  vector<double> bestMet, bestDedx;
+  double bestVariance=inf;
+  
+  for(auto groupMet : groupsMet){
+    for(auto groupDedx : groupsDedx){
+      for(double met : groupMet) cout<<met<<"\t";
+      Log(2)<<"|\t";
+      for(double dedx : groupDedx) Log(2)<<dedx<<"\t";
+      double variance = GetVariance(metVsDedxHist, groupMet, groupDedx);
+      Log(2)<<"|\t"<<variance<<"\n";
+      
+      if(variance<bestVariance){
+        bestVariance=variance;
+        bestMet = groupMet;
+        bestDedx = groupDedx;
+      }
+    }
+  }
+  return make_tuple(bestMet, bestDedx);
 }
 
 /// Starting point of the application
@@ -311,22 +373,23 @@ int main(int argc, char* argv[])
   string prefix = "after_L"+to_string_with_precision(config.params["cuts_level"], 0)+"/"+config.category+"/";
   events.LoadEventsFromFiles(prefix);
   
-  // Find the best values of critical MET and critical dE/dx
-  int nMetBins  = 3, nDedxBins = 3;
-  
-  double minMet  = 200 , maxMet  = 300 , stepMet  = 10;
-  double minDedx = 3.0 , maxDedx = 4.5 , stepDedx = 0.1;
-  
-  vector<double> bestMet, bestDedx;
-  
+  // Create histograms with number of events for each MET-dE/dx bin
   TH2D *metVsDedxHistBackground = GetMetVsDedxHist(events, xtracks::kBackground);
-  
   map<int, TH2D*> metVsDedxHistsSignal;
-  
   for(int iSig=0; iSig<kNsignals; iSig++){
     if(!config.runSignal[iSig]) continue;
     metVsDedxHistsSignal[iSig] = GetMetVsDedxHist(events, xtracks::kSignal, iSig);
   }
+  
+  // Find the best values of critical MET and critical dE/dx
+  int nMetBins  = 2, nDedxBins = 2;
+  double minMet  = 200 , maxMet  = 300 , stepMet  = 10;
+  double minDedx = 3.0 , maxDedx = 4.5 , stepDedx = 0.1;
+  
+  auto result = PossibleLineCombinations(metVsDedxHistBackground,
+                                         nDedxBins, nMetBins,
+                                         minDedx, maxDedx, stepDedx,
+                                         minMet, maxMet, stepMet);
   
 //  double bestVariance = inf;
 //  for(int i=0; i<10; i++){
@@ -352,23 +415,29 @@ int main(int argc, char* argv[])
 //    }
 //  }
   
+//  int binsX = (maxDedx-minDedx)/stepDedx;
+//  int binsY = (maxMet-minMet)/stepMet;
+//
 //  auto result = GetBestMetAndDedxRandomly(metVsDedxHistBackground,
 //                                          nMetBins, minMet, maxMet, stepMet,
 //                                          nDedxBins, minDedx, maxDedx, stepDedx,
-//                                          1000);
-//
-//  bestMet = get<0>(result);
-//  bestDedx = get<1>(result);
+//                                          100);
   
-//  Log(0)<<"MET bins: "; for(double met : bestMet) Log(0)<<met<<"\t"; Log(0)<<"\n";
-//  Log(0)<<"dE/dx bins: "; for(double dedx : bestDedx) Log(0)<<dedx<<"\t"; Log(0)<<"\n";
-//  Log(0)<<"variance: "<<GetVariance(metVsDedxHistBackground, bestMet, bestDedx)<<"\n";
-  bestMet={200, 250, 300};
-  bestDedx={4.2, 4.6};
+  vector<double> bestMet = get<0>(result);
+  vector<double> bestDedx = get<1>(result);
+  double variance = GetVariance(metVsDedxHistBackground, bestMet, bestDedx);
+  
+  Log(0)<<"MET bins: "; for(double met : bestMet) Log(0)<<met<<"\t"; Log(0)<<"\n";
+  Log(0)<<"dE/dx bins: "; for(double dedx : bestDedx) Log(0)<<dedx<<"\t"; Log(0)<<"\n";
+  Log(0)<<"variance: "<<variance<<"\n";
+//  bestMet={200, 250, 300};
+//  bestDedx={4.2, 4.6};
   
   // Print restuls
  
   DrawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, bestMet, bestDedx);
+  
+  
   
   theApp->Run();
   return 0;
