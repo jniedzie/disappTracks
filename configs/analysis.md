@@ -16,7 +16,7 @@ save_events:  1
 load_friend_tree: 0
 load_hits:             0
 
-verbosity_level: 1
+verbosity_level: 2
 
 ### turn on/off different backgrounds, signals and data samples
 do_QCD:         1
