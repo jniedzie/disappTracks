@@ -131,6 +131,24 @@ tuple<double, double> GetVariance(const TH2D *metVsDedxHist, const vector<double
   return make_tuple(variance, varianceError);
 }
 
+double GetSignificance(const TH2D *metVsDedxHistBackground, const TH2D *metVsDedxHistSignal,
+                       const vector<double> &criticalMet, const vector<double> &criticalDedx)
+{
+  auto abcdBackground = GetABCD(metVsDedxHistBackground, criticalMet, criticalDedx);
+  auto abcdSignal     = GetABCD(metVsDedxHistSignal, criticalMet, criticalDedx);
+  
+  double significance = 0;
+  
+  for(int x=0; x<abcdBackground.size(); x++){
+    for(int y=0; y<abcdBackground[x].size(); y++){
+      if(abcdSignal[x][y] + abcdBackground[x][y] == 0) continue;
+      significance += pow(abcdSignal[x][y] / sqrt(abcdSignal[x][y] + abcdBackground[x][y]), 2);
+    }
+  }
+  significance = sqrt(significance);
+  return significance;
+}
+
 /// Fills correlation histograms from background events
 TH2D* GetMetVsDedxHist(const EventSet &events, xtracks::EDataType dataType, int setIter=0)
 {
@@ -373,7 +391,14 @@ void DrawAndSaveABCDplots(TH2D *metVsDedxHistBackground,
   outFile->Close();
 }
 
-void NextForLoop(vector<vector<double>> &groups, double max, double step, int nLines)
+/**
+ Adds all combinations of numbers between the last element of each of the vectors in `groups` and `max`.
+ \param groups Vector of vectors of lines, which will be extended by all possible combinations.
+ \param max Maximum value of the numbers to be put in `gorups` vector
+ \param step Step between the numbers to be added to `groups`
+ \param nLines Desired total number of values in each vector
+ */
+void AddValuesCombinations(vector<vector<double>> &groups, double max, double step, int nLines)
 {
   if(groups[0].size()==nLines) return;
   
@@ -392,42 +417,56 @@ void NextForLoop(vector<vector<double>> &groups, double max, double step, int nL
   }
   groups = newGroups;
   
-  NextForLoop(groups, max, step, nLines);
+  AddValuesCombinations(groups, max, step, nLines);
 }
 
-tuple<vector<double>,vector<double>> PossibleLineCombinations(const TH2D *metVsDedxHist,
-                                                              int nDedxBins, int nMetBins,
-                                                              double minDedx, double maxDedx, double stepDedx,
-                                                              double minMet, double maxMet, double stepMet)
+/**
+ Finds the best positions of dE/dx bin borders, optimizing significance
+ \param metVsDedxHistBackground MET vs. dE/dx histogram for background
+ \param metVsDedxHistSignal MET vs. dE/dx histogram for signal
+ \param nDedxBins Desired number of dE/dx bins
+ \param nMetBins Desired number of MET bins
+ */
+tuple<vector<double>,vector<double>> findBestBinning(const TH2D *metVsDedxHistBackground,
+                                                     const TH2D *metVsDedxHistSignal,
+                                                     int nDedxBins, int nMetBins,
+                                                     double minDedx, double maxDedx, double stepDedx,
+                                                     double minMet, double maxMet, double stepMet)
 {
+  // Find all combinations of binning in dE/dx and MET
   vector<vector<double>> groupsDedx;
   for(double startingDedx=minDedx; startingDedx<maxDedx; startingDedx+=stepDedx) groupsDedx.push_back({startingDedx});
-  NextForLoop(groupsDedx, maxDedx, stepDedx, nDedxBins-1);
+  AddValuesCombinations(groupsDedx, maxDedx, stepDedx, nDedxBins-1);
   
   vector<vector<double>> groupsMet;
   for(double startingMet=minMet; startingMet<maxMet; startingMet+=stepMet) groupsMet.push_back({startingMet});
-  NextForLoop(groupsMet, maxMet, stepMet, nMetBins-1);
+  AddValuesCombinations(groupsMet, maxMet, stepMet, nMetBins-1);
   
   cout<<"Combinations in vector: "<<groupsDedx.size()*groupsDedx[0].size()*groupsMet.size()*groupsMet[0].size()<<endl;
  
+  // Find the best combination
   vector<double> bestMet, bestDedx;
-  double bestVariance=inf;
+  double bestSignificance = -inf;
+  
+  Log(2)<<"\t|\t";
+  for(auto groupDedx : groupsDedx){ for(double dedx : groupDedx) Log(2)<<dedx<<"\t";}
+  cout<<endl;
   
   for(auto groupMet : groupsMet){
+    for(double met : groupMet) cout<<met<<"\t";
+    Log(2)<<"|\t";
+  
     for(auto groupDedx : groupsDedx){
-      for(double met : groupMet) cout<<met<<"\t";
-      Log(2)<<"|\t";
-      for(double dedx : groupDedx) Log(2)<<dedx<<"\t";
-      auto [variance, varianceError] = GetVariance(metVsDedxHist, groupMet, groupDedx);
-      Log(2)<<"|\t"<<variance<<" +/- "<<varianceError;
-      cout<<endl;
+      double significance = GetSignificance(metVsDedxHistBackground, metVsDedxHistSignal, groupMet, groupDedx);
+      Log(2)<<significance<<" ";
       
-      if(variance<bestVariance){
-        bestVariance=variance;
+      if(significance > bestSignificance){
+        bestSignificance = significance;
         bestMet = groupMet;
         bestDedx = groupDedx;
       }
     }
+    cout<<endl;
   }
   return make_tuple(bestMet, bestDedx);
 }
@@ -456,13 +495,13 @@ int main(int argc, char* argv[])
   
   // Find the best values of critical MET and critical dE/dx
   int nMetBins  = 2, nDedxBins = 2;
-  double minMet  = 200 , maxMet  = 500 , stepMet  = 50;
-  double minDedx = 2.0 , maxDedx = 6.0 , stepDedx = 1.0;
+  double minMet  = 300 , maxMet  = 500 , stepMet  = 10;
+  double minDedx = 2.0 , maxDedx = 4.0 , stepDedx = 0.1;
 
-  auto result = PossibleLineCombinations(metVsDedxHistBackground,
-                                         nDedxBins, nMetBins,
-                                         minDedx, maxDedx, stepDedx,
-                                         minMet, maxMet, stepMet);
+  auto result = findBestBinning(metVsDedxHistBackground, metVsDedxHistsSignal[kWino_M_300_cTau_3],
+                                nDedxBins, nMetBins,
+                                minDedx, maxDedx, stepDedx,
+                                minMet, maxMet, stepMet);
 
   vector<double> bestMet = get<0>(result);
   vector<double> bestDedx = get<1>(result);
