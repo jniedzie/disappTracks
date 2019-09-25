@@ -4,7 +4,7 @@
 cuts_level: 1
 
 ### Analysis category ( 2-tracks | 3-layers | 4-layers | all ):
-analysis_category:  all
+analysis_category:  3-layers
 
 scan_MET_binning: 0
 do_MET_binning: 0
@@ -16,7 +16,7 @@ save_events:  1
 load_friend_tree: 0
 load_hits:             0
 
-verbosity_level: 1
+verbosity_level: 0
 
 ### turn on/off different backgrounds, signals and data samples
 do_QCD:         1

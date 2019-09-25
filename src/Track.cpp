@@ -213,3 +213,13 @@ double Track::GetAverageDedx()
 {
   return GetTotalDedx()/nDedxClusters;
 }
+
+double Track::GetMinDedx()
+{
+  return *min(dedx.begin(), dedx.end());
+}
+
+double Track::GetMaxDedx()
+{
+  return *max(dedx.begin(), dedx.end());
+}

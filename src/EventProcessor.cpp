@@ -71,7 +71,7 @@ EventProcessor::EventProcessor()
     "chargino_pt"
   };
   
-  if(config.params["load_hits"]){
+//  if(config.params["load_hits"]){
     vector<string> tmp = {
       "pion_simHits_x",
       "pion_simHits_y",
@@ -109,7 +109,7 @@ EventProcessor::EventProcessor()
       "pionCluster_subDet",
     };
     arrayNamesFriendInt.insert(arrayNamesFriendInt.end(), tmp2.begin(), tmp2.end());
-  }
+//  }
   
 }
 

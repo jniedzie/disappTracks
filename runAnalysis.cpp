@@ -7,10 +7,6 @@
 #include "ConfigManager.hpp"
 #include "CutsManager.hpp"
 
-#include "TGraph.h"
-
-#include <TApplication.h>
-
 string configPath = "configs/analysis.md";
 
 void ProcessCuts(EventSet &events,
@@ -104,13 +100,8 @@ int main(int argc, char* argv[])
   
   string initPrefix;
   if(config.params["cuts_level"]==0 || config.params["cuts_level"]==10) initPrefix = "";
-  if(config.params["cuts_level"]==1)  initPrefix = "after_L0/";
-  if(config.params["cuts_level"]==2){
-    if(config.category == "2-tracks") initPrefix = "after_L1/2tracks/";
-    if(config.category == "3-layers") initPrefix = "after_L1/3layers/";
-    if(config.category == "4-layers") initPrefix = "after_L1/4layers/";
-    if(config.category == "all")      initPrefix = "after_L1/all/";
-  }
+  if(config.params["cuts_level"]==1) initPrefix = "after_L0/";
+  if(config.params["cuts_level"]==2) initPrefix = "after_L1/"+config.category+"/";
   if(config.params["cuts_level"]==20) initPrefix = "afterHelixTagging/";
   
   events.LoadEventsFromFiles(initPrefix);
@@ -253,22 +244,12 @@ int main(int argc, char* argv[])
       }
     }
     else{
-      string suffix = "";
-      if(config.category == "2-tracks") suffix = "2tracks";
-      if(config.category == "3-layers") suffix = "3layers";
-      if(config.category == "4-layers") suffix = "4layers";
-      if(config.category == "all")      suffix = "all";
-      ProcessCuts(events, eventCut, trackCut, jetCut, leptonCut, suffix);
+      ProcessCuts(events, eventCut, trackCut, jetCut, leptonCut, config.category);
     }
   }
   
   if(config.params["cuts_level"] == 2){
-    string suffix = "";
-    if(config.category == "2-tracks") suffix = "2tracks";
-    if(config.category == "3-layers") suffix = "3layers";
-    if(config.category == "4-layers") suffix = "4layers";
-    if(config.category == "all")      suffix = "all";
-    ProcessCuts(events, eventCut, trackCut, jetCut, leptonCut, suffix);
+    ProcessCuts(events, eventCut, trackCut, jetCut, leptonCut, config.category);
   }
   
   //---------------------------------------------------------------------------

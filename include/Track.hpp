@@ -51,6 +51,8 @@ public:
 	inline double  GetDeDxForHit(int iHit){return iHit < dedx.size() ? dedx[iHit] : 0;}
   inline double  GetTotalDedx(){return accumulate(dedx.begin(),dedx.end(),0.0);}
   double         GetAverageDedx();
+  double         GetMinDedx();
+  double         GetMaxDedx();
   double         GetDedxInSubDet(int det);
   double         GetDedxInBarrelLayer(int iLayer);
   

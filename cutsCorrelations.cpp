@@ -25,10 +25,10 @@ map<string, TH2D*> CreateCorrelationHistograms()
   };
   
   map<string, tuple<string, string>> histAxesNames = {
-    {"iso_vs_dedx"                , { "Average dE/dx (MeV/cm)"  , "Relative isolation"      }},
-    {"met_vs_dedx"                , { "Average dE/dx (MeV/cm)"  , "MET p_{T} (GeV)"         }},
-    {"trackPt_vs_missing"         , { "Missing outer tracker hits" , "Track p_{T}"          }},
-    {"deltaJetTrack_vs_missing"   , { "Missing outer tracker hits" , "#Delta R(jet,track)"  }},
+    {"iso_vs_dedx"                , { "Minimum dE/dx (MeV/cm)"      , "Relative isolation"   }},
+    {"met_vs_dedx"                , { "Minimum dE/dx (MeV/cm)"      , "MET p_{T} (GeV)"      }},
+    {"trackPt_vs_missing"         , { "Missing outer tracker hits"  , "Track p_{T}"          }},
+    {"deltaJetTrack_vs_missing"   , { "Missing outer tracker hits"  , "#Delta R(jet,track)"  }},
   };
   
   map<string, TH2D*> correlationHists;
@@ -39,6 +39,7 @@ map<string, TH2D*> CreateCorrelationHistograms()
     auto &[titleX, titleY] = histAxesNames[name];
     correlationHists[name]->GetXaxis()->SetTitle(titleX.c_str());
     correlationHists[name]->GetYaxis()->SetTitle(titleY.c_str());
+    correlationHists[name]->SetTitle("");
   }
   return correlationHists;
 }
@@ -54,9 +55,10 @@ void FillCorrelationHistograms(map<string, TH2D*> &correlationHists, const Event
         auto track = event->GetTrack(iTrack);
         
         double avgDedx = track->GetAverageDedx();
+        double minDedx = track->GetMinDedx();
         
-        correlationHists["iso_vs_dedx"]->Fill(avgDedx, track->GetRelativeIsolation());
-        correlationHists["met_vs_dedx"]->Fill(avgDedx, event->GetMetNoMuPt());
+        correlationHists["iso_vs_dedx"]->Fill(minDedx, track->GetRelativeIsolation());
+        correlationHists["met_vs_dedx"]->Fill(minDedx, event->GetMetNoMuPt());
         correlationHists["trackPt_vs_missing"]->Fill(track->GetPt(), track->GetNmissingOuterTrackerHits());
         
         for(int iJet=0;iJet<event->GetNjets();iJet++){
@@ -71,16 +73,22 @@ void FillCorrelationHistograms(map<string, TH2D*> &correlationHists, const Event
 }
 
 /// Draws correlation histograms in a canvas
-void DrawCorrelationHistograms(const map<string, TH2D*> &correlationHists)
+void DrawAndSaveCorrelationHistograms(const map<string, TH2D*> &correlationHists)
 {
   TCanvas *c1 = new TCanvas("c1","c1",1000,1500);
   if(correlationHists.size() <= 4) c1->Divide(2,2);
   else if(correlationHists.size() <= 6) c1->Divide(2,3);
   else if(correlationHists.size() <= 9) c1->Divide(3,3);
   int iPad=1;
-  for(auto &[_, hist] : correlationHists){
+  for(auto &[name, hist] : correlationHists){
     c1->cd(iPad++);
     hist->Draw("colz");
+    
+    TCanvas *c2 = new TCanvas("c2", "c2", 800, 600);
+    c2->cd();
+    gPad->SetLeftMargin(0.12);
+    hist->Draw("colz");
+    c2->SaveAs(("plots/"+name+".pdf").c_str());
   }
   c1->Update();
 }
@@ -91,6 +99,8 @@ int main(int argc, char* argv[])
   TApplication *theApp = new TApplication("App", &argc, argv);
   config = ConfigManager("configs/analysis.md");
   
+  gStyle->SetOptStat(0);
+  
   // All events with initial cuts only
   EventSet events;
   string prefix = "after_L"+to_string_with_precision(config.params["cuts_level"], 0)+"/"+config.category+"/";
@@ -99,7 +109,7 @@ int main(int argc, char* argv[])
   // Draw correlation plots
   map<string, TH2D*> correlationHists = CreateCorrelationHistograms();
   FillCorrelationHistograms(correlationHists, events);
-  DrawCorrelationHistograms(correlationHists);
+  DrawAndSaveCorrelationHistograms(correlationHists);
   
   theApp->Run();
   return 0;

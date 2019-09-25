@@ -11,6 +11,13 @@
 #include "CutsManager.hpp"
 #include "Logger.hpp"
 
+string outputPath = "results/abcd_plots_3x3_3layers.root";
+
+// Desired number of MET and dE/dx bins and limits of those
+const int nMetBins  = 3, nDedxBins = 3;
+const double minMet  = 300 , maxMet  = 500 , stepMet  = 50;
+const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.2;
+
 /**
  Returns number of counts in ABCD... regions determined by criticalMet and criticalDedx values.
  \param metVsDedxHist Histogram containing number of events for each MET-dE/dx bin
@@ -142,11 +149,11 @@ double GetSignificance(const TH2D *metVsDedxHistBackground, const TH2D *metVsDed
   for(int x=0; x<abcdBackground.size(); x++){
     for(int y=0; y<abcdBackground[x].size(); y++){
       if(abcdSignal[x][y] + abcdBackground[x][y] == 0) continue;
-      significance += pow(abcdSignal[x][y] / sqrt(abcdSignal[x][y] + abcdBackground[x][y]), 2);
+      double signif = abcdSignal[x][y] / sqrt(abcdSignal[x][y] + abcdBackground[x][y]);
+      significance += pow(signif, 2);
     }
   }
-  significance = sqrt(significance);
-  return significance;
+  return sqrt(significance);
 }
 
 /// Fills correlation histograms from background events
@@ -163,7 +170,7 @@ TH2D* GetMetVsDedxHist(const EventSet &events, xtracks::EDataType dataType, int 
         
         for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
           auto track = event->GetTrack(iTrack);
-          hist->Fill(track->GetAverageDedx(), event->GetMetNoMuPt());
+          hist->Fill(track->GetMinDedx(), event->GetMetNoMuPt(), event->GetWeight());
         }
       }
     }
@@ -174,7 +181,7 @@ TH2D* GetMetVsDedxHist(const EventSet &events, xtracks::EDataType dataType, int 
       
       for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
         auto track = event->GetTrack(iTrack);
-        hist->Fill(track->GetAverageDedx(), event->GetMetNoMuPt());
+        hist->Fill(track->GetMinDedx(), event->GetMetNoMuPt(), event->GetWeight());
       }
     }
   }
@@ -290,6 +297,66 @@ tuple<vector<double>,vector<double>> GetBestMetAndDedxRandomly(TH2D *metVsDedxHi
   return make_tuple(foundMet, foundDedx);
 }
 
+TGraphErrors* GetRatioGraph(const TH2D *metVsDedxHistBackground,
+                            const vector<double> &criticalMet, const vector<double> &criticalDedx)
+{
+  TH2D *metVsDedxRebinned = new TH2D(*metVsDedxHistBackground);
+  metVsDedxRebinned->RebinX(2);
+  
+  TGraphErrors *abcdBackgroundRatio = new TGraphErrors();
+  int iPoint=0;
+  
+  double min = metVsDedxRebinned->GetYaxis()->GetBinLowEdge(1);
+  double max = metVsDedxRebinned->GetYaxis()->GetBinUpEdge(metVsDedxRebinned->GetNbinsY());
+  
+  for(int iMet=0; iMet<criticalMet.size(); iMet++){
+    double minMet, middleMet, maxMet;
+    
+    if(iMet==0) minMet = min;
+    else        minMet = criticalMet[iMet-1];
+    
+    if(iMet==criticalMet.size())  middleMet = max;
+    else                          middleMet = criticalMet[iMet];
+    
+    if((iMet+1)==criticalMet.size())  maxMet = max;
+    else                              maxMet = criticalMet[iMet+1];
+    
+    range<double> metRangeNum(minMet, middleMet);
+    range<double> metRangeDen(middleMet, maxMet);
+    
+    TH1D *histNum = new TH1D("histNum", "histNum",
+                             metVsDedxRebinned->GetNbinsX(),
+                             metVsDedxRebinned->GetXaxis()->GetXmin(),
+                             metVsDedxRebinned->GetXaxis()->GetXmax());
+    histNum->Sumw2();
+    TH1D *histDen = new TH1D(*histNum);
+    
+    for(int binX=1; binX<=metVsDedxRebinned->GetNbinsX(); binX++){
+      double dedx = metVsDedxRebinned->GetXaxis()->GetBinCenter(binX);
+      
+      for(int binY=1; binY<=metVsDedxRebinned->GetNbinsY(); binY++){
+        double met = metVsDedxRebinned->GetYaxis()->GetBinCenter(binY);
+        
+        double nEvents = metVsDedxRebinned->GetBinContent(binX, binY);
+        
+        if(metRangeNum.IsInside(met)) histNum->Fill(dedx, nEvents);
+        if(metRangeDen.IsInside(met)) histDen->Fill(dedx, nEvents);
+      }
+    }
+    
+    histNum->Divide(histDen);
+    
+    for(int binX=1; binX<=histNum->GetNbinsX(); binX++){
+      double dedx = histNum->GetXaxis()->GetBinCenter(binX);
+
+      abcdBackgroundRatio->SetPoint(iPoint, dedx, histNum->GetBinContent(binX));
+      abcdBackgroundRatio->SetPointError(iPoint, 0, histNum->GetBinError(binX));
+      iPoint++;
+    }
+  }
+  return abcdBackgroundRatio;
+}
+
 
 /// Draws and saves ABCD plots for given values of critical MET and critical dE/dx
 void DrawAndSaveABCDplots(TH2D *metVsDedxHistBackground,
@@ -298,78 +365,51 @@ void DrawAndSaveABCDplots(TH2D *metVsDedxHistBackground,
 {
   TCanvas *abcdCanvas = new TCanvas("ABCD", "ABCD", 1000, 1500);
   abcdCanvas->Divide(4,3);
-  TCanvas *backgroundCanvas = new TCanvas("Background", "Background", 1000, 1500);
-  backgroundCanvas->Divide(2,3);
-  
-  TFile *outFile = new TFile("results/abcd_plots.root","recreate");
+  TFile *outFile = new TFile(outputPath.c_str(),"recreate");
   
   gStyle->SetOptStat(0);
+  gStyle->SetPaintTextFormat(".1f");
   
   cout<<"Plotting background ABCD"<<endl;
   TH2D *abcdPlotBackgrounds = GetABCDplot(metVsDedxHistBackground, criticalMet, criticalDedx, xtracks::kBackground);
   abcdPlotBackgrounds->SetMarkerSize(3.0);
   
+  TCanvas *ratioCanvas = new TCanvas("Ratio", "Ratio", 800, 600);
+  ratioCanvas->cd();
   
-  TH2D *metVsDedxRebinned = new TH2D(*metVsDedxHistBackground);
-  metVsDedxRebinned->RebinX(2);
-  
-  TGraphErrors *abcdBackgroundRatio = new TGraphErrors();
-  int iPoint=0;
-  
-  for(int binX=1; binX<=metVsDedxRebinned->GetNbinsX(); binX++){
-    double dedx = metVsDedxRebinned->GetXaxis()->GetBinCenter(binX);
-    vector<double> nEvents(criticalMet.size()+1);
-    
-    for(int iMet=0; iMet<criticalMet.size()+1; iMet++){
-      double minMet, maxMet;
-      
-      if(iMet==0) minMet = metVsDedxRebinned->GetYaxis()->GetBinCenter(1);
-      else        minMet = criticalMet[iMet-1];
-       
-      if(iMet==criticalMet.size()) maxMet = metVsDedxRebinned->GetYaxis()->GetBinCenter(metVsDedxRebinned->GetNbinsY());
-      else maxMet = criticalMet[iMet];
-      
-      range<double> metRange(minMet, maxMet);
-      
-      for(int binY=1; binY<=metVsDedxRebinned->GetNbinsY(); binY++){
-        if(metRange.IsInside(metVsDedxRebinned->GetYaxis()->GetBinCenter(binY))){
-          nEvents[iMet] += metVsDedxRebinned->GetBinContent(binX, binY);
-        }
-      }
-    }
-    
-    for(int iMet=0; iMet<nEvents.size()-1; iMet++){
-      if(nEvents[iMet+1]==0) continue;
-      double ratio = nEvents[iMet]/nEvents[iMet+1];
-      abcdBackgroundRatio->SetPoint(iPoint, dedx, ratio);
-      abcdBackgroundRatio->SetPointError(iPoint, 0, ratio*sqrt(1/nEvents[iMet]+1/nEvents[iMet+1]));
-      iPoint++;
-    }
-  }
-  backgroundCanvas->cd(2);
+  TGraphErrors *abcdBackgroundRatio = GetRatioGraph(metVsDedxHistBackground, criticalMet, criticalDedx);
   abcdBackgroundRatio->SetMarkerStyle(20);
   abcdBackgroundRatio->SetMarkerSize(1.0);
   abcdBackgroundRatio->SetMarkerColor(kViolet);
   abcdBackgroundRatio->GetXaxis()->SetTitle("dE/dx (MeV/cm)");
   abcdBackgroundRatio->GetYaxis()->SetTitle("Ratio");
   
-  TF1 *linearFunction = new TF1("linearFunction","[0]",0,100);
+  TF1 *linearFunction = new TF1("linearFunction", "[0]", 0, 7.0);
   linearFunction->SetParameter(0, 1.0);
-  abcdBackgroundRatio->Fit(linearFunction);
+  linearFunction->SetLineColor(kGreen);
   
+  TF1 *linearFunctionWithTilt = new TF1("linearFunctionWithTilt", "[1]+x*[0]", 0, 7.0);
+  linearFunctionWithTilt->SetParameter(0, 1.0);
+  linearFunctionWithTilt->SetParameter(1, 0.0);
+  linearFunctionWithTilt->SetLineColor(kRed);
   abcdBackgroundRatio->Draw("APE");
+  
+  abcdBackgroundRatio->Fit(linearFunction, "", "", 0, 7.0);
+  linearFunction->Draw("sameL");
+  
+  abcdBackgroundRatio->Fit(linearFunctionWithTilt, "", "", 0, 7.0);
+  linearFunctionWithTilt->Draw("sameL");
+  
+  ratioCanvas->Update();
+  ratioCanvas->SaveAs("plots/abcdRatio.pdf");
   
   int iPad=1;
   abcdCanvas->cd(iPad++);
   abcdPlotBackgrounds->Draw("colzText");
   
-  backgroundCanvas->cd(1);
-  abcdPlotBackgrounds->Draw("colzText");
-  backgroundCanvas->Update();
-  
   outFile->cd();
-  abcdPlotBackgrounds->SetName("W+jets_background");
-  abcdPlotBackgrounds->SetTitle("W+jets_background");
+  abcdPlotBackgrounds->SetName("background");
+  abcdPlotBackgrounds->SetTitle("background");
   abcdPlotBackgrounds->Write();
   abcdBackgroundRatio->Write();
   
@@ -388,6 +428,7 @@ void DrawAndSaveABCDplots(TH2D *metVsDedxHistBackground,
   
   abcdCanvas->Update();
   abcdCanvas->Write();
+  abcdCanvas->SaveAs("plots/abcd.pdf");
   outFile->Close();
 }
 
@@ -424,23 +465,13 @@ void AddValuesCombinations(vector<vector<double>> &groups, double max, double st
  Finds the best positions of dE/dx bin borders, optimizing significance
  \param metVsDedxHistBackground MET vs. dE/dx histogram for background
  \param metVsDedxHistSignal MET vs. dE/dx histogram for signal
- \param nDedxBins Desired number of dE/dx bins
- \param nMetBins Desired number of MET bins
  */
 tuple<vector<double>,vector<double>> findBestBinning(const TH2D *metVsDedxHistBackground,
                                                      const TH2D *metVsDedxHistSignal,
-                                                     int nDedxBins, int nMetBins,
-                                                     double minDedx, double maxDedx, double stepDedx,
-                                                     double minMet, double maxMet, double stepMet)
+                                                     const vector<vector<double>> &groupsDedx,
+                                                     const vector<vector<double>> &groupsMet)
 {
-  // Find all combinations of binning in dE/dx and MET
-  vector<vector<double>> groupsDedx;
-  for(double startingDedx=minDedx; startingDedx<maxDedx; startingDedx+=stepDedx) groupsDedx.push_back({startingDedx});
-  AddValuesCombinations(groupsDedx, maxDedx, stepDedx, nDedxBins-1);
-  
-  vector<vector<double>> groupsMet;
-  for(double startingMet=minMet; startingMet<maxMet; startingMet+=stepMet) groupsMet.push_back({startingMet});
-  AddValuesCombinations(groupsMet, maxMet, stepMet, nMetBins-1);
+ 
   
   cout<<"Combinations in vector: "<<groupsDedx.size()*groupsDedx[0].size()*groupsMet.size()*groupsMet[0].size()<<endl;
  
@@ -450,10 +481,10 @@ tuple<vector<double>,vector<double>> findBestBinning(const TH2D *metVsDedxHistBa
   
   Log(2)<<"\t|\t";
   for(auto groupDedx : groupsDedx){ for(double dedx : groupDedx) Log(2)<<dedx<<"\t";}
-  cout<<endl;
+  Log(1)<<"\n";
   
   for(auto groupMet : groupsMet){
-    for(double met : groupMet) cout<<met<<"\t";
+    for(double met : groupMet) Log(1)<<met<<"\t";
     Log(2)<<"|\t";
   
     for(auto groupDedx : groupsDedx){
@@ -466,7 +497,7 @@ tuple<vector<double>,vector<double>> findBestBinning(const TH2D *metVsDedxHistBa
         bestDedx = groupDedx;
       }
     }
-    cout<<endl;
+    Log(1)<<"\n";
   }
   return make_tuple(bestMet, bestDedx);
 }
@@ -488,37 +519,44 @@ int main(int argc, char* argv[])
   // Create histograms with number of events for each MET-dE/dx bin
   TH2D *metVsDedxHistBackground = GetMetVsDedxHist(events, xtracks::kBackground);
   map<int, TH2D*> metVsDedxHistsSignal;
+  
+  // Find all combinations of binning in dE/dx and MET
+  vector<vector<double>> groupsDedx;
+  for(double startingDedx=minDedx; startingDedx<maxDedx; startingDedx+=stepDedx) groupsDedx.push_back({startingDedx});
+  AddValuesCombinations(groupsDedx, maxDedx, stepDedx, nDedxBins-1);
+
+  vector<vector<double>> groupsMet;
+  for(double startingMet=minMet; startingMet<maxMet; startingMet+=stepMet) groupsMet.push_back({startingMet});
+  AddValuesCombinations(groupsMet, maxMet, stepMet, nMetBins-1);
+  
   for(int iSig=0; iSig<kNsignals; iSig++){
     if(!config.runSignal[iSig]) continue;
     metVsDedxHistsSignal[iSig] = GetMetVsDedxHist(events, xtracks::kSignal, iSig);
+    
+//    auto result = findBestBinning(metVsDedxHistBackground, metVsDedxHistsSignal[iSig],
+//                                  groupsDedx, groupsMet);
+//
+//    vector<double> bestMet = get<0>(result);
+//    vector<double> bestDedx = get<1>(result);
+//
+//    double significance = GetSignificance(metVsDedxHistBackground,
+//                                          metVsDedxHistsSignal[iSig],
+//                                          bestMet, bestDedx);
+//
+//    Log(0)<<"Sample: "<<signalTitle[iSig]<<"\n";
+//    Log(0)<<"MET bins: "; for(double met : bestMet) Log(0)<<met<<"\t"; Log(0)<<"\n";
+//    Log(0)<<"dE/dx bins: "; for(double dedx : bestDedx) Log(0)<<dedx<<"\t"; Log(0)<<"\n";
+//    Log(0)<<"significance: "<<significance<<"\n";
   }
   
-  // Find the best values of critical MET and critical dE/dx
-  int nMetBins  = 2, nDedxBins = 2;
-  double minMet  = 300 , maxMet  = 500 , stepMet  = 10;
-  double minDedx = 2.0 , maxDedx = 4.0 , stepDedx = 0.1;
-
-  auto result = findBestBinning(metVsDedxHistBackground, metVsDedxHistsSignal[kWino_M_300_cTau_3],
-                                nDedxBins, nMetBins,
-                                minDedx, maxDedx, stepDedx,
-                                minMet, maxMet, stepMet);
-
-  vector<double> bestMet = get<0>(result);
-  vector<double> bestDedx = get<1>(result);
-  auto [variance, varianceError] = GetVariance(metVsDedxHistBackground, bestMet, bestDedx);
-
-  Log(0)<<"MET bins: "; for(double met : bestMet) Log(0)<<met<<"\t"; Log(0)<<"\n";
-  Log(0)<<"dE/dx bins: "; for(double dedx : bestDedx) Log(0)<<dedx<<"\t"; Log(0)<<"\n";
-  Log(0)<<"variance: "<<variance<<" +/- "<<varianceError<<"\n";
+  vector<double> bestMet={300, 450};
+  vector<double> bestDedx={3.0, 4.5};
 
 //  vector<double> bestMet={500};
-//  vector<double> bestDedx={4.0};
-  
-  // Print restuls
+//  vector<double> bestDedx={2.3};
+
   DrawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, bestMet, bestDedx);
-  
-  
-  
+
   theApp->Run();
   return 0;
 }
