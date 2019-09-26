@@ -32,7 +32,7 @@ public:
   void ApplyLeptonCut(shared_ptr<Event> event, const LeptonCut &cut);
   
   /// Check if event passes a cut
-  bool IsPassingCut(const shared_ptr<Event> event, const EventCut &cut);
+  bool IsPassingCut(const shared_ptr<Event> event, const EventCut &cut, vector<int> *cutReasons = nullptr);
   
   /// Link class variables to branches of a specified tree
   /// \param tree Tree from which event parameters will be read
@@ -54,7 +54,6 @@ public:
   
   ///
   
-  int cutReasons[21] = {0};
   vector<shared_ptr<Event>> survivingEvents;
   
 private:

@@ -37,11 +37,13 @@ TGraph* GetGraphFromTxt(const char *fileName, double scale=1.0){
 
 vector<tuple<string, int, int, int, double, string, string>> graphParams = {
 // inFileName                                   color     width   style   opacity   options title
-  {"exo_16_044_observed"                      , kBlack   , 2, 1, 0.4, "L", "CMS EXO-44-016 (observed)"                     },
-  {"atlas_observed"                           , kRed     , 2, 1, 0.4, "L", "ATLAS JHEP 06 (2018) 022 (observed)"           },
-  {"cms_short_disappearing_2x2_nocat_notag"   , kViolet+1, 3, 2, 0.4, "L", "CMS (2x2 histogram, no categories, no tagger)" },
-  {"cms_short_disappearing_3x3_nocat_notag"   , kViolet+1, 3, 1, 0.4, "L", "CMS (3x3 histogram, no categories, no tagger)" },
-  {"cms_short_disappearing_3x3_3layers_notag" , kGreen+1, 3, 1, 0.4, "L", "CMS (3x3 histogram, 3-layers, no tagger)"       },
+  {"exo_16_044_observed"                        , kBlack   , 2, 1, 0.4, "L", "CMS EXO-44-016 (observed)"                     },
+  {"atlas_observed"                             , kRed     , 2, 1, 0.4, "L", "ATLAS JHEP 06 (2018) 022 (observed)"           },
+  {"cms_short_disappearing_2x2_nocat_notag"     , kViolet+1, 3, 2, 0.4, "L", "CMS (2x2 histogram, no categories, no tagger)" },
+  {"cms_short_disappearing_3x3_nocat_notag"     , kViolet+1, 3, 1, 0.4, "L", "CMS (3x3 histogram, no categories, no tagger)" },
+  {"cms_short_disappearing_3x3_3layers_notag"   , kGreen+1, 3, 1, 0.4, "L", "CMS (3x3 histogram, 3 layers, no tagger)"       },
+  {"cms_short_disappearing_3x3_4layers_notag"   , kGreen+1, 3, 2, 0.4, "L", "CMS (3x3 histogram, 4 layers, no tagger)"       },
+  {"cms_short_disappearing_3x3_3+4layers_notag" , kGreen+1, 3, 3, 0.4, "L", "CMS (3x3 histogram, 3+4 layers, no tagger)"     },
 //  {"exo_16_044_expected"    , kBlack    , 2     , 2  , 0.4   , "L", "EXO-44-016 (expected)" },
 //  {"exo_16_044_expected_68p", kGreen   , 1     , 1  , 1.0   , "L*", "EXO-44-016 (68% expected)" },
 };
@@ -53,7 +55,7 @@ void drawLimits()
   map<string, TGraph*> graphs;
   string prefix = "limitsData";
   
-  TLegend *leg = new TLegend(0.10, 0.70, 0.50, 0.80);
+  TLegend *leg = new TLegend(0.10, 0.62, 0.50, 0.85);
   leg->SetFillStyle(0);
   leg->SetBorderSize(0);
   
@@ -85,6 +87,39 @@ void drawLimits()
       graph->GetYaxis()->SetLabelSize(labelSize);
       
       graph->GetYaxis()->SetRangeUser(yAxisMin,yAxisMax);
+      
+      double min = yAxisMin/0.033333;
+      double max = yAxisMax/0.033333;
+      
+      cout<<"Min: "<<min<<"\tmax: "<<max<<endl;
+      
+      TGaxis *axis = new TGaxis(xAxisMax, yAxisMin,
+                                xAxisMax, yAxisMax,
+                                yAxisMin/0.033333, yAxisMax/0.033333, 510, "GL+");
+      axis->SetLineColor(kBlack);
+      axis->SetTitle("c#tau (cm)");
+      axis->SetTitleOffset(1.1);
+      axis->SetLabelColor(kBlack);
+      axis->Draw();
+      
+      TLine *line1cm = new TLine(xAxisMin, 1*0.0333333, xAxisMax, 1*0.03333333);
+      line1cm->SetLineColor(kBlack);
+      line1cm->SetLineStyle(2);
+      line1cm->SetLineWidth(1.0);
+      line1cm->Draw("same");
+      
+      TLine *line3cm = new TLine(xAxisMin, 3*0.0333333, xAxisMax, 3*0.03333333);
+      line3cm->SetLineColor(kBlack);
+      line3cm->SetLineStyle(2);
+      line3cm->SetLineWidth(1.0);
+      line3cm->Draw("same");
+      
+      TLine *line30cm = new TLine(xAxisMin, 30*0.0333333, xAxisMax, 30*0.03333333);
+      line30cm->SetLineColor(kBlack);
+      line30cm->SetLineStyle(2);
+      line30cm->SetLineWidth(1.0);
+      line30cm->Draw("same");
+      
       
       first = false;
     }

@@ -48,7 +48,8 @@ ConfigManager::ConfigManager(string _path)
   runSignal[kTaggerSignal]        = configFile->GetValue("do_tagger_signal",0);
   runSignal[kTaggerBackground]    = configFile->GetValue("do_tagger_background",0);
   
-  runData[kElectron_Run2017B] = configFile->GetValue("do_2017",0);
+  runData[kElectron_Run2017B]   = configFile->GetValue("do_2017",0);
+  runData[kMET_Run2018A]        = configFile->GetValue("do_2018",0);
   
   params["verbosity_level"]             = configFile->GetValue("verbosity_level", 0);
   params["double_hit_max_distance"]     = configFile->GetValue("double_hit_max_distance", 0.0);

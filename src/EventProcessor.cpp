@@ -42,6 +42,7 @@ EventProcessor::EventProcessor()
     "nTauGood",
     "nGenChargino",
     "HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight",
+    "HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v",
     "Flag_goodVertices",
     "Flag_BadPFMuonFilter",
     "Flag_HBHENoiseFilter",
@@ -170,13 +171,14 @@ void EventProcessor::ApplyLeptonCut(shared_ptr<Event> event, const LeptonCut &cu
 }
 
 
-bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut &cut)
+bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut &cut, vector<int> *cutReasons)
 {
+  int cutThroughIter=0;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  
   // check the trigger
-  if(cut.requiresMetNoMuTrigger && !event->metNoMuTrigger){
-    cutReasons[0]++;
-    return false;
-  }
+  if(cut.requiresMetNoMuTrigger && !event->metNoMuTrigger) return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++;
   
   // check MET filters
   if(cut.requiresPassingAllFilters){
@@ -189,23 +191,18 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
      //|| flag_badChargedCandidate/
        || !event->flag_ecalBadCalib
        || !event->flag_globalTightHalo2016){
-      cutReasons[1]++;
       return false;
     }
   }
+  if(cutReasons) cutReasons->at(cutThroughIter++)++;
   
   // check number of objects
-  if(cut.nGenPions.IsOutside((uint)event->genPionHelices.size())){
-    return false;
-  }
-  if(cut.nLeptons.IsOutside(event->GetNleptons())){
-    cutReasons[2]++;
-    return false;
-  }
-  if(cut.nTaus.IsOutside(event->nTau)){
-    cutReasons[3]++;
-    return false;
-  }
+  if(cut.nGenPions.IsOutside((uint)event->genPionHelices.size())) return false;
+  if(cut.nLeptons.IsOutside(event->GetNleptons()))                return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  
+  if(cut.nTaus.IsOutside(event->nTau))  return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++;
   
   vector<shared_ptr<Lepton>> muons;
   for(auto l : event->leptons){
@@ -213,22 +210,15 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
   }
   
   // check number of muons
-  if(cut.nMuons.IsOutside((int)muons.size())){
-    cutReasons[4]++;
-    return false;
-  }
+  if(cut.nMuons.IsOutside((int)muons.size())) return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++;
   
   // make sure they have an opposite sign
   if(cut.requiresTwoOpositeMuons){
-    if(muons.size() != 2){
-      cutReasons[5]++;
-      return false;
-    }
-    if(muons[0]->GetPid() != -muons[1]->GetPid()){
-      cutReasons[6]++;
-      return false;
-    }
+    if(muons.size() != 2) return false;
+    if(muons[0]->GetPid() != -muons[1]->GetPid()) return false;
   }
+  if(cutReasons) cutReasons->at(cutThroughIter++)++;
   
   // apply tight muon cuts (tightID flag, pt > 20 GeV, isolation < 0.15
   if(cut.requiresTightMuon){
@@ -241,11 +231,9 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
     for(auto muon : muons){
       if(leptonProcessor.IsPassingCut(muon, tightMuonCut)) atLeastOneTightMuon = true;
     }
-    if(!atLeastOneTightMuon){
-      cutReasons[7]++;
-      return false;
-    }
+    if(!atLeastOneTightMuon) return false;
   }
+  if(cutReasons) cutReasons->at(cutThroughIter++)++;
   
   // check that invariant mass of muons is close to Z mass
   if(cut.requiresMuonsFromZ){
@@ -254,7 +242,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
     if(muons.size() != 2){
       cout<<"ERROR -- requested muons to come from Z decay, but there is "<<muons.size()<<" muons in the event!!"<<endl;
       cout<<"This event will be discarded!! Maybe you should require exactly two muons in the event?"<<endl;
-      cutReasons[8]++;
+      if(cutReasons) cutReasons->at(cutThroughIter++)++;
       return false;
     }
     
@@ -264,20 +252,15 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
     muonVectorSum += muon1vector;
     muonVectorSum += muon2vector;
     
-    if(muonVectorSum.M() < 60. || muonVectorSum.M() > 120.){
-      cutReasons[9]++;
-      return false;
-    }
+    if(muonVectorSum.M() < 60. || muonVectorSum.M() > 120.) return false;
   }
+  if(cutReasons) cutReasons->at(cutThroughIter++)++;
   
-  if(cut.metPt.IsOutside(event->metPt)){
-    cutReasons[10]++;
-    return false;
-  }
-  if(cut.metNoMuPt.IsOutside(event->metNoMuPt)){
-    cutReasons[11]++;
-    return false;
-  }
+  if(cut.metPt.IsOutside(event->metPt)) return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  
+  if(cut.metNoMuPt.IsOutside(event->metNoMuPt)) return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++;
   
   // Check if jets are not too close to muons
   if(cut.jetMuonDeltaPhi.GetMin() > 0.0){
@@ -297,13 +280,12 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
         jetVector.SetPtEtaPhiM(j->GetPt(), j->GetEta(), j->GetPhi(), j->GetMass());
         
         for(auto muonVector : muonVectors){
-          if(cut.jetMuonDeltaPhi.IsOutside(fabs(jetVector.DeltaR(muonVector)))){
-            return false;
-          }
+          if(cut.jetMuonDeltaPhi.IsOutside(fabs(jetVector.DeltaR(muonVector)))) return false;
         }
       }
     }
   }
+  if(cutReasons) cutReasons->at(cutThroughIter++)++;
   
   // Check if iso tracks are not too close to muons
   if(cut.trackMuonDeltaPhi.GetMin() > 0.0){
@@ -323,22 +305,18 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
       trackVector.SetPtEtaPhiM(t->GetPt(), t->GetEta(), t->GetPhi(), t->GetMass());
       
       for(auto muonVector : muonVectors){
-        if(cut.trackMuonDeltaPhi.IsOutside(fabs(trackVector.DeltaR(muonVector)))){
-          return false;
-        }
+        if(cut.trackMuonDeltaPhi.IsOutside(fabs(trackVector.DeltaR(muonVector)))) return false;
       }
     }
   }
+  if(cutReasons) cutReasons->at(cutThroughIter++)++;
   
   // check number of tracks and jets after removing those that are too close to muons
-  if(cut.nJets.IsOutside(event->GetNcentralJets())){
-   cutReasons[12]++;
-    return false;
-  }
-  if(cut.nTracks.IsOutside(event->GetNtracks())){
-    cutReasons[13]++;
-    return false;
-  }
+  if(cut.nJets.IsOutside(event->GetNcentralJets())) return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  
+  if(cut.nTracks.IsOutside(event->GetNtracks())) return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++;
   
   // find the jet with the highest pt meeting leading jet criteria
   shared_ptr<Jet> leadingJet = nullptr;
@@ -359,10 +337,8 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
   }
   
   // check if there is a leading jet in the event
-  if(!leadingJet){
-    cutReasons[14]++;
-    return false;
-  }
+  if(!leadingJet) return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++;
 
   if(cut.jetMetDeltaPhi.GetMin() > 0.0){
     TLorentzVector metVector, jetVector;
@@ -370,12 +346,10 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
     
     for(auto j : event->jets){
       jetVector.SetPtEtaPhiM(j->GetPt(), j->GetEta(), j->GetPhi(), j->GetMass());
-      if(cut.jetMetDeltaPhi.IsOutside(fabs(metVector.DeltaPhi(jetVector)) )){
-        cutReasons[15]++;
-        return false;
-      }
+      if(cut.jetMetDeltaPhi.IsOutside(fabs(metVector.DeltaPhi(jetVector)) )) return false;
     }
   }
+  if(cutReasons) cutReasons->at(cutThroughIter++)++;
   
   bool pionPassed = false;
   
@@ -389,6 +363,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
     }
   }
   if(!pionPassed) return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++;
   
   survivingEvents.push_back(event);
   return true;
@@ -450,7 +425,8 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   event->nJet30a                  = singleValuesInt["nJet30a"];
   event->nTau                     = singleValuesInt["nTauGood"];
   event->nGenChargino             = singleValuesInt["nGenChargino"];
-  event->metNoMuTrigger           = singleValuesInt["HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight"];
+  event->metNoMuTrigger           = singleValuesInt["HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight"]
+                                 || singleValuesInt["HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v"];
   event->flag_goodVertices        = singleValuesInt["Flag_goodVertices"];
   event->flag_badPFmuon           = singleValuesInt["Flag_BadPFMuonFilter"];
   event->flag_HBHEnoise           = singleValuesInt["Flag_HBHENoiseFilter"];

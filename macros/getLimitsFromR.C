@@ -35,6 +35,7 @@ void getLimitsFromR(string inputPath, string outPath)
   
   int iPoint=0;
   for(auto &[mass, ct, r] : rValues3x3){
+    if(r==0) r = 1E-10;
     rMap->Fill(mass, ct, r);
     gridGraph->SetPoint(iPoint++, mass, ct);
   }

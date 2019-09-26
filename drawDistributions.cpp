@@ -17,12 +17,11 @@ int main(int argc, char* argv[])
   
   string inputPrefix;
   if(config.params["cuts_level"] == 0)       inputPrefix = "after_L0/";
-  else if(config.params["cuts_level"] == 1)  inputPrefix = "after_L1/";
+  else if(config.params["cuts_level"] == 1)  inputPrefix = "after_L1/"+config.category;
   else{
     cout<<"ERROR -- unknown cuts level: "<<config.params["cuts_level"]<<endl;
     exit(0);
   }
-  inputPrefix += config.category;
   inputPrefix += "/";
   
   events.LoadEventsFromFiles(inputPrefix);

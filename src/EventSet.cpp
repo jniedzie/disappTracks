@@ -4,6 +4,7 @@
 
 #include "EventSet.hpp"
 #include "HistSet.hpp"
+#include "Logger.hpp"
 
 EventSet::EventSet()
 {
@@ -319,28 +320,35 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
 {
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!config.runSignal[iSig]) continue;
+    
+    vector<int> *cutReasons = new vector<int>(100);
+    
     for(int iEvent=0;iEvent<(int)eventsSignal[iSig].size();){
       
       eventProcessor.ApplyTrackCut(eventsSignal[iSig][iEvent], trackCut);
       eventProcessor.ApplyJetCut(eventsSignal[iSig][iEvent], jetCut);
       eventProcessor.ApplyLeptonCut(eventsSignal[iSig][iEvent], leptonCut);
       
-      if(!eventProcessor.IsPassingCut(eventsSignal[iSig][iEvent], eventCut)){
+      if(!eventProcessor.IsPassingCut(eventsSignal[iSig][iEvent], eventCut, cutReasons)){
         EraseFast(eventsSignal[iSig], iEvent);
       }
       else{
         iEvent++;
       }
-      
     }
+    
+    Log(1)<<"Cut-through for signal sample: "<<signalTitle[iSig]<<"\n";
+    int iter=0;
+    for(int nEventsPassing : *cutReasons){
+      if(nEventsPassing!=0) Log(1)<<nEventsPassing<<" events passing cut "<<iter++<<"\n";
+    }
+    
   }
-  
-  vector<int> cutReasons = {0};
   
   for(int iBck=0;iBck<kNbackgrounds;iBck++){
     if(!config.runBackground[iBck]) continue;
     
-    int nEvents = (int)eventsBackground[iBck].size();
+    vector<int> *cutReasons = new vector<int>(100);
     
     for(int iEvent=0;iEvent<(int)eventsBackground[iBck].size();){
       
@@ -348,7 +356,7 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
       eventProcessor.ApplyJetCut(eventsBackground[iBck][iEvent], jetCut);
       eventProcessor.ApplyLeptonCut(eventsBackground[iBck][iEvent], leptonCut);
       
-      if(!eventProcessor.IsPassingCut(eventsBackground[iBck][iEvent], eventCut)){
+      if(!eventProcessor.IsPassingCut(eventsBackground[iBck][iEvent], eventCut, cutReasons)){
         EraseFast(eventsBackground[iBck], iEvent);
       }
       else{
@@ -356,9 +364,10 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
       }
     }
     
-    for(int i=0;i<21;i++){
-      nEvents -= eventProcessor.cutReasons[i];
-//      cout<<"N events after cut "<<i<<":"<<nEvents<<endl;
+    Log(1)<<"Cut-through for background sample: "<<backgroundTitle[iBck]<<"\n";
+    int iter=0;
+    for(int nEventsPassing : *cutReasons){
+      if(nEventsPassing!=0) Log(1)<<nEventsPassing<<" events passing cut "<<iter++<<"\n";
     }
     
     auto survivors = eventProcessor.survivingEvents;
@@ -382,20 +391,29 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
   
   for(int iData=0;iData<kNdata;iData++){
     if(!config.runData[iData]) continue;
+    
+    vector<int> *cutReasons = new vector<int>(100);
+    
     for(int iEvent=0;iEvent<(int)eventsData[iData].size();){
       
       eventProcessor.ApplyTrackCut(eventsData[iData][iEvent], trackCut);
       eventProcessor.ApplyJetCut(eventsData[iData][iEvent], jetCut);
       eventProcessor.ApplyLeptonCut(eventsData[iData][iEvent], leptonCut);
       
-      if(!eventProcessor.IsPassingCut(eventsData[iData][iEvent], eventCut)){
+      if(!eventProcessor.IsPassingCut(eventsData[iData][iEvent], eventCut, cutReasons)){
         EraseFast(eventsData[iData], iEvent);
       }
       else{
         iEvent++;
       }
-      
     }
+    
+    Log(1)<<"Cut-through for data sample: "<<dataTitle[iData]<<"\n";
+    int iter=0;
+    for(int nEventsPassing : *cutReasons){
+      if(nEventsPassing!=0) Log(1)<<nEventsPassing<<" events passing cut "<<iter++<<"\n";
+    }
+    
   }
 }
 
@@ -697,6 +715,7 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
       if(maxNevents>0 && iEntry>maxNevents) break;
       tree->GetEntry(iEntry);
     }
+    if(iEvent%100000 == 0) Log(1)<<"Events loaded: "<<iEvent<<"\n";
 
     auto event = eventProcessor.GetEventFromTree(dataType, setIter, treeFriend);
     
