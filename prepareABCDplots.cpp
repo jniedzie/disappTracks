@@ -11,14 +11,14 @@
 #include "CutsManager.hpp"
 #include "Logger.hpp"
 
-string outFileName = "3x3_3layers";
-string outputPath = "results/abcd_plots_"+outFileName+".root";
-string backgroundHistNams = "background";
-
 // Desired number of MET and dE/dx bins and limits of those
 const int nMetBins  = 3, nDedxBins = 3;
 const double minMet  = 300 , maxMet  = 500 , stepMet  = 50;
 const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.2;
+
+
+string outFileName, outputPath;
+string backgroundHistNams = "background";
 
 /**
  Returns number of counts in ABCD... regions determined by criticalMet and criticalDedx values.
@@ -514,8 +514,38 @@ void createDatacard()
   string commandOutput = exec(command.c_str());
   cout<<commandOutput<<endl;
   
-  command = "cp ../DatacardCreatorABCD/test/datacard_mytest.txt ";
+  command = "cp test/datacard_mytest.txt ";
   command += "results/datacards/datacard_"+outFileName+".txt";
+  exec(command.c_str());
+}
+
+/// Transfers datacard created by this app to a hardcoded lxplus location using scp
+void copyDatacardToLxplus()
+{
+  string command = "scp results/datacards/datacard_"+outFileName+".txt";
+  command += " jniedzie@lxplus.cern.ch:/afs/cern.ch/work/j/jniedzie/private/disapp_tracks/combine/datacards/andrea/";
+  exec(command.c_str());
+}
+
+/// Runs Combine on lxplus and transfers results back to local machine
+void runCombine()
+{
+  string command = "ssh jniedzie@lxplus7.cern.ch './runCombine.sh datacard_"+outFileName+"'";
+  string output = exec(command.c_str());
+  cout<<output<<endl;
+  
+  command = "cp /afs/cern.ch/work/j/jniedzie/private/CMSSW_9_4_6_patch1/src/limits_datacard_"+outFileName+".txt";
+  command += " macros/limitsData/combineOutput/";
+  exec(command.c_str());
+}
+
+
+
+void convertRtoLimits()
+{
+  string command = "/Applications/root_v6.16.00/bin/root -q -b -l ";
+  command += "\"macros/getLimitsFromR.C(\\\"macros/limitsData/combineOutput/limits_datacard_"+outFileName+".txt\\\", ";
+  command += "\\\"macros/limitsData/cms_short_disappearing_"+outFileName+"_notag_new.txt\\\")\"";
   exec(command.c_str());
 }
 
@@ -527,6 +557,9 @@ int main(int argc, char* argv[])
   cout.imbue(locale("de_DE"));
   TApplication *theApp = new TApplication("App", &argc, argv);
   config = ConfigManager("configs/analysis.md");
+  
+  outFileName = to_string_with_precision(nDedxBins, 0)+"x"+to_string_with_precision(nMetBins, 0)+"_"+config.category;
+  outputPath = "results/abcd_plots_"+outFileName+".root";
   
   // Load sll events with initial cuts only
   EventSet events;
@@ -572,9 +605,18 @@ int main(int argc, char* argv[])
 //  vector<double> bestMet={500};
 //  vector<double> bestDedx={2.3};
 
-  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, bestMet, bestDedx);
-  createDatacard();
-
+  cout<<"Drawing plots"<<endl;
+//  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, bestMet, bestDedx);
+  cout<<"Creating datacard"<<endl;
+//  createDatacard();
+  cout<<"Transferring card to lxplus"<<endl;
+//  copyDatacardToLxplus();
+  cout<<"Running Combine and copying results back to local machine"<<endl;
+//  runCombine();
+  cout<<"Converting signal strength R to limits in mass-ct"<<endl;
+  convertRtoLimits();
+  cout<<"Done"<<endl;
+  
   theApp->Run();
   return 0;
 }

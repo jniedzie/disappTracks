@@ -26,9 +26,7 @@ TGraph* GetGraphFromTxt(const char *fileName, double scale=1.0){
   vector<tuple<double, double>> points;
   
   while (inFile >> x >> y){ points.push_back(make_tuple(x,scale*y)); }
-  
   sort(points.begin(), points.end(), sortbysec);
-  
   for(auto &[x, y] : points) result->SetPoint(i++,x,scale*y);
   
   inFile.close();
@@ -41,9 +39,10 @@ vector<tuple<string, int, int, int, double, string, string>> graphParams = {
   {"atlas_observed"                             , kRed     , 2, 1, 0.4, "L", "ATLAS JHEP 06 (2018) 022 (observed)"           },
   {"cms_short_disappearing_2x2_nocat_notag"     , kViolet+1, 3, 2, 0.4, "L", "CMS (2x2 histogram, no categories, no tagger)" },
   {"cms_short_disappearing_3x3_nocat_notag"     , kViolet+1, 3, 1, 0.4, "L", "CMS (3x3 histogram, no categories, no tagger)" },
-  {"cms_short_disappearing_3x3_3layers_notag"   , kGreen+1, 3, 1, 0.4, "L", "CMS (3x3 histogram, 3 layers, no tagger)"       },
-  {"cms_short_disappearing_3x3_4layers_notag"   , kGreen+1, 3, 2, 0.4, "L", "CMS (3x3 histogram, 4 layers, no tagger)"       },
-  {"cms_short_disappearing_3x3_3+4layers_notag" , kGreen+1, 3, 3, 0.4, "L", "CMS (3x3 histogram, 3+4 layers, no tagger)"     },
+  {"cms_short_disappearing_3x3_all_notag_new"   , kBlue    , 5, 4, 0.4, "L", "New CMS (3x3 histogram, no categories, no tagger)" },
+  {"cms_short_disappearing_3x3_3layers_notag"   , kGreen+1 , 3, 1, 0.4, "L", "CMS (3x3 histogram, 3 layers, no tagger)"       },
+  {"cms_short_disappearing_3x3_4layers_notag"   , kGreen+1 , 3, 2, 0.4, "L", "CMS (3x3 histogram, 4 layers, no tagger)"       },
+  {"cms_short_disappearing_3x3_3+4layers_notag" , kGreen+1 , 3, 3, 0.4, "L", "CMS (3x3 histogram, 3+4 layers, no tagger)"     },
 //  {"exo_16_044_expected"    , kBlack    , 2     , 2  , 0.4   , "L", "EXO-44-016 (expected)" },
 //  {"exo_16_044_expected_68p", kGreen   , 1     , 1  , 1.0   , "L*", "EXO-44-016 (68% expected)" },
 };

@@ -63,8 +63,8 @@ show_legends: 0
 **Other analysis options**
 
 ### Limit number of events loaded (-1 means load all available)
-max_N_events_background:  -1
-max_N_events_signal: -1
+max_N_events_background:  1
+max_N_events_signal: 1
 max_N_events_data:  1000000
 
 
