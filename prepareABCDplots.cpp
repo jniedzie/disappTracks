@@ -11,7 +11,9 @@
 #include "CutsManager.hpp"
 #include "Logger.hpp"
 
-string outputPath = "results/abcd_plots_3x3_3layers.root";
+string outFileName = "3x3_3layers";
+string outputPath = "results/abcd_plots_"+outFileName+".root";
+string backgroundHistNams = "background";
 
 // Desired number of MET and dE/dx bins and limits of those
 const int nMetBins  = 3, nDedxBins = 3;
@@ -359,7 +361,7 @@ TGraphErrors* GetRatioGraph(const TH2D *metVsDedxHistBackground,
 
 
 /// Draws and saves ABCD plots for given values of critical MET and critical dE/dx
-void DrawAndSaveABCDplots(TH2D *metVsDedxHistBackground,
+void drawAndSaveABCDplots(TH2D *metVsDedxHistBackground,
                           map<int, TH2D*> metVsDedxHistsSignal,
                           vector<double> criticalMet, vector<double> criticalDedx)
 {
@@ -408,8 +410,8 @@ void DrawAndSaveABCDplots(TH2D *metVsDedxHistBackground,
   abcdPlotBackgrounds->Draw("colzText");
   
   outFile->cd();
-  abcdPlotBackgrounds->SetName("background");
-  abcdPlotBackgrounds->SetTitle("background");
+  abcdPlotBackgrounds->SetName(backgroundHistNams.c_str());
+  abcdPlotBackgrounds->SetTitle(backgroundHistNams.c_str());
   abcdPlotBackgrounds->Write();
   abcdBackgroundRatio->Write();
   
@@ -502,6 +504,21 @@ tuple<vector<double>,vector<double>> findBestBinning(const TH2D *metVsDedxHistBa
   return make_tuple(bestMet, bestDedx);
 }
 
+/// Creates Combine datacard using Andrea's tool
+void createDatacard()
+{
+  string command = "python ../DatacardCreatorABCD/mkDatacards.py  --inputHistoFile "+outputPath;
+  command += " --dataHistoName  "+backgroundHistNams;
+  command += " --sigHistoNameTemplate  Wino";
+  
+  string commandOutput = exec(command.c_str());
+  cout<<commandOutput<<endl;
+  
+  command = "cp ../DatacardCreatorABCD/test/datacard_mytest.txt ";
+  command += "results/datacards/datacard_"+outFileName+".txt";
+  exec(command.c_str());
+}
+
 /// Starting point of the application
 int main(int argc, char* argv[])
 {
@@ -555,7 +572,8 @@ int main(int argc, char* argv[])
 //  vector<double> bestMet={500};
 //  vector<double> bestDedx={2.3};
 
-  DrawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, bestMet, bestDedx);
+  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, bestMet, bestDedx);
+  createDatacard();
 
   theApp->Run();
   return 0;

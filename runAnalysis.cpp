@@ -60,7 +60,9 @@ void printDetails(const EventSet &events)
 void saveSurvivingEvents(const EventSet &events)
 {
   ofstream dataSurvivingFile;
-  dataSurvivingFile.open ("dataAfterL1.txt");
+  string suffix = "L"+to_string_with_precision(config.params["cuts_level"],0);
+  if(config.params["cuts_level"]==1) suffix+= "_"+config.category;
+  dataSurvivingFile.open("results/survivingDataEventsAfter"+suffix+".txt");
   
   for(int iData=0;iData<kNdata;iData++){
     if(!config.runData[iData]) continue;
@@ -75,7 +77,7 @@ void saveSurvivingEvents(const EventSet &events)
   dataSurvivingFile.close();
   
   ofstream signalSurvivingFile;
-  signalSurvivingFile.open ("signalAfterL1.txt");
+  signalSurvivingFile.open ("results/survivingSignalEventsAfter"+suffix+".txt");
   
   for(int iSig=0;iSig<kNsignals;iSig++){
     if(!config.runSignal[iSig]) continue;

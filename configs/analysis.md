@@ -4,7 +4,7 @@
 cuts_level: 1
 
 ### Analysis category ( 2-tracks | 3-layers | 4-layers | all ):
-analysis_category:  3-layers
+analysis_category:  all
 
 scan_MET_binning: 0
 do_MET_binning: 0
@@ -16,7 +16,7 @@ save_events:  1
 load_friend_tree: 0
 load_hits:             0
 
-verbosity_level: 0
+verbosity_level: 1
 
 ### turn on/off different backgrounds, signals and data samples
 do_QCD:         1
@@ -39,6 +39,7 @@ do_1000_10:   1
 do_1000_20:   1
 
 do_2017:         0
+do_2018:         0
 
 **Printing & plotting options**
 
@@ -64,7 +65,7 @@ show_legends: 0
 ### Limit number of events loaded (-1 means load all available)
 max_N_events_background:  -1
 max_N_events_signal: -1
-max_N_events_data:  -1
+max_N_events_data:  1000000
 
 
 

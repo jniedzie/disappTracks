@@ -718,4 +718,15 @@ string to_string_with_precision(const T a_value, const int n = 6)
   return out.str();
 }
 
+inline string exec(const char* cmd)
+{
+  array<char, 128> buffer;
+  string result;
+  unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+  if (!pipe) throw runtime_error("popen() failed!");
+  
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr){ result += buffer.data();}
+  return result;
+}
+
 #endif /* Helpers_h */
