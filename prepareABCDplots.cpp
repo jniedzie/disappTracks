@@ -13,8 +13,8 @@
 
 // Desired number of MET and dE/dx bins and limits of those
 const int nMetBins  = 3, nDedxBins = 3;
-const double minMet  = 300 , maxMet  = 500 , stepMet  = 50;
-const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.2;
+const double minMet  = 300 , maxMet  = 500 , stepMet  = 10;
+const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1;
 
 // best for 2x2 with no categories:
 //vector<double> bestMet = {430};
@@ -25,14 +25,18 @@ const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.2;
 //vector<double> bestDedx = {2.0, 4.0};
 
 // best for 3-layers:
-vector<double> bestMet = {300, 450};
-vector<double> bestDedx = {3.0, 4.5};
+//vector<double> bestMet = {300, 450};
+//vector<double> bestDedx = {3.0, 4.5};
 
 // best for 4-layers:
 //vector<double> bestMet = {400, 450};
 //vector<double> bestDedx = {2.5, 3.5};
 
-string sampleTag = "notag_lesslumi";
+// experiment 1: (4 layers, 17+18)
+vector<double> bestMet = {300, 500};
+vector<double> bestDedx = {3.0, 5.0};
+
+string sampleTag = "notag_lesslumi_exp1";
 string outFileName, outputPath;
 string backgroundHistNams = "background";
 
@@ -599,25 +603,26 @@ int main(int argc, char* argv[])
     if(!config.runSignal[iSig]) continue;
     metVsDedxHistsSignal[iSig] = GetMetVsDedxHist(events, xtracks::kSignal, iSig);
     
-//    auto result = findBestBinning(metVsDedxHistBackground, metVsDedxHistsSignal[iSig],
-//                                  groupsDedx, groupsMet);
-//
-//    vector<double> bestMet = get<0>(result);
-//    vector<double> bestDedx = get<1>(result);
-//
-//    double significance = GetSignificance(metVsDedxHistBackground,
-//                                          metVsDedxHistsSignal[iSig],
-//                                          bestMet, bestDedx);
-//
-//    Log(0)<<"Sample: "<<signalTitle[iSig]<<"\n";
-//    Log(0)<<"MET bins: "; for(double met : bestMet) Log(0)<<met<<"\t"; Log(0)<<"\n";
-//    Log(0)<<"dE/dx bins: "; for(double dedx : bestDedx) Log(0)<<dedx<<"\t"; Log(0)<<"\n";
-//    Log(0)<<"significance: "<<significance<<"\n";
+    auto result = findBestBinning(metVsDedxHistBackground, metVsDedxHistsSignal[iSig],
+                                  groupsDedx, groupsMet);
+
+    bestMet = get<0>(result);
+    bestDedx = get<1>(result);
+
+    double significance = GetSignificance(metVsDedxHistBackground,
+                                          metVsDedxHistsSignal[iSig],
+                                          bestMet, bestDedx);
+
+    Log(0)<<"Sample: "<<signalTitle[iSig]<<"\n";
+    Log(0)<<"MET bins: "; for(double met : bestMet) Log(0)<<met<<"\t"; Log(0)<<"\n";
+    Log(0)<<"dE/dx bins: "; for(double dedx : bestDedx) Log(0)<<dedx<<"\t"; Log(0)<<"\n";
+    Log(0)<<"significance: "<<significance<<"\n";
   }
 
 //  vector<double> bestMet={500};
 //  vector<double> bestDedx={2.3};
 
+  /*
   cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Drawing plots"<<endl;
   drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, bestMet, bestDedx);
@@ -635,7 +640,8 @@ int main(int argc, char* argv[])
   convertRtoLimits();
   cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Done"<<endl;
-  
+  */
+   
   theApp->Run();
   return 0;
 }

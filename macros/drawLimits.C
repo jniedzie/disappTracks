@@ -34,15 +34,32 @@ TGraph* GetGraphFromTxt(const char *fileName, double scale=1.0){
 }
 
 vector<tuple<string, int, int, int, string>> graphParams = {
-// inFileName                                   color     width   style    title
-  {"exo_16_044_observed"                                , kBlack   , 2, 1, "CMS EXO-44-016 (observed)"                        },
-  {"atlas_observed"                                     , kRed     , 2, 1, "ATLAS JHEP 06 (2018) 022 (observed)"              },
-  {"cms_short_disappearing_2x2_nocat_notag"             , kViolet+1, 3, 2, "CMS (2x2 histogram, no categories, no tagger)"    },
-  {"cms_short_disappearing_3x3_nocat_notag"             , kViolet+1, 3, 1, "CMS (3x3 histogram, no categories, no tagger)"    },
-  {"cms_short_disappearing_3x3_3-layers_notag"          , kGreen+1 , 3, 1, "CMS (3x3 histogram, 3 layers, no tagger, Run 2)"  },
-  {"cms_short_disappearing_3x3_4-layers_notag"          , kGreen+1 , 3, 2, "CMS (3x3 histogram, 4 layers, no tagger, Run 2)"  },
-  {"cms_short_disappearing_3x3_4-layers_notag_lesslumi" , kBlue    , 3, 2, "CMS (3x3 histogram, 4 layers, no tagger, 17+18)"  },
+// inFileName                                            color     width   style    title
+  
+  // Other analyses
+  {"exo_16_044_observed"                                , kBlack   , 2, 1, "CMS EXO-44-016 (observed)"                            },
+  {"exo_19_010_expected"                                , kCyan    , 2, 1, "CMS EXO-19-010 (expected)"                            },
+  {"atlas_observed"                                     , kRed     , 2, 1, "ATLAS JHEP 06 (2018) 022 (observed)"                  },
+  
+  // 2x2 ABCD
+  {"cms_short_disappearing_2x2_all_notag_lesslumi"      , kMagenta , 3, 1, "CMS (2x2 histogram, no categories, no tagger)"        },
+  
+  // 3x3
+  {"cms_short_disappearing_3x3_all_notag_lesslumi"      , kViolet+1, 3, 1, "CMS (3x3 histogram, no categories, no tagger, 17+18)" },
+  
+  {"cms_short_disappearing_3x3_3-layers_notag"          , kBlue    , 3, 2, "CMS (3x3 histogram, 3 layers, no tagger, Run 2)"      },
+  {"cms_short_disappearing_3x3_3-layers_notag_lesslumi" , kBlue    , 3, 1, "CMS (3x3 histogram, 3 layers, no tagger, 17+18)"      },
+  
+  {"cms_short_disappearing_3x3_4-layers_notag"          , kGreen+1 , 3, 2, "CMS (3x3 histogram, 4 layers, no tagger, Run 2)"      },
+  {"cms_short_disappearing_3x3_4-layers_notag_lesslumi" , kGreen+1 , 3, 1, "CMS (3x3 histogram, 4 layers, no tagger, 17+18)"      },
+  {"cms_short_disappearing_3x3_4-layers_notag_lesslumi_exp1" , kGreen+2 , 2, 1, "CMS (3x3 histogram, 4 layers, no tagger, exp1)"      },
+  
+  
+  
+  
 //  {"cms_short_disappearing_3x3_3+4layers_notag"         , kGreen+1 , 3, 3, "CMS (3x3 histogram, 3+4 layers, no tagger)"       },
+  
+  
 //  {"exo_16_044_expected"                                , kBlack   , 2, 2, "EXO-44-016 (expected)"                            },
 //  {"exo_16_044_expected_68p"                            , kGreen   , 1, 1, "EXO-44-016 (68% expected)"                        },
 };
