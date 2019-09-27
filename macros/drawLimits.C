@@ -33,18 +33,18 @@ TGraph* GetGraphFromTxt(const char *fileName, double scale=1.0){
   return result;
 }
 
-vector<tuple<string, int, int, int, double, string, string>> graphParams = {
-// inFileName                                   color     width   style   opacity   options title
-  {"exo_16_044_observed"                        , kBlack   , 2, 1, 0.4, "L", "CMS EXO-44-016 (observed)"                     },
-  {"atlas_observed"                             , kRed     , 2, 1, 0.4, "L", "ATLAS JHEP 06 (2018) 022 (observed)"           },
-  {"cms_short_disappearing_2x2_nocat_notag"     , kViolet+1, 3, 2, 0.4, "L", "CMS (2x2 histogram, no categories, no tagger)" },
-  {"cms_short_disappearing_3x3_nocat_notag"     , kViolet+1, 3, 1, 0.4, "L", "CMS (3x3 histogram, no categories, no tagger)" },
-  {"cms_short_disappearing_3x3_all_notag_new"   , kBlue    , 5, 4, 0.4, "L", "New CMS (3x3 histogram, no categories, no tagger)" },
-  {"cms_short_disappearing_3x3_3layers_notag"   , kGreen+1 , 3, 1, 0.4, "L", "CMS (3x3 histogram, 3 layers, no tagger)"       },
-  {"cms_short_disappearing_3x3_4layers_notag"   , kGreen+1 , 3, 2, 0.4, "L", "CMS (3x3 histogram, 4 layers, no tagger)"       },
-  {"cms_short_disappearing_3x3_3+4layers_notag" , kGreen+1 , 3, 3, 0.4, "L", "CMS (3x3 histogram, 3+4 layers, no tagger)"     },
-//  {"exo_16_044_expected"    , kBlack    , 2     , 2  , 0.4   , "L", "EXO-44-016 (expected)" },
-//  {"exo_16_044_expected_68p", kGreen   , 1     , 1  , 1.0   , "L*", "EXO-44-016 (68% expected)" },
+vector<tuple<string, int, int, int, string>> graphParams = {
+// inFileName                                   color     width   style    title
+  {"exo_16_044_observed"                                , kBlack   , 2, 1, "CMS EXO-44-016 (observed)"                        },
+  {"atlas_observed"                                     , kRed     , 2, 1, "ATLAS JHEP 06 (2018) 022 (observed)"              },
+  {"cms_short_disappearing_2x2_nocat_notag"             , kViolet+1, 3, 2, "CMS (2x2 histogram, no categories, no tagger)"    },
+  {"cms_short_disappearing_3x3_nocat_notag"             , kViolet+1, 3, 1, "CMS (3x3 histogram, no categories, no tagger)"    },
+  {"cms_short_disappearing_3x3_3-layers_notag"          , kGreen+1 , 3, 1, "CMS (3x3 histogram, 3 layers, no tagger, Run 2)"  },
+  {"cms_short_disappearing_3x3_4-layers_notag"          , kGreen+1 , 3, 2, "CMS (3x3 histogram, 4 layers, no tagger, Run 2)"  },
+  {"cms_short_disappearing_3x3_4-layers_notag_lesslumi" , kBlue    , 3, 2, "CMS (3x3 histogram, 4 layers, no tagger, 17+18)"  },
+//  {"cms_short_disappearing_3x3_3+4layers_notag"         , kGreen+1 , 3, 3, "CMS (3x3 histogram, 3+4 layers, no tagger)"       },
+//  {"exo_16_044_expected"                                , kBlack   , 2, 2, "EXO-44-016 (expected)"                            },
+//  {"exo_16_044_expected_68p"                            , kGreen   , 1, 1, "EXO-44-016 (68% expected)"                        },
 };
 
 void drawLimits()
@@ -61,7 +61,7 @@ void drawLimits()
   gPad->SetLogy();
   
   bool first = true;
-  for(auto &[path, color, width, style, opacity, options, title] : graphParams){
+  for(auto &[path, color, width, style, title] : graphParams){
 
     graphs[path] = GetGraphFromTxt(Form("%s/%s.txt",prefix.c_str(), path.c_str()));
     
@@ -69,10 +69,9 @@ void drawLimits()
     graph->SetLineColor(color);
     graph->SetLineWidth(width);
     graph->SetLineStyle(style);
-    graph->SetFillColorAlpha(color,opacity);
   
-    graph->Draw(first ? ("A"+options).c_str() : (options+"same").c_str());
-      
+    graph->Draw(first ? "AL" : "Lsame");
+    
     if(first){
       graph->GetXaxis()->SetTitle("m_{#chi} (GeV)");
       graph->GetXaxis()->SetTitleSize(titleSizeX);
@@ -123,7 +122,7 @@ void drawLimits()
       first = false;
     }
 
-    leg->AddEntry(graph, title.c_str(), options.c_str());
+    leg->AddEntry(graph, title.c_str(), "L");
   }
   
   leg->Draw("same");

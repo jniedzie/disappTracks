@@ -4,7 +4,7 @@
 cuts_level: 1
 
 ### Analysis category ( 2-tracks | 3-layers | 4-layers | all ):
-analysis_category:  all
+analysis_category:  3-layers
 
 scan_MET_binning: 0
 do_MET_binning: 0
@@ -63,11 +63,11 @@ show_legends: 0
 **Other analysis options**
 
 ### Limit number of events loaded (-1 means load all available)
-max_N_events_background:  1
-max_N_events_signal: 1
+max_N_events_background:  -1
+max_N_events_signal: -1
 max_N_events_data:  1000000
 
 
 
 ### Luminosity (in fb^-1) [2015: 3.81, 2016: 37.76, 2017: 41.37, 2018: 63.97, total Run 2: 146.91]:
-total_luminosity: 146.91
+total_luminosity: 105.34

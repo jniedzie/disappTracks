@@ -16,7 +16,23 @@ const int nMetBins  = 3, nDedxBins = 3;
 const double minMet  = 300 , maxMet  = 500 , stepMet  = 50;
 const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.2;
 
+// best for 2x2 with no categories:
+//vector<double> bestMet = {430};
+//vector<double> bestDedx = {2.3};
 
+// best for no categories:
+//vector<double> bestMet = {300, 450};
+//vector<double> bestDedx = {2.0, 4.0};
+
+// best for 3-layers:
+vector<double> bestMet = {300, 450};
+vector<double> bestDedx = {3.0, 4.5};
+
+// best for 4-layers:
+//vector<double> bestMet = {400, 450};
+//vector<double> bestDedx = {2.5, 3.5};
+
+string sampleTag = "notag_lesslumi";
 string outFileName, outputPath;
 string backgroundHistNams = "background";
 
@@ -539,14 +555,14 @@ void runCombine()
   exec(command.c_str());
 }
 
-
-
 void convertRtoLimits()
 {
   string command = "/Applications/root_v6.16.00/bin/root -q -b -l ";
   command += "\"macros/getLimitsFromR.C(\\\"macros/limitsData/combineOutput/limits_datacard_"+outFileName+".txt\\\", ";
-  command += "\\\"macros/limitsData/cms_short_disappearing_"+outFileName+"_notag_new.txt\\\")\"";
+  command += "\\\"macros/limitsData/cms_short_disappearing_"+outFileName+".txt\\\")\"";
   exec(command.c_str());
+  cout<<"\nFile ready to add to limits plot:"<<endl;
+  cout<<"cms_short_disappearing_"+outFileName+".txt\n"<<endl;
 }
 
 /// Starting point of the application
@@ -558,7 +574,7 @@ int main(int argc, char* argv[])
   TApplication *theApp = new TApplication("App", &argc, argv);
   config = ConfigManager("configs/analysis.md");
   
-  outFileName = to_string_with_precision(nDedxBins, 0)+"x"+to_string_with_precision(nMetBins, 0)+"_"+config.category;
+  outFileName = to_string_with_precision(nDedxBins, 0)+"x"+to_string_with_precision(nMetBins, 0)+"_"+config.category+"_"+sampleTag;
   outputPath = "results/abcd_plots_"+outFileName+".root";
   
   // Load sll events with initial cuts only
@@ -598,23 +614,26 @@ int main(int argc, char* argv[])
 //    Log(0)<<"dE/dx bins: "; for(double dedx : bestDedx) Log(0)<<dedx<<"\t"; Log(0)<<"\n";
 //    Log(0)<<"significance: "<<significance<<"\n";
   }
-  
-  vector<double> bestMet={300, 450};
-  vector<double> bestDedx={3.0, 4.5};
 
 //  vector<double> bestMet={500};
 //  vector<double> bestDedx={2.3};
 
+  cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Drawing plots"<<endl;
-//  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, bestMet, bestDedx);
+  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, bestMet, bestDedx);
+  cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Creating datacard"<<endl;
-//  createDatacard();
+  createDatacard();
+  cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Transferring card to lxplus"<<endl;
-//  copyDatacardToLxplus();
+  copyDatacardToLxplus();
+  cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Running Combine and copying results back to local machine"<<endl;
-//  runCombine();
+  runCombine();
+  cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Converting signal strength R to limits in mass-ct"<<endl;
   convertRtoLimits();
+  cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Done"<<endl;
   
   theApp->Run();
