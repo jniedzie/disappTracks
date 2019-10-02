@@ -11,255 +11,97 @@
 #include "CutsManager.hpp"
 #include "Logger.hpp"
 
+typedef tuple<vector<double>, vector<double>> binning;
+
 // Desired number of MET and dE/dx bins and limits of those
 const int nMetBins  = 3, nDedxBins = 2;
 const double minMet  = 300 , maxMet  = 500 , stepMet  = 10;
 const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1;
 
-// best for 2x2 with no categories:
-//vector<double> bestMet = {430};
-//vector<double> bestDedx = {2.3};
+const int ratioRebin = 5;
 
-// best for 3x3 with no categories:
-//vector<double> bestMet = {300, 450};
-//vector<double> bestDedx = {2.0, 4.0};
+//binning bestValues = {{430}, {2.3}}; // best for 2x2 with no categories:
+//binning bestValues = {{300, 450}, {2.0, 4.0}}; // best for 3x3 with no categories:
 
 
 //------------------------------------------------
 // 2x2, 3 layers
 //------------------------------------------------
 
-// 300, 3:
-//vector<double> bestMet = {430};
-//vector<double> bestDedx = {2.4};
-
-// 300, 10:
-//vector<double> bestMet = {370};
-//vector<double> bestDedx = {2.4};
-
-// 300, 30:
-//vector<double> bestMet = {320};
-//vector<double> bestDedx = {2.7};
-
-// 500, 10:
-//vector<double> bestMet = {450};
-//vector<double> bestDedx = {2.9};
-
-// 500-20, 650-20, 800-10/20 (the best overall):
-//vector<double> bestMet = {450};
-//vector<double> bestDedx = {3.0};
-
-// 650, 10:
-//vector<double> bestMet = {440};
-//vector<double> bestDedx = {2.9};
-
-// 1000-10/20:
-//vector<double> bestMet = {450};
-//vector<double> bestDedx = {3.5};
-
-
-
+//binning bestValues = {{430}, {2.4}}; // 300-3
+//binning bestValues = {{370}, {2.4}}; // 300-10
+//binning bestValues = {{320}, {2.7}}; // 300-30
+//binning bestValues = {{450}, {2.9}}; // 500-10
+//binning bestValues = {{450}, {3.0}}; // 500-20, 650-20, 800-10/20 (the best overall)
+//binning bestValues = {{440}, {2.9}}; // 650-10
+//binning bestValues = {{450}, {3.5}}; // 1000-10/20
 
 //------------------------------------------------
 // 2x2, 4 layers
 //------------------------------------------------
 
-// 300, 3:
-//vector<double> bestMet = {400};
-//vector<double> bestDedx = {3.9};
-
-// 300-10/30:
-//vector<double> bestMet = {320};
-//vector<double> bestDedx = {2.0};
-
-// 500-10:
-//vector<double> bestMet = {410};
-//vector<double> bestDedx = {2.5};
-
-// 500-20:
-//vector<double> bestMet = {320};
-//vector<double> bestDedx = {2.7};
-
-// 650-10, 800-10, 1000-10/20 (the best overall):
-//vector<double> bestMet = {490};
-//vector<double> bestDedx = {2.4};
-
-// 650-20, 800-20:
-//vector<double> bestMet = {400};
-//vector<double> bestDedx = {2.5};
-
-
-
-
+//binning bestValues = {{400}, {3.9}}; // 300-3
+//binning bestValues = {{320}, {2.0}}; // 300-10/30
+//binning bestValues = {{410}, {2.5}}; // 500-10
+//binning bestValues = {{320}, {2.7}}; // 500-20
+//binning bestValues = {{490}, {2.4}}; // 650-10, 800-10, 1000-10/20 (the best overall)
+//binning bestValues = {{400}, {2.5}}; // 650-20, 800-20
 
 //------------------------------------------------
 // 3x3, 3 layers
 //------------------------------------------------
 
-// 300, 3
-//vector<double> bestMet = {300,  430};
-//vector<double> bestDedx = {2.2, 2.3};
-
-// 300, 10
-//vector<double> bestMet = {300,  450};
-//vector<double> bestDedx = {2.0, 2.1};
-
-// 300, 30
-//vector<double> bestMet = {300,  410};
-//vector<double> bestDedx = {2.7, 2.8};
-
-// 500, 10
-//vector<double> bestMet = {320,  450};
-//vector<double> bestDedx = {3.0, 3.1};
-
-// 500, 20
-//vector<double> bestMet = {450,  480};
-//vector<double> bestDedx = {4.3, 5.0};
-
-// 650, 10
-//vector<double> bestMet = {310,  460};
-//vector<double> bestDedx = {2.4, 2.7};
-
-// 650, 20; 800, 10/20 (the best overall):
-//vector<double> bestMet = {300,  450};
-//vector<double> bestDedx = {3.0, 3.1};
-
-// 1000, 10
-//vector<double> bestMet = {410,  490};
-//vector<double> bestDedx = {4.4, 4.5};
-
-// 1000, 20
-//vector<double> bestMet = {460,  470};
-//vector<double> bestDedx = {4.5, 4.6};
-
-
-
-
+//binning bestValues = {{300, 430}, {2.2, 2.3}}; // 300-3
+//binning bestValues = {{300, 450}, {2.0, 2.1}}; // 300-10
+//binning bestValues = {{300, 410}, {2.7, 2.8}}; // 300-30
+//binning bestValues = {{320, 450}, {3.0, 3.1}}; // 500-10
+//binning bestValues = {{450, 480}, {4.3, 5.0}}; // 500-20
+//binning bestValues = {{310, 460}, {2.4, 2.7}}; // 650-10
+//binning bestValues = {{300, 450}, {3.0, 3.1}}; // 650-20, 800-10/20 (the best overall)
+//binning bestValues = {{410, 490}, {4.4, 4.5}}; // 1000-10
+//binning bestValues = {{460, 470}, {4.5, 4.6}}; // 1000-20
 
 //------------------------------------------------
 // 3x3, 4 layers
 //------------------------------------------------
 
-// 300, 3:
-//vector<double> bestMet = {330,  470};
-//vector<double> bestDedx = {2.0, 2.1};
-
-// 300, 10/30:
-//vector<double> bestMet = {320,  400};
-//vector<double> bestDedx = {2.0, 2.1};
-
-// 500, 10:
-//vector<double> bestMet = {300,  440};
-//vector<double> bestDedx = {2.2, 2.3};
-
-// 500, 20:
-//vector<double> bestMet = {320,  440};
-//vector<double> bestDedx = {2.5, 2.6};
-
-// 650, 10:
-//vector<double> bestMet = {310,  460};
-//vector<double> bestDedx = {2.4, 2.7};
-
-// 650, 20:
-//vector<double> bestMet = {320,  440};
-//vector<double> bestDedx = {2.5, 2.6};
-
-// 800, 10:
-//vector<double> bestMet = {440,  460};
-//vector<double> bestDedx = {2.5, 3.2};
-
-// 800, 20:
-//vector<double> bestMet = {400,  480};
-//vector<double> bestDedx = {2.5, 3.0};
-
-// 1000, 10:
-//vector<double> bestMet = {440,  490};
-//vector<double> bestDedx = {2.5, 3.5};
-
-// 1000, 20 (the best overall):
-//vector<double> bestMet = {320,  490};
-//vector<double> bestDedx = {2.5, 2.6};
-
-
-
+//binning bestValues = {{330, 470}, {2.0, 2.1}}; // 300-3
+//binning bestValues = {{320, 400}, {2.0, 2.1}}; // 300-10/30
+//binning bestValues = {{300, 440}, {2.2, 2.3}}; // 500-10
+//binning bestValues = {{320, 440}, {2.5, 2.6}}; // 500-20
+//binning bestValues = {{310, 460}, {2.4, 2.7}}; // 650-10
+//binning bestValues = {{320, 440}, {2.5, 2.6}}; // 650-20
+//binning bestValues = {{440, 460}, {2.5, 3.2}}; // 800-10
+//binning bestValues = {{400, 480}, {2.5, 3.0}}; // 800-20
+//binning bestValues = {{440, 490}, {2.5, 3.5}}; // 1000-10
+//binning bestValues = {{320, 490}, {2.5, 2.6}}; // 1000-20 (the best overall)
 
 //------------------------------------------------
 // 2x3, 3 layers
 //------------------------------------------------
 
-// 300-3
-//vector<double> bestMet = {300,  430};
-//vector<double> bestDedx = {2.4};
-
-// 300-10
-//vector<double> bestMet = {300,  450};
-//vector<double> bestDedx = {2.5};
-
-// 300-30
-//vector<double> bestMet = {300,  410};
-//vector<double> bestDedx = {2.7};
-
-// 500-10
-//vector<double> bestMet = {320,  450};
-//vector<double> bestDedx = {2.9};
-
-// 500-20, 650-20, 800-20 (the best overall)
-//vector<double> bestMet = {300, 450};
-//vector<double> bestDedx = {3.0};
-
-// 650-10
-//vector<double> bestMet = {300,  440};
-//vector<double> bestDedx = {2.9};
-
-// 800-10, 1000-10/20:
-//vector<double> bestMet = {460, 470};
-//vector<double> bestDedx = {4.3};
-
-
+//binning bestValues = {{300, 430}, {2.4}}; // 300-3
+//binning bestValues = {{300, 450}, {2.5}}; // 300-10
+//binning bestValues = {{300, 410}, {2.7}}; // 300-30
+//binning bestValues = {{320, 450}, {2.9}}; // 500-10
+//binning bestValues = {{300, 450}, {3.0}}; // 500-20, 650-20, 800-20 (the best overall)
+//binning bestValues = {{300, 440}, {2.9}}; // 650-10
+//binning bestValues = {{460, 470}, {4.3}}; // 800-10, 1000-10/20
 
 //------------------------------------------------
 // 2x3, 4 layers
 //------------------------------------------------
 
-// 300, 3
-//vector<double> bestMet = {400,  470};
-//vector<double> bestDedx = {3.9};
-
-// 300, 10
-//vector<double> bestMet = {300,  400};
-//vector<double> bestDedx = {2.0};
-
-// 300, 30
-//vector<double> bestMet = {320,  400};
-//vector<double> bestDedx = {2.0};
-
-// 500, 10
-//vector<double> bestMet = {310,  440};
-//vector<double> bestDedx = {2.5};
-
-// 500-20, 650-20:
-//vector<double> bestMet = {320, 440};
-//vector<double> bestDedx = {2.5};
-
-// 650-10
-//vector<double> bestMet = {310,  490};
-//vector<double> bestDedx = {2.5};
-
-// 800-10
-//vector<double> bestMet = {400,  490};
-//vector<double> bestDedx = {2.4};
-
-// 800-20
-//vector<double> bestMet = {320, 490};
-//vector<double> bestDedx = {2.5};
-
-// 1000-10
-//vector<double> bestMet = {430, 460};
-//vector<double> bestDedx = {2.9};
-
-// 1000-20
-vector<double> bestMet = {320, 490};
-vector<double> bestDedx = {2.4};
+//binning bestValues = {{400, 470}, {3.9}}; // 300-3
+//binning bestValues = {{300, 400}, {2.0}}; // 300-10
+//binning bestValues = {{320, 400}, {2.0}}; // 300-30
+//binning bestValues = {{310, 440}, {2.5}}; // 500-10
+//binning bestValues = {{320, 440}, {2.5}}; // 500-20, 650-20
+//binning bestValues = {{310, 490}, {2.5}}; // 650-10
+//binning bestValues = {{400, 490}, {2.4}}; // 800-10 (the best overall)
+//binning bestValues = {{320, 490}, {2.5}}; // 800-20
+//binning bestValues = {{430, 460}, {2.9}}; // 1000-10
+binning bestValues = {{320, 490}, {2.4}}; // 1000-20
 
 
 
@@ -270,13 +112,11 @@ string backgroundHistNams = "background";
 /**
  Returns number of counts in ABCD... regions determined by criticalMet and criticalDedx values.
  \param metVsDedxHist Histogram containing number of events for each MET-dE/dx bin
- \param criticalMet Positions of bins border on MET axis
- \param criticalDedx Positions of bins border on dE/dx axis
+ \param bestValues Positions of bins border on MET and dE/dx axes
  */
-vector<vector<double>> GetABCD(const TH2D *metVsDedxHist,
-                               const vector<double> &criticalMet,
-                               const vector<double> &criticalDedx)
+vector<vector<double>> GetABCD(const TH2D *metVsDedxHist, const binning bestValues)
 {
+  auto &[criticalMet, criticalDedx] = bestValues;
   vector<float> binsMet = { 0 };
   vector<float> binsDedx = { 0 };
   
@@ -307,14 +147,13 @@ vector<vector<double>> GetABCD(const TH2D *metVsDedxHist,
 /**
  Creates ABCD... histogram. In case of backgrounds, all samples are merged into the same histogram.
  \param metVsDedxHist Histogram containing number of events for each MET-dE/dx bin
- \param criticalMet Positions of bins border on MET axis
- \param criticalDedx Positions of bins border on dE/dx axis
+ \param bestValues Positions of bins border on MET and dE/dx axes
  \param dataType Specifies whether background or signal events should be analyzed
  \param setIter For signal, specified which samples to use
  */
-TH2D* GetABCDplot(TH2D* metVsDedxHist, vector<double> criticalMet, vector<double> criticalDedx,
-                  xtracks::EDataType dataType, int setIter=0)
+TH2D* GetABCDplot(TH2D* metVsDedxHist, const binning bestValues, xtracks::EDataType dataType, int setIter=0)
 {
+  auto &[criticalMet, criticalDedx] = bestValues;
   if(criticalMet.size()==0 || criticalDedx.size()==0){
     cout<<"No critical MET or dE/dx value were privided!"<<endl;
     return nullptr;
@@ -343,7 +182,7 @@ TH2D* GetABCDplot(TH2D* metVsDedxHist, vector<double> criticalMet, vector<double
                         (int)binsDedx.size()-1, binsDedxArray,
                         (int)binsMet.size()-1, binsMetArray);
  
-  auto abcd = GetABCD(metVsDedxHist, criticalMet, criticalDedx);
+  auto abcd = GetABCD(metVsDedxHist, bestValues);
   
   for(int iMet=0; iMet<binsMet.size()-1; iMet++){
     for(int iDedx=0; iDedx<binsDedx.size()-1; iDedx++){
@@ -358,12 +197,11 @@ TH2D* GetABCDplot(TH2D* metVsDedxHist, vector<double> criticalMet, vector<double
 /**
  Returns variance calculated from predicted/expected ratio in each 2x2 sub-histogram of the full ABCD...
  \param metVsDedxHist Histogram containing number of events for each MET-dE/dx bin
- \param criticalMet Positions of bins border on MET axis
- \param criticalDedx Positions of bins border on dE/dx axis
+ \param bestValues Positions of bins border on MET and dE/dx axes
  */
-tuple<double, double> GetVariance(const TH2D *metVsDedxHist, const vector<double> criticalMet, const vector<double> criticalDedx)
+tuple<double, double> GetVariance(const TH2D *metVsDedxHist, const binning bestValues)
 {
-  auto abcd = GetABCD(metVsDedxHist, criticalMet, criticalDedx);
+  auto abcd = GetABCD(metVsDedxHist, bestValues);
   double variance = 0;
   double varianceError = 0;
   int nEntries = 0;
@@ -388,10 +226,10 @@ tuple<double, double> GetVariance(const TH2D *metVsDedxHist, const vector<double
 }
 
 double GetSignificance(const TH2D *metVsDedxHistBackground, const TH2D *metVsDedxHistSignal,
-                       const vector<double> &criticalMet, const vector<double> &criticalDedx)
+                       const binning bestValues)
 {
-  auto abcdBackground = GetABCD(metVsDedxHistBackground, criticalMet, criticalDedx);
-  auto abcdSignal     = GetABCD(metVsDedxHistSignal, criticalMet, criticalDedx);
+  auto abcdBackground = GetABCD(metVsDedxHistBackground, bestValues);
+  auto abcdSignal     = GetABCD(metVsDedxHistSignal, bestValues);
   
   double significance = 0;
   
@@ -437,120 +275,12 @@ TH2D* GetMetVsDedxHist(const EventSet &events, xtracks::EDataType dataType, int 
   return hist;
 }
 
-/**
- Searches for criticalMet and criticalDedx for which relative difference between predicted and expected number
- of events in the signal bin is the smallers. Uses background events to find those values.
- \param metVsDedxHist Histogram containing number of events for each MET-dE/dx bin
- \param minMet Starting value of MET pt
- \param maxMet Maximum value of MET pt
- \param stepMet Step of MET pt
- \param minDedx Starting value of dE/dx
- \param maxDedx Maximum value of dE/dx
- \param stepDedx Step of dE/dx
- \return returns tuple containing: best critical MET, best critical dE/dx
- */
-tuple<vector<double>,vector<double>> GetBestMetAndDedx(TH2D *metVsDedxHist,
-                                                       int nMetBins, double minMet, double maxMet, double stepMet,
-                                                       int nDedxBins, double minDedx, double maxDedx, double stepDedx,
-                                                       vector<double> initialMet, vector<double> initialDedx)
+TGraphErrors* GetRatioGraph(const TH2D *metVsDedxHistBackground, const binning bestValues)
 {
-  double bestVariance = inf;
-  vector<double> bestMet, bestDedx;
+  auto &[criticalMet, criticalDedx] = bestValues;
   
-  if(initialMet.size()==0){
-    double initialMetBinWidth = (maxMet-minMet)/nMetBins;
-    for(int metBin=0; metBin<nMetBins-1; metBin++) bestMet.push_back(minMet+metBin*initialMetBinWidth);
-  }
-  else bestMet = initialMet;
-  
-  if(initialDedx.size()==0){
-    double initialDedxBinWidth = (maxDedx-minDedx)/nDedxBins;
-    for(int dedxBin=0; dedxBin<nDedxBins-1; dedxBin++)  bestDedx.push_back(minDedx+dedxBin*initialDedxBinWidth);
-  }
-  else bestDedx = initialDedx;
-  
-  cout<<"\nInitial bins:"<<endl;
-  cout<<"MET bins: "; for(double met : bestMet) cout<<met<<"\t"; cout<<endl;
-  cout<<"dE/dx bins: "; for(double dedx : bestDedx) cout<<dedx<<"\t"; cout<<"\n"<<endl;
-  
-  vector<double> foundMet, foundDedx;
-  
-  for(int metBin=0; metBin<nMetBins-1; metBin++){
-    
-    double _minMet = metBin == 0 ? minMet : bestMet[metBin-1];
-    double _maxMet = metBin == nMetBins-2 ? maxMet : bestMet[metBin+1];
-    
-    for(int dedxBin=0; dedxBin<nDedxBins-1; dedxBin++){
-      Log(1)<<"Testing "<<metBin<<" MET and "<<dedxBin<<" dE/dx bin border\n";
-      
-      double _minDedx = dedxBin == 0 ? minDedx : bestDedx[dedxBin-1];
-      double _maxDedx = dedxBin == nDedxBins-2 ? maxDedx : bestDedx[dedxBin+1];
-      
-      for(bestMet[metBin] = _minMet; bestMet[metBin] <= _maxMet; bestMet[metBin] += stepMet){
-        for(bestDedx[dedxBin] = _minDedx; bestDedx[dedxBin] <= _maxDedx; bestDedx[dedxBin] += stepDedx){
-          Log(2)<<"\tcurrent MET: "<<bestMet[metBin]<<"\tdE/dx: "<<bestDedx[dedxBin];
-          auto [variance, varianceError] = GetVariance(metVsDedxHist, bestMet, bestDedx);
-          Log(2)<<"\tvariance:"<<variance<<" +/- "<<varianceError<<"\n";
-          
-          if(variance < bestVariance){
-            bestVariance = variance;
-            foundMet = bestMet;
-            foundDedx = bestDedx;
-          }
-        }
-      }
-    }
-  }
-  return make_tuple(foundMet, foundDedx);
-}
-
-tuple<vector<double>,vector<double>> GetBestMetAndDedxRandomly(TH2D *metVsDedxHist,
-                                                               int nMetBins, double minMet, double maxMet, double stepMet,
-                                                               int nDedxBins, double minDedx, double maxDedx, double stepDedx,
-                                                               int nTrials)
-{
-  double bestVariance = inf;
-  vector<double> bestMet, bestDedx;
-  vector<double> foundMet, foundDedx;
-  
-  for(int metBin=0; metBin<nMetBins-1; metBin++) bestMet.push_back(0);
-  for(int dedxBin=0; dedxBin<nDedxBins-1; dedxBin++)  bestDedx.push_back(0);
-  
-  double currentMet, currentDedx;
-  
-  for(int iTrial=0; iTrial<nTrials; iTrial++){
-    if(iTrial%100==0) Log(1)<<"Trial "<<iTrial<<"\n";
-  
-    for(int metBin=0; metBin<nMetBins-1; metBin++){
-      do{ currentMet = (int)(RandDouble(minMet, maxMet)/stepMet)*stepMet;}
-      while(find(bestMet.begin(), bestMet.end(), currentMet) != bestMet.end());
-      bestMet[metBin] = currentMet;
-    }
-    for(int dedxBin=0; dedxBin<nDedxBins-1; dedxBin++){
-      do{ currentDedx = (int)(RandDouble(minDedx, maxDedx)/stepDedx)*stepDedx;}
-      while(find(bestDedx.begin(), bestDedx.end(), currentDedx) != bestDedx.end());
-      bestDedx[dedxBin] = currentDedx;
-    }
-    sort(bestMet.begin(), bestMet.end());
-    sort(bestDedx.begin(), bestDedx.end());
-    
-    auto [variance, varianceError] = GetVariance(metVsDedxHist, bestMet, bestDedx);
-    
-    if(variance < bestVariance){
-      bestVariance = variance;
-      foundMet = bestMet;
-      foundDedx = bestDedx;
-    }
-  }
-  
-  return make_tuple(foundMet, foundDedx);
-}
-
-TGraphErrors* GetRatioGraph(const TH2D *metVsDedxHistBackground,
-                            const vector<double> &criticalMet, const vector<double> &criticalDedx)
-{
   TH2D *metVsDedxRebinned = new TH2D(*metVsDedxHistBackground);
-  metVsDedxRebinned->RebinX(2);
+  metVsDedxRebinned->RebinX(ratioRebin);
   
   TGraphErrors *abcdBackgroundRatio = new TGraphErrors();
   int iPoint=0;
@@ -608,9 +338,7 @@ TGraphErrors* GetRatioGraph(const TH2D *metVsDedxHistBackground,
 
 
 /// Draws and saves ABCD plots for given values of critical MET and critical dE/dx
-void drawAndSaveABCDplots(TH2D *metVsDedxHistBackground,
-                          map<int, TH2D*> metVsDedxHistsSignal,
-                          vector<double> criticalMet, vector<double> criticalDedx)
+void drawAndSaveABCDplots(TH2D *metVsDedxHistBackground, map<int, TH2D*> metVsDedxHistsSignal, const binning bestValues)
 {
   TCanvas *abcdCanvas = new TCanvas("ABCD", "ABCD", 1000, 1500);
   abcdCanvas->Divide(4,3);
@@ -620,13 +348,13 @@ void drawAndSaveABCDplots(TH2D *metVsDedxHistBackground,
   gStyle->SetPaintTextFormat(".1f");
   
   cout<<"Plotting background ABCD"<<endl;
-  TH2D *abcdPlotBackgrounds = GetABCDplot(metVsDedxHistBackground, criticalMet, criticalDedx, xtracks::kBackground);
+  TH2D *abcdPlotBackgrounds = GetABCDplot(metVsDedxHistBackground, bestValues, xtracks::kBackground);
   abcdPlotBackgrounds->SetMarkerSize(3.0);
   
   TCanvas *ratioCanvas = new TCanvas("Ratio", "Ratio", 800, 600);
   ratioCanvas->cd();
   
-  TGraphErrors *abcdBackgroundRatio = GetRatioGraph(metVsDedxHistBackground, criticalMet, criticalDedx);
+  TGraphErrors *abcdBackgroundRatio = GetRatioGraph(metVsDedxHistBackground, bestValues);
   abcdBackgroundRatio->SetMarkerStyle(20);
   abcdBackgroundRatio->SetMarkerSize(1.0);
   abcdBackgroundRatio->SetMarkerColor(kViolet);
@@ -665,7 +393,7 @@ void drawAndSaveABCDplots(TH2D *metVsDedxHistBackground,
   for(int iSig=0; iSig<kNsignals; iSig++){
     if(!config.runSignal[iSig]) continue;
     cout<<"Plotting "<<signalTitle[iSig]<<" ABCD"<<endl;
-    TH2D *abcdPlot = GetABCDplot(metVsDedxHistsSignal[iSig], criticalMet, criticalDedx, xtracks::kSignal, iSig);
+    TH2D *abcdPlot = GetABCDplot(metVsDedxHistsSignal[iSig], bestValues, xtracks::kSignal, iSig);
     abcdCanvas->cd(iPad++);
     abcdPlot->SetMarkerSize(3.0);
     abcdPlot->Draw("colzText");
@@ -737,7 +465,7 @@ tuple<vector<double>,vector<double>> findBestBinning(const TH2D *metVsDedxHistBa
     Log(2)<<"|\t";
   
     for(auto groupDedx : groupsDedx){
-      double significance = GetSignificance(metVsDedxHistBackground, metVsDedxHistSignal, groupMet, groupDedx);
+      double significance = GetSignificance(metVsDedxHistBackground, metVsDedxHistSignal, {groupMet, groupDedx});
       Log(2)<<significance<<" ";
       
       if(significance > bestSignificance){
@@ -833,36 +561,34 @@ int main(int argc, char* argv[])
 //    auto result = findBestBinning(metVsDedxHistBackground, metVsDedxHistsSignal[iSig],
 //                                  groupsDedx, groupsMet);
 //
-//    bestMet = get<0>(result);
-//    bestDedx = get<1>(result);
 //
 //    double significance = GetSignificance(metVsDedxHistBackground,
 //                                          metVsDedxHistsSignal[iSig],
-//                                          bestMet, bestDedx);
+//                                          result);
 //
 //    Log(0)<<"Sample: "<<signalTitle[iSig]<<"\n";
-//    Log(0)<<"MET bins: "; for(double met : bestMet) Log(0)<<met<<"\t"; Log(0)<<"\n";
-//    Log(0)<<"dE/dx bins: "; for(double dedx : bestDedx) Log(0)<<dedx<<"\t"; Log(0)<<"\n";
+//    Log(0)<<"MET bins: "; for(double met : get<0>(result)) Log(0)<<met<<"\t"; Log(0)<<"\n";
+//    Log(0)<<"dE/dx bins: "; for(double dedx : get<1>(result)) Log(0)<<dedx<<"\t"; Log(0)<<"\n";
 //    Log(0)<<"significance: "<<significance<<"\n";
   }
   
   cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Drawing plots"<<endl;
-  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, bestMet, bestDedx);
-  cout<<"\n\n--------------------------------------------------------"<<endl;
-  cout<<"Creating datacard"<<endl;
-  createDatacard();
-  cout<<"\n\n--------------------------------------------------------"<<endl;
-  cout<<"Transferring card to lxplus"<<endl;
-  copyDatacardToLxplus();
-  cout<<"\n\n--------------------------------------------------------"<<endl;
-  cout<<"Running Combine and copying results back to local machine"<<endl;
-  runCombine();
-  cout<<"\n\n--------------------------------------------------------"<<endl;
-  cout<<"Converting signal strength R to limits in mass-ct"<<endl;
-  convertRtoLimits();
-  cout<<"\n\n--------------------------------------------------------"<<endl;
-  cout<<"Done"<<endl;
+  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, bestValues);
+//  cout<<"\n\n--------------------------------------------------------"<<endl;
+//  cout<<"Creating datacard"<<endl;
+//  createDatacard();
+//  cout<<"\n\n--------------------------------------------------------"<<endl;
+//  cout<<"Transferring card to lxplus"<<endl;
+//  copyDatacardToLxplus();
+//  cout<<"\n\n--------------------------------------------------------"<<endl;
+//  cout<<"Running Combine and copying results back to local machine"<<endl;
+//  runCombine();
+//  cout<<"\n\n--------------------------------------------------------"<<endl;
+//  cout<<"Converting signal strength R to limits in mass-ct"<<endl;
+//  convertRtoLimits();
+//  cout<<"\n\n--------------------------------------------------------"<<endl;
+//  cout<<"Done"<<endl;
   
    
   theApp->Run();
