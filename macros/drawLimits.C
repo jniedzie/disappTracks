@@ -38,30 +38,82 @@ vector<tuple<string, int, int, int, string>> graphParams = {
   
   // Other analyses
   {"exo_16_044_observed"                                , kBlack   , 2, 1, "CMS EXO-44-016 (observed)"                            },
-  {"exo_19_010_expected"                                , kCyan    , 2, 1, "CMS EXO-19-010 (expected)"                            },
+  {"exo_19_010_expected"                                , kBlack   , 2, 2, "CMS EXO-19-010 (expected)"                            },
   {"atlas_observed"                                     , kRed     , 2, 1, "ATLAS JHEP 06 (2018) 022 (observed)"                  },
   
-  // 2x2 ABCD
-  {"cms_short_disappearing_2x2_all_notag_lesslumi"      , kMagenta , 3, 1, "CMS (2x2 histogram, no categories, no tagger)"        },
+  // 2x2 3 layers
+//  {"cms_short_disappearing_2x2_3-layers_notag_300_3"                    , kMagenta    , 3, 1, "CMS (2x2, 3 layers, no tagger, 300-3)"       },
+//  {"cms_short_disappearing_2x2_3-layers_notag_300_10"                   , kMagenta    , 3, 2, "CMS (2x2, 3 layers, no tagger, 300-10)"      },
+//  {"cms_short_disappearing_2x2_3-layers_notag_300_30"                   , kMagenta    , 3, 3, "CMS (2x2, 3 layers, no tagger, 300-10)"      },
+//  {"cms_short_disappearing_2x2_3-layers_notag_500_10"                   , kCyan       , 3, 1, "CMS (2x2, 3 layers, no tagger, 500-10)"      },
+//  {"cms_short_disappearing_2x2_3-layers_notag_500_20_or_650_20_or_800"  , kCyan       , 3, 2, "CMS (2x2, 3 layers, no tagger, 500-20, 650-20, 800-10/20)"},
+//  {"cms_short_disappearing_2x2_3-layers_notag_650_10"                   , kMagenta+2  , 3, 1, "CMS (2x2, 3 layers, no tagger, 650-10)"      },
+//  {"cms_short_disappearing_2x2_3-layers_notag_1000_10or20"              , kOrange     , 3, 1, "CMS (2x2, 3 layers, no tagger, 1000-10/20)"  },
+  
+  // 2x2 4 layers
+//  {"cms_short_disappearing_2x2_4-layers_notag_300_3"                    , kMagenta    , 3, 1, "CMS (2x2, 3 layers, no tagger, 300-3)"       },
+//  {"cms_short_disappearing_2x2_4-layers_notag_300_10or30"               , kMagenta    , 3, 2, "CMS (2x2, 3 layers, no tagger, 300-10/30)"   },
+//  {"cms_short_disappearing_2x2_4-layers_notag_500_10"                   , kCyan       , 3, 1, "CMS (2x2, 3 layers, no tagger, 500-10)"      },
+//  {"cms_short_disappearing_2x2_4-layers_notag_500_20"                   , kCyan       , 3, 2, "CMS (2x2, 3 layers, no tagger, 500-20)"      },
+//  {"cms_short_disappearing_2x2_4-layers_notag_650_10_or_800_10_or_1000" , kMagenta+2  , 3, 1, "CMS (2x2, 3 layers, no tagger, 650-10, 800-10, 1000-10/20)"},
+//  {"cms_short_disappearing_2x2_4-layers_notag_650_20_or_800_20"         , kOrange     , 3, 1, "CMS (2x2, 3 layers, no tagger, 650-20, 800-20)" },
   
   // 3x3
-  {"cms_short_disappearing_3x3_all_notag_lesslumi"      , kViolet+1, 3, 1, "CMS (3x3 histogram, no categories, no tagger, 17+18)" },
+//  {"cms_short_disappearing_3x3_all_notag_lesslumi"      , kGreen+1, 3, 1, "CMS (3x3, no categories, no tagger)" },
   
-  {"cms_short_disappearing_3x3_3-layers_notag"          , kBlue    , 3, 2, "CMS (3x3 histogram, 3 layers, no tagger, Run 2)"      },
-  {"cms_short_disappearing_3x3_3-layers_notag_lesslumi" , kBlue    , 3, 1, "CMS (3x3 histogram, 3 layers, no tagger, 17+18)"      },
+//  {"cms_short_disappearing_3x3_3-layers_notag"          , kBlue    , 3, 2, "CMS (3x3 histogram, 3 layers, no tagger, Run 2)"      },
+//  {"cms_short_disappearing_3x3_3-layers_notag_lesslumi" , kBlue    , 3, 1, "CMS (3x3 histogram, 3 layers, no tagger, 17+18)"      },
   
-  {"cms_short_disappearing_3x3_4-layers_notag"          , kGreen+1 , 3, 2, "CMS (3x3 histogram, 4 layers, no tagger, Run 2)"      },
-  {"cms_short_disappearing_3x3_4-layers_notag_lesslumi" , kGreen+1 , 3, 1, "CMS (3x3 histogram, 4 layers, no tagger, 17+18)"      },
-  {"cms_short_disappearing_3x3_4-layers_notag_lesslumi_exp1" , kGreen+2 , 2, 1, "CMS (3x3 histogram, 4 layers, no tagger, exp1)"      },
+//  {"cms_short_disappearing_3x3_4-layers_notag"          , kGreen+1 , 3, 2, "CMS (3x3 histogram, 4 layers, no tagger, Run 2)"      },
+//  {"cms_short_disappearing_3x3_4-layers_notag_lesslumi" , kGreen+1 , 3, 1, "CMS (3x3 histogram, 4 layers, no tagger, 17+18)"      },
+//  {"cms_short_disappearing_3x3_4-layers_notag_lesslumi_exp1" , kGreen+2 , 2, 1, "CMS (3x3 histogram, 4 layers, no tagger, exp1)"      },
+  
+  // 3x3, 3-layers precise optimization
+//  {"cms_short_disappearing_3x3_3-layers_notag_300_3"      , kMagenta  , 2, 1, "CMS (3x3, 3 layers, no tagger, 300, 3)"    },
+//  {"cms_short_disappearing_3x3_3-layers_notag_300_10"     , kMagenta  , 2, 2, "CMS (3x3, 3 layers, no tagger, 300, 10)"   },
+//  {"cms_short_disappearing_3x3_3-layers_notag_300_30"     , kMagenta  , 2, 3, "CMS (3x3, 3 layers, no tagger, 300, 30)"   },
+//  {"cms_short_disappearing_3x3_3-layers_notag_500_10"     , kCyan     , 2, 1, "CMS (3x3, 3 layers, no tagger, 500, 10)"   },
+//  {"cms_short_disappearing_3x3_3-layers_notag_500_20"     , kCyan     , 2, 2, "CMS (3x3, 3 layers, no tagger, 500, 20)"   },
+//  {"cms_short_disappearing_3x3_3-layers_notag_650_10"     , kMagenta+2, 2, 1, "CMS (3x3, 3 layers, no tagger, 650, 10)"   },
+//  {"cms_short_disappearing_3x3_3-layers_notag_650_20_or_800_10or20"     , kMagenta+2, 2, 2, "CMS (3x3, 3 layers, no tagger, 650, 20, 800 10/20)"},
+//  {"cms_short_disappearing_3x3_3-layers_notag_1000_10"    , kOrange   , 2, 1, "CMS (3x3, 3 layers, no tagger, 1000, 10)"  },
+//  {"cms_short_disappearing_3x3_3-layers_notag_1000_20"    , kOrange   , 2, 2, "CMS (3x3, 3 layers, no tagger, 1000, 20)"  },
+  
+  // 3x3, 4-layers precise optimization
+//  {"cms_short_disappearing_3x3_4-layers_notag_300_3"      , kMagenta  , 2, 1, "CMS (3x3, 4 layers, no tagger, 300, 3)"    },
+//  {"cms_short_disappearing_3x3_4-layers_notag_300_10or30" , kMagenta  , 2, 2, "CMS (3x3, 4 layers, no tagger, 300, 10/30)"},
+//  {"cms_short_disappearing_3x3_4-layers_notag_500_10"     , kCyan     , 2, 1, "CMS (3x3, 4 layers, no tagger, 500, 10)"   },
+//  {"cms_short_disappearing_3x3_4-layers_notag_500_20"     , kCyan     , 2, 2, "CMS (3x3, 4 layers, no tagger, 500, 20)"   },
+//  {"cms_short_disappearing_3x3_4-layers_notag_650_10"     , kMagenta+2, 2, 1, "CMS (3x3, 4 layers, no tagger, 650, 10)"   },
+//  {"cms_short_disappearing_3x3_4-layers_notag_650_20"     , kMagenta+2, 2, 2, "CMS (3x3, 4 layers, no tagger, 650, 20)"   },
+//  {"cms_short_disappearing_3x3_4-layers_notag_800_10"     , kCyan+2   , 2, 1, "CMS (3x3, 4 layers, no tagger, 800, 10)"   },
+//  {"cms_short_disappearing_3x3_4-layers_notag_800_20"     , kCyan+2   , 2, 2, "CMS (3x3, 4 layers, no tagger, 800, 20)"   },
+//  {"cms_short_disappearing_3x3_4-layers_notag_1000_10"    , kOrange   , 2, 1, "CMS (3x3, 4 layers, no tagger, 1000, 10)"  },
+//  {"cms_short_disappearing_3x3_4-layers_notag_1000_20"    , kOrange   , 2, 2, "CMS (3x3, 4 layers, no tagger, 1000, 20)"  },
+  
+
   
   
-  
-  
-//  {"cms_short_disappearing_3x3_3+4layers_notag"         , kGreen+1 , 3, 3, "CMS (3x3 histogram, 3+4 layers, no tagger)"       },
+
   
   
 //  {"exo_16_044_expected"                                , kBlack   , 2, 2, "EXO-44-016 (expected)"                            },
 //  {"exo_16_044_expected_68p"                            , kGreen   , 1, 1, "EXO-44-016 (68% expected)"                        },
+  
+  
+  // best in each category
+//  {"cms_short_disappearing_2x2_3-layers_notag_500_20_or_650_20_or_800"  , kCyan   , 3, 1, "CMS (2x2, 3 layers, no tagger)"},
+//  {"cms_short_disappearing_2x2_4-layers_notag_650_10_or_800_10_or_1000" , kCyan   , 3, 2, "CMS (2x2, 3 layers, no tagger)"},
+//  {"cms_short_disappearing_3x3_3-layers_notag_650_20_or_800_10or20"     , kOrange , 3, 1, "CMS (3x3, 3 layers, no tagger)"},
+//  {"cms_short_disappearing_3x3_4-layers_notag_1000_20"                  , kOrange , 3, 2, "CMS (3x3, 4 layers, no tagger)"},
+  
+  // categories combination
+  {"cms_short_disappearing_3x3_3-layers_notag_650_20_or_800_10or20"     , kOrange , 3, 1, "CMS (3x3, 3 layers, no tagger)"          },
+  {"cms_short_disappearing_3x3_4-layers_notag_1000_20"                  , kOrange , 3, 2, "CMS (3x3, 4 layers, no tagger)"          },
+  {"cms_short_disappearing_3x3_3+4-layers_notag"                        , kGreen+1, 3, 1, "CMS (3x3, 3+4 layers, no tagger)"        },
+  {"cms_short_disappearing_3x3_3+4-layers_notag_run2"                   , kBlue   , 3, 2, "CMS (3x3, 3+4 layers, no tagger, Run 2)" },
+  
+  
 };
 
 void drawLimits()

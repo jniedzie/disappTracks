@@ -59,37 +59,65 @@ void printDetails(const EventSet &events)
 
 void saveSurvivingEvents(const EventSet &events)
 {
-  ofstream dataSurvivingFile;
-  string suffix = "L"+to_string_with_precision(config.params["cuts_level"],0);
-  if(config.params["cuts_level"]==1) suffix+= "_"+config.category;
-  dataSurvivingFile.open("results/survivingDataEventsAfter"+suffix+".txt");
+  bool updateData = false;
   
   for(int iData=0;iData<kNdata;iData++){
-    if(!config.runData[iData]) continue;
-    cout<<"Data events surviving cuts in "<<dataTitle[iData]<<":"<<events.size(xtracks::kData,iData)<<endl;
-    for(int iEvent=0;iEvent<events.size(xtracks::kData,iData);iEvent++){
-      int runNumber = events.At(xtracks::kData,iData,iEvent)->GetRunNumber();
-      int lumiSection = events.At(xtracks::kData,iData,iEvent)->GetLumiSection();
-      long long int eventNumber = events.At(xtracks::kData,iData,iEvent)->GetEventNumber();
-      dataSurvivingFile<<runNumber<<":"<<lumiSection<<":"<<eventNumber<<"\n";
-    }
+    if(config.runData[iData]){ updateData = true; break; }
   }
-  dataSurvivingFile.close();
   
-  ofstream signalSurvivingFile;
-  signalSurvivingFile.open ("results/survivingSignalEventsAfter"+suffix+".txt");
+  string suffix = "L"+to_string_with_precision(config.params["cuts_level"],0);
+  if(config.params["cuts_level"]==1) suffix+= "_"+config.category;
+  
+  if(updateData){
+    ofstream dataSurvivingFile;
+    dataSurvivingFile.open("results/survivingDataEventsAfter"+suffix+".txt");
+    
+    ofstream dataSurvivingFileByLS;
+    dataSurvivingFileByLS.open("results/survivingDataEventsAfter"+suffix+"_byLS.txt");
+    
+    set<int> lumiSections;
+    
+    for(int iData=0;iData<kNdata;iData++){
+      if(!config.runData[iData]) continue;
+      cout<<"Data events surviving cuts in "<<dataTitle[iData]<<":"<<events.size(xtracks::kData,iData)<<endl;
+      for(int iEvent=0;iEvent<events.size(xtracks::kData,iData);iEvent++){
+        int runNumber = events.At(xtracks::kData,iData,iEvent)->GetRunNumber();
+        int lumiSection = events.At(xtracks::kData,iData,iEvent)->GetLumiSection();
+        long long int eventNumber = events.At(xtracks::kData,iData,iEvent)->GetEventNumber();
+        
+        dataSurvivingFile<<runNumber<<":"<<lumiSection<<":"<<eventNumber<<"\n";
+        
+        if(lumiSections.find(lumiSection) == lumiSections.end()){
+          dataSurvivingFileByLS<<runNumber<<" "<<lumiSection<<"\n";
+          lumiSections.insert(lumiSection);
+        }
+      }
+    }
+    dataSurvivingFile.close();
+  }
+  
+  bool updateSignals = false;
   
   for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!config.runSignal[iSig]) continue;
-    cout<<"Signal events surviving cuts in "<<signalTitle[iSig]<<":"<<events.size(xtracks::kSignal,iSig)<<endl;
-    for(int iEvent=0;iEvent<events.size(xtracks::kSignal,iSig);iEvent++){
-      int runNumber = events.At(xtracks::kSignal,iSig,iEvent)->GetRunNumber();
-      int lumiSection = events.At(xtracks::kSignal,iSig,iEvent)->GetLumiSection();
-      long long int eventNumber = events.At(xtracks::kSignal,iSig,iEvent)->GetEventNumber();
-      signalSurvivingFile<<runNumber<<":"<<lumiSection<<":"<<eventNumber<<"\n";
-    }
+    if(config.runSignal[iSig]){ updateSignals = true; break; }
   }
-  signalSurvivingFile.close();
+  
+  if(updateSignals){
+    ofstream signalSurvivingFile;
+    signalSurvivingFile.open ("results/survivingSignalEventsAfter"+suffix+".txt");
+    
+    for(int iSig=0;iSig<kNsignals;iSig++){
+      if(!config.runSignal[iSig]) continue;
+      cout<<"Signal events surviving cuts in "<<signalTitle[iSig]<<":"<<events.size(xtracks::kSignal,iSig)<<endl;
+      for(int iEvent=0;iEvent<events.size(xtracks::kSignal,iSig);iEvent++){
+        int runNumber = events.At(xtracks::kSignal,iSig,iEvent)->GetRunNumber();
+        int lumiSection = events.At(xtracks::kSignal,iSig,iEvent)->GetLumiSection();
+        long long int eventNumber = events.At(xtracks::kSignal,iSig,iEvent)->GetEventNumber();
+        signalSurvivingFile<<runNumber<<":"<<lumiSection<<":"<<eventNumber<<"\n";
+      }
+    }
+    signalSurvivingFile.close();
+  }
 }
 
 void processCuts(EventSet &events,

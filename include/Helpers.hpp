@@ -138,7 +138,8 @@ const vector<vector<int>> signalColors = {
 
 const vector<vector<int>> dataColors = {
   {200 , 10, 10},  // single electron (2017B)
-  {200 , 10, 10},  // single electron (2017B)
+  {200 , 10, 10},  // single electron (2018A)
+  {200 , 10, 10},  // single muon CR (2018A)
 };
 
 // Names of background, signal and data samples
@@ -182,6 +183,7 @@ const vector<string> signalName = {
 const vector<string> dataTitle = {
   "2017B",
   "2018A",
+  "2018A-CR",
 };
 
 // Path to trees with background, signal and data samples (also determines which samples will be merged)
@@ -276,9 +278,13 @@ const vector<vector<string>> inFileNameData = {
 //    "../data/Data-SR/tree_MET_Run2017C_31Mar2018/",
 //    "../data/Data-SR/tree_MET_Run2017E_31Mar2018/",
   },
-  // 2018 data
+  // 2018 data SR
   {
     "../data/Data-SR/MET_Run2018A/",
+  },
+  // 2018 data CR
+  {
+    "../data/Data-CR/MET_Run2018A/",
   }
 };
 
@@ -340,6 +346,7 @@ enum EBackground{
 enum EData{
   kElectron_Run2017B,
   kMET_Run2018A,
+  kMET_Run2018A_CR,
   kNdata
 };
 

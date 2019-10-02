@@ -30,6 +30,8 @@ INTERFACE_LINK_LIBRARIES ${ROOT_EXE_LINKER_FLAGS})
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
+set(CMAKE_CXX_FLAGS "-O3")
+
 add_executable(eventDisplay eventDisplay.cpp)
 add_executable(prepareABCDplots prepareABCDplots.cpp)
 add_executable(helixTagger helixTagger.cpp)

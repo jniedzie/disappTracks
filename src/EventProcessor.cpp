@@ -329,6 +329,9 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
       }
   }
   
+  if(!leadingJet) return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  
   if(cut.leadingJetPt.IsOutside(leadingJet->GetPt())        ||
      cut.leadingJetEta.IsOutside(leadingJet->GetEta())      ||
      cut.leadingJetChHEF.IsOutside(leadingJet->GetChHEF())  ||
