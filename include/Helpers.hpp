@@ -180,6 +180,20 @@ const vector<string> signalName = {
   "Wino_m1000_ct20",
 };
 
+const vector<string> signalShortName = {
+  "300_3",
+  "300_10",
+  "300_30",
+  "500_10",
+  "500_20",
+  "650_10",
+  "650_20",
+  "800_10",
+  "800_20",
+  "1000_10",
+  "1000_20",
+};
+
 const vector<string> dataTitle = {
   "2017B",
   "2018A",

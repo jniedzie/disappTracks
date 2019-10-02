@@ -20,6 +20,8 @@ const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1;
 
 const int ratioRebin = 5;
 
+ESignal binForSignal = kWino_M_1000_cTau_20;
+
 //binning bestValues = {{430}, {2.3}}; // best for 2x2 with no categories:
 //binning bestValues = {{300, 450}, {2.0, 4.0}}; // best for 3x3 with no categories:
 
@@ -28,84 +30,112 @@ const int ratioRebin = 5;
 // 2x2, 3 layers
 //------------------------------------------------
 
-//binning bestValues = {{430}, {2.4}}; // 300-3
-//binning bestValues = {{370}, {2.4}}; // 300-10
-//binning bestValues = {{320}, {2.7}}; // 300-30
-//binning bestValues = {{450}, {2.9}}; // 500-10
-//binning bestValues = {{450}, {3.0}}; // 500-20, 650-20, 800-10/20 (the best overall)
-//binning bestValues = {{440}, {2.9}}; // 650-10
-//binning bestValues = {{450}, {3.5}}; // 1000-10/20
+map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
+  { kWino_M_300_cTau_3    ,  {{430}, {2.4}}}, // 300-3
+  { kWino_M_300_cTau_10   ,  {{370}, {2.4}}}, // 300-10
+  { kWino_M_300_cTau_30   ,  {{320}, {2.7}}}, // 300-30
+  { kWino_M_500_cTau_10   ,  {{450}, {2.9}}}, // 500-10
+  { kWino_M_500_cTau_20   ,  {{450}, {3.0}}}, // 500-20, 650-20, 800-10/20 (the best overall)
+  { kWino_M_650_cTau_10   ,  {{440}, {2.9}}}, // 650-10
+  { kWino_M_650_cTau_20   ,  {{450}, {3.0}}}, // 500-20, 650-20, 800-10/20 (the best overall)
+  { kWino_M_800_cTau_10   ,  {{440}, {2.9}}}, // 650-10
+  { kWino_M_800_cTau_20   ,  {{450}, {3.0}}}, // 500-20, 650-20, 800-10/20 (the best overall)
+  { kWino_M_1000_cTau_10  ,  {{450}, {3.5}}}, // 1000-10/20
+  { kWino_M_1000_cTau_20  ,  {{450}, {3.5}}}, // 1000-10/20
+};
 
 //------------------------------------------------
 // 2x2, 4 layers
 //------------------------------------------------
-
-//binning bestValues = {{400}, {3.9}}; // 300-3
-//binning bestValues = {{320}, {2.0}}; // 300-10/30
-//binning bestValues = {{410}, {2.5}}; // 500-10
-//binning bestValues = {{320}, {2.7}}; // 500-20
-//binning bestValues = {{490}, {2.4}}; // 650-10, 800-10, 1000-10/20 (the best overall)
-//binning bestValues = {{400}, {2.5}}; // 650-20, 800-20
-
+/*
+map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
+  { kWino_M_300_cTau_3    ,  {{400}, {3.9}}}, // 300-3
+  { kWino_M_300_cTau_10   ,  {{320}, {2.0}}}, // 300-10/30
+  { kWino_M_300_cTau_30   ,  {{320}, {2.0}}}, // 300-10/30
+  { kWino_M_500_cTau_10   ,  {{410}, {2.5}}}, // 500-10
+  { kWino_M_500_cTau_20   ,  {{320}, {2.7}}}, // 500-20
+  { kWino_M_650_cTau_10   ,  {{490}, {2.4}}}, // 650-10, 800-10, 1000-10/20 (the best overall)
+  { kWino_M_650_cTau_20   ,  {{400}, {2.5}}}, // 650-20, 800-20
+  { kWino_M_800_cTau_10   ,  {{490}, {2.4}}}, // 650-10, 800-10, 1000-10/20 (the best overall)
+  { kWino_M_800_cTau_20   ,  {{400}, {2.5}}}, // 650-20, 800-20
+  { kWino_M_1000_cTau_10  ,  {{490}, {2.4}}}, // 650-10, 800-10, 1000-10/20 (the best overall)
+  { kWino_M_1000_cTau_20  ,  {{490}, {2.4}}}, // 650-10, 800-10, 1000-10/20 (the best overall)
+};
+*/
 //------------------------------------------------
 // 3x3, 3 layers
 //------------------------------------------------
-
-//binning bestValues = {{300, 430}, {2.2, 2.3}}; // 300-3
-//binning bestValues = {{300, 450}, {2.0, 2.1}}; // 300-10
-//binning bestValues = {{300, 410}, {2.7, 2.8}}; // 300-30
-//binning bestValues = {{320, 450}, {3.0, 3.1}}; // 500-10
-//binning bestValues = {{450, 480}, {4.3, 5.0}}; // 500-20
-//binning bestValues = {{310, 460}, {2.4, 2.7}}; // 650-10
-//binning bestValues = {{300, 450}, {3.0, 3.1}}; // 650-20, 800-10/20 (the best overall)
-//binning bestValues = {{410, 490}, {4.4, 4.5}}; // 1000-10
-//binning bestValues = {{460, 470}, {4.5, 4.6}}; // 1000-20
-
+/*
+map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
+  { kWino_M_300_cTau_3    ,  {{300, 430},},{2.2, 2.3}}; // 300-3
+  { kWino_M_300_cTau_10   ,  {{300, 450},},{2.0, 2.1}}; // 300-10
+  { kWino_M_300_cTau_30   ,  {{300, 410},},{2.7, 2.8}}; // 300-30
+  { kWino_M_500_cTau_10   ,  {{320, 450},},{3.0, 3.1}}; // 500-10
+  { kWino_M_500_cTau_20   ,  {{450, 480},},{4.3, 5.0}}; // 500-20
+  { kWino_M_650_cTau_10   ,  {{310, 460},},{2.4, 2.7}}; // 650-10
+  { kWino_M_650_cTau_20   ,  {{300, 450},},{3.0, 3.1}}; // 650-20, 800-10/20 (the best overall)
+  { kWino_M_800_cTau_10   ,  {{300, 450},},{3.0, 3.1}}; // 650-20, 800-10/20 (the best overall)
+  { kWino_M_800_cTau_20   ,  {{300, 450},},{3.0, 3.1}}; // 650-20, 800-10/20 (the best overall)
+  { kWino_M_1000_cTau_10  ,  {{410, 490},},{4.4, 4.5}}; // 1000-10
+  { kWino_M_1000_cTau_20  ,  {{460, 470},},{4.5, 4.6}}; // 1000-20
+};
+*/
 //------------------------------------------------
 // 3x3, 4 layers
 //------------------------------------------------
-
-//binning bestValues = {{330, 470}, {2.0, 2.1}}; // 300-3
-//binning bestValues = {{320, 400}, {2.0, 2.1}}; // 300-10/30
-//binning bestValues = {{300, 440}, {2.2, 2.3}}; // 500-10
-//binning bestValues = {{320, 440}, {2.5, 2.6}}; // 500-20
-//binning bestValues = {{310, 460}, {2.4, 2.7}}; // 650-10
-//binning bestValues = {{320, 440}, {2.5, 2.6}}; // 650-20
-//binning bestValues = {{440, 460}, {2.5, 3.2}}; // 800-10
-//binning bestValues = {{400, 480}, {2.5, 3.0}}; // 800-20
-//binning bestValues = {{440, 490}, {2.5, 3.5}}; // 1000-10
-//binning bestValues = {{320, 490}, {2.5, 2.6}}; // 1000-20 (the best overall)
-
+/*
+map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
+  { kWino_M_300_cTau_3    , {{330, 470}, {2.0, 2.1}}}, // 300-3
+  { kWino_M_300_cTau_10   , {{320, 400}, {2.0, 2.1}}}, // 300-10/30
+  { kWino_M_300_cTau_30   , {{320, 400}, {2.0, 2.1}}}, // 300-10/30
+  { kWino_M_500_cTau_10   , {{300, 440}, {2.2, 2.3}}}, // 500-10
+  { kWino_M_500_cTau_20   , {{320, 440}, {2.5, 2.6}}}, // 500-20
+  { kWino_M_650_cTau_10   , {{310, 460}, {2.4, 2.7}}}, // 650-10
+  { kWino_M_650_cTau_20   , {{320, 440}, {2.5, 2.6}}}, // 650-20
+  { kWino_M_800_cTau_10   , {{440, 460}, {2.5, 3.2}}}, // 800-10
+  { kWino_M_800_cTau_20   , {{400, 480}, {2.5, 3.0}}}, // 800-20
+  { kWino_M_1000_cTau_10  , {{440, 490}, {2.5, 3.5}}}, // 1000-10
+  { kWino_M_1000_cTau_20  , {{320, 490}, {2.5, 2.6}}}, // 1000-20 (the best overall)
+};
+*/
 //------------------------------------------------
 // 2x3, 3 layers
 //------------------------------------------------
-
-//binning bestValues = {{300, 430}, {2.4}}; // 300-3
-//binning bestValues = {{300, 450}, {2.5}}; // 300-10
-//binning bestValues = {{300, 410}, {2.7}}; // 300-30
-//binning bestValues = {{320, 450}, {2.9}}; // 500-10
-//binning bestValues = {{300, 450}, {3.0}}; // 500-20, 650-20, 800-20 (the best overall)
-//binning bestValues = {{300, 440}, {2.9}}; // 650-10
-//binning bestValues = {{460, 470}, {4.3}}; // 800-10, 1000-10/20
-
+/*
+map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
+  { kWino_M_300_cTau_3   , {{300, 430}, {2.4}}}, // 300-3
+  { kWino_M_300_cTau_10  , {{300, 450}, {2.5}}}, // 300-10
+  { kWino_M_300_cTau_30  , {{300, 410}, {2.7}}}, // 300-30
+  { kWino_M_500_cTau_10  , {{320, 450}, {2.9}}}, // 500-10
+  { kWino_M_500_cTau_20  , {{300, 450}, {3.0}}}, // 500-20, 650-20, 800-20 (the best overall)
+  { kWino_M_650_cTau_10  , {{300, 440}, {2.9}}}, // 650-10
+  { kWino_M_650_cTau_20  , {{300, 450}, {3.0}}}, // 500-20, 650-20, 800-20 (the best overall)
+  { kWino_M_800_cTau_10  , {{460, 470}, {4.3}}}, // 800-10, 1000-10/20
+  { kWino_M_800_cTau_20  , {{300, 450}, {3.0}}}, // 500-20, 650-20, 800-20 (the best overall)
+  { kWino_M_1000_cTau_10 , {{460, 470}, {4.3}}}, // 800-10, 1000-10/20
+  { kWino_M_1000_cTau_20 , {{460, 470}, {4.3}}}, // 800-10, 1000-10/20
+};
+*/
 //------------------------------------------------
 // 2x3, 4 layers
 //------------------------------------------------
+/*
+map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
+  { kWino_M_300_cTau_3    , {{400, 470}, {3.9}}}, // 300-3
+  { kWino_M_300_cTau_10   , {{300, 400}, {2.0}}}, // 300-10
+  { kWino_M_300_cTau_30   , {{320, 400}, {2.0}}}, // 300-30
+  { kWino_M_500_cTau_10   , {{310, 440}, {2.5}}}, // 500-10
+  { kWino_M_500_cTau_20   , {{320, 440}, {2.5}}}, // 500-20, 650-20
+  { kWino_M_650_cTau_10   , {{310, 490}, {2.5}}}, // 650-10
+  { kWino_M_650_cTau_20   , {{320, 440}, {2.5}}}, // 500-20, 650-20
+  { kWino_M_800_cTau_10   , {{400, 490}, {2.4}}}, // 800-10 (the best overall)
+  { kWino_M_800_cTau_20   , {{320, 490}, {2.5}}}, // 800-20
+  { kWino_M_1000_cTau_10  , {{430, 460}, {2.9}}}, // 1000-10
+  { kWino_M_1000_cTau_20  , {{320, 490}, {2.4}}}, // 1000-20
+};
+*/
 
-//binning bestValues = {{400, 470}, {3.9}}; // 300-3
-//binning bestValues = {{300, 400}, {2.0}}; // 300-10
-//binning bestValues = {{320, 400}, {2.0}}; // 300-30
-//binning bestValues = {{310, 440}, {2.5}}; // 500-10
-//binning bestValues = {{320, 440}, {2.5}}; // 500-20, 650-20
-//binning bestValues = {{310, 490}, {2.5}}; // 650-10
-//binning bestValues = {{400, 490}, {2.4}}; // 800-10 (the best overall)
-//binning bestValues = {{320, 490}, {2.5}}; // 800-20
-//binning bestValues = {{430, 460}, {2.9}}; // 1000-10
-binning bestValues = {{320, 490}, {2.4}}; // 1000-20
-
-
-
-string sampleTag = "notag_1000_20";
+string sampleTag = "notag";
 string outFileName, outputPath;
 string backgroundHistNams = "background";
 
@@ -533,7 +563,7 @@ int main(int argc, char* argv[])
   TApplication *theApp = new TApplication("App", &argc, argv);
   config = ConfigManager("configs/analysis.md");
   
-  outFileName = to_string_with_precision(nDedxBins, 0)+"x"+to_string_with_precision(nMetBins, 0)+"_"+config.category+"_"+sampleTag;
+  outFileName = to_string_with_precision(nDedxBins, 0)+"x"+to_string_with_precision(nMetBins, 0)+"_"+config.category+"_"+sampleTag+"_"+signalShortName[binForSignal];
   outputPath = "results/abcd_plots_"+outFileName+".root";
   
   // Load sll events with initial cuts only
@@ -574,7 +604,7 @@ int main(int argc, char* argv[])
   
   cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Drawing plots"<<endl;
-  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, bestValues);
+  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, bestValues[binForSignal]);
 //  cout<<"\n\n--------------------------------------------------------"<<endl;
 //  cout<<"Creating datacard"<<endl;
 //  createDatacard();
