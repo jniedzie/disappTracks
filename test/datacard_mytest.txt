@@ -1,0 +1,29 @@
+## Shape input card
+imax 6 number of channels
+jmax * number of background
+kmax * number of nuisance parameters
+----------------------------------------------------------------------------------------------------
+bin                            tag_0          tag_1          tag_2          tag_3          tag_4          tag_5         
+observation                    108            12             2              198            24             2             
+----------------------------------------------------------------------------------------------------
+bin                            tag_0          tag_0          tag_0          tag_0          tag_0          tag_0          tag_0          tag_0          tag_0          tag_0          tag_0          tag_0          tag_1          tag_1          tag_1          tag_1          tag_1          tag_1          tag_1          tag_1          tag_1          tag_1          tag_1          tag_1          tag_2          tag_2          tag_2          tag_2          tag_2          tag_2          tag_2          tag_2          tag_2          tag_2          tag_2          tag_2          tag_3          tag_3          tag_3          tag_3          tag_3          tag_3          tag_3          tag_3          tag_3          tag_3          tag_3          tag_3          tag_4          tag_4          tag_4          tag_4          tag_4          tag_4          tag_4          tag_4          tag_4          tag_4          tag_4          tag_4          tag_5          tag_5          tag_5          tag_5          tag_5          tag_5          tag_5          tag_5          tag_5          tag_5          tag_5          tag_5         
+process                        Wino_m800_ct20 Wino_m300_ct10 Wino_m1000_ct10 Wino_m800_ct10 Wino_m300_ct30 Wino_m650_ct20 Wino_m650_ct10 Wino_m500_ct20 Wino_m1000_ct20 Wino_m300_ct3  Wino_m500_ct10 bkg_0          Wino_m800_ct20 Wino_m300_ct10 Wino_m1000_ct10 Wino_m800_ct10 Wino_m300_ct30 Wino_m650_ct20 Wino_m650_ct10 Wino_m500_ct20 Wino_m1000_ct20 Wino_m300_ct3  Wino_m500_ct10 bkg_0          Wino_m800_ct20 Wino_m300_ct10 Wino_m1000_ct10 Wino_m800_ct10 Wino_m300_ct30 Wino_m650_ct20 Wino_m650_ct10 Wino_m500_ct20 Wino_m1000_ct20 Wino_m300_ct3  Wino_m500_ct10 bkg_0          Wino_m800_ct20 Wino_m300_ct10 Wino_m1000_ct10 Wino_m800_ct10 Wino_m300_ct30 Wino_m650_ct20 Wino_m650_ct10 Wino_m500_ct20 Wino_m1000_ct20 Wino_m300_ct3  Wino_m500_ct10 bkg_0          Wino_m800_ct20 Wino_m300_ct10 Wino_m1000_ct10 Wino_m800_ct10 Wino_m300_ct30 Wino_m650_ct20 Wino_m650_ct10 Wino_m500_ct20 Wino_m1000_ct20 Wino_m300_ct3  Wino_m500_ct10 bkg_0          Wino_m800_ct20 Wino_m300_ct10 Wino_m1000_ct10 Wino_m800_ct10 Wino_m300_ct30 Wino_m650_ct20 Wino_m650_ct10 Wino_m500_ct20 Wino_m1000_ct20 Wino_m300_ct3  Wino_m500_ct10 bkg_0         
+process                        0              -1             -2             -3             -4             -5             -6             -7             -8             -9             -10            1              0              -1             -2             -3             -4             -5             -6             -7             -8             -9             -10            1              0              -1             -2             -3             -4             -5             -6             -7             -8             -9             -10            1              0              -1             -2             -3             -4             -5             -6             -7             -8             -9             -10            1              0              -1             -2             -3             -4             -5             -6             -7             -8             -9             -10            1              0              -1             -2             -3             -4             -5             -6             -7             -8             -9             -10            1             
+----------------------------------------------------------------------------------------------------
+rate                           0.477          39.162         0.069          0.170          50.828         1.512          1.161          4.780          0.111          3.552          2.774          108.064        0.313          24.031         0.058          0.057          26.752         0.871          0.476          3.208          0.060          3.552          2.196          12.273         0.291          17.801         0.069          0.218          13.376         0.679          0.774          2.280          0.074          2.664          2.311          1.787          4.215          153.087        0.589          2.289          227.388        11.841         6.133          35.236         1.329          19.538         20.918         198.357        2.759          84.554         0.394          1.362          110.573        7.474          3.900          20.959         0.805          8.881          11.095         24.111         1.998          33.821         0.350          1.116          42.802         4.837          3.126          13.617         0.666          7.105          8.552          2.163         
+----------------------------------------------------------------------------------------------------
+
+c_0_0 rateParam   tag_0      bkg_0   (@0*@1/@2) c_1_0,c_0_1,c_1_1 
+c_0_1 rateParam   tag_1      bkg_0   (@0*@1/@2) c_1_1,c_0_2,c_1_2 
+c_1_0 rateParam   tag_3      bkg_0   1.00 
+c_1_1 rateParam   tag_4      bkg_0   1.00 
+c_0_2 rateParam   tag_2      bkg_0   1.00 
+c_1_2 rateParam   tag_5      bkg_0   1.00 
+
+
+
+----------------------------------------------------------------------------------------------------
+
+
+
+

@@ -12,7 +12,7 @@
 #include "Logger.hpp"
 
 // Desired number of MET and dE/dx bins and limits of those
-const int nMetBins  = 3, nDedxBins = 3;
+const int nMetBins  = 3, nDedxBins = 2;
 const double minMet  = 300 , maxMet  = 500 , stepMet  = 10;
 const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1;
 
@@ -20,47 +20,40 @@ const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1;
 //vector<double> bestMet = {430};
 //vector<double> bestDedx = {2.3};
 
-// best for no categories:
+// best for 3x3 with no categories:
 //vector<double> bestMet = {300, 450};
 //vector<double> bestDedx = {2.0, 4.0};
 
-// best for 3-layers:
-//vector<double> bestMet = {300, 450};
-//vector<double> bestDedx = {3.0, 4.5};
-
-// best for 4-layers:
-//vector<double> bestMet = {400, 450};
-//vector<double> bestDedx = {2.5, 3.5};
 
 //------------------------------------------------
-// 2,2, 3 layers
+// 2x2, 3 layers
 //------------------------------------------------
 
-// best for 3-layers 300, 3:
+// 300, 3:
 //vector<double> bestMet = {430};
 //vector<double> bestDedx = {2.4};
 
-// best for 3-layers 300, 10:
+// 300, 10:
 //vector<double> bestMet = {370};
 //vector<double> bestDedx = {2.4};
 
-// best for 3-layers 300, 30:
+// 300, 30:
 //vector<double> bestMet = {320};
 //vector<double> bestDedx = {2.7};
 
-// best for 3-layers 500, 10:
+// 500, 10:
 //vector<double> bestMet = {450};
 //vector<double> bestDedx = {2.9};
 
-// best for 3-layers 500-20, 650-20, 800-10/20 (and the best overall):
+// 500-20, 650-20, 800-10/20 (the best overall):
 //vector<double> bestMet = {450};
 //vector<double> bestDedx = {3.0};
 
-// best for 3-layers 650, 10:
+// 650, 10:
 //vector<double> bestMet = {440};
 //vector<double> bestDedx = {2.9};
 
-// best for 3-layers 1000-10/20:
+// 1000-10/20:
 //vector<double> bestMet = {450};
 //vector<double> bestDedx = {3.5};
 
@@ -68,30 +61,30 @@ const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1;
 
 
 //------------------------------------------------
-// 2,2, 4 layers
+// 2x2, 4 layers
 //------------------------------------------------
 
-// best for 3-layers 300, 3:
+// 300, 3:
 //vector<double> bestMet = {400};
 //vector<double> bestDedx = {3.9};
 
-// best for 3-layers 300-10/30:
+// 300-10/30:
 //vector<double> bestMet = {320};
 //vector<double> bestDedx = {2.0};
 
-// best for 3-layers 500-10:
+// 500-10:
 //vector<double> bestMet = {410};
 //vector<double> bestDedx = {2.5};
 
-// best for 3-layers 500-20:
+// 500-20:
 //vector<double> bestMet = {320};
 //vector<double> bestDedx = {2.7};
 
-// best for 3-layers 650-10, 800-10, 1000-10/20 (and the best overall):
+// 650-10, 800-10, 1000-10/20 (the best overall):
 //vector<double> bestMet = {490};
 //vector<double> bestDedx = {2.4};
 
-// best for 3-layers 650-20, 800-20:
+// 650-20, 800-20:
 //vector<double> bestMet = {400};
 //vector<double> bestDedx = {2.5};
 
@@ -103,39 +96,39 @@ const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1;
 // 3x3, 3 layers
 //------------------------------------------------
 
-// best for 3-layers 300, 3
+// 300, 3
 //vector<double> bestMet = {300,  430};
 //vector<double> bestDedx = {2.2, 2.3};
 
-// best for 3-layers 300, 10
+// 300, 10
 //vector<double> bestMet = {300,  450};
 //vector<double> bestDedx = {2.0, 2.1};
 
-// best for 3-layers 300, 30
+// 300, 30
 //vector<double> bestMet = {300,  410};
 //vector<double> bestDedx = {2.7, 2.8};
 
-// best for 3-layers 500, 10
+// 500, 10
 //vector<double> bestMet = {320,  450};
 //vector<double> bestDedx = {3.0, 3.1};
 
-// best for 3-layers 500, 20
+// 500, 20
 //vector<double> bestMet = {450,  480};
 //vector<double> bestDedx = {4.3, 5.0};
 
-// best for 3-layers 650, 10
+// 650, 10
 //vector<double> bestMet = {310,  460};
 //vector<double> bestDedx = {2.4, 2.7};
 
-// best for 3-layers 650, 20; 800, 10/20 (and best for 3-layers overall):
+// 650, 20; 800, 10/20 (the best overall):
 //vector<double> bestMet = {300,  450};
 //vector<double> bestDedx = {3.0, 3.1};
 
-// best for 3-layers 1000, 10
+// 1000, 10
 //vector<double> bestMet = {410,  490};
 //vector<double> bestDedx = {4.4, 4.5};
 
-// best for 3-layers 1000, 20
+// 1000, 20
 //vector<double> bestMet = {460,  470};
 //vector<double> bestDedx = {4.5, 4.6};
 
@@ -147,51 +140,130 @@ const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1;
 // 3x3, 4 layers
 //------------------------------------------------
 
-// best for 4-layers 300, 3:
+// 300, 3:
 //vector<double> bestMet = {330,  470};
 //vector<double> bestDedx = {2.0, 2.1};
 
-// best for 4-layers 300, 10/30:
+// 300, 10/30:
 //vector<double> bestMet = {320,  400};
 //vector<double> bestDedx = {2.0, 2.1};
 
-// best for 4-layers 500, 10:
+// 500, 10:
 //vector<double> bestMet = {300,  440};
 //vector<double> bestDedx = {2.2, 2.3};
 
-// best for 4-layers 500, 20:
+// 500, 20:
 //vector<double> bestMet = {320,  440};
 //vector<double> bestDedx = {2.5, 2.6};
 
-// best for 4-layers 650, 10:
+// 650, 10:
 //vector<double> bestMet = {310,  460};
 //vector<double> bestDedx = {2.4, 2.7};
 
-// best for 4-layers 650, 20:
+// 650, 20:
 //vector<double> bestMet = {320,  440};
 //vector<double> bestDedx = {2.5, 2.6};
 
-// best for 4-layers 800, 10:
+// 800, 10:
 //vector<double> bestMet = {440,  460};
 //vector<double> bestDedx = {2.5, 3.2};
 
-// best for 4-layers 800, 20:
+// 800, 20:
 //vector<double> bestMet = {400,  480};
 //vector<double> bestDedx = {2.5, 3.0};
 
-// best for 4-layers 1000, 10:
+// 1000, 10:
 //vector<double> bestMet = {440,  490};
 //vector<double> bestDedx = {2.5, 3.5};
 
-// best for 4-layers 1000, 20 (and best for 4-layers overall):
-vector<double> bestMet = {320,  490};
-vector<double> bestDedx = {2.5, 2.6};
+// 1000, 20 (the best overall):
+//vector<double> bestMet = {320,  490};
+//vector<double> bestDedx = {2.5, 2.6};
 
 
 
 
+//------------------------------------------------
+// 2x3, 3 layers
+//------------------------------------------------
 
-string sampleTag = "notag_650_20_or_800_20";
+// 300-3
+//vector<double> bestMet = {300,  430};
+//vector<double> bestDedx = {2.4};
+
+// 300-10
+//vector<double> bestMet = {300,  450};
+//vector<double> bestDedx = {2.5};
+
+// 300-30
+//vector<double> bestMet = {300,  410};
+//vector<double> bestDedx = {2.7};
+
+// 500-10
+//vector<double> bestMet = {320,  450};
+//vector<double> bestDedx = {2.9};
+
+// 500-20, 650-20, 800-20 (the best overall)
+//vector<double> bestMet = {300, 450};
+//vector<double> bestDedx = {3.0};
+
+// 650-10
+//vector<double> bestMet = {300,  440};
+//vector<double> bestDedx = {2.9};
+
+// 800-10, 1000-10/20:
+//vector<double> bestMet = {460, 470};
+//vector<double> bestDedx = {4.3};
+
+
+
+//------------------------------------------------
+// 2x3, 4 layers
+//------------------------------------------------
+
+// 300, 3
+//vector<double> bestMet = {400,  470};
+//vector<double> bestDedx = {3.9};
+
+// 300, 10
+//vector<double> bestMet = {300,  400};
+//vector<double> bestDedx = {2.0};
+
+// 300, 30
+//vector<double> bestMet = {320,  400};
+//vector<double> bestDedx = {2.0};
+
+// 500, 10
+//vector<double> bestMet = {310,  440};
+//vector<double> bestDedx = {2.5};
+
+// 500-20, 650-20:
+//vector<double> bestMet = {320, 440};
+//vector<double> bestDedx = {2.5};
+
+// 650-10
+//vector<double> bestMet = {310,  490};
+//vector<double> bestDedx = {2.5};
+
+// 800-10
+//vector<double> bestMet = {400,  490};
+//vector<double> bestDedx = {2.4};
+
+// 800-20
+//vector<double> bestMet = {320, 490};
+//vector<double> bestDedx = {2.5};
+
+// 1000-10
+//vector<double> bestMet = {430, 460};
+//vector<double> bestDedx = {2.9};
+
+// 1000-20
+vector<double> bestMet = {320, 490};
+vector<double> bestDedx = {2.4};
+
+
+
+string sampleTag = "notag_1000_20";
 string outFileName, outputPath;
 string backgroundHistNams = "background";
 
@@ -777,20 +849,20 @@ int main(int argc, char* argv[])
   cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Drawing plots"<<endl;
   drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, bestMet, bestDedx);
-//  cout<<"\n\n--------------------------------------------------------"<<endl;
-//  cout<<"Creating datacard"<<endl;
-//  createDatacard();
-//  cout<<"\n\n--------------------------------------------------------"<<endl;
-//  cout<<"Transferring card to lxplus"<<endl;
-//  copyDatacardToLxplus();
-//  cout<<"\n\n--------------------------------------------------------"<<endl;
-//  cout<<"Running Combine and copying results back to local machine"<<endl;
-//  runCombine();
-//  cout<<"\n\n--------------------------------------------------------"<<endl;
-//  cout<<"Converting signal strength R to limits in mass-ct"<<endl;
-//  convertRtoLimits();
-//  cout<<"\n\n--------------------------------------------------------"<<endl;
-//  cout<<"Done"<<endl;
+  cout<<"\n\n--------------------------------------------------------"<<endl;
+  cout<<"Creating datacard"<<endl;
+  createDatacard();
+  cout<<"\n\n--------------------------------------------------------"<<endl;
+  cout<<"Transferring card to lxplus"<<endl;
+  copyDatacardToLxplus();
+  cout<<"\n\n--------------------------------------------------------"<<endl;
+  cout<<"Running Combine and copying results back to local machine"<<endl;
+  runCombine();
+  cout<<"\n\n--------------------------------------------------------"<<endl;
+  cout<<"Converting signal strength R to limits in mass-ct"<<endl;
+  convertRtoLimits();
+  cout<<"\n\n--------------------------------------------------------"<<endl;
+  cout<<"Done"<<endl;
   
    
   theApp->Run();

@@ -44,7 +44,7 @@ vector<tuple<string, int, int, int, string>> graphParams = {
   // 2x2 3 layers
 //  {"cms_short_disappearing_2x2_3-layers_notag_300_3"                    , kMagenta    , 3, 1, "CMS (2x2, 3 layers, no tagger, 300-3)"       },
 //  {"cms_short_disappearing_2x2_3-layers_notag_300_10"                   , kMagenta    , 3, 2, "CMS (2x2, 3 layers, no tagger, 300-10)"      },
-//  {"cms_short_disappearing_2x2_3-layers_notag_300_30"                   , kMagenta    , 3, 3, "CMS (2x2, 3 layers, no tagger, 300-10)"      },
+//  {"cms_short_disappearing_2x2_3-layers_notag_300_30"                   , kMagenta    , 3, 3, "CMS (2x2, 3 layers, no tagger, 300-30)"      },
 //  {"cms_short_disappearing_2x2_3-layers_notag_500_10"                   , kCyan       , 3, 1, "CMS (2x2, 3 layers, no tagger, 500-10)"      },
 //  {"cms_short_disappearing_2x2_3-layers_notag_500_20_or_650_20_or_800"  , kCyan       , 3, 2, "CMS (2x2, 3 layers, no tagger, 500-20, 650-20, 800-10/20)"},
 //  {"cms_short_disappearing_2x2_3-layers_notag_650_10"                   , kMagenta+2  , 3, 1, "CMS (2x2, 3 layers, no tagger, 650-10)"      },
@@ -57,6 +57,30 @@ vector<tuple<string, int, int, int, string>> graphParams = {
 //  {"cms_short_disappearing_2x2_4-layers_notag_500_20"                   , kCyan       , 3, 2, "CMS (2x2, 3 layers, no tagger, 500-20)"      },
 //  {"cms_short_disappearing_2x2_4-layers_notag_650_10_or_800_10_or_1000" , kMagenta+2  , 3, 1, "CMS (2x2, 3 layers, no tagger, 650-10, 800-10, 1000-10/20)"},
 //  {"cms_short_disappearing_2x2_4-layers_notag_650_20_or_800_20"         , kOrange     , 3, 1, "CMS (2x2, 3 layers, no tagger, 650-20, 800-20)" },
+  
+  
+    // 2x3 3 layers
+//    {"cms_short_disappearing_2x3_3-layers_notag_300_3"                      , kMagenta    , 3, 1, "CMS (2x3, 3 layers, no tagger, 300-3)"                   },
+//    {"cms_short_disappearing_2x3_3-layers_notag_300_10"                     , kMagenta    , 3, 2, "CMS (2x3, 3 layers, no tagger, 300-10)"                  },
+//    {"cms_short_disappearing_2x3_3-layers_notag_300_30"                     , kMagenta    , 3, 3, "CMS (2x3, 3 layers, no tagger, 300-30)"                  },
+//    {"cms_short_disappearing_2x3_3-layers_notag_500_10"                     , kCyan       , 3, 1, "CMS (2x3, 3 layers, no tagger, 500-10)"                  },
+//    {"cms_short_disappearing_2x3_3-layers_notag_500_20_or_650_20_or_800_20" , kCyan       , 3, 2, "CMS (2x3, 3 layers, no tagger, 500-20, 650-20, 800-20)"  },
+//    {"cms_short_disappearing_2x3_3-layers_notag_650_10"                     , kMagenta+2  , 3, 1, "CMS (2x3, 3 layers, no tagger, 650-10)"                  },
+//    {"cms_short_disappearing_2x3_3-layers_notag_800_10_or_1000"             , kOrange     , 3, 1, "CMS (2x3, 3 layers, no tagger, 800-10, 1000-10/20)"      },
+    
+    // 2x3 4 layers
+    {"cms_short_disappearing_2x3_4-layers_notag_300_3"            , kMagenta    , 3, 1, "CMS (2x3, 3 layers, no tagger, 300-3)"           },
+    {"cms_short_disappearing_2x3_4-layers_notag_300_10"           , kMagenta    , 3, 2, "CMS (2x3, 3 layers, no tagger, 300-10)"          },
+    {"cms_short_disappearing_2x3_4-layers_notag_300_30"           , kMagenta    , 3, 3, "CMS (2x3, 3 layers, no tagger, 300-30)"          },
+    {"cms_short_disappearing_2x3_4-layers_notag_500_20"           , kCyan       , 3, 1, "CMS (2x3, 3 layers, no tagger, 500-10)"          },
+    {"cms_short_disappearing_2x3_4-layers_notag_500_20_or_650_20" , kCyan       , 3, 2, "CMS (2x3, 3 layers, no tagger, 500-20, 650-20)"  },
+    {"cms_short_disappearing_2x3_4-layers_notag_650_10"           , kMagenta+2  , 3, 1, "CMS (2x3, 3 layers, no tagger, 650-10)"          },
+    {"cms_short_disappearing_2x3_4-layers_notag_650_20"           , kMagenta+2  , 3, 2, "CMS (2x3, 3 layers, no tagger, 650-20)"          },
+    {"cms_short_disappearing_2x3_4-layers_notag_800_10"           , kCyan+2     , 3, 1, "CMS (2x3, 3 layers, no tagger, 800-10)"          },
+    {"cms_short_disappearing_2x3_4-layers_notag_800_20"           , kCyan+2     , 3, 2, "CMS (2x3, 3 layers, no tagger, 800-20)"          },
+    {"cms_short_disappearing_2x3_4-layers_notag_1000_10"          , kOrange     , 3, 1, "CMS (2x3, 3 layers, no tagger, 1000-10)"         },
+    {"cms_short_disappearing_2x3_4-layers_notag_1000_20"          , kOrange     , 3, 2, "CMS (2x3, 3 layers, no tagger, 1000-20)"         },
+  
   
   // 3x3
 //  {"cms_short_disappearing_3x3_all_notag_lesslumi"      , kGreen+1, 3, 1, "CMS (3x3, no categories, no tagger)" },
@@ -102,16 +126,17 @@ vector<tuple<string, int, int, int, string>> graphParams = {
   
   
   // best in each category
-//  {"cms_short_disappearing_2x2_3-layers_notag_500_20_or_650_20_or_800"  , kCyan   , 3, 1, "CMS (2x2, 3 layers, no tagger)"},
-//  {"cms_short_disappearing_2x2_4-layers_notag_650_10_or_800_10_or_1000" , kCyan   , 3, 2, "CMS (2x2, 3 layers, no tagger)"},
-//  {"cms_short_disappearing_3x3_3-layers_notag_650_20_or_800_10or20"     , kOrange , 3, 1, "CMS (3x3, 3 layers, no tagger)"},
-//  {"cms_short_disappearing_3x3_4-layers_notag_1000_20"                  , kOrange , 3, 2, "CMS (3x3, 4 layers, no tagger)"},
+//  {"cms_short_disappearing_2x2_3-layers_notag_500_20_or_650_20_or_800"    , kCyan   , 3, 1, "CMS (2x2, 3 layers, no tagger)"},
+//  {"cms_short_disappearing_2x2_4-layers_notag_650_10_or_800_10_or_1000"   , kCyan   , 3, 2, "CMS (2x2, 3 layers, no tagger)"},
+//  {"cms_short_disappearing_2x3_3-layers_notag_500_20_or_650_20_or_800_20" , kMagenta, 3, 1, "CMS (2x3, 3 layers, no tagger)"},
+//  {"cms_short_disappearing_3x3_3-layers_notag_650_20_or_800_10or20"       , kOrange , 3, 1, "CMS (3x3, 3 layers, no tagger)"},
+//  {"cms_short_disappearing_3x3_4-layers_notag_1000_20"                    , kOrange , 3, 2, "CMS (3x3, 4 layers, no tagger)"},
   
   // categories combination
-  {"cms_short_disappearing_3x3_3-layers_notag_650_20_or_800_10or20"     , kOrange , 3, 1, "CMS (3x3, 3 layers, no tagger)"          },
-  {"cms_short_disappearing_3x3_4-layers_notag_1000_20"                  , kOrange , 3, 2, "CMS (3x3, 4 layers, no tagger)"          },
-  {"cms_short_disappearing_3x3_3+4-layers_notag"                        , kGreen+1, 3, 1, "CMS (3x3, 3+4 layers, no tagger)"        },
-  {"cms_short_disappearing_3x3_3+4-layers_notag_run2"                   , kBlue   , 3, 2, "CMS (3x3, 3+4 layers, no tagger, Run 2)" },
+//  {"cms_short_disappearing_3x3_3-layers_notag_650_20_or_800_10or20"     , kOrange , 3, 1, "CMS (3x3, 3 layers, no tagger)"          },
+//  {"cms_short_disappearing_3x3_4-layers_notag_1000_20"                  , kOrange , 3, 2, "CMS (3x3, 4 layers, no tagger)"          },
+//  {"cms_short_disappearing_3x3_3+4-layers_notag"                        , kGreen+1, 3, 1, "CMS (3x3, 3+4 layers, no tagger)"        },
+//  {"cms_short_disappearing_3x3_3+4-layers_notag_run2"                   , kBlue   , 3, 2, "CMS (3x3, 3+4 layers, no tagger, Run 2)" },
   
   
 };
