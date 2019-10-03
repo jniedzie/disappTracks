@@ -94,11 +94,11 @@ int main(int argc, char* argv[])
     Helices fittedHelicesPion = fitter->FitHelices(event->GetPionClusters(), *track, *event->GetVertex());
 
     bool removePionClusters = true;
-    auto pointsNoEndcapsNoPion = event->GetClusters(removePionClusters, removeEndcapClusters);
+    auto pointsNoEndcapsNoPion = event->GetClusters();
     Helices fittedHelicesNoise = fitter->FitHelices(pointsNoEndcapsNoPion, *track, *event->GetVertex());
     
     removePionClusters = false;
-    auto pointsNoEndcaps = event->GetClusters(removePionClusters, removeEndcapClusters);
+    auto pointsNoEndcaps = event->GetClusters();
     Helices fittedHelicesAll = fitter->FitHelices(pointsNoEndcaps, *track, *event->GetVertex());
     
     size_t maxNclusters = 0;
