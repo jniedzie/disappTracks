@@ -15,8 +15,6 @@ string cutLevel = "after_L1/all_met_ge_700/";//after_L1/";
 const int nEvents = 50;
 const int eventOffset = 0;
 
-bool removeEndcapClusters = true;
-
 xtracks::EDataType dataType = xtracks::kSignal;
 int setIter = kWino_M_300_cTau_10;
 
@@ -77,7 +75,7 @@ void CheckParamForCurrentConfig(string paramName)
   for(auto monitorType : monitorTypes){
     int max = 20, nBins = 20;
     if(monitorType=="avg_length" || monitorType=="max_length"){ max = 10; nBins = 40; }
-    monitors[monitorType] = PerformanceMonitor(monitorType, nBins, 0, max);
+    monitors[monitorType] = PerformanceMonitor(monitorType, monitorType, nBins, 0, max);
   }
 
   for(auto iEvent=0; iEvent<events.size(); iEvent++){
@@ -89,9 +87,8 @@ void CheckParamForCurrentConfig(string paramName)
       Helices fittedHelicesBackground = helixFitter->FitHelices(pointsNoEndcapsBackground[iEvent], *track, *event->GetVertex());
       
       for(string monitorType : monitorTypes){
-        monitors[monitorType].SetValues(helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesSignal, monitorType),
-                                       helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesBackground, monitorType));
-        
+        monitors[monitorType].SetValue(helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesSignal, monitorType), true);
+        monitors[monitorType].SetValue(helixProcessor.GetHelicesParamsByMonitorName(fittedHelicesBackground, monitorType), false);
       }
     }
   }
@@ -116,8 +113,8 @@ int main(int argc, char* argv[])
   for(auto iEvent=eventOffset; iEvent<eventOffset+nEvents; iEvent++){
     auto event = GetEvent(iEvent);
     events.push_back(event);
-    pointsNoEndcapsSignal.push_back(event->GetClusters(false, removeEndcapClusters));
-    pointsNoEndcapsBackground.push_back(event->GetClusters(true, removeEndcapClusters));
+    pointsNoEndcapsSignal.push_back(event->GetClusters());
+    pointsNoEndcapsBackground.push_back(event->GetClusters());
   }
   
   for(string monitorType : monitorTypes){
