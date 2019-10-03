@@ -14,13 +14,13 @@
 typedef tuple<vector<double>, vector<double>> binning;
 
 // Desired number of MET and dE/dx bins and limits of those
-const int nMetBins  = 3, nDedxBins = 2;
+const int nMetBins  = 4, nDedxBins = 2;
 const double minMet  = 300 , maxMet  = 500 , stepMet  = 10;
 const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1;
 
-const int ratioRebin = 5;
-
-ESignal binForSignal = kWino_M_1000_cTau_20;
+const int ratioRebin = 1;
+string sampleTag = "notag";
+string backgroundHistNams = "background";
 
 //binning bestValues = {{430}, {2.3}}; // best for 2x2 with no categories:
 //binning bestValues = {{300, 450}, {2.0, 4.0}}; // best for 3x3 with no categories:
@@ -29,7 +29,7 @@ ESignal binForSignal = kWino_M_1000_cTau_20;
 //------------------------------------------------
 // 2x2, 3 layers
 //------------------------------------------------
-
+/*
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_300_cTau_3    ,  {{430}, {2.4}}}, // 300-3
   { kWino_M_300_cTau_10   ,  {{370}, {2.4}}}, // 300-10
@@ -43,7 +43,7 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_1000_cTau_10  ,  {{450}, {3.5}}}, // 1000-10/20
   { kWino_M_1000_cTau_20  ,  {{450}, {3.5}}}, // 1000-10/20
 };
-
+*/
 //------------------------------------------------
 // 2x2, 4 layers
 //------------------------------------------------
@@ -65,21 +65,21 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //------------------------------------------------
 // 3x3, 3 layers
 //------------------------------------------------
-/*
+
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
-  { kWino_M_300_cTau_3    ,  {{300, 430},},{2.2, 2.3}}; // 300-3
-  { kWino_M_300_cTau_10   ,  {{300, 450},},{2.0, 2.1}}; // 300-10
-  { kWino_M_300_cTau_30   ,  {{300, 410},},{2.7, 2.8}}; // 300-30
-  { kWino_M_500_cTau_10   ,  {{320, 450},},{3.0, 3.1}}; // 500-10
-  { kWino_M_500_cTau_20   ,  {{450, 480},},{4.3, 5.0}}; // 500-20
-  { kWino_M_650_cTau_10   ,  {{310, 460},},{2.4, 2.7}}; // 650-10
-  { kWino_M_650_cTau_20   ,  {{300, 450},},{3.0, 3.1}}; // 650-20, 800-10/20 (the best overall)
-  { kWino_M_800_cTau_10   ,  {{300, 450},},{3.0, 3.1}}; // 650-20, 800-10/20 (the best overall)
-  { kWino_M_800_cTau_20   ,  {{300, 450},},{3.0, 3.1}}; // 650-20, 800-10/20 (the best overall)
-  { kWino_M_1000_cTau_10  ,  {{410, 490},},{4.4, 4.5}}; // 1000-10
-  { kWino_M_1000_cTau_20  ,  {{460, 470},},{4.5, 4.6}}; // 1000-20
+  { kWino_M_300_cTau_3    ,  {{300, 430},{2.2, 2.3}}}, // 300-3
+  { kWino_M_300_cTau_10   ,  {{300, 450},{2.0, 2.1}}}, // 300-10
+  { kWino_M_300_cTau_30   ,  {{300, 410},{2.7, 2.8}}}, // 300-30
+  { kWino_M_500_cTau_10   ,  {{320, 450},{3.0, 3.1}}}, // 500-10
+  { kWino_M_500_cTau_20   ,  {{450, 480},{4.3, 5.0}}}, // 500-20
+  { kWino_M_650_cTau_10   ,  {{310, 460},{2.4, 2.7}}}, // 650-10
+  { kWino_M_650_cTau_20   ,  {{300, 450},{3.0, 3.1}}}, // 650-20, 800-10/20 (the best overall)
+  { kWino_M_800_cTau_10   ,  {{300, 450},{3.0, 3.1}}}, // 650-20, 800-10/20 (the best overall)
+  { kWino_M_800_cTau_20   ,  {{300, 450},{3.0, 3.1}}}, // 650-20, 800-10/20 (the best overall)
+  { kWino_M_1000_cTau_10  ,  {{410, 490},{4.4, 4.5}}}, // 1000-10
+  { kWino_M_1000_cTau_20  ,  {{460, 470},{4.5, 4.6}}}, // 1000-20
 };
-*/
+
 //------------------------------------------------
 // 3x3, 4 layers
 //------------------------------------------------
@@ -134,10 +134,26 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_1000_cTau_20  , {{320, 490}, {2.4}}}, // 1000-20
 };
 */
+//------------------------------------------------
+// 2x4, 3 layers
+//------------------------------------------------
+/*
+map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
+  { kWino_M_300_cTau_3   , {{300, 430, 490}, {2.4}}},
+  { kWino_M_300_cTau_10  , {{300, 370, 450}, {3.0}}},
+  { kWino_M_300_cTau_30  , {{300, 410, 420}, {2.7}}},
+  { kWino_M_500_cTau_10  , {{320, 450, 470}, {2.9}}},
+  { kWino_M_500_cTau_20  , {{300, 370, 450}, {3.0}}},
+  { kWino_M_650_cTau_10  , {{300, 440, 450}, {3.0}}},
+  { kWino_M_650_cTau_20  , {{300, 410, 450}, {3.0}}},
+  { kWino_M_800_cTau_10  , {{430, 460, 470}, {4.3}}},
+  { kWino_M_800_cTau_20  , {{370, 460, 470}, {4.3}}},
+  { kWino_M_1000_cTau_10 , {{400, 460, 470}, {4.3}}},
+  { kWino_M_1000_cTau_20 , {{370, 460, 470}, {4.3}}},
+};
 
-string sampleTag = "notag";
-string outFileName, outputPath;
-string backgroundHistNams = "background";
+*/
+
 
 /**
  Returns number of counts in ABCD... regions determined by criticalMet and criticalDedx values.
@@ -147,8 +163,8 @@ string backgroundHistNams = "background";
 vector<vector<double>> GetABCD(const TH2D *metVsDedxHist, const binning bestValues)
 {
   auto &[criticalMet, criticalDedx] = bestValues;
-  vector<float> binsMet = { 0 };
-  vector<float> binsDedx = { 0 };
+  vector<double> binsMet = { 0 };
+  vector<double> binsDedx = { 0 };
   
   for(float met : criticalMet) binsMet.push_back(met);
   for(float dedx : criticalDedx) binsDedx.push_back(dedx);
@@ -157,15 +173,15 @@ vector<vector<double>> GetABCD(const TH2D *metVsDedxHist, const binning bestValu
   binsDedx.push_back(inf);
   
   vector<vector<double>> abcd(binsMet.size()-1, vector<double>(binsDedx.size()-1));
-  
+    
   for(int iMet=0; iMet<binsMet.size()-1; iMet++){
     for(int iDedx=0; iDedx<binsDedx.size()-1; iDedx++){
       
-      int binX1 = metVsDedxHist->GetXaxis()->FindFixBin(binsDedx[iDedx]);
-      int binX2 = metVsDedxHist->GetXaxis()->FindFixBin(binsDedx[iDedx+1])-1;
+      int binX1 = metVsDedxHist->GetXaxis()->FindFixBin(binsDedx[iDedx]+stepDedx/2.);
+      int binX2 = metVsDedxHist->GetXaxis()->FindFixBin(binsDedx[iDedx+1]-stepDedx/2.);
       
-      int binY1 = metVsDedxHist->GetYaxis()->FindFixBin(binsMet[iMet]);
-      int binY2 = metVsDedxHist->GetYaxis()->FindFixBin(binsMet[iMet+1])-1;
+      int binY1 = metVsDedxHist->GetYaxis()->FindFixBin(binsMet[iMet]+stepMet/2.);
+      int binY2 = metVsDedxHist->GetYaxis()->FindFixBin(binsMet[iMet+1]-stepMet/2.);
       
       abcd[iMet][iDedx] = metVsDedxHist->Integral(binX1, binX2, binY1, binY2);
     }
@@ -181,7 +197,7 @@ vector<vector<double>> GetABCD(const TH2D *metVsDedxHist, const binning bestValu
  \param dataType Specifies whether background or signal events should be analyzed
  \param setIter For signal, specified which samples to use
  */
-TH2D* GetABCDplot(TH2D* metVsDedxHist, const binning bestValues, xtracks::EDataType dataType, int setIter=0)
+TH2D* GetABCDplot(const TH2D* metVsDedxHist, const binning bestValues, xtracks::EDataType dataType, int setIter=0)
 {
   auto &[criticalMet, criticalDedx] = bestValues;
   if(criticalMet.size()==0 || criticalDedx.size()==0){
@@ -367,8 +383,15 @@ TGraphErrors* GetRatioGraph(const TH2D *metVsDedxHistBackground, const binning b
 }
 
 
-/// Draws and saves ABCD plots for given values of critical MET and critical dE/dx
-void drawAndSaveABCDplots(TH2D *metVsDedxHistBackground, map<int, TH2D*> metVsDedxHistsSignal, const binning bestValues)
+/**
+ Draws and saves ABCD plots for given values of critical MET and critical dE/dx
+ \param metVsDedxHistBackground MET vs. dE/dx histogram with backgrounds
+ \param metVsDedxHistsSignal map of MET vs. dE/dx histograms for each signal
+ \param bins Tuple of vectors with bin possitions for MET and dE/dx, respectively
+ \param outputPath Path to which all histograms will be saved
+ */
+void drawAndSaveABCDplots(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &metVsDedxHistsSignal,
+                          const binning bins, string outputPath)
 {
   TCanvas *abcdCanvas = new TCanvas("ABCD", "ABCD", 1000, 1500);
   abcdCanvas->Divide(4,3);
@@ -378,13 +401,14 @@ void drawAndSaveABCDplots(TH2D *metVsDedxHistBackground, map<int, TH2D*> metVsDe
   gStyle->SetPaintTextFormat(".1f");
   
   cout<<"Plotting background ABCD"<<endl;
-  TH2D *abcdPlotBackgrounds = GetABCDplot(metVsDedxHistBackground, bestValues, xtracks::kBackground);
+  metVsDedxHistBackground->Write();
+  TH2D *abcdPlotBackgrounds = GetABCDplot(metVsDedxHistBackground, bins, xtracks::kBackground);
   abcdPlotBackgrounds->SetMarkerSize(3.0);
   
   TCanvas *ratioCanvas = new TCanvas("Ratio", "Ratio", 800, 600);
   ratioCanvas->cd();
   
-  TGraphErrors *abcdBackgroundRatio = GetRatioGraph(metVsDedxHistBackground, bestValues);
+  TGraphErrors *abcdBackgroundRatio = GetRatioGraph(metVsDedxHistBackground, bins);
   abcdBackgroundRatio->SetMarkerStyle(20);
   abcdBackgroundRatio->SetMarkerSize(1.0);
   abcdBackgroundRatio->SetMarkerColor(kViolet);
@@ -423,7 +447,7 @@ void drawAndSaveABCDplots(TH2D *metVsDedxHistBackground, map<int, TH2D*> metVsDe
   for(int iSig=0; iSig<kNsignals; iSig++){
     if(!config.runSignal[iSig]) continue;
     cout<<"Plotting "<<signalTitle[iSig]<<" ABCD"<<endl;
-    TH2D *abcdPlot = GetABCDplot(metVsDedxHistsSignal[iSig], bestValues, xtracks::kSignal, iSig);
+    TH2D *abcdPlot = GetABCDplot(metVsDedxHistsSignal.at((ESignal)iSig), bins, xtracks::kSignal, iSig);
     abcdCanvas->cd(iPad++);
     abcdPlot->SetMarkerSize(3.0);
     abcdPlot->Draw("colzText");
@@ -510,7 +534,7 @@ tuple<vector<double>,vector<double>> findBestBinning(const TH2D *metVsDedxHistBa
 }
 
 /// Creates Combine datacard using Andrea's tool
-void createDatacard()
+void createDatacard(string outFileName, string outputPath)
 {
   string command = "python ../DatacardCreatorABCD/mkDatacards.py  --inputHistoFile "+outputPath;
   command += " --dataHistoName  "+backgroundHistNams;
@@ -525,7 +549,7 @@ void createDatacard()
 }
 
 /// Transfers datacard created by this app to a hardcoded lxplus location using scp
-void copyDatacardToLxplus()
+void copyDatacardToLxplus(string outFileName)
 {
   string command = "scp results/datacards/datacard_"+outFileName+".txt";
   command += " jniedzie@lxplus.cern.ch:/afs/cern.ch/work/j/jniedzie/private/disapp_tracks/combine/datacards/andrea/";
@@ -533,7 +557,7 @@ void copyDatacardToLxplus()
 }
 
 /// Runs Combine on lxplus and transfers results back to local machine
-void runCombine()
+void runCombine(string outFileName)
 {
   string command = "ssh jniedzie@lxplus7.cern.ch './runCombine.sh datacard_"+outFileName+"'";
   string output = exec(command.c_str());
@@ -544,7 +568,7 @@ void runCombine()
   exec(command.c_str());
 }
 
-void convertRtoLimits()
+void convertRtoLimits(string outFileName)
 {
   string command = "/Applications/root_v6.16.00/bin/root -q -b -l ";
   command += "\"macros/getLimitsFromR.C(\\\"macros/limitsData/combineOutput/limits_datacard_"+outFileName+".txt\\\", ";
@@ -554,27 +578,18 @@ void convertRtoLimits()
   cout<<"cms_short_disappearing_"+outFileName+".txt\n"<<endl;
 }
 
-/// Starting point of the application
-int main(int argc, char* argv[])
+map<int, TH2D*> loadSignalHists(const EventSet &events)
 {
-  srand((uint)time(0));
-  
-  cout.imbue(locale("de_DE"));
-  TApplication *theApp = new TApplication("App", &argc, argv);
-  config = ConfigManager("configs/analysis.md");
-  
-  outFileName = to_string_with_precision(nDedxBins, 0)+"x"+to_string_with_precision(nMetBins, 0)+"_"+config.category+"_"+sampleTag+"_"+signalShortName[binForSignal];
-  outputPath = "results/abcd_plots_"+outFileName+".root";
-  
-  // Load sll events with initial cuts only
-  EventSet events;
-  string prefix = "after_L"+to_string_with_precision(config.params["cuts_level"], 0)+"/"+config.category+"/";
-  events.LoadEventsFromFiles(prefix);
-  
-  // Create histograms with number of events for each MET-dE/dx bin
-  TH2D *metVsDedxHistBackground = GetMetVsDedxHist(events, xtracks::kBackground);
   map<int, TH2D*> metVsDedxHistsSignal;
-  
+  for(int iSig=0; iSig<kNsignals; iSig++){
+    if(!config.runSignal[iSig]) continue;
+    metVsDedxHistsSignal[iSig] = GetMetVsDedxHist(events, xtracks::kSignal, iSig);
+  }
+  return metVsDedxHistsSignal;
+}
+
+void runBinningScan(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &metVsDedxHistsSignal)
+{
   // Find all combinations of binning in dE/dx and MET
   vector<vector<double>> groupsDedx;
   for(double startingDedx=minDedx; startingDedx<maxDedx; startingDedx+=stepDedx) groupsDedx.push_back({startingDedx});
@@ -586,39 +601,77 @@ int main(int argc, char* argv[])
   
   for(int iSig=0; iSig<kNsignals; iSig++){
     if(!config.runSignal[iSig]) continue;
-    metVsDedxHistsSignal[iSig] = GetMetVsDedxHist(events, xtracks::kSignal, iSig);
-    
-//    auto result = findBestBinning(metVsDedxHistBackground, metVsDedxHistsSignal[iSig],
-//                                  groupsDedx, groupsMet);
-//
-//
-//    double significance = GetSignificance(metVsDedxHistBackground,
-//                                          metVsDedxHistsSignal[iSig],
-//                                          result);
-//
-//    Log(0)<<"Sample: "<<signalTitle[iSig]<<"\n";
-//    Log(0)<<"MET bins: "; for(double met : get<0>(result)) Log(0)<<met<<"\t"; Log(0)<<"\n";
-//    Log(0)<<"dE/dx bins: "; for(double dedx : get<1>(result)) Log(0)<<dedx<<"\t"; Log(0)<<"\n";
-//    Log(0)<<"significance: "<<significance<<"\n";
+    auto result = findBestBinning(metVsDedxHistBackground, metVsDedxHistsSignal.at(iSig), groupsDedx, groupsMet);
+    double significance = GetSignificance(metVsDedxHistBackground, metVsDedxHistsSignal.at(iSig), result);
+
+    Log(0)<<"Sample: "<<signalTitle[iSig]<<"\n";
+    Log(0)<<"MET bins: "; for(double met : get<0>(result)) Log(0)<<met<<"\t"; Log(0)<<"\n";
+    Log(0)<<"dE/dx bins: "; for(double dedx : get<1>(result)) Log(0)<<dedx<<"\t"; Log(0)<<"\n";
+    Log(0)<<"significance: "<<significance<<"\n";
   }
-  
+}
+
+void getLimitsForSignal(string outFileName, string outputPath)
+{
   cout<<"\n\n--------------------------------------------------------"<<endl;
-  cout<<"Drawing plots"<<endl;
-  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, bestValues[binForSignal]);
-//  cout<<"\n\n--------------------------------------------------------"<<endl;
-//  cout<<"Creating datacard"<<endl;
-//  createDatacard();
-//  cout<<"\n\n--------------------------------------------------------"<<endl;
-//  cout<<"Transferring card to lxplus"<<endl;
-//  copyDatacardToLxplus();
-//  cout<<"\n\n--------------------------------------------------------"<<endl;
-//  cout<<"Running Combine and copying results back to local machine"<<endl;
-//  runCombine();
-//  cout<<"\n\n--------------------------------------------------------"<<endl;
-//  cout<<"Converting signal strength R to limits in mass-ct"<<endl;
-//  convertRtoLimits();
-//  cout<<"\n\n--------------------------------------------------------"<<endl;
-//  cout<<"Done"<<endl;
+  cout<<"Creating datacard"<<endl;
+  createDatacard(outFileName, outputPath);
+  cout<<"\n\n--------------------------------------------------------"<<endl;
+  cout<<"Transferring card to lxplus"<<endl;
+  copyDatacardToLxplus(outFileName);
+  cout<<"\n\n--------------------------------------------------------"<<endl;
+  cout<<"Running Combine and copying results back to local machine"<<endl;
+  runCombine(outFileName);
+  cout<<"\n\n--------------------------------------------------------"<<endl;
+  cout<<"Converting signal strength R to limits in mass-ct"<<endl;
+  convertRtoLimits(outFileName);
+  cout<<"\n\n--------------------------------------------------------"<<endl;
+  cout<<"Done"<<endl;
+}
+
+void produceLimits(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &metVsDedxHistsSignal)
+{
+  for(int iSig=0; iSig<kNsignals; iSig++){
+     if(!config.runSignal[iSig]) continue;
+     
+     
+     string outFileName = to_string_with_precision(nDedxBins, 0)+"x"+to_string_with_precision(nMetBins, 0)+"_"+config.category+"_"+sampleTag+"_"+signalShortName[iSig];
+     string outputPath = "results/abcd_plots_"+outFileName+".root";
+     
+     cout<<"\n\n--------------------------------------------------------"<<endl;
+     cout<<"Drawing plots"<<endl;
+     drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal,
+                          bestValues.at((ESignal)iSig), outputPath);
+     getLimitsForSignal(outFileName, outputPath);
+   }
+}
+
+/// Starting point of the application
+int main(int argc, char* argv[])
+{
+  srand((uint)time(0));
+  
+  cout.imbue(locale("de_DE"));
+  TApplication *theApp = new TApplication("App", &argc, argv);
+  config = ConfigManager("configs/analysis.md");
+  
+ 
+  
+  // Load sll events with initial cuts only
+  EventSet events;
+  string prefix = "after_L"+to_string_with_precision(config.params["cuts_level"], 0)+"/"+config.category+"/";
+  events.LoadEventsFromFiles(prefix);
+  
+  // Create histograms with number of events for each MET-dE/dx bin
+  TH2D *metVsDedxHistBackground = GetMetVsDedxHist(events, xtracks::kBackground);
+  map<int, TH2D*> metVsDedxHistsSignal = loadSignalHists(events);
+  
+  
+//  runBinningScan(metVsDedxHistBackground, metVsDedxHistsSignal);
+  
+//  produceLimits(metVsDedxHistBackground, metVsDedxHistsSignal);
+
+  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, {{400},{3.0, 3.1}} , "results/abcd_plots_debug.root");
   
    
   theApp->Run();
