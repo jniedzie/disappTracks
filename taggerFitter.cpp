@@ -81,7 +81,7 @@ void chi2Function(Int_t&, Double_t*, Double_t &f, Double_t *par, Int_t)
   int max = 20;
   if(monitorType=="avg_length") max = 2;
   if(monitorType=="max_length") max = 6;
-  auto monitor = PerformanceMonitor(monitorType, 20, 0, max);
+  auto monitor = PerformanceMonitor(monitorType, monitorType, 20, 0, max);
   
   for(auto iEvent=0; iEvent<nEvents; iEvent++){
     
@@ -96,22 +96,28 @@ void chi2Function(Int_t&, Double_t*, Double_t &f, Double_t *par, Int_t)
       Helices fittedHelicesBackground = helixFitter->FitHelices(pointsNoEndcapsBackground[iEvent], *track, *event->GetVertex());
       
       if(monitorType=="avg_hits"){
-        monitor.SetValues(GetAvgNhits(fittedHelicesSignal), GetAvgNhits(fittedHelicesBackground));
+        monitor.SetValue(GetAvgNhits(fittedHelicesSignal), true);
+        monitor.SetValue(GetAvgNhits(fittedHelicesBackground), false);
       }
       else if(monitorType=="max_hits"){
-        monitor.SetValues(GetMaxNhits(fittedHelicesSignal), GetMaxNhits(fittedHelicesBackground));
+        monitor.SetValue(GetMaxNhits(fittedHelicesSignal), GetMaxNhits(fittedHelicesBackground));
+        monitor.SetValue(GetMaxNhits(fittedHelicesSignal), GetMaxNhits(fittedHelicesBackground));
       }
       else if(monitorType=="max_layers"){
-        monitor.SetValues(GetMaxNlayers(fittedHelicesSignal), GetMaxNlayers(fittedHelicesBackground));
+        monitor.SetValue(GetMaxNlayers(fittedHelicesSignal), true);
+        monitor.SetValue(GetMaxNlayers(fittedHelicesSignal), false);
       }
       else if(monitorType=="n_helices"){
-        monitor.SetValues(fittedHelicesSignal.size(), fittedHelicesBackground.size());
+        monitor.SetValue(fittedHelicesSignal.size(), true);
+        monitor.SetValue(fittedHelicesSignal.size(), false);
       }
       else if(monitorType=="avg_length"){
-        monitor.SetValues(GetAvgLength(fittedHelicesSignal), GetAvgLength(fittedHelicesBackground));
+        monitor.SetValue(GetAvgLength(fittedHelicesSignal), true);
+        monitor.SetValue(GetAvgLength(fittedHelicesSignal), false);
       }
       else if(monitorType=="max_length"){
-        monitor.SetValues(GetMaxLength(fittedHelicesSignal), GetMaxLength(fittedHelicesBackground));
+        monitor.SetValue(GetMaxLength(fittedHelicesSignal), true);
+        monitor.SetValue(GetMaxLength(fittedHelicesSignal), false);
       }
       else{
         cout<<"Unknown monitor type: "<<monitorType<<endl;
@@ -124,29 +130,14 @@ void chi2Function(Int_t&, Double_t*, Double_t &f, Double_t *par, Int_t)
   }
   monitor.CalcEfficiency();
   
-  double optValue = inf;
+  double optValue = monitor.GetValueByName(optimizationParam);;
   double chi2 = inf;
   
-  if(optimizationParam=="auc"){
-    optValue = monitor.GetAUC();
-    chi2 = pow(10-optValue, 2)/optValue;
-  }
-  else if(optimizationParam=="max_eff"){
-    optValue = monitor.GetMaxEfficiency();
-    chi2 = pow(1-optValue, 2)/optValue;
-  }
-  else if(optimizationParam=="sigma_init"){
-    optValue = monitor.GetSignificanceInitial();
-    chi2 = pow(2-optValue, 2)/optValue;
-  }
-  else if(optimizationParam=="sigma_L0"){
-    optValue = monitor.GetSignificanceAfterL0();
-    chi2 = pow(10-optValue, 2)/optValue;
-  }
-  else if(optimizationParam=="sigma_L1"){
-    optValue = monitor.GetSignificanceAfterL1();
-    chi2 = pow(30-optValue, 2)/optValue;
-  }
+  if(optimizationParam=="auc")              chi2 = pow(10-optValue, 2)/optValue;
+  else if(optimizationParam=="max_eff")     chi2 = pow( 1-optValue, 2)/optValue;
+  else if(optimizationParam=="sigma_init")  chi2 = pow( 2-optValue, 2)/optValue;
+  else if(optimizationParam=="sigma_L0")    chi2 = pow(10-optValue, 2)/optValue;
+  else if(optimizationParam=="sigma_L1")    chi2 = pow(30-optValue, 2)/optValue;
   else{
     cout<<"Unknown optimization param: "<<optimizationParam<<endl;
     cout<<"Possible options: auc/max_eff/sigma_init/sigma_L0"<<endl;
