@@ -214,6 +214,9 @@ void HistSet::Fill(const shared_ptr<TH1D> &hist,
           }
           continue;
         }
+        else if(var == kTrackMinDedx){
+          value = track->GetMinDedx();
+        }
         hist->Fill(value, event->GetWeight());
       }
     }
@@ -349,6 +352,8 @@ void HistSet::DrawPerLayer()
     c1->cd(var==kDedx ? iDetId : iDetId+1);
     
     for(int iSig=0;iSig<(int)signalPerLayer.size();iSig++){
+      if(!config.runSignal[iSig]) continue;
+      
       signalPerLayer[iSig][iDetId]->SetLineColor(SignalColor((ESignal)iSig));
       signalPerLayer[iSig][iDetId]->SetMarkerStyle(signalMarkers[iSig]);
       signalPerLayer[iSig][iDetId]->SetMarkerColor(SignalColor((ESignal)iSig));
@@ -358,12 +363,16 @@ void HistSet::DrawPerLayer()
     }
       
     for(int iBck=0;iBck<(int)backgroundPerLayer.size();iBck++){
+      if(!config.runBackground[iBck]) continue;
+      
       backgroundPerLayer[iBck][iDetId]->SetLineColor(BackColor((EBackground)iBck));
       backgroundPerLayer[iBck][iDetId]->SetFillStyle(fillStyleBack);
       backgroundPerLayer[iBck][iDetId]->SetFillColorAlpha(BackColor((EBackground)iBck), fillOpacity);
       backgroundPerLayer[iBck][iDetId]->Scale(1/backgroundPerLayer[iBck][iDetId]->Integral());
     }
     for(int iData=0;iData<(int)dataPerLayer.size();iData++){
+      if(!config.runData[iData]) continue;
+      
       dataPerLayer[iData][iDetId]->SetLineColor(DataColor((EData)iData));
       dataPerLayer[iData][iDetId]->SetMarkerColor(DataColor((EData)iData));
       dataPerLayer[iData][iDetId]->SetMarkerStyle(20);

@@ -508,6 +508,7 @@ enum EVar{
   kTrackAbsoluteIsolation,
   kTrackMetDphi,
   kTrackDedxPerHit,
+  kTrackMinDedx,
   kTrackTrackerLayers,
   
   // per jet variables
@@ -575,6 +576,7 @@ const map<EVar, tuple<string, int, double, double, bool>> settings =
   {kTrackTrackerLayers,           make_tuple("N tracker layers",    20,  0,   20,   false)},
   {kTrackRelativeIsolation,       make_tuple("Relative isolation",  50,  0,   0.5,  true)},
   {kTrackDedxPerHit,              make_tuple("dE/dx per hit",       50,  0,   10,   false)},
+  {kTrackMinDedx,                 make_tuple("min dE/dx"    ,       50,  0,   10,   false)},
   {kTrackCaloEm,                  make_tuple("EM calo energy",      50,  0,   10,   true)},
   {kTrackCaloHad,                 make_tuple("Hadron calo energy",  50,  0,   10,   true)},
 
@@ -630,7 +632,7 @@ inline bool IsPerTrackVariable(EVar var)
      var == kTrackEta || var == kTrackPhi || var == kTrackCaloEm || var == kTrackCaloHad ||
      var == kTrackDxy || var == kTrackDz || var == kTrackCharge || var == kTrackMass || var == kTrackPid ||
      var == kTrackMissingOuterTrackerHits || var == kTrackPixelHits || var == kTrackTrackerHits || var == kTrackTrackerLayers || var == kTrackRelativeIsolation || var == kTrackAbsoluteIsolation || var == kTrackMetDphi ||
-     var == kTrackDedxPerHit)
+     var == kTrackDedxPerHit || var == kDedx || var == kTrackMinDedx)
     return true;
   return false;
 }

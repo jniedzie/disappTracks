@@ -452,6 +452,7 @@ void EventSet::DrawStandardPlots(string prefix) const
   hists["absIsolation"] = new HistSet(kTrackAbsoluteIsolation);
   hists["trackMetDphi"] = new HistSet(kTrackMetDphi);
   hists["dedx"]         = new HistSet(kTrackDedxPerHit);
+  hists["minDedx"]      = new HistSet(kTrackMinDedx);
   
   hists["helixX"]       = new HistSet(kHelixX);
   hists["helixY"]       = new HistSet(kHelixY);
@@ -503,7 +504,7 @@ void EventSet::DrawStandardPlots(string prefix) const
   
   hists["pt"]->Draw(canvasTrack,1);
   hists["trackerLayers"]->Draw(canvasTrack,2);
-  hists["dedx"]->Draw(canvasTrack,3);
+  hists["minDedx"]->Draw(canvasTrack,3);
   hists["isolation"]->Draw(canvasTrack,4);
   hists["caloEm"]->Draw(canvasTrack,5);
   hists["caloHad"]->Draw(canvasTrack,6);
