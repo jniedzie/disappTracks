@@ -14,7 +14,7 @@
 typedef tuple<vector<double>, vector<double>> binning;
 
 // Desired number of MET and dE/dx bins and limits of those
-const int nMetBins  = 4, nDedxBins = 2;
+const int nMetBins  = 3, nDedxBins = 3;
 const double minMet  = 300 , maxMet  = 500 , stepMet  = 10;
 const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1;
 
@@ -63,9 +63,9 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 };
 */
 //------------------------------------------------
-// 3x3, 3 layers
+// 3x3, 3 layers (with bug)
 //------------------------------------------------
-
+/*
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_300_cTau_3    ,  {{300, 430},{2.2, 2.3}}}, // 300-3
   { kWino_M_300_cTau_10   ,  {{300, 450},{2.0, 2.1}}}, // 300-10
@@ -78,6 +78,24 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_800_cTau_20   ,  {{300, 450},{3.0, 3.1}}}, // 650-20, 800-10/20 (the best overall)
   { kWino_M_1000_cTau_10  ,  {{410, 490},{4.4, 4.5}}}, // 1000-10
   { kWino_M_1000_cTau_20  ,  {{460, 470},{4.5, 4.6}}}, // 1000-20
+};
+*/
+//------------------------------------------------
+// 3x3, 3 layers (fixed)
+//------------------------------------------------
+
+map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
+  { kWino_M_300_cTau_3    ,  {{330, 430},{2.4, 5.1}}},
+  { kWino_M_300_cTau_10   ,  {{300, 450},{2.1, 3.6}}},
+  { kWino_M_300_cTau_30   ,  {{300, 410},{2.8, 3.7}}},
+  { kWino_M_500_cTau_10   ,  {{320, 450},{3.0, 5.0}}}, // BEST
+  { kWino_M_500_cTau_20   ,  {{450, 480},{4.3, 5.0}}},
+  { kWino_M_650_cTau_10   ,  {{300, 440},{4.8, 5.0}}},
+  { kWino_M_650_cTau_20   ,  {{300, 450},{3.0, 4.7}}},
+  { kWino_M_800_cTau_10   ,  {{430, 470},{3.8, 4.0}}},
+  { kWino_M_800_cTau_20   ,  {{410, 490},{4.4, 5.0}}},
+  { kWino_M_1000_cTau_10  ,  {{340, 450},{3.8, 4.0}}},
+  { kWino_M_1000_cTau_20  ,  {{370, 450},{3.8, 4.0}}},
 };
 
 //------------------------------------------------
@@ -574,8 +592,6 @@ void convertRtoLimits(string outFileName)
   command += "\"macros/getLimitsFromR.C(\\\"macros/limitsData/combineOutput/limits_datacard_"+outFileName+".txt\\\", ";
   command += "\\\"macros/limitsData/cms_short_disappearing_"+outFileName+".txt\\\")\"";
   exec(command.c_str());
-  cout<<"\nFile ready to add to limits plot:"<<endl;
-  cout<<"cms_short_disappearing_"+outFileName+".txt\n"<<endl;
 }
 
 map<int, TH2D*> loadSignalHists(const EventSet &events)
@@ -631,6 +647,8 @@ void getLimitsForSignal(string outFileName, string outputPath)
 
 void produceLimits(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &metVsDedxHistsSignal)
 {
+  vector<string> producedLimits;
+  
   for(int iSig=0; iSig<kNsignals; iSig++){
      if(!config.runSignal[iSig]) continue;
      
@@ -643,7 +661,13 @@ void produceLimits(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &m
      drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal,
                           bestValues.at((ESignal)iSig), outputPath);
      getLimitsForSignal(outFileName, outputPath);
+    
+    producedLimits.push_back("cms_short_disappearing_"+outFileName+".txt");
    }
+  
+  
+  cout<<"\nFiles ready to add to limits plot:"<<endl;
+  for(string path : producedLimits) cout<<path<<endl;
 }
 
 /// Starting point of the application
@@ -669,9 +693,9 @@ int main(int argc, char* argv[])
   
 //  runBinningScan(metVsDedxHistBackground, metVsDedxHistsSignal);
   
-//  produceLimits(metVsDedxHistBackground, metVsDedxHistsSignal);
+  produceLimits(metVsDedxHistBackground, metVsDedxHistsSignal);
 
-  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, {{400},{3.0, 3.1}} , "results/abcd_plots_debug.root");
+//  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, {{400},{3.0, 3.1}} , "results/abcd_plots_debug.root");
   
    
   theApp->Run();
