@@ -104,6 +104,9 @@ int main(int argc, char* argv[])
   
   events.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
+  int nEventsWithFakeTrack = 0;
+  int nEvents = 0;
+  
   for(int iEvent=0; iEvent<events.size(xtracks::kData, kMET_Run2018A_CR); iEvent++){
     auto event = events.At(xtracks::kData, kMET_Run2018A_CR, iEvent);
     
@@ -123,11 +126,11 @@ int main(int argc, char* argv[])
     double mass = dimuon.M();
     invMass->Fill(mass);
     
-    
     for(int iTrack=0; iTrack<event->GetNtracks(); iTrack++){
       auto track = event->GetTrack(iTrack);
       int nLayers = track->GetNtrackerLayers();
       
+      if(nLayers < 7) nEventsWithFakeTrack++;
       
       if(fabs(mass-Zmass) < Zwidth){
         heatMaps["1sigma_all"]->Fill(track->GetPhi(), track->GetEta());
@@ -151,6 +154,7 @@ int main(int argc, char* argv[])
         }
       }
     }
+    nEvents++;
   }
   
   TCanvas *c1 = new TCanvas("c1","c1",1000,1500);
@@ -186,6 +190,12 @@ int main(int argc, char* argv[])
   outFile->Close();
   
 
+  cout<<"Number of events with a fake tracks below 7 layers: "<<nEventsWithFakeTrack<<endl;
+  cout<<"Total number of events analyzed: "<<nEvents<<endl;
+  cout<<"Fake probability: "<<(double)nEventsWithFakeTrack/nEvents<<endl;
+  cout<<"2 fakes probability: "<<pow((double)nEventsWithFakeTrack/nEvents, 2)<<endl;
+  
+  
   theApp.Run();
   return 0;
 }

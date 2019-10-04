@@ -4,7 +4,7 @@
 cuts_level: 1
 
 ### Analysis category ( 2-tracks | 3-layers | 4-layers | all ):
-analysis_category:  3-layers
+analysis_category:  4-layers
 
 scan_MET_binning: 0
 do_MET_binning: 0
@@ -19,30 +19,30 @@ load_hits:             0
 verbosity_level: 1
 
 ### turn on/off different backgrounds, signals and data samples
-do_QCD:         0
-do_Zmm:         0
-do_tops:          0
-do_dibosons:   0
-do_Wmv:         0
-do_Zvv:           0
+do_QCD:         1
+do_Zmm:         1
+do_tops:          1
+do_dibosons:   1
+do_Wmv:         1
+do_Zvv:           1
 
-do_300_3:       0
-do_300_10:     0
-do_300_30:     0
-do_500_10:     0
-do_500_20:     0
-do_650_10:     0
-do_650_20:     0
-do_800_10:     0
-do_800_20:     0
-do_1000_10:   0
-do_1000_20:   0
+do_300_3:       1
+do_300_10:     1
+do_300_30:     1
+do_500_10:     1
+do_500_20:     1
+do_650_10:     1
+do_650_20:     1
+do_800_10:     1
+do_800_20:     1
+do_1000_10:   1
+do_1000_20:   1
 do_tagger_signal:             0
 do_tagger_background:   0
 
 do_2017:         0
 do_2018:         0
-do_2018_CR:  1
+do_2018_CR:  0
 
 **Printing & plotting options**
 
@@ -68,7 +68,7 @@ show_legends: 1
 ### Limit number of events loaded (-1 means load all available)
 max_N_events_background:  -1
 max_N_events_signal: -1
-max_N_events_data:  10000
+max_N_events_data:  100000
 
 
 

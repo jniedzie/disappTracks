@@ -1,4 +1,3 @@
-
 const double yAxisMin = 1E-2;
 const double yAxisMax = 4E2;
 const double xAxisMin = 50;
@@ -9,11 +8,14 @@ double labelSize = 0.045;
 double titleSizeY = 0.12;
 double titleSizeX = 0.050;
 
-bool sortbysec(const tuple<double, double>& a,
-               const tuple<double, double>& b)
-{
-    return (get<1>(a) < get<1>(b));
-}
+bool drawBySample = false;
+const string binning = "3x3";
+const string category = "4-layers";
+
+bool drawByBinning = false;
+bool drawByCategory = true;
+
+bool sortbysec(const tuple<double, double>& a, const tuple<double, double>& b){ return (get<1>(a) < get<1>(b)); }
 
 TGraph* GetGraphFromTxt(const char *fileName, double scale=1.0){
   
@@ -42,89 +44,39 @@ vector<tuple<string, int, int, int, string>> otherGraphParams = {
 //  {"exo_16_044_expected_68p"  , kGreen   , 1, 1, "EXO-44-016 (68% expected)"            },
 };
 
-vector<tuple<string, int, int, int, string>> graphParams = {
+vector<tuple<string, int, int, string>> graphParamsByBinning = { // best in each binning
 // inFileName                                            color     width   style    title
-  
-  // 2x2, 3 layers
-//  {"2x2_3-layers_notag_300_3"                    , kMagenta    , 3, 1, "2x2, 3 layers, no tagger, 300-3"       },
-//  {"2x2_3-layers_notag_300_10"                   , kMagenta    , 3, 2, "2x2, 3 layers, no tagger, 300-10"      },
-//  {"2x2_3-layers_notag_300_30"                   , kMagenta    , 3, 3, "2x2, 3 layers, no tagger, 300-30"      },
-//  {"2x2_3-layers_notag_500_10"                   , kCyan       , 3, 1, "2x2, 3 layers, no tagger, 500-10"      },
-//  {"2x2_3-layers_notag_500_20_or_650_20_or_800"  , kCyan       , 3, 2, "2x2, 3 layers, no tagger, 500-20, 650-20, 800-10/20"},
-//  {"2x2_3-layers_notag_650_10"                   , kMagenta+2  , 3, 1, "2x2, 3 layers, no tagger, 650-10"      },
-//  {"2x2_3-layers_notag_1000_10or20"              , kOrange     , 3, 1, "2x2, 3 layers, no tagger, 1000-10/20"  },
-  
-  // 2x2, 4 layers
-//  {"2x2_4-layers_notag_300_3"                    , kMagenta    , 3, 1, "2x2, 3 layers, no tagger, 300-3"       },
-//  {"2x2_4-layers_notag_300_10or30"               , kMagenta    , 3, 2, "2x2, 3 layers, no tagger, 300-10/30"   },
-//  {"2x2_4-layers_notag_500_10"                   , kCyan       , 3, 1, "2x2, 3 layers, no tagger, 500-10"      },
-//  {"2x2_4-layers_notag_500_20"                   , kCyan       , 3, 2, "2x2, 3 layers, no tagger, 500-20"      },
-//  {"2x2_4-layers_notag_650_10_or_800_10_or_1000" , kMagenta+2  , 3, 1, "2x2, 3 layers, no tagger, 650-10, 800-10, 1000-10/20"},
-//  {"2x2_4-layers_notag_650_20_or_800_20"         , kOrange     , 3, 1, "2x2, 3 layers, no tagger, 650-20, 800-20" },
-  
-  
-    // 2x3, 3 layers
-//    {"2x3_3-layers_notag_300_3"                      , kMagenta    , 3, 1, "2x3, 3 layers, no tagger, 300-3"                   },
-//    {"2x3_3-layers_notag_300_10"                     , kMagenta    , 3, 2, "2x3, 3 layers, no tagger, 300-10"                  },
-//    {"2x3_3-layers_notag_300_30"                     , kMagenta    , 3, 3, "2x3, 3 layers, no tagger, 300-30"                  },
-//    {"2x3_3-layers_notag_500_10"                     , kCyan       , 3, 1, "2x3, 3 layers, no tagger, 500-10"                  },
-//    {"2x3_3-layers_notag_500_20_or_650_20_or_800_20" , kCyan       , 3, 2, "2x3, 3 layers, no tagger, 500-20, 650-20, 800-20"  },
-//    {"2x3_3-layers_notag_650_10"                     , kMagenta+2  , 3, 1, "2x3, 3 layers, no tagger, 650-10"                  },
-//    {"2x3_3-layers_notag_800_10_or_1000"             , kOrange     , 3, 1, "2x3, 3 layers, no tagger, 800-10, 1000-10/20"      },
-    
-    // 2x3, 4 layers
-//    {"2x3_4-layers_notag_300_3"            , kMagenta    , 3, 1, "2x3, 4 layers, no tagger, 300-3"           },
-//    {"2x3_4-layers_notag_300_10"           , kMagenta    , 3, 2, "2x3, 4 layers, no tagger, 300-10"          },
-//    {"2x3_4-layers_notag_300_30"           , kMagenta    , 3, 3, "2x3, 4 layers, no tagger, 300-30"          },
-//    {"2x3_4-layers_notag_500_10"           , kCyan       , 3, 1, "2x3, 4 layers, no tagger, 500-10"          },
-//    {"2x3_4-layers_notag_500_20_or_650_20" , kCyan       , 3, 2, "2x3, 4 layers, no tagger, 500-20, 650-20"  },
-//    {"2x3_4-layers_notag_650_10"           , kMagenta+2  , 3, 1, "2x3, 4 layers, no tagger, 650-10"          },
-//    {"2x3_4-layers_notag_800_10"           , kCyan+2     , 3, 1, "2x3, 4 layers, no tagger, 800-10"          },
-//    {"2x3_4-layers_notag_800_20"           , kCyan+2     , 3, 2, "2x3, 4 layers, no tagger, 800-20"          },
-//    {"2x3_4-layers_notag_1000_10"          , kOrange     , 3, 1, "2x3, 4 layers, no tagger, 1000-10"         },
-//    {"2x3_4-layers_notag_1000_20"          , kOrange     , 3, 2, "2x3, 4 layers, no tagger, 1000-20"         },
-  
-  
-  
-  // 3x3, 3-layers
-//  {"3x3_3-layers_notag_300_3"      , kMagenta  , 2, 1, "3x3, 3 layers, no tagger, 300, 3"    },
-//  {"3x3_3-layers_notag_300_10"     , kMagenta  , 2, 2, "3x3, 3 layers, no tagger, 300, 10"   },
-//  {"3x3_3-layers_notag_300_30"     , kMagenta  , 2, 3, "3x3, 3 layers, no tagger, 300, 30"   },
-//  {"3x3_3-layers_notag_500_10"     , kCyan     , 2, 1, "3x3, 3 layers, no tagger, 500, 10"   },
-//  {"3x3_3-layers_notag_500_20"     , kCyan     , 2, 2, "3x3, 3 layers, no tagger, 500, 20"   },
-//  {"3x3_3-layers_notag_650_10"     , kMagenta+2, 2, 1, "3x3, 3 layers, no tagger, 650, 10"   },
-//  {"3x3_3-layers_notag_650_20_or_800_10or20"     , kMagenta+2, 2, 2, "3x3, 3 layers, no tagger, 650, 20, 800 10/20"},
-//  {"3x3_3-layers_notag_1000_10"    , kOrange   , 2, 1, "3x3, 3 layers, no tagger, 1000, 10"  },
-//  {"3x3_3-layers_notag_1000_20"    , kOrange   , 2, 2, "3x3, 3 layers, no tagger, 1000, 20"  },
-  
-  // 3x3, 4-layers
-//  {"3x3_4-layers_notag_300_3"      , kMagenta  , 2, 1, "3x3, 4 layers, no tagger, 300, 3"    },
-//  {"3x3_4-layers_notag_300_10or30" , kMagenta  , 2, 2, "3x3, 4 layers, no tagger, 300, 10/30"},
-//  {"3x3_4-layers_notag_500_10"     , kCyan     , 2, 1, "3x3, 4 layers, no tagger, 500, 10"   },
-//  {"3x3_4-layers_notag_500_20"     , kCyan     , 2, 2, "3x3, 4 layers, no tagger, 500, 20"   },
-//  {"3x3_4-layers_notag_650_10"     , kMagenta+2, 2, 1, "3x3, 4 layers, no tagger, 650, 10"   },
-//  {"3x3_4-layers_notag_650_20"     , kMagenta+2, 2, 2, "3x3, 4 layers, no tagger, 650, 20"   },
-//  {"3x3_4-layers_notag_800_10"     , kCyan+2   , 2, 1, "3x3, 4 layers, no tagger, 800, 10"   },
-//  {"3x3_4-layers_notag_800_20"     , kCyan+2   , 2, 2, "3x3, 4 layers, no tagger, 800, 20"   },
-//  {"3x3_4-layers_notag_1000_10"    , kOrange   , 2, 1, "3x3, 4 layers, no tagger, 1000, 10"  },
-//  {"3x3_4-layers_notag_1000_20"    , kOrange   , 2, 2, "3x3, 4 layers, no tagger, 1000, 20"  },
-    
-  
-  // best in each category
-  {"2x2_3-layers_notag_500_20_or_650_20_or_800"    , kCyan   , 3, 1, "2x2, 3 layers, no tagger"},
-  {"2x2_4-layers_notag_650_10_or_800_10_or_1000"   , kCyan   , 3, 2, "2x2, 3 layers, no tagger"},
-  {"2x3_3-layers_notag_500_20_or_650_20_or_800_20" , kMagenta, 3, 1, "2x3, 3 layers, no tagger"},
-  {"2x3_4-layers_notag_800_10"                     , kMagenta, 3, 2, "2x3, 4 layers, no tagger"},
-  {"3x3_3-layers_notag_650_20_or_800_10or20"       , kOrange , 3, 1, "3x3, 3 layers, no tagger"},
-  {"3x3_4-layers_notag_1000_20"                    , kOrange , 3, 2, "3x3, 4 layers, no tagger"},
-  
-  // categories combination
-//  {"3x3_3-layers_notag_650_20_or_800_10or20"     , kOrange , 3, 1, "3x3, 3 layers, no tagger"          },
-//  {"3x3_4-layers_notag_1000_20"                  , kOrange , 3, 2, "3x3, 4 layers, no tagger"          },
-//  {"3x3_3+4-layers_notag"                        , kGreen+1, 3, 1, "3x3, 3+4 layers, no tagger"        },
-//  {"3x3_3+4-layers_notag_run2"                   , kBlue   , 3, 2, "3x3, 3+4 layers, no tagger, Run 2" },
-  
-  
+  {"2x2_3-layers_notag_800_10"  , kCyan   , 1, "2x2, 3 layers, no tagger"},
+  {"2x2_4-layers_notag_800_20"  , kCyan   , 2, "2x2, 4 layers, no tagger"},
+  {"2x3_3-layers_notag_800_20"  , kMagenta, 1, "2x3, 3 layers, no tagger"},
+  {"2x3_4-layers_notag_800_10"  , kMagenta, 2, "2x3, 4 layers, no tagger"},
+  {"3x2_3-layers_notag_500_10"  , kBlue   , 1, "3x2, 3 layers, no tagger"},
+  {"3x2_4-layers_notag_1000_10" , kBlue   , 2, "3x2, 4 layers, no tagger"},
+  {"3x3_3-layers_notag_500_10"  , kOrange , 1, "3x3, 3 layers, no tagger"},
+  {"3x3_4-layers_notag_1000_10" , kOrange , 2, "3x3, 4 layers, no tagger"},
+};
+
+vector<tuple<string, int, int, int, string>> graphParamsByCategory = { // best in each category
+// inFileName                                            color     width   style    title
+  {"2-tracks"                     , kBlue      , 2, 1, "2 tracks"  },
+  {"3x3_3-layers_notag_500_10"    , kGreen     , 2, 1, "3x3, 3 layers, no tagger"   },
+  {"3x3_4-layers_notag_1000_10"   , kMagenta+2 , 2, 1, "3x3, 4 layers, no tagger"   },
+  {"allcategories_notag"          , kCyan+1    , 2, 1, "all categories, no tagger"  },
+//  {"allcategories_notag_run2" , kBlue     , 3, 2, "3x3, 3+4 layers, no tagger, Run 2" },
+};
+
+vector<tuple<string, int, int>> graphParamsBySample = {
+  {"300_3"      , kMagenta  , 1 },
+  {"300_10"     , kMagenta  , 2 },
+  {"300_30"     , kMagenta  , 3 },
+  {"500_10"     , kCyan     , 1 },
+  {"500_20"     , kCyan     , 2 },
+  {"650_10"     , kMagenta+2, 1 },
+  {"650_20"     , kMagenta+2, 2 },
+  {"800_10"     , kCyan+2   , 1 },
+  {"800_20"     , kCyan+2   , 2 },
+  {"1000_10"    , kOrange   , 1 },
+  {"1000_20"    , kOrange   , 2 },
 };
 
 void setFirstGraphOptions(TGraph *graph)
@@ -210,15 +162,44 @@ void drawLimits()
     leg->AddEntry(graph, title.c_str(), "L");
   }
   
-  for(auto &[path, color, width, style, title] : graphParams){
-    graphs[path] = GetGraphFromTxt(Form("%s/%s%s.txt",prefix.c_str(), thisAnalysisPrefix.c_str(), path.c_str()));
-    
-    TGraph *graph = graphs[path];
-    graph->SetLineColor(color);
-    graph->SetLineWidth(width);
-    graph->SetLineStyle(style);
-    graph->Draw("Lsame");
-    leg->AddEntry(graph, title.c_str(), "L");
+  if(drawBySample){
+    for(auto &[sampleName, color, style] : graphParamsBySample){
+      string path = binning+"_"+category+"_notag_"+sampleName;
+      graphs[path] = GetGraphFromTxt(Form("%s/%s%s.txt",prefix.c_str(), thisAnalysisPrefix.c_str(), path.c_str()));
+      
+      TGraph *graph = graphs[path];
+      graph->SetLineColor(color);
+      graph->SetLineWidth(2);
+      graph->SetLineStyle(style);
+      graph->Draw("Lsame");
+      leg->AddEntry(graph, (binning+", "+category+", no tagger, "+sampleName).c_str(), "L");
+    }
+  }
+
+  if(drawByBinning){
+    for(auto &[path, color, style, title] : graphParamsByBinning){
+      graphs[path] = GetGraphFromTxt(Form("%s/%s%s.txt",prefix.c_str(), thisAnalysisPrefix.c_str(), path.c_str()));
+      
+      TGraph *graph = graphs[path];
+      graph->SetLineColor(color);
+      graph->SetLineWidth(2);
+      graph->SetLineStyle(style);
+      graph->Draw("Lsame");
+      leg->AddEntry(graph, title.c_str(), "L");
+    }
+  }
+  
+  if(drawByCategory){
+    for(auto &[path, color, width, style, title] : graphParamsByCategory){
+      graphs[path] = GetGraphFromTxt(Form("%s/%s%s.txt",prefix.c_str(), thisAnalysisPrefix.c_str(), path.c_str()));
+      
+      TGraph *graph = graphs[path];
+      graph->SetLineColor(color);
+      graph->SetLineWidth(width);
+      graph->SetLineStyle(style);
+      graph->Draw("Lsame");
+      leg->AddEntry(graph, title.c_str(), "L");
+    }
   }
   
   leg->Draw("same");

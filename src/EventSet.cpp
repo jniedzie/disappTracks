@@ -713,7 +713,7 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
       tree->GetEntry(iEvent);
     }
     else{
-      if(maxNevents>0 && iEntry>maxNevents) break;
+      if(maxNevents>0 && iEntry>=maxNevents) break;
       tree->GetEntry(iEntry);
     }
     if(iEvent%100000 == 0) Log(1)<<"Events loaded: "<<iEvent<<"\n";

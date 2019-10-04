@@ -14,7 +14,7 @@
 typedef tuple<vector<double>, vector<double>> binning;
 
 // Desired number of MET and dE/dx bins and limits of those
-const int nMetBins  = 3, nDedxBins = 3;
+const int nDedxBins = 3, nMetBins  = 3;
 const double minMet  = 300 , maxMet  = 500 , stepMet  = 10;
 const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1;
 
@@ -22,26 +22,23 @@ const int ratioRebin = 1;
 string sampleTag = "notag";
 string backgroundHistNams = "background";
 
-//binning bestValues = {{430}, {2.3}}; // best for 2x2 with no categories:
-//binning bestValues = {{300, 450}, {2.0, 4.0}}; // best for 3x3 with no categories:
-
 
 //------------------------------------------------
 // 2x2, 3 layers
 //------------------------------------------------
 /*
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
-  { kWino_M_300_cTau_3    ,  {{430}, {2.4}}}, // 300-3
-  { kWino_M_300_cTau_10   ,  {{370}, {2.4}}}, // 300-10
-  { kWino_M_300_cTau_30   ,  {{320}, {2.7}}}, // 300-30
-  { kWino_M_500_cTau_10   ,  {{450}, {2.9}}}, // 500-10
-  { kWino_M_500_cTau_20   ,  {{450}, {3.0}}}, // 500-20, 650-20, 800-10/20 (the best overall)
-  { kWino_M_650_cTau_10   ,  {{440}, {2.9}}}, // 650-10
-  { kWino_M_650_cTau_20   ,  {{450}, {3.0}}}, // 500-20, 650-20, 800-10/20 (the best overall)
-  { kWino_M_800_cTau_10   ,  {{440}, {2.9}}}, // 650-10
-  { kWino_M_800_cTau_20   ,  {{450}, {3.0}}}, // 500-20, 650-20, 800-10/20 (the best overall)
-  { kWino_M_1000_cTau_10  ,  {{450}, {3.5}}}, // 1000-10/20
-  { kWino_M_1000_cTau_20  ,  {{450}, {3.5}}}, // 1000-10/20
+  { kWino_M_300_cTau_3    ,  {{430}, {2.4}}},
+  { kWino_M_300_cTau_10   ,  {{370}, {2.4}}},
+  { kWino_M_300_cTau_30   ,  {{320}, {2.8}}},
+  { kWino_M_500_cTau_10   ,  {{450}, {2.9}}},
+  { kWino_M_500_cTau_20   ,  {{450}, {3.0}}},
+  { kWino_M_650_cTau_10   ,  {{440}, {2.9}}},
+  { kWino_M_650_cTau_20   ,  {{450}, {3.0}}},
+  { kWino_M_800_cTau_10   ,  {{450}, {3.0}}}, // BEST
+  { kWino_M_800_cTau_20   ,  {{450}, {3.0}}},
+  { kWino_M_1000_cTau_10  ,  {{450}, {3.6}}},
+  { kWino_M_1000_cTau_20  ,  {{450}, {3.6}}},
 };
 */
 //------------------------------------------------
@@ -49,41 +46,105 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //------------------------------------------------
 /*
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
-  { kWino_M_300_cTau_3    ,  {{400}, {3.9}}}, // 300-3
-  { kWino_M_300_cTau_10   ,  {{320}, {2.0}}}, // 300-10/30
-  { kWino_M_300_cTau_30   ,  {{320}, {2.0}}}, // 300-10/30
-  { kWino_M_500_cTau_10   ,  {{410}, {2.5}}}, // 500-10
-  { kWino_M_500_cTau_20   ,  {{320}, {2.7}}}, // 500-20
-  { kWino_M_650_cTau_10   ,  {{490}, {2.4}}}, // 650-10, 800-10, 1000-10/20 (the best overall)
-  { kWino_M_650_cTau_20   ,  {{400}, {2.5}}}, // 650-20, 800-20
-  { kWino_M_800_cTau_10   ,  {{490}, {2.4}}}, // 650-10, 800-10, 1000-10/20 (the best overall)
-  { kWino_M_800_cTau_20   ,  {{400}, {2.5}}}, // 650-20, 800-20
-  { kWino_M_1000_cTau_10  ,  {{490}, {2.4}}}, // 650-10, 800-10, 1000-10/20 (the best overall)
-  { kWino_M_1000_cTau_20  ,  {{490}, {2.4}}}, // 650-10, 800-10, 1000-10/20 (the best overall)
+  { kWino_M_300_cTau_3    ,  {{400}, {3.8}}},
+  { kWino_M_300_cTau_10   ,  {{320}, {2.1}}},
+  { kWino_M_300_cTau_30   ,  {{320}, {2.1}}},
+  { kWino_M_500_cTau_10   ,  {{410}, {2.6}}},
+  { kWino_M_500_cTau_20   ,  {{400}, {2.8}}},
+  { kWino_M_650_cTau_10   ,  {{490}, {2.4}}},
+  { kWino_M_650_cTau_20   ,  {{400}, {2.6}}},
+  { kWino_M_800_cTau_10   ,  {{490}, {2.4}}},
+  { kWino_M_800_cTau_20   ,  {{440}, {2.5}}}, // BEST
+  { kWino_M_1000_cTau_10  ,  {{490}, {2.4}}},
+  { kWino_M_1000_cTau_20  ,  {{490}, {2.4}}},
 };
 */
+
+
 //------------------------------------------------
-// 3x3, 3 layers (with bug)
+// 2x3, 3 layers
 //------------------------------------------------
 /*
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
-  { kWino_M_300_cTau_3    ,  {{300, 430},{2.2, 2.3}}}, // 300-3
-  { kWino_M_300_cTau_10   ,  {{300, 450},{2.0, 2.1}}}, // 300-10
-  { kWino_M_300_cTau_30   ,  {{300, 410},{2.7, 2.8}}}, // 300-30
-  { kWino_M_500_cTau_10   ,  {{320, 450},{3.0, 3.1}}}, // 500-10
-  { kWino_M_500_cTau_20   ,  {{450, 480},{4.3, 5.0}}}, // 500-20
-  { kWino_M_650_cTau_10   ,  {{310, 460},{2.4, 2.7}}}, // 650-10
-  { kWino_M_650_cTau_20   ,  {{300, 450},{3.0, 3.1}}}, // 650-20, 800-10/20 (the best overall)
-  { kWino_M_800_cTau_10   ,  {{300, 450},{3.0, 3.1}}}, // 650-20, 800-10/20 (the best overall)
-  { kWino_M_800_cTau_20   ,  {{300, 450},{3.0, 3.1}}}, // 650-20, 800-10/20 (the best overall)
-  { kWino_M_1000_cTau_10  ,  {{410, 490},{4.4, 4.5}}}, // 1000-10
-  { kWino_M_1000_cTau_20  ,  {{460, 470},{4.5, 4.6}}}, // 1000-20
+ { kWino_M_300_cTau_3   , {{300, 430}, {2.4}}},
+ { kWino_M_300_cTau_10  , {{300, 450}, {2.5}}},
+ { kWino_M_300_cTau_30  , {{300, 410}, {2.8}}},
+ { kWino_M_500_cTau_10  , {{320, 450}, {2.9}}},
+ { kWino_M_500_cTau_20  , {{300, 450}, {3.0}}},
+ { kWino_M_650_cTau_10  , {{300, 440}, {2.9}}},
+ { kWino_M_650_cTau_20  , {{300, 450}, {3.0}}},
+ { kWino_M_800_cTau_10  , {{300, 450}, {3.0}}},
+ { kWino_M_800_cTau_20  , {{300, 450}, {3.0}}}, // BEST
+ { kWino_M_1000_cTau_10 , {{300, 450}, {3.6}}},
+ { kWino_M_1000_cTau_20 , {{300, 450}, {3.5}}},
 };
 */
 //------------------------------------------------
+// 2x3, 4 layers
+//------------------------------------------------
+/*
+map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
+ { kWino_M_300_cTau_3    , {{400, 470}, {3.8}}},
+ { kWino_M_300_cTau_10   , {{300, 400}, {2.1}}},
+ { kWino_M_300_cTau_30   , {{320, 400}, {2.1}}},
+ { kWino_M_500_cTau_10   , {{310, 440}, {2.5}}},
+ { kWino_M_500_cTau_20   , {{320, 440}, {2.6}}},
+ { kWino_M_650_cTau_10   , {{310, 490}, {2.5}}},
+ { kWino_M_650_cTau_20   , {{320, 440}, {2.5}}},
+ { kWino_M_800_cTau_10   , {{400, 490}, {2.4}}}, // BEST
+ { kWino_M_800_cTau_20   , {{320, 490}, {2.5}}},
+ { kWino_M_1000_cTau_10  , {{320, 490}, {2.4}}},
+ { kWino_M_1000_cTau_20  , {{320, 490}, {2.4}}},
+};
+*/
+
+
+
+//------------------------------------------------
+// 3x2, 3 layers
+//------------------------------------------------
+/*
+map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
+ { kWino_M_300_cTau_3   , {{430}, {2.4, 5.1}}},
+ { kWino_M_300_cTau_10  , {{370}, {2.1, 3.6}}},
+ { kWino_M_300_cTau_30  , {{390}, {2.8, 3.7}}},
+ { kWino_M_500_cTau_10  , {{450}, {3.0, 5.0}}}, // BEST
+ { kWino_M_500_cTau_20  , {{450}, {3.0, 4.0}}},
+ { kWino_M_650_cTau_10  , {{440}, {4.8, 5.0}}},
+ { kWino_M_650_cTau_20  , {{450}, {3.0, 5.1}}},
+ { kWino_M_800_cTau_10  , {{450}, {3.6, 4.0}}},
+ { kWino_M_800_cTau_20  , {{460}, {4.8, 5.1}}},
+ { kWino_M_1000_cTau_10 , {{440}, {4.8, 5.0}}},
+ { kWino_M_1000_cTau_20 , {{460}, {4.8, 5.1}}},
+};
+*/
+//------------------------------------------------
+// 3x2, 4 layers
+//------------------------------------------------
+/*
+map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
+ { kWino_M_300_cTau_3    , {{400}, {2.1, 3.8}}},
+ { kWino_M_300_cTau_10   , {{320}, {2.1, 5.1}}},
+ { kWino_M_300_cTau_30   , {{320}, {2.1, 3.9}}},
+ { kWino_M_500_cTau_10   , {{390}, {2.6, 2.7}}},
+ { kWino_M_500_cTau_20   , {{320}, {2.6, 4.4}}},
+ { kWino_M_650_cTau_10   , {{440}, {2.6, 2.8}}},
+ { kWino_M_650_cTau_20   , {{490}, {2.6, 2.8}}},
+ { kWino_M_800_cTau_10   , {{450}, {2.6, 3.2}}},
+ { kWino_M_800_cTau_20   , {{480}, {2.5, 3.0}}},
+ { kWino_M_1000_cTau_10  , {{440}, {2.5, 3.6}}}, // BEST
+ { kWino_M_1000_cTau_20  , {{440}, {2.5, 3.6}}},
+};
+*/
+ 
+ 
+ 
+ 
+
+//------------------------------------------------
 // 3x3, 3 layers (fixed)
 //------------------------------------------------
-
+/*
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_300_cTau_3    ,  {{330, 430},{2.4, 5.1}}},
   { kWino_M_300_cTau_10   ,  {{300, 450},{2.1, 3.6}}},
@@ -92,85 +153,31 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_500_cTau_20   ,  {{450, 480},{4.3, 5.0}}},
   { kWino_M_650_cTau_10   ,  {{300, 440},{4.8, 5.0}}},
   { kWino_M_650_cTau_20   ,  {{300, 450},{3.0, 4.7}}},
-  { kWino_M_800_cTau_10   ,  {{430, 470},{3.8, 4.0}}},
-  { kWino_M_800_cTau_20   ,  {{410, 490},{4.4, 5.0}}},
-  { kWino_M_1000_cTau_10  ,  {{340, 450},{3.8, 4.0}}},
-  { kWino_M_1000_cTau_20  ,  {{370, 450},{3.8, 4.0}}},
+  { kWino_M_800_cTau_10   ,  {{430, 480},{3.0, 4.7}}},
+  { kWino_M_800_cTau_20   ,  {{370, 460},{4.8, 5.1}}},
+  { kWino_M_1000_cTau_10  ,  {{330, 440},{4.8, 5.0}}},
+  { kWino_M_1000_cTau_20  ,  {{360, 460},{4.8, 5.1}}},
+};
+*/
+//------------------------------------------------
+// 3x3, 4 layers (fixed)
+//------------------------------------------------
+
+map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
+  { kWino_M_300_cTau_3    , {{310, 400}, {2.1, 3.8}}},
+  { kWino_M_300_cTau_10   , {{300, 400}, {2.1, 3.1}}},
+  { kWino_M_300_cTau_30   , {{320, 400}, {2.1, 3.9}}},
+  { kWino_M_500_cTau_10   , {{310, 390}, {2.6, 2.7}}},
+  { kWino_M_500_cTau_20   , {{320, 490}, {2.5, 2.7}}},
+  { kWino_M_650_cTau_10   , {{310, 440}, {2.6, 2.8}}},
+  { kWino_M_650_cTau_20   , {{320, 490}, {2.6, 2.8}}},
+  { kWino_M_800_cTau_10   , {{440, 460}, {2.5, 3.2}}},
+  { kWino_M_800_cTau_20   , {{400, 480}, {2.5, 3.0}}},
+  { kWino_M_1000_cTau_10  , {{320, 440}, {2.5, 3.6}}}, // BEST
+  { kWino_M_1000_cTau_20  , {{320, 440}, {2.5, 3.6}}},
 };
 
-//------------------------------------------------
-// 3x3, 4 layers
-//------------------------------------------------
-/*
-map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
-  { kWino_M_300_cTau_3    , {{330, 470}, {2.0, 2.1}}}, // 300-3
-  { kWino_M_300_cTau_10   , {{320, 400}, {2.0, 2.1}}}, // 300-10/30
-  { kWino_M_300_cTau_30   , {{320, 400}, {2.0, 2.1}}}, // 300-10/30
-  { kWino_M_500_cTau_10   , {{300, 440}, {2.2, 2.3}}}, // 500-10
-  { kWino_M_500_cTau_20   , {{320, 440}, {2.5, 2.6}}}, // 500-20
-  { kWino_M_650_cTau_10   , {{310, 460}, {2.4, 2.7}}}, // 650-10
-  { kWino_M_650_cTau_20   , {{320, 440}, {2.5, 2.6}}}, // 650-20
-  { kWino_M_800_cTau_10   , {{440, 460}, {2.5, 3.2}}}, // 800-10
-  { kWino_M_800_cTau_20   , {{400, 480}, {2.5, 3.0}}}, // 800-20
-  { kWino_M_1000_cTau_10  , {{440, 490}, {2.5, 3.5}}}, // 1000-10
-  { kWino_M_1000_cTau_20  , {{320, 490}, {2.5, 2.6}}}, // 1000-20 (the best overall)
-};
-*/
-//------------------------------------------------
-// 2x3, 3 layers
-//------------------------------------------------
-/*
-map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
-  { kWino_M_300_cTau_3   , {{300, 430}, {2.4}}}, // 300-3
-  { kWino_M_300_cTau_10  , {{300, 450}, {2.5}}}, // 300-10
-  { kWino_M_300_cTau_30  , {{300, 410}, {2.7}}}, // 300-30
-  { kWino_M_500_cTau_10  , {{320, 450}, {2.9}}}, // 500-10
-  { kWino_M_500_cTau_20  , {{300, 450}, {3.0}}}, // 500-20, 650-20, 800-20 (the best overall)
-  { kWino_M_650_cTau_10  , {{300, 440}, {2.9}}}, // 650-10
-  { kWino_M_650_cTau_20  , {{300, 450}, {3.0}}}, // 500-20, 650-20, 800-20 (the best overall)
-  { kWino_M_800_cTau_10  , {{460, 470}, {4.3}}}, // 800-10, 1000-10/20
-  { kWino_M_800_cTau_20  , {{300, 450}, {3.0}}}, // 500-20, 650-20, 800-20 (the best overall)
-  { kWino_M_1000_cTau_10 , {{460, 470}, {4.3}}}, // 800-10, 1000-10/20
-  { kWino_M_1000_cTau_20 , {{460, 470}, {4.3}}}, // 800-10, 1000-10/20
-};
-*/
-//------------------------------------------------
-// 2x3, 4 layers
-//------------------------------------------------
-/*
-map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
-  { kWino_M_300_cTau_3    , {{400, 470}, {3.9}}}, // 300-3
-  { kWino_M_300_cTau_10   , {{300, 400}, {2.0}}}, // 300-10
-  { kWino_M_300_cTau_30   , {{320, 400}, {2.0}}}, // 300-30
-  { kWino_M_500_cTau_10   , {{310, 440}, {2.5}}}, // 500-10
-  { kWino_M_500_cTau_20   , {{320, 440}, {2.5}}}, // 500-20, 650-20
-  { kWino_M_650_cTau_10   , {{310, 490}, {2.5}}}, // 650-10
-  { kWino_M_650_cTau_20   , {{320, 440}, {2.5}}}, // 500-20, 650-20
-  { kWino_M_800_cTau_10   , {{400, 490}, {2.4}}}, // 800-10 (the best overall)
-  { kWino_M_800_cTau_20   , {{320, 490}, {2.5}}}, // 800-20
-  { kWino_M_1000_cTau_10  , {{430, 460}, {2.9}}}, // 1000-10
-  { kWino_M_1000_cTau_20  , {{320, 490}, {2.4}}}, // 1000-20
-};
-*/
-//------------------------------------------------
-// 2x4, 3 layers
-//------------------------------------------------
-/*
-map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
-  { kWino_M_300_cTau_3   , {{300, 430, 490}, {2.4}}},
-  { kWino_M_300_cTau_10  , {{300, 370, 450}, {3.0}}},
-  { kWino_M_300_cTau_30  , {{300, 410, 420}, {2.7}}},
-  { kWino_M_500_cTau_10  , {{320, 450, 470}, {2.9}}},
-  { kWino_M_500_cTau_20  , {{300, 370, 450}, {3.0}}},
-  { kWino_M_650_cTau_10  , {{300, 440, 450}, {3.0}}},
-  { kWino_M_650_cTau_20  , {{300, 410, 450}, {3.0}}},
-  { kWino_M_800_cTau_10  , {{430, 460, 470}, {4.3}}},
-  { kWino_M_800_cTau_20  , {{370, 460, 470}, {4.3}}},
-  { kWino_M_1000_cTau_10 , {{400, 460, 470}, {4.3}}},
-  { kWino_M_1000_cTau_20 , {{370, 460, 470}, {4.3}}},
-};
 
-*/
 
 
 /**
@@ -300,6 +307,8 @@ double GetSignificance(const TH2D *metVsDedxHistBackground, const TH2D *metVsDed
   for(int x=0; x<abcdBackground.size(); x++){
     for(int y=0; y<abcdBackground[x].size(); y++){
       if(abcdSignal[x][y] + abcdBackground[x][y] == 0) continue;
+      if(abcdBackground[x][y] == 0) return 0; // protection agains bins with no background events
+      
       double signif = abcdSignal[x][y] / sqrt(abcdSignal[x][y] + abcdBackground[x][y]);
       significance += pow(signif, 2);
     }
@@ -651,7 +660,6 @@ void produceLimits(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &m
   
   for(int iSig=0; iSig<kNsignals; iSig++){
      if(!config.runSignal[iSig]) continue;
-     
      
      string outFileName = to_string_with_precision(nDedxBins, 0)+"x"+to_string_with_precision(nMetBins, 0)+"_"+config.category+"_"+sampleTag+"_"+signalShortName[iSig];
      string outputPath = "results/abcd_plots_"+outFileName+".root";
