@@ -10,7 +10,7 @@ double titleSizeX = 0.050;
 
 bool drawBySample = false;
 const string binning = "3x3";
-const string category = "4-layers";
+const string category = "5-6-layers";
 
 bool drawByBinning = false;
 bool drawByCategory = true;
@@ -61,6 +61,7 @@ vector<tuple<string, int, int, int, string>> graphParamsByCategory = { // best i
   {"2-tracks"                     , kBlue      , 2, 1, "2 tracks"  },
   {"3x3_3-layers_notag_500_10"    , kGreen     , 2, 1, "3x3, 3 layers, no tagger"   },
   {"3x3_4-layers_notag_1000_10"   , kMagenta+2 , 2, 1, "3x3, 4 layers, no tagger"   },
+  {"3x3_5-6-layers_notag_650_10"  , kOrange+2  , 2, 1, "3x3, 5-6 layers, no tagger" },
   {"allcategories_notag"          , kCyan+1    , 2, 1, "all categories, no tagger"  },
 //  {"allcategories_notag_run2" , kBlue     , 3, 2, "3x3, 3+4 layers, no tagger, Run 2" },
 };
