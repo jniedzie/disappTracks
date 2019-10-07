@@ -3,8 +3,8 @@
 ### Which level of cuts to apply:
 cuts_level: 1
 
-### Analysis category ( 2-tracks | 3-layers | 4-layers | all ):
-analysis_category:  4-layers
+### Analysis category ( 2-tracks | 3-layers | 4-layers | 5-6-layers | all ):
+analysis_category:  5-6-layers
 
 scan_MET_binning: 0
 do_MET_binning: 0
@@ -68,7 +68,7 @@ show_legends: 1
 ### Limit number of events loaded (-1 means load all available)
 max_N_events_background:  -1
 max_N_events_signal: -1
-max_N_events_data:  100000
+max_N_events_data:  -1
 
 
 

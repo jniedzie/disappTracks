@@ -160,9 +160,9 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 };
 */
 //------------------------------------------------
-// 3x3, 4 layers (fixed)
+// 3x3, 4 layers
 //------------------------------------------------
-
+/*
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_300_cTau_3    , {{310, 400}, {2.1, 3.8}}},
   { kWino_M_300_cTau_10   , {{300, 400}, {2.1, 3.1}}},
@@ -176,7 +176,24 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_1000_cTau_10  , {{320, 440}, {2.5, 3.6}}}, // BEST
   { kWino_M_1000_cTau_20  , {{320, 440}, {2.5, 3.6}}},
 };
+*/
+//------------------------------------------------
+// 3x3, 5-6 layers
+//------------------------------------------------
 
+map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
+  { kWino_M_300_cTau_3    , {{300, 430}, {2.0, 2.1}}},
+  { kWino_M_300_cTau_10   , {{330, 340}, {2.1, 3.1}}},
+  { kWino_M_300_cTau_30   , {{300, 410}, {2.0, 4.2}}},
+  { kWino_M_500_cTau_10   , {{340, 470}, {2.2, 3.0}}},
+  { kWino_M_500_cTau_20   , {{300, 370}, {2.1, 3.3}}},
+  { kWino_M_650_cTau_10   , {{300, 490}, {2.2, 3.5}}},
+  { kWino_M_650_cTau_20   , {{300, 470}, {3.3, 5.1}}},
+  { kWino_M_800_cTau_10   , {{300, 470}, {3.6, 5.1}}},
+  { kWino_M_800_cTau_20   , {{300, 460}, {3.3, 5.1}}},
+  { kWino_M_1000_cTau_10  , {{320, 490}, {3.6, 5.1}}},
+  { kWino_M_1000_cTau_20  , {{300, 460}, {3.6, 5.1}}},
+};
 
 
 
@@ -659,19 +676,23 @@ void produceLimits(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &m
   vector<string> producedLimits;
   
   for(int iSig=0; iSig<kNsignals; iSig++){
-     if(!config.runSignal[iSig]) continue;
-     
-     string outFileName = to_string_with_precision(nDedxBins, 0)+"x"+to_string_with_precision(nMetBins, 0)+"_"+config.category+"_"+sampleTag+"_"+signalShortName[iSig];
-     string outputPath = "results/abcd_plots_"+outFileName+".root";
-     
-     cout<<"\n\n--------------------------------------------------------"<<endl;
-     cout<<"Drawing plots"<<endl;
-     drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal,
-                          bestValues.at((ESignal)iSig), outputPath);
-     getLimitsForSignal(outFileName, outputPath);
+    if(!config.runSignal[iSig]) continue;
+    
+    // TODO: remove this !!
+    if(iSig!= kWino_M_500_cTau_10 && iSig!= kWino_M_500_cTau_20) continue;
+    //
+    
+    string outFileName = to_string_with_precision(nDedxBins, 0)+"x"+to_string_with_precision(nMetBins, 0)+"_"+config.category+"_"+sampleTag+"_"+signalShortName[iSig];
+    string outputPath = "results/abcd_plots_"+outFileName+".root";
+    
+    cout<<"\n\n--------------------------------------------------------"<<endl;
+    cout<<"Drawing plots"<<endl;
+    drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal,
+                         bestValues.at((ESignal)iSig), outputPath);
+    getLimitsForSignal(outFileName, outputPath);
     
     producedLimits.push_back("cms_short_disappearing_"+outFileName+".txt");
-   }
+  }
   
   
   cout<<"\nFiles ready to add to limits plot:"<<endl;
