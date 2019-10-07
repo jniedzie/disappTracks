@@ -99,6 +99,8 @@ public:
   inline void SetDataType(xtracks::EDataType val){dataType = val;}
   inline void SetSetIter(int val){setIter = val;}
   
+  inline void SetWasTagged(bool val){wasTagged = val;}
+  
   // getters
   inline uint  GetLumiSection() const {return lumiSection;}
   inline uint  GetRunNumber() const {return runNumber;}
@@ -149,6 +151,9 @@ public:
   inline double GetXsec() const {return xsec;}
   inline double GetWgtSum() const {return wgtsum;}
   inline double GetGenWeight() const {return genWeight;}
+  
+  inline bool HasFriendData() const {return hasFriendData;}
+  inline bool WasTagged() const {return wasTagged;}
   
   inline shared_ptr<Track>  GetTrack(int i) const {return tracks[i];}
   inline shared_ptr<Jet>    GetJet(int i) const {return jets[i];}
@@ -217,12 +222,13 @@ private:
   double genWeight;
   
   // Additional info from RAW-RECO files
-  Points trackerClusters;  ///< All reconstructed tracker clusters not assigned to any track
-  Points pionClusters;  ///< Reconstructed clusters associated with generated pion(s)
-  
-  Points pionSimHits;  ///< Sim hits associated with generated pion(s) coming from chargino decay vertex
-  Points charginoSimHits; ///< Sim hits associated with generated chargino(s)
-  Helices genPionHelices; ///< Helix representing gen-level pion(s)
+  bool hasFriendData;       ///< Indicates whether of not additional info is available for this event
+  bool wasTagged;           ///< Indicates whether of not tagger was ran on this event
+  Points trackerClusters;   ///< All reconstructed tracker clusters not assigned to any track
+  Points pionClusters;      ///< Reconstructed clusters associated with generated pion(s)
+  Points pionSimHits;       ///< Sim hits associated with generated pion(s) coming from chargino decay vertex
+  Points charginoSimHits;   ///< Sim hits associated with generated chargino(s)
+  Helices genPionHelices;   ///< Helix representing gen-level pion(s)
   
   vector<Track> genCharginoTrack; ///< Gen-level information about charginos
   

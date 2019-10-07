@@ -13,8 +13,8 @@ string configPath = "configs/helixTagger.md";
 string cutLevel = "after_L0/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
-int setIter = kTaggerSignal;
-//int setIter = kTaggerBackground;
+//int setIter = kTaggerSignal;
+int setIter = kTaggerBackground;
 
 vector<int> eventsToSkip = { };
 
@@ -43,10 +43,13 @@ int main(int argc, char* argv[])
     
     auto event = events.At(dataType, setIter, iEvent);
     
+    if(!event->HasFriendData()) continue;
+    
     for(auto &track : event->GetTracks()){
       Helices fittedHelices = fitter->FitHelices(event->GetClusters(), *track, *event->GetVertex());
       for(auto helix : fittedHelices) event->AddHelix(helix);
     }
+    event->SetWasTagged(true);
     nAnalyzedEvents++;
   }
   

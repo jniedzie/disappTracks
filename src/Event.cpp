@@ -7,9 +7,11 @@
 #include <TLorentzVector.h>
 
 Event::Event() :
-vertex(make_unique<Point>(0,0,0))
+vertex(make_unique<Point>(0,0,0)),
+hasFriendData(false),
+wasTagged(false)
 {
-  
+
 }
 
 Event::Event(const Event &e)

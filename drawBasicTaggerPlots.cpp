@@ -46,6 +46,7 @@ void FillMonitors(Monitors &monitors, const EventSet &events, bool isSignal)
           iEvent<events.size(dataType, isSignal ? kTaggerSignal : kTaggerBackground);
           iEvent++){
     auto event = events.At(dataType, isSignal ? kTaggerSignal : kTaggerBackground, iEvent);
+    if(!event->WasTagged()) continue;
     
     for(auto &[name, monitor] : monitors){
       double value = helixProcessor.GetHelicesParamsByMonitorName(event->GetHelices(), name);

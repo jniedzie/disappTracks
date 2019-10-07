@@ -10,7 +10,8 @@ EventProcessor::EventProcessor()
 {
   singleNamesUint = {
     "run",
-    "lumi"
+    "lumi",
+    "wasTagged"
   };
   
   singleNamesUlongLong = {
@@ -421,6 +422,7 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   
   event->lumiSection = singleValuesUint["lumi"];
   event->runNumber   = singleValuesUint["run"];
+  event->wasTagged   = singleValuesUint["wasTagged"];
   event->eventNumber = singleValuesUlonglong["evt"];
   
   event->nVertices                = singleValuesInt["nVert"];
@@ -470,7 +472,11 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   TH1I *hist = (TH1I*)gDirectory->Get("hist");
   Long64_t iEntry = hist->GetBinLowEdge(hist->FindFirstBinAbove(0));
   if(hist) delete hist;
+  
+  if(iEntry==0) return event;
+  
   friendTree->GetEntry(iEntry);
+  event->hasFriendData = true;
   // end of uberhack
   
   map<int, string> subDetMap = {
@@ -618,6 +624,7 @@ void EventProcessor::SaveEventToTree(shared_ptr<Event> event)
 {
   singleValuesUint["lumi"]      = event->lumiSection;
   singleValuesUint["run"]       = event->runNumber;
+  singleValuesUint["wasTagged"] = event->wasTagged;
   singleValuesUlonglong["evt"]  = event->eventNumber;
   
   singleValuesInt["nVert"]                                         = event->nVertices;

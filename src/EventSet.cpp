@@ -717,6 +717,7 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
       tree->GetEntry(iEntry);
     }
     if(iEvent%100000 == 0) Log(1)<<"Events loaded: "<<iEvent<<"\n";
+    if(iEntry%10 == 0) Log(2)<<"Events loaded: "<<iEntry<<"\n";
 
     auto event = eventProcessor.GetEventFromTree(dataType, setIter, treeFriend);
     

@@ -157,6 +157,7 @@ void FillMonitors(vector<Monitors> &monitors, const EventSet &events, bool isSig
           iEvent<events.size(dataType, isSignal ? kTaggerSignal : kTaggerBackground);
           iEvent++){
     auto event = events.At(dataType, isSignal ? kTaggerSignal : kTaggerBackground, iEvent);
+    if(!event->WasTagged()) continue;
     if(!IsEventOk(*event, param)) continue;
     
     double value = EventToParam(*event, param);
