@@ -10,6 +10,9 @@ max_N_events_signal:  1000
 
 include_endcaps:              0
 
+### Should events after processing be saved on disk:
+save_events:  1
+
 **Fitter parameters**
 
 ### Maximum distance in 3D to consider two hits as overlapping ones (in mm):

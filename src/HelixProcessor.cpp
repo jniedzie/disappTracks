@@ -69,11 +69,10 @@ Helices HelixProcessor::GetHelicesFromTree()
     helix.pointsT[0] = arrayValuesFloat["helix_t_min"][iHelix];
     helix.pointsT[helix.pointsT.size()-1] = arrayValuesFloat["helix_t_max"][iHelix];
     
-    helix.nRecLayers = arrayValuesInt["helix_n_layers"][iHelix];
-    helix.nRecHits = arrayValuesInt["helix_n_hits"][iHelix];
-    helix.nMissingHits = arrayValuesFloat["helix_n_missing_hits"][iHelix];
+    helix.nRecLayers    = arrayValuesInt["helix_n_layers"][iHelix];
+    helix.nRecHits      = arrayValuesInt["helix_n_hits"][iHelix];
+    helix.nMissingHits  = arrayValuesFloat["helix_n_missing_hits"][iHelix];
 
-    
     helices.push_back(helix);
   }
 

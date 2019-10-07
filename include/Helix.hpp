@@ -140,6 +140,8 @@ public:
   inline void SetFirstTurningPointIndex(int val) {firstTurningPointIndex = val;}
   inline void SetPoints(const Points &_points)   {points = _points;};
   inline void SetVertex(const Point &_vertex)    {points[0] = make_shared<Point>(_vertex);}
+  inline void SetNrecLayers(int val)             {nRecLayers = val;}
+  inline void SetNrecHits(int val)               {nRecHits = val;}
   
 private:
   Point           origin;             ///< Center of the helix

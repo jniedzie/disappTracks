@@ -754,6 +754,8 @@ void Fitter::RemoveShortHelices(Helices &helices)
   for(auto helix : helices){
     if(helix.GetNpoints() >= config.params["track_min_n_points"] &&
        helix.GetNlayers() >= config.params["track_min_n_layers"]){
+      helix.SetNrecLayers((int)helix.GetNlayers());
+      helix.SetNrecHits((int)helix.GetNpoints());
       longHelices.push_back(helix);
     }
   }
