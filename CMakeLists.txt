@@ -32,6 +32,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 set(CMAKE_CXX_FLAGS "-O3")
 
+add_executable(getTrackHeatMap getTrackHeatMap.cpp)
 add_executable(eventDisplay eventDisplay.cpp)
 add_executable(prepareABCDplots prepareABCDplots.cpp)
 add_executable(helixTagger helixTagger.cpp)
@@ -46,6 +47,7 @@ add_executable(singleCutDetails singleCutDetails.cpp)
 add_executable(cutsCorrelations cutsCorrelations.cpp)
 add_executable(getFfactor getFfactor.cpp)
 
+set_property(TARGET getTrackHeatMap PROPERTY CXX_STANDARD 17)
 set_property(TARGET eventDisplay PROPERTY CXX_STANDARD 17)
 set_property(TARGET prepareABCDplots PROPERTY CXX_STANDARD 17)
 set_property(TARGET helixTagger PROPERTY CXX_STANDARD 17)
@@ -90,6 +92,7 @@ add_library(libAnalysis src/Track.cpp
 
 set_property(TARGET libAnalysis PROPERTY CXX_STANDARD 17)
 
+target_link_libraries(getTrackHeatMap libAnalysis ${ROOT_LIBRARIES})
 target_link_libraries(eventDisplay libAnalysis ${ROOT_LIBRARIES})
 target_link_libraries(prepareABCDplots libAnalysis ${ROOT_LIBRARIES})
 target_link_libraries(helixTagger libAnalysis ${ROOT_LIBRARIES})

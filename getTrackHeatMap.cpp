@@ -60,16 +60,13 @@ int main(int argc, char* argv[])
   
   if(config.params["cuts_level"]==0){
     EventCut eventCut; TrackCut trackCut; JetCut jetCut; LeptonCut leptonCut;
+    CutsManager cutsManager;
+    cutsManager.GetCuts(eventCut, trackCut, jetCut, leptonCut);
+    
     eventCut.SetNmuons(range<int>(2,2));
-    eventCut.SetNtracks(range<int>(1, inf));
+    eventCut.SetNleptons(range<int>(2,inf));
     eventCut.SetRequireMuonsFromZ(true);
     eventCut.SetRequireTwoOppositeMuons(true);
-    
-    trackCut.SetNmissingInnerPixel(range<int>(0, 0));
-    trackCut.SetNmissingMiddleTracker(range<int>(0, 0));
-    trackCut.SetRelativeIsolation(range<double>(0.0, 0.5));
-    trackCut.SetNlayers(range<int>(2, inf));
-    trackCut.SetEta(range<double>(-2.1, 2.1));
     
     events.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
@@ -101,11 +98,19 @@ int main(int argc, char* argv[])
   }
   
   EventCut eventCut; TrackCut trackCut; JetCut jetCut; LeptonCut leptonCut;
-  
+  trackCut.SetCaloEmEnergy(range<double>(0.0, 2.0));
+  trackCut.SetNlayers(range<int>(2, 6));
   events.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
   int nEventsWithFakeTrack = 0;
+  int nEventsWithFakeTrack1sigma = 0;
+  int nEventsWithFakeTrack2sigma = 0;
+  int nEventsWithFakeTrack3sigma = 0;
+  
   int nEvents = 0;
+  int nEvents1sigma = 0;
+  int nEvents2sigma = 0;
+  int nEvents3sigma = 0;
   
   for(int iEvent=0; iEvent<events.size(xtracks::kData, kMET_Run2018A_CR); iEvent++){
     auto event = events.At(xtracks::kData, kMET_Run2018A_CR, iEvent);
@@ -126,11 +131,26 @@ int main(int argc, char* argv[])
     double mass = dimuon.M();
     invMass->Fill(mass);
     
+    if(event->GetNtracks() > 0) nEventsWithFakeTrack++;
+    nEvents++;
+    
+    if(fabs(mass-Zmass) < Zwidth){
+      if(event->GetNtracks() > 0) nEventsWithFakeTrack1sigma++;
+      nEvents1sigma++;
+    }
+    if(fabs(mass-Zmass) < 2*Zwidth){
+      if(event->GetNtracks() > 0) nEventsWithFakeTrack2sigma++;
+      nEvents2sigma++;
+    }
+    if(fabs(mass-Zmass) < 3*Zwidth){
+      if(event->GetNtracks() > 0) nEventsWithFakeTrack3sigma++;
+      nEvents3sigma++;
+    }
+    
+    
     for(int iTrack=0; iTrack<event->GetNtracks(); iTrack++){
       auto track = event->GetTrack(iTrack);
       int nLayers = track->GetNtrackerLayers();
-      
-      if(nLayers < 7) nEventsWithFakeTrack++;
       
       if(fabs(mass-Zmass) < Zwidth){
         heatMaps["1sigma_all"]->Fill(track->GetPhi(), track->GetEta());
@@ -154,7 +174,7 @@ int main(int argc, char* argv[])
         }
       }
     }
-    nEvents++;
+    
   }
   
   TCanvas *c1 = new TCanvas("c1","c1",1000,1500);
@@ -192,8 +212,21 @@ int main(int argc, char* argv[])
 
   cout<<"Number of events with a fake tracks below 7 layers: "<<nEventsWithFakeTrack<<endl;
   cout<<"Total number of events analyzed: "<<nEvents<<endl;
+  
+  
+  
   cout<<"Fake probability: "<<(double)nEventsWithFakeTrack/nEvents<<endl;
-  cout<<"2 fakes probability: "<<pow((double)nEventsWithFakeTrack/nEvents, 2)<<endl;
+  cout<<"2 fakes probability: "<<pow((double)nEventsWithFakeTrack/nEvents, 2);
+  cout<<" +/- "<<2*nEventsWithFakeTrack/pow(nEvents,2)*sqrt(nEventsWithFakeTrack+1/nEvents)<<endl;
+  
+  cout<<"2 fakes probability (1σ): "<<pow((double)nEventsWithFakeTrack1sigma/nEvents1sigma, 2);
+  cout<<" +/- "<<2*nEventsWithFakeTrack1sigma/pow(nEvents,2)*sqrt(nEventsWithFakeTrack1sigma+1/nEvents1sigma)<<endl;
+  
+  cout<<"2 fakes probability (2σ): "<<pow((double)nEventsWithFakeTrack2sigma/nEvents2sigma, 2);
+  cout<<" +/- "<<2*nEventsWithFakeTrack2sigma/pow(nEvents,2)*sqrt(nEventsWithFakeTrack2sigma+1/nEvents2sigma)<<endl;
+  
+  cout<<"2 fakes probability (3σ): "<<pow((double)nEventsWithFakeTrack3sigma/nEvents3sigma, 2);
+  cout<<" +/- "<<2*nEventsWithFakeTrack3sigma/pow(nEvents,2)*sqrt(nEventsWithFakeTrack3sigma+1/nEvents3sigma)<<endl;
   
   
   theApp.Run();
