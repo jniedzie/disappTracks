@@ -64,6 +64,11 @@ vector<tuple<string, int, int, int, string>> graphParamsByCategory = { // best i
   {"3x3_5-6-layers_notag_650_10"  , kOrange+2  , 2, 1, "3x3, 5-6 layers, no tagger" },
   {"allcategories_notag"          , kCyan+1    , 2, 1, "all categories, no tagger"  },
 //  {"allcategories_notag_run2" , kBlue     , 3, 2, "3x3, 3+4 layers, no tagger, Run 2" },
+  
+  {"3x3_3-layers_tagSim_noPU_500_10"    , kGreen     , 2, 2, "3 layers, tagger sim, no PU"    },
+  {"3x3_4-layers_tagSim_noPU_1000_10"   , kMagenta+2 , 2, 2, "4 layers, tagger sim, no PU"    },
+  {"3x3_5-6-layers_tagSim_noPU_650_10"  , kOrange+2  , 2, 2, "5-6 layers, tagger sim, no PU"  },
+  {"tagSim_noPU"                        , kCyan+1    , 2, 2, "all categories, tagger sim, no PU (no tagger for 4 layers"  },
 };
 
 vector<tuple<string, int, int>> graphParamsBySample = {

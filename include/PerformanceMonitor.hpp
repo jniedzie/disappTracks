@@ -69,7 +69,7 @@ public:
   inline double GetValueByName(string name){ return params[name];}
   
   /// Returns the highest distance between efficiency and c_eff = sqrt(c_fake) curve
-  double GetMaxDistanceFromSqrtFake();
+  double GetMaxDistanceFromSqrtFake(double &bestEff, double &bestFake);
   
 private:
   double thresholdMin;

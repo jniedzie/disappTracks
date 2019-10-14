@@ -124,6 +124,9 @@ void PerformanceMonitor::CalcEfficiency()
   
   set<pair<double, double>> rocXY;
   
+  double bestEff=-inf;
+  double bestFake=inf;
+  
   for(int iThreshold=0; iThreshold<nBins; iThreshold++){
     double effError;
     if(valuesSignal.size()==0 || efficiency[iThreshold]==0){
@@ -167,7 +170,11 @@ void PerformanceMonitor::CalcEfficiency()
     double distToSqrtFake = efficiency[iThreshold]-sqrt(fakeRate[iThreshold]);
     
     if(fakeRate[iThreshold] > 0.01 && fakeRate[iThreshold] < 0.99){
-      if(distToSqrtFake > params["max_dist_fake"]) params["max_dist_fake"] = distToSqrtFake;
+      if(distToSqrtFake > params["max_dist_fake"]){
+        params["max_dist_fake"] = distToSqrtFake;
+        bestEff = efficiency[iThreshold];
+        bestFake = fakeRate[iThreshold];
+      }
       if(first){
         params["avg_dist_fake"] = distToSqrtFake;
         first = false;
@@ -183,18 +190,24 @@ void PerformanceMonitor::CalcEfficiency()
   }
   params["avg_dist_fake"] /= nBins;
   
+  cout<<"Distance: "<<params["max_dist_fake"]<<"\teff: "<<bestEff<<"\tfake: "<<bestFake<<endl;
+  
 //  rocGraph->Fit(rocFun,"Q");
   params["auc"] = rocFun->Integral(0,1);
 }
 
-double PerformanceMonitor::GetMaxDistanceFromSqrtFake()
+double PerformanceMonitor::GetMaxDistanceFromSqrtFake(double &bestEff, double &bestFake)
 {
   double maxDistance = -inf;
   
   for(int iThreshold=0; iThreshold<efficiency.size(); iThreshold++){
     if(efficiency[iThreshold]==0 || efficiency[iThreshold]==1) continue;
     double distance = efficiency[iThreshold] - sqrt(fakeRate[iThreshold]);
-    if(distance > maxDistance) maxDistance = distance;
+    if(distance > maxDistance){
+      maxDistance = distance;
+      bestEff = efficiency[iThreshold];
+      bestFake = fakeRate[iThreshold];
+    }
   }
   return maxDistance;
 }

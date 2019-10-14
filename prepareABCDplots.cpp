@@ -18,8 +18,12 @@ const int nDedxBins = 3, nMetBins  = 3;
 const double minMet  = 300 , maxMet  = 500 , stepMet  = 10;
 const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1;
 
+bool simulateTagger = true;
+double taggerEfficiency = 0.595152;
+double taggerFakeRate = 0.119221;
+
 const int ratioRebin = 1;
-string sampleTag = "notag";
+string sampleTag = "tagSim_noPU";
 string backgroundHistNams = "background";
 
 
@@ -142,7 +146,7 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
  
 
 //------------------------------------------------
-// 3x3, 3 layers (fixed)
+// 3x3, 3 layers
 //------------------------------------------------
 /*
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
@@ -187,7 +191,7 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_300_cTau_30   , {{300, 410}, {2.0, 4.2}}},
   { kWino_M_500_cTau_10   , {{340, 470}, {2.2, 3.0}}},
   { kWino_M_500_cTau_20   , {{300, 370}, {2.1, 3.3}}},
-  { kWino_M_650_cTau_10   , {{300, 490}, {2.2, 3.5}}},
+  { kWino_M_650_cTau_10   , {{300, 490}, {2.2, 3.5}}}, // BEST
   { kWino_M_650_cTau_20   , {{300, 470}, {3.3, 5.1}}},
   { kWino_M_800_cTau_10   , {{300, 470}, {3.6, 5.1}}},
   { kWino_M_800_cTau_20   , {{300, 460}, {3.3, 5.1}}},
@@ -196,13 +200,12 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 };
 
 
-
 /**
  Returns number of counts in ABCD... regions determined by criticalMet and criticalDedx values.
  \param metVsDedxHist Histogram containing number of events for each MET-dE/dx bin
  \param bestValues Positions of bins border on MET and dE/dx axes
  */
-vector<vector<double>> GetABCD(const TH2D *metVsDedxHist, const binning bestValues)
+vector<vector<double>> GetABCD(const TH2D *metVsDedxHist, const binning bestValues, double scale)
 {
   auto &[criticalMet, criticalDedx] = bestValues;
   vector<double> binsMet = { 0 };
@@ -225,7 +228,7 @@ vector<vector<double>> GetABCD(const TH2D *metVsDedxHist, const binning bestValu
       int binY1 = metVsDedxHist->GetYaxis()->FindFixBin(binsMet[iMet]+stepMet/2.);
       int binY2 = metVsDedxHist->GetYaxis()->FindFixBin(binsMet[iMet+1]-stepMet/2.);
       
-      abcd[iMet][iDedx] = metVsDedxHist->Integral(binX1, binX2, binY1, binY2);
+      abcd[iMet][iDedx] = scale*metVsDedxHist->Integral(binX1, binX2, binY1, binY2);
     }
   }
   
@@ -239,7 +242,8 @@ vector<vector<double>> GetABCD(const TH2D *metVsDedxHist, const binning bestValu
  \param dataType Specifies whether background or signal events should be analyzed
  \param setIter For signal, specified which samples to use
  */
-TH2D* GetABCDplot(const TH2D* metVsDedxHist, const binning bestValues, xtracks::EDataType dataType, int setIter=0)
+TH2D* GetABCDplot(const TH2D* metVsDedxHist, const binning bestValues,
+                  xtracks::EDataType dataType, int setIter=0)
 {
   auto &[criticalMet, criticalDedx] = bestValues;
   if(criticalMet.size()==0 || criticalDedx.size()==0){
@@ -248,8 +252,16 @@ TH2D* GetABCDplot(const TH2D* metVsDedxHist, const binning bestValues, xtracks::
   }
   
   string title = "ABCD_"+to_string_with_precision(criticalMet[0], 0)+"_"+to_string_with_precision(criticalDedx[0], 1);
-  if(dataType == xtracks::kSignal)  title += ("_"+signalName[setIter]);
-  else                              title += "_Backgrounds";
+  double scale = 1.0;
+  
+  if(dataType == xtracks::kSignal){
+    title += ("_"+signalName[setIter]);
+    if(simulateTagger) scale = taggerEfficiency;
+  }
+  else{
+    title += "_Backgrounds";
+    if(simulateTagger) scale = taggerFakeRate;
+  }
   
   vector<float> binsMet = { 0 };
   vector<float> binsDedx = { 0 };
@@ -270,7 +282,7 @@ TH2D* GetABCDplot(const TH2D* metVsDedxHist, const binning bestValues, xtracks::
                         (int)binsDedx.size()-1, binsDedxArray,
                         (int)binsMet.size()-1, binsMetArray);
  
-  auto abcd = GetABCD(metVsDedxHist, bestValues);
+  auto abcd = GetABCD(metVsDedxHist, bestValues, scale);
   
   for(int iMet=0; iMet<binsMet.size()-1; iMet++){
     for(int iDedx=0; iDedx<binsDedx.size()-1; iDedx++){
@@ -282,42 +294,11 @@ TH2D* GetABCDplot(const TH2D* metVsDedxHist, const binning bestValues, xtracks::
   return hist;
 }
 
-/**
- Returns variance calculated from predicted/expected ratio in each 2x2 sub-histogram of the full ABCD...
- \param metVsDedxHist Histogram containing number of events for each MET-dE/dx bin
- \param bestValues Positions of bins border on MET and dE/dx axes
- */
-tuple<double, double> GetVariance(const TH2D *metVsDedxHist, const binning bestValues)
-{
-  auto abcd = GetABCD(metVsDedxHist, bestValues);
-  double variance = 0;
-  double varianceError = 0;
-  int nEntries = 0;
-  for(int x=0; x<abcd.size()-1; x++){
-    for(int y=0; y<abcd[x].size()-1; y++){
-      if(abcd[x][y+1]==0  || abcd[x][y]==0    ||
-         abcd[x+1][y]==0  || abcd[x+1][y+1]==0) return make_tuple(inf, inf);
-      
-      double ratio = abcd[x][y+1]/abcd[x][y] * abcd[x+1][y]/abcd[x+1][y+1];
-      double ratioError = sqrt(1/(abcd[x][y+1]*abcd[x+1][y])+1/(abcd[x][y]*abcd[x+1][y+1])) * ratio;
-      variance += pow(ratio-1, 2);
-      varianceError += pow((2*ratio-2)*ratioError, 2);
-      nEntries++;
-    }
-  }
-  variance /= nEntries;
-  
-  varianceError = sqrt(varianceError);
-  varianceError /= nEntries;
-  
-  return make_tuple(variance, varianceError);
-}
-
 double GetSignificance(const TH2D *metVsDedxHistBackground, const TH2D *metVsDedxHistSignal,
                        const binning bestValues)
 {
-  auto abcdBackground = GetABCD(metVsDedxHistBackground, bestValues);
-  auto abcdSignal     = GetABCD(metVsDedxHistSignal, bestValues);
+  auto abcdBackground = GetABCD(metVsDedxHistBackground, bestValues, simulateTagger ? taggerFakeRate : 1.0);
+  auto abcdSignal     = GetABCD(metVsDedxHistSignal, bestValues, simulateTagger ? taggerEfficiency : 1.0);
   
   double significance = 0;
   
@@ -679,7 +660,7 @@ void produceLimits(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &m
     if(!config.runSignal[iSig]) continue;
     
     // TODO: remove this !!
-    if(iSig!= kWino_M_500_cTau_10 && iSig!= kWino_M_500_cTau_20) continue;
+    if(iSig != kWino_M_650_cTau_10) continue;
     //
     
     string outFileName = to_string_with_precision(nDedxBins, 0)+"x"+to_string_with_precision(nMetBins, 0)+"_"+config.category+"_"+sampleTag+"_"+signalShortName[iSig];

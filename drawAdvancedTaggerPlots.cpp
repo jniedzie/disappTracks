@@ -195,7 +195,10 @@ void DrawMonitors(vector<Monitors> &monitors, ETestParams param, bool first)
   map<string, TH1D*> maxDistance;
   
   int nameIter=0;
-  double max=-inf, min=inf;
+  
+  double bestEff = -inf;
+  double bestFake = inf;
+  double bestDist = -inf;
   
   for(auto &[name, params] : monitorTypes){
     auto [title, color, pad] = params;
@@ -212,21 +215,24 @@ void DrawMonitors(vector<Monitors> &monitors, ETestParams param, bool first)
       
       PerformanceMonitor monitor = monitors[paramBin][name];
       monitor.CalcEfficiency();
-      double distance = monitor.GetMaxDistanceFromSqrtFake();
-      
-      maxDistance[name]->SetBinContent(paramBin, distance);
-      if(distance < min) min = distance;
-      if(distance > max) max = distance;
+      double eff, fake;
+      double distance = monitor.GetMaxDistanceFromSqrtFake(eff, fake);
+      maxDistance[name]->SetBinContent(paramBin+1, distance);
+      if(distance > bestDist){
+        bestDist = distance;
+        bestEff = eff;
+        bestFake = fake;
+      }
     }
     maxDistance[name]->Draw(nameIter == 0 ? "b" : "b same");
     legend->AddEntry(maxDistance[name], title.c_str(), "f");
     
     nameIter++;
   }
-//  maxDistance["avg_hits"]->SetMaximum(1.1*max);
-//  maxDistance["avg_hits"]->SetMinimum(1.1*min);
-  maxDistance["avg_hits"]->SetMaximum(2);
-  maxDistance["avg_hits"]->SetMinimum(-2);
+  maxDistance["avg_hits"]->SetMaximum(1.3);
+  maxDistance["avg_hits"]->SetMinimum(-1.3);
+  
+  cout<<"Best distance: "<<bestDist<<"\teff: "<<bestEff<<"\tfake: "<<bestFake<<endl;
   
   if(first) legend->Draw("same");
 }
