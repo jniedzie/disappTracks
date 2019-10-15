@@ -184,14 +184,14 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
   // check MET filters
   if(cut.requiresPassingAllFilters){
     if(   !event->flag_goodVertices
-       || !event->flag_badPFmuon
+       || !event->flag_globalTightHalo2016
        || !event->flag_HBHEnoise
        || !event->flag_HBHEnoiseIso
        || !event->flag_EcalDeadCell
-       || !event->flag_eeBadSc
-     //|| flag_badChargedCandidate/
-       || !event->flag_ecalBadCalib
-       || !event->flag_globalTightHalo2016){
+       || !event->flag_badPFmuon
+//     || flag_badChargedCandidate // not recommended
+//     || !event->flag_eeBadSc     // not suggested
+       || !event->flag_ecalBadCalib){
       return false;
     }
   }
