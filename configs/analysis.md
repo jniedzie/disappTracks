@@ -4,7 +4,7 @@
 cuts_level: 1
 
 ### Analysis category ( 2-tracks | 3-layers | 4-layers | 5-6-layers | all ):
-analysis_category:  all
+analysis_category:  3-layers
 
 scan_MET_binning: 0
 do_MET_binning: 0
@@ -26,7 +26,7 @@ do_dibosons:   1
 do_Wmv:         1
 do_Zvv:           1
 
-do_300_3:       0
+do_300_3:       1
 do_300_10:     0
 do_300_30:     0
 do_500_10:     0

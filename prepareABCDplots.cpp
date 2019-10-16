@@ -16,11 +16,14 @@ typedef tuple<vector<double>, vector<double>> binning;
 // Desired number of MET and dE/dx bins and limits of those
 const int nDedxBins = 3, nMetBins  = 3;
 const double minMet  = 300 , maxMet  = 500 , stepMet  = 10;
-const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1;
+//const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1; // for min dE/dx
+const double minDedx = 2.5 , maxDedx = 8.0 , stepDedx = 0.5; // for dE/dx likelihood
 
-bool simulateTagger = true;
+string configPath = "configs/analysis.md";
+
+bool simulateTagger = false;
 double taggerEfficiency = 0.595152;
-double taggerFakeRate = 0.119221;
+double taggerFakeRate   = 0.119221;
 
 const int ratioRebin = 1;
 string sampleTag = "tagSim_noPU";
@@ -328,7 +331,8 @@ TH2D* GetMetVsDedxHist(const EventSet &events, xtracks::EDataType dataType, int 
         
         for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
           auto track = event->GetTrack(iTrack);
-          hist->Fill(track->GetMinDedx(), event->GetMetNoMuPt(), event->GetWeight());
+//          hist->Fill(track->GetMinDedx(), event->GetMetNoMuPt(), event->GetWeight());
+          hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPt(), event->GetWeight());
         }
       }
     }
@@ -339,7 +343,8 @@ TH2D* GetMetVsDedxHist(const EventSet &events, xtracks::EDataType dataType, int 
       
       for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
         auto track = event->GetTrack(iTrack);
-        hist->Fill(track->GetMinDedx(), event->GetMetNoMuPt(), event->GetWeight());
+//        hist->Fill(track->GetMinDedx(), event->GetMetNoMuPt(), event->GetWeight());
+        hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPt(), event->GetWeight());
       }
     }
   }
@@ -688,9 +693,8 @@ int main(int argc, char* argv[])
   
   cout.imbue(locale("de_DE"));
   TApplication *theApp = new TApplication("App", &argc, argv);
-  config = ConfigManager("configs/analysis.md");
+  config = ConfigManager(configPath);
   
- 
   
   // Load sll events with initial cuts only
   EventSet events;
@@ -702,9 +706,9 @@ int main(int argc, char* argv[])
   map<int, TH2D*> metVsDedxHistsSignal = loadSignalHists(events);
   
   
-//  runBinningScan(metVsDedxHistBackground, metVsDedxHistsSignal);
+  runBinningScan(metVsDedxHistBackground, metVsDedxHistsSignal);
   
-  produceLimits(metVsDedxHistBackground, metVsDedxHistsSignal);
+//  produceLimits(metVsDedxHistBackground, metVsDedxHistsSignal);
 
 //  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, {{400},{3.0, 3.1}} , "results/abcd_plots_debug.root");
   
