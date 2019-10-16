@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 project (DisappTracks)
 
-find_package(ROOT REQUIRED COMPONENTS Minuit Eve Geom)
+find_package(ROOT REQUIRED COMPONENTS Minuit Eve Geom TreePlayer)
 include(${ROOT_USE_FILE})
 
 set_property(TARGET ROOT::Core PROPERTY
@@ -30,7 +30,7 @@ INTERFACE_LINK_LIBRARIES ${ROOT_EXE_LINKER_FLAGS})
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-set(CMAKE_CXX_FLAGS "-O3")
+# set(CMAKE_CXX_FLAGS "-O3")
 
 add_executable(getTrackHeatMap getTrackHeatMap.cpp)
 add_executable(eventDisplay eventDisplay.cpp)
