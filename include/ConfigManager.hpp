@@ -12,13 +12,15 @@
 struct ConfigManager;
 extern ConfigManager config;
 
-/// Wrapper on a config file that provides access to options from the code.
-/// Reads a config file in markdown format. For all options that are not specified in the config
-/// default values will be used.
+/**
+ Wrapper on a config file that provides access to options from the code.
+ Reads a config file in markdown format. For all options that are not specified in the config
+ default values will be used.
+ */
 struct ConfigManager {
   /// Default constructor
-  /// \param _path Path to the config file
-  ConfigManager(string _path="");
+  /// \param path Path to the config file
+  ConfigManager(string path="");
   
   map<string, double> params; ///< All bool, int and double parameters from the config file
   
@@ -28,9 +30,6 @@ struct ConfigManager {
   vector<bool> runBackground; ///< Should run given backgorund sample (by EBackground enum)
   vector<bool> runSignal;     ///< Should run given signal sample (by ESignal enum)
   vector<bool> runData;       ///< Should run given data sample (by EData enum)
-  
-private:
-  unique_ptr<TEnv> configFile;
 };
 
 #endif /* FitterConfig_hpp */

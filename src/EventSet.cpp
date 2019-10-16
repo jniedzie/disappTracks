@@ -674,6 +674,12 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
   cout<<"Reading events from:"<<fileName<<endl;
   TFile *inFile = TFile::Open(fileName.c_str());
   TTree *tree = (TTree*)inFile->Get("tree");
+  
+  if(!tree){
+    Log(0)<<"Error -- could not load tree from file: "<<fileName<<"\n";
+    return;
+  }
+  
   TTreeReader reader("tree", inFile);
   
   string basePath;
