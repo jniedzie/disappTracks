@@ -55,6 +55,7 @@ public:
   double         GetMaxDedx();
   double         GetDedxInSubDet(int det);
   double         GetDedxInBarrelLayer(int iLayer);
+  double         GetDedxLikelihood();
   
   inline int     GetSubDetIdForHit(int iHit){return iHit < subDetId.size() ? subDetId[iHit] : 0;}
 	inline int     GetSizeXforHit(int iHit){return iHit < sizeX.size() ? sizeX[iHit] : 0;}
@@ -149,6 +150,14 @@ private:
   void CalculateInternals();
   
   Point decayPoint;
+  
+  
+  /**
+   Returns likelihood for hit in layer iLayer with given dE/dx value.
+   For FPIX use iLayer = 100
+   Core of the function from Andrea
+   */
+  double GetLandgaus(int iLayer, double hitDedx);
   
   friend class TrackProcessor;
 };

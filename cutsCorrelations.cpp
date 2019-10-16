@@ -18,17 +18,17 @@ map<string, TH2D*> CreateCorrelationHistograms()
 {
   //  name          nBinsX minX  maxX    nBinsY minY  maxY
   map<string, tuple<int, double, double, int, double, double>> histParams = {
-    {"iso_vs_dedx"                , { 100  , 0 , 10   , 100 , 0   , 0.1   }},
-    {"met_vs_dedx"                , { 100  , 0 , 10   , 100 , 200 , 1200  }},
+    {"iso_vs_dedx"                , { 100  , 0 , 20   , 100 , 0   , 0.1   }},
+    {"met_vs_dedx"                , { 100  , 0 , 20   , 100 , 200 , 1200  }},
     {"trackPt_vs_missing"         , { 100  , 0 , 1000 , 20  , 0   , 20    }},
     {"deltaJetTrack_vs_missing"   , { 20   , 0 , 2    , 20  , 0   , 20    }},
   };
   
   map<string, tuple<string, string>> histAxesNames = {
-    {"iso_vs_dedx"                , { "Minimum dE/dx (MeV/cm)"      , "Relative isolation"   }},
-    {"met_vs_dedx"                , { "Minimum dE/dx (MeV/cm)"      , "MET p_{T} (GeV)"      }},
-    {"trackPt_vs_missing"         , { "Missing outer tracker hits"  , "Track p_{T}"          }},
-    {"deltaJetTrack_vs_missing"   , { "Missing outer tracker hits"  , "#Delta R(jet,track)"  }},
+    {"iso_vs_dedx"                , { "Log-likelihood per dE/dx hit (MeV/cm)" , "Relative isolation" }},
+    {"met_vs_dedx"                , { "Log-likelihood per dE/dx hit (MeV/cm)" , "MET p_{T} (GeV)"    }},
+    {"trackPt_vs_missing"         , { "Missing outer tracker hits"            , "Track p_{T}"        }},
+    {"deltaJetTrack_vs_missing"   , { "Missing outer tracker hits"            , "#Delta R(jet,track)"}},
   };
   
   map<string, TH2D*> correlationHists;
@@ -54,11 +54,12 @@ void FillCorrelationHistograms(map<string, TH2D*> &correlationHists, const Event
       for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
         auto track = event->GetTrack(iTrack);
         
-        double avgDedx = track->GetAverageDedx();
-        double minDedx = track->GetMinDedx();
+        double avgDedx        = track->GetAverageDedx();
+        double minDedx        = track->GetMinDedx();
+        double likelihoodDedx = track->GetDedxLikelihood();
         
-        correlationHists["iso_vs_dedx"]->Fill(minDedx, track->GetRelativeIsolation());
-        correlationHists["met_vs_dedx"]->Fill(minDedx, event->GetMetNoMuPt());
+        correlationHists["iso_vs_dedx"]->Fill(likelihoodDedx, track->GetRelativeIsolation());
+        correlationHists["met_vs_dedx"]->Fill(likelihoodDedx, event->GetMetNoMuPt());
         correlationHists["trackPt_vs_missing"]->Fill(track->GetPt(), track->GetNmissingOuterTrackerHits());
         
         for(int iJet=0;iJet<event->GetNjets();iJet++){

@@ -3,6 +3,7 @@
 //  Created by Jeremi Niedziela on 16/07/2018.
 
 #include "Track.hpp"
+#include "Logger.hpp"
 
 Track::Track() :
 pt(inf),
@@ -222,4 +223,86 @@ double Track::GetMinDedx()
 double Track::GetMaxDedx()
 {
   return *max(dedx.begin(), dedx.end());
+}
+
+double Track::GetDedxLikelihood()
+{
+  double likelihoodProduct = 1.;
+  double logLikelihoodSum = 0.;
+ 
+  int nHitsProcessed = 0;
+  
+  for(int iHit=0; iHit<GetNdEdxHits(); iHit++){
+    double hitDedx = GetDeDxForHit(iHit);
+    if(hitDedx==0) continue;
+    
+    double likelihood = 1.0;
+    
+    if(detType[iHit] == 2)      likelihood = GetLandgaus(100, hitDedx);                     // Endcaps
+    else if(detType[iHit] == 0) likelihood = GetLandgaus(GetLayerForHit(iHit)+4, hitDedx);  // Strips
+    else if(detType[iHit] == 1) likelihood = GetLandgaus(GetLayerForHit(iHit)  , hitDedx);  // Pixels
+    else Log(0)<<"Error -- unknown detector type: "<<detType[iHit]<<"\n";
+    
+    likelihoodProduct *= likelihood;
+    logLikelihoodSum  -= log(likelihood);
+    
+    if(likelihood != 1.0) nHitsProcessed++;
+  }
+  
+  return logLikelihoodSum/nHitsProcessed;
+}
+
+
+double Track::GetLandgaus(int iLayer, double hitDedx)
+{
+  if (hitDedx<0) return 1.0;
+  
+  map<int, vector<double>> par = {
+    {1,   {0.24, 1.60, 0.1, 0.55}}, // BPIX 1
+    {2,   {0.22, 2.45, 0.1, 0.34}}, // BPIX 2
+    {3,   {0.22, 2.45, 0.1, 0.34}}, // BPIX 3
+    {4,   {0.23, 2.70, 0.1, 0.32}}, // BPIX 4
+    {100, {0.24, 2.50, 0.1, 0.30}}, // FPIX
+  };
+  
+  if(par.find(iLayer) == par.end()){
+    Log(0)<<"Error -- parameters for likelihood in layer "<<iLayer<<" not found.\n";
+    return 1.0;
+  }
+  
+  // Numeric constants
+  double invsq2pi = 0.3989422804014;   // (2 pi)^(-1/2)
+  double mpshift  = -0.22278298;       // Landau maximum location
+  
+  // Control constants
+  double np = 100.0;      // number of convolution steps
+  double sc =   5.0;      // convolution extends to +-sc Gaussian sigmas
+  
+  // Variables
+  double xx, mpc, fland, xlow,xupp, step, i;
+  double sum = 0.0;
+  
+  
+  // MP shift correction
+  mpc = par[iLayer][1] - mpshift * par[iLayer][0];
+  
+  // Range of convolution integral
+  xlow = hitDedx - sc * par[iLayer][3];
+  xupp = hitDedx + sc * par[iLayer][3];
+  
+  step = (xupp-xlow) / np;
+  
+  // Convolution integral of Landau and Gaussian by sum
+  for(i=1.0; i<=np/2; i++) {
+    xx = xlow + (i-.5) * step;
+    fland = TMath::Landau(xx,mpc,par[iLayer][0]) / par[iLayer][0];
+    sum += fland * TMath::Gaus(hitDedx, xx, par[iLayer][3]);
+    
+    xx = xupp - (i-.5) * step;
+    fland = TMath::Landau(xx,mpc,par[iLayer][0]) / par[iLayer][0];
+    sum += fland * TMath::Gaus(hitDedx, xx, par[iLayer][3]);
+  }
+  
+  return (par[iLayer][2] * step * sum * invsq2pi / par[iLayer][3]);
+  
 }
