@@ -1,0 +1,2 @@
+Error in <TSystem::ExpandFileName>: input: $HOME/.root.mimes, output: $HOME/.root.mimes
+condor_exec.exe: line 16:   132 Killed                  ./taggerScanner

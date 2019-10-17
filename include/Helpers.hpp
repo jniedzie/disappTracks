@@ -63,7 +63,6 @@
 #include <unordered_set>
 #include <locale>
 #include <variant>
-#include <sstream>
 #include <any>
 
 using namespace std;
@@ -623,7 +622,8 @@ const map<EVar, tuple<string, int, double, double, bool>> settings =
 inline bool IsPerEventVariable(EVar var)
 {
   if(var == kNvertices || var == kNisoTracks || var == kNjets || var == kNjets30 ||
-     var == kNjets30a || var == kMetSumEt || var == kMetPt || var == kMetMass || var == kMetEta || var == kMetPhi || var == kNhelices)
+     var == kNjets30a || var == kMetSumEt || var == kMetPt || var == kMetMass ||
+     var == kMetEta || var == kMetPhi || var == kNhelices)
     return true;
   return false;
 }
@@ -633,8 +633,9 @@ inline bool IsPerTrackVariable(EVar var)
   if(var == kTrackNclusters || var == kTrackTotalDedx || var == kTrackDedxPerCluster || var == kTrackPt ||
      var == kTrackEta || var == kTrackPhi || var == kTrackCaloEm || var == kTrackCaloHad ||
      var == kTrackDxy || var == kTrackDz || var == kTrackCharge || var == kTrackMass || var == kTrackPid ||
-     var == kTrackMissingOuterTrackerHits || var == kTrackPixelHits || var == kTrackTrackerHits || var == kTrackTrackerLayers || var == kTrackRelativeIsolation || var == kTrackAbsoluteIsolation || var == kTrackMetDphi ||
-     var == kTrackDedxPerHit || var == kDedx || var == kTrackMinDedx)
+     var == kTrackMissingOuterTrackerHits || var == kTrackPixelHits || var == kTrackTrackerHits ||
+     var == kTrackTrackerLayers || var == kTrackRelativeIsolation || var == kTrackAbsoluteIsolation ||
+     var == kTrackMetDphi || var == kTrackDedxPerHit || var == kDedx || var == kTrackMinDedx)
     return true;
   return false;
 }

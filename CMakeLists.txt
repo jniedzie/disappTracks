@@ -6,11 +6,12 @@ list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 find_package(ROOT REQUIRED COMPONENTS Minuit Eve Geom TreePlayer)
 include(${ROOT_USE_FILE})
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-ROOT_GENERATE_DICTIONARY(G__Event Event.h LINKDEF EventLinkDef.h)
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+#ROOT_GENERATE_DICTIONARY(G__Event Event.h LINKDEF EventLinkDef.h)
 
 
-set_property(TARGET ROOT::Core PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${ROOT_INCLUDE_DIRS}")
+set_property(TARGET ROOT::Core PROPERTY
+INTERFACE_INCLUDE_DIRECTORIES "${ROOT_INCLUDE_DIRS}")
 add_library(ROOT::Flags_CXX IMPORTED INTERFACE)
 
 # Fix for ROOT_CXX_FLAGS not actually being a CMake list
