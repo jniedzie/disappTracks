@@ -239,7 +239,7 @@ double Track::GetDedxLikelihood()
     double likelihood = 1.0;
     
     if(detType[iHit] == 2)      likelihood = GetLandgaus(100, hitDedx);                     // Endcaps
-    else if(detType[iHit] == 0) likelihood = GetLandgaus(GetLayerForHit(iHit)+4, hitDedx);  // Strips
+    else if(detType[iHit] == 0) likelihood = GetLandgaus(200, hitDedx);                     // Strips
     else if(detType[iHit] == 1) likelihood = GetLandgaus(GetLayerForHit(iHit)  , hitDedx);  // Pixels
     else Log(0)<<"Error -- unknown detector type: "<<detType[iHit]<<"\n";
     
@@ -263,6 +263,7 @@ double Track::GetLandgaus(int iLayer, double hitDedx)
     {3,   {0.22, 2.45, 0.1, 0.34}}, // BPIX 3
     {4,   {0.23, 2.70, 0.1, 0.32}}, // BPIX 4
     {100, {0.24, 2.50, 0.1, 0.30}}, // FPIX
+    {200, {0.29, 2.90, 0.1, 0.23}}, // Strips
   };
   
   if(par.find(iLayer) == par.end()){

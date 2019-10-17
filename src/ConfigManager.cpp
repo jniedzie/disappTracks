@@ -52,7 +52,7 @@ ConfigManager::ConfigManager(string path)
     else if(key == "do_800_10")             runSignal[kWino_M_800_cTau_10]  = stoi(value);
     else if(key == "do_800_20")             runSignal[kWino_M_800_cTau_20]  = stoi(value);
     else if(key == "do_1000_10")            runSignal[kWino_M_1000_cTau_10] = stoi(value);
-    else if(key == "do_1000_10")            runSignal[kWino_M_1000_cTau_20] = stoi(value);
+    else if(key == "do_1000_20")            runSignal[kWino_M_1000_cTau_20] = stoi(value);
     else if(key == "do_tagger_signal")      runSignal[kTaggerSignal]        = stoi(value);
     else if(key == "do_tagger_background")  runSignal[kTaggerBackground]    = stoi(value);
      

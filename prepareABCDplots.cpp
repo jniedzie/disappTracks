@@ -17,7 +17,7 @@ typedef tuple<vector<double>, vector<double>> binning;
 const int nDedxBins = 3, nMetBins  = 3;
 const double minMet  = 300 , maxMet  = 500 , stepMet  = 10;
 //const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1; // for min dE/dx
-const double minDedx = 2.5 , maxDedx = 8.0 , stepDedx = 0.5; // for dE/dx likelihood
+const double minDedx = 2.5 , maxDedx = 10.0 , stepDedx = 0.1; // for dE/dx likelihood
 
 string configPath = "configs/analysis.md";
 

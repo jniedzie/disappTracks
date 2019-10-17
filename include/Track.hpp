@@ -154,7 +154,8 @@ private:
   
   /**
    Returns likelihood for hit in layer iLayer with given dE/dx value.
-   For FPIX use iLayer = 100
+   For FPIX   use iLayer = 100
+   For Strips use iLayer = 200
    Core of the function from Andrea
    */
   double GetLandgaus(int iLayer, double hitDedx);
