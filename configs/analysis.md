@@ -4,7 +4,7 @@
 cuts_level: 1
 
 ### Analysis category ( 2-tracks | 3-layers | 4-layers | 5-6-layers | all ):
-analysis_category:  all
+analysis_category:  3-layers
 
 scan_MET_binning: 0
 do_MET_binning: 0
@@ -19,14 +19,14 @@ load_hits:             0
 verbosity_level: 1
 
 ### turn on/off different backgrounds, signals and data samples
-do_QCD:         0
-do_Zmm:         0
-do_tops:          0
-do_dibosons:   0
-do_Wmv:         0
-do_Zvv:           0
+do_QCD:         1
+do_Zmm:         1
+do_tops:          1
+do_dibosons:   1
+do_Wmv:         1
+do_Zvv:           1
 
-do_300_3:       0
+do_300_3:       1
 do_300_10:     0
 do_300_30:     0
 do_500_10:     0
@@ -41,7 +41,7 @@ do_tagger_signal:             0
 do_tagger_background:   0
 
 do_2017:         0
-do_2018:         1
+do_2018:         0
 do_2018_CR:  0
 
 **Printing & plotting options**
@@ -51,11 +51,11 @@ print_yields: 1
 
 ### Print detailed description of events passing selections:
 print_background_details: 0
-print_data_details: 1
+print_data_details: 0
 print_signal_details: 0
 
 ### Draw standard (per event/track/jet/helix) plots:
-draw_standard_plots:  1
+draw_standard_plots:  0
 
 ### Draw per-layer plots (mainly dE/dx):
 draw_per_layer_plots: 0

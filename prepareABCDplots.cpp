@@ -20,6 +20,7 @@ const double minMet  = 300 , maxMet  = 500 , stepMet  = 10;
 const double minDedx = 2.5 , maxDedx = 10.0 , stepDedx = 0.1; // for dE/dx likelihood
 
 string configPath = "configs/analysis.md";
+string outputPath = "results/abcd_optimization.txt";
 
 bool simulateTagger = false;
 double taggerEfficiency = 0.595152;
@@ -628,6 +629,8 @@ void runBinningScan(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &
   for(double startingMet=minMet; startingMet<maxMet; startingMet+=stepMet) groupsMet.push_back({startingMet});
   AddValuesCombinations(groupsMet, maxMet, stepMet, nMetBins-1);
   
+  ofstream outFile(outputPath);
+  
   for(int iSig=0; iSig<kNsignals; iSig++){
     if(!config.runSignal[iSig]) continue;
     auto result = findBestBinning(metVsDedxHistBackground, metVsDedxHistsSignal.at(iSig), groupsDedx, groupsMet);
@@ -637,7 +640,14 @@ void runBinningScan(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &
     Log(0)<<"MET bins: "; for(double met : get<0>(result)) Log(0)<<met<<"\t"; Log(0)<<"\n";
     Log(0)<<"dE/dx bins: "; for(double dedx : get<1>(result)) Log(0)<<dedx<<"\t"; Log(0)<<"\n";
     Log(0)<<"significance: "<<significance<<"\n";
+    
+    
+    outFile<<"Sample: "<<signalTitle[iSig]<<"\n";
+    outFile<<"MET bins: "; for(double met : get<0>(result)) outFile<<met<<"\t"; outFile<<"\n";
+    outFile<<"dE/dx bins: "; for(double dedx : get<1>(result)) outFile<<dedx<<"\t"; outFile<<"\n";
+    outFile<<"significance: "<<significance<<"\n";
   }
+  outFile.close();
 }
 
 void getLimitsForSignal(string outFileName, string outputPath)
@@ -665,10 +675,6 @@ void produceLimits(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &m
   for(int iSig=0; iSig<kNsignals; iSig++){
     if(!config.runSignal[iSig]) continue;
     
-    // TODO: remove this !!
-    if(iSig != kWino_M_1000_cTau_10) continue;
-    //
-    
     string outFileName = to_string_with_precision(nDedxBins, 0)+"x"+to_string_with_precision(nMetBins, 0)+"_"+config.category+"_"+sampleTag+"_"+signalShortName[iSig];
     string outputPath = "results/abcd_plots_"+outFileName+".root";
     
@@ -689,12 +695,24 @@ void produceLimits(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &m
 /// Starting point of the application
 int main(int argc, char* argv[])
 {
+  if(argc != 0 && argc != 4){
+    cout<<"No or 2 argument expected: optimizer_output_path sample_index category"<<endl;
+    exit(0);
+  }
+  
   srand((uint)time(0));
   
   cout.imbue(locale("de_DE"));
-  TApplication *theApp = new TApplication("App", &argc, argv);
+  
   config = ConfigManager(configPath);
   
+  if(argc == 4){
+    outputPath = argv[1];
+    for(int iSig=0; iSig<kNsignals; iSig++) config.runSignal[iSig] = false;
+    config.runSignal[atoi(argv[2])] = true;
+    config.category = argv[3];
+  }
+  TApplication *theApp = new TApplication("App", &argc, argv);
   
   // Load sll events with initial cuts only
   EventSet events;

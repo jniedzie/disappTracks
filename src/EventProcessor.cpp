@@ -461,10 +461,7 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   event->metNoMuEta  = singleValuesFloat["metNoMu_eta"];
   
   // Load additional info from friend tree
-  if(!friendTree){
-    Log(0)<<"No friend tree was provided to EventProcessor\n";
-    return event;
-  }
+  if(!friendTree) return event;
   
   // uberhack to select needed entry directly...
   friendTree->Draw("Entry$>>hist(Entries$,0,Entries$)",
