@@ -10,7 +10,6 @@
 #include "Logger.hpp"
 
 string configPath = "configs/helixTagger.md";
-string cutLevel = "after_L0/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 
@@ -18,21 +17,40 @@ vector<int> eventsToSkip = { };
 
 int main(int argc, char* argv[])
 {
+  if(argc != 1 && argc != 4){
+    Log(0)<<"helixTagger takes no arguments or: output_path events_offset n_events \n";
+    exit(0);
+  }
   cout.imbue(locale("de_DE"));
   TApplication theApp("App", &argc, argv);
   
   config = ConfigManager(configPath);
-  auto fitter = make_unique<Fitter>();
   
+  string cutLevel;
+  if(config.params["cuts_level"]==1) cutLevel = "after_L0/";
+  if(config.params["cuts_level"]==2) cutLevel = "after_L1/"+config.category+"/";
   EventSet events; events.LoadEventsFromFiles(cutLevel);
   
+  int eventOffset   = 0;
+  string outputPath = "afterHelixTagging/";
+  int maxEvents     = 0;
+  
+  if(argc == 4){
+    outputPath  = argv[1];
+    eventOffset = atoi(argv[2]);
+    maxEvents   = atoi(argv[3]);
+  }
+  
+  auto fitter = make_unique<Fitter>();
   auto start = now();
   int nAnalyzedEvents=0;
   
   for(int iSig=0; iSig<kNsignals; iSig++){
     if(!config.runSignal[iSig]) continue;
     
-    for(auto iEvent=0; iEvent<events.size(dataType, iSig); iEvent++){
+    if(argc == 1) maxEvents = events.size(dataType, iSig);
+    
+    for(auto iEvent=eventOffset; iEvent<maxEvents; iEvent++){
       if(find(eventsToSkip.begin(), eventsToSkip.end(), iEvent) != eventsToSkip.end()){
         Log(0)<<"\n\n=================================================================\n";
         Log(0)<<"Skipping event "<<iEvent<<"\n";
@@ -45,6 +63,7 @@ int main(int argc, char* argv[])
       auto event = events.At(dataType, iSig, iEvent);
       
       if(!event->HasFriendData()){
+        Log(0)<<"Warning -- skipping event "<<iEvent<<" as it has no friend info\n";
         event->SetWasTagged(false);
         continue;
       }
@@ -65,7 +84,7 @@ int main(int argc, char* argv[])
     
     if(config.params["save_events"]){
       Log(0)<<"Saving events...\n";
-      events.SaveEventsToFiles("afterHelixTagging/");
+      events.SaveEventsToFiles(outputPath);
     }
     Log(0)<<"Time: "<<duration(start, now())<<"\n";
     

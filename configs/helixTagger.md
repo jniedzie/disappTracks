@@ -1,8 +1,5 @@
 **General settings**
 
-### Path of the output file:
-output_path: helixFittingResults/tests.root
-
 verbosity_level:  1
 
 ### Limit number of events loaded (-1 means load all available)
