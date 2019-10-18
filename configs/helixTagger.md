@@ -1,5 +1,8 @@
 **General settings**
 
+### At which level of cuts should the tagging be applied:
+cuts_level: 0
+
 verbosity_level:  1
 
 ### Limit number of events loaded (-1 means load all available)

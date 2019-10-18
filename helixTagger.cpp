@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
   EventSet events; events.LoadEventsFromFiles(cutLevel);
   
   int eventOffset   = 0;
-  string outputPath = "afterHelixTagging/";
+  string outputPath = "afterHelixTagging";
   int maxEvents     = 0;
   
   if(argc == 4){
@@ -84,10 +84,11 @@ int main(int argc, char* argv[])
     
     if(config.params["save_events"]){
       Log(0)<<"Saving events...\n";
-      events.SaveEventsToFiles(outputPath);
+      events.SaveEventsToFiles(outputPath+"/");
     }
     Log(0)<<"Time: "<<duration(start, now())<<"\n";
-    
-    return 0;
+
   }
+  
+  return 0;
 }
