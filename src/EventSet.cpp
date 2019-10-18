@@ -776,4 +776,5 @@ void EventSet::AddEventsFromFile(std::string fileName, xtracks::EDataType dataTy
     
     if(iEvent >= 0) break;
   }
+  if(inFileFriend) inFileFriend->Close();
 }

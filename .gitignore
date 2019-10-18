@@ -36,4 +36,7 @@ taggerScanner
 taggerScannerOutput.txt
 prepareABCDplots
 getTrackHeatMap
+condor/output/*
+condor/error/*
+condor/log/*
 

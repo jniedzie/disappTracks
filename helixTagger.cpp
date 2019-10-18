@@ -27,9 +27,10 @@ int main(int argc, char* argv[])
   config = ConfigManager(configPath);
   
   string cutLevel;
-  if(config.params["cuts_level"]==1) cutLevel = "after_L0/";
-  if(config.params["cuts_level"]==2) cutLevel = "after_L1/"+config.category+"/";
-  EventSet events; events.LoadEventsFromFiles(cutLevel);
+  if(config.params["cuts_level"]==0) cutLevel = "after_L0/";
+    if(config.params["cuts_level"]==1) cutLevel = "after_L1/"+config.category+"/";
+  EventSet events;
+//  events.LoadEventsFromFiles(cutLevel);
   
   int eventOffset   = 0;
   string outputPath = "afterHelixTagging";
@@ -48,9 +49,9 @@ int main(int argc, char* argv[])
   for(int iSig=0; iSig<kNsignals; iSig++){
     if(!config.runSignal[iSig]) continue;
     
-    if(argc == 1) maxEvents = events.size(dataType, iSig);
+//    if(argc == 1) maxEvents = events.size(dataType, iSig);
     
-    for(auto iEvent=eventOffset; iEvent<maxEvents; iEvent++){
+    for(auto iEvent=eventOffset; iEvent<maxEvents+eventOffset; iEvent++){
       if(find(eventsToSkip.begin(), eventsToSkip.end(), iEvent) != eventsToSkip.end()){
         Log(0)<<"\n\n=================================================================\n";
         Log(0)<<"Skipping event "<<iEvent<<"\n";
@@ -59,8 +60,10 @@ int main(int argc, char* argv[])
       
       Log(0)<<"\n\n=================================================================\n";
       Log(0)<<"helixTagger -- processing event "<<iEvent<<"\n";
+      Log(0)<<"cut level: "<<cutLevel<<"\n";
       
-      auto event = events.At(dataType, iSig, iEvent);
+      events.LoadEventFromFiles(dataType, iSig, iEvent, cutLevel);
+      auto event = events.At(dataType, iSig, iEvent-eventOffset);
       
       if(!event->HasFriendData()){
         Log(0)<<"Warning -- skipping event "<<iEvent<<" as it has no friend info\n";

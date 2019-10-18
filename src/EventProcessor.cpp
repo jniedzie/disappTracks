@@ -3,6 +3,7 @@
 //  Created by Jeremi Niedziela on 30/01/2019.
 
 #include "EventProcessor.hpp"
+#include "Logger.hpp"
 
 EventProcessor eventProcessor = EventProcessor();
 
@@ -460,7 +461,10 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   event->metNoMuEta  = singleValuesFloat["metNoMu_eta"];
   
   // Load additional info from friend tree
-  if(!friendTree) return event;
+  if(!friendTree){
+    Log(0)<<"No friend tree was provided to EventProcessor\n";
+    return event;
+  }
   
   // uberhack to select needed entry directly...
   friendTree->Draw("Entry$>>hist(Entries$,0,Entries$)",
@@ -473,7 +477,10 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   Long64_t iEntry = hist->GetBinLowEdge(hist->FindFirstBinAbove(0));
   if(hist) delete hist;
   
-  if(iEntry==0) return event;
+  if(iEntry==0){
+    Log(0)<<"No event with run: "<<singleValuesUint["run"]<<"\tlumi: "<<singleValuesUint["lumi"]<<"\tevNumber: "<<to_string(singleValuesUlonglong["evt"])<<" was found\n";
+    return event;
+  }
   
   friendTree->GetEntry(iEntry);
   event->hasFriendData = true;

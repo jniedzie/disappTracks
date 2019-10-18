@@ -279,7 +279,8 @@ const vector<string> inFileNameSignal = {
   "../data/SIG-SR/Wino_M_1000_cTau_20/",
   "../pionSignal/",
 //  "../pionBackground/",
-  "../pionBackgroundNoPU/",
+//  "../pionBackgroundNoPU/",
+  "../pionBackground/withPU/",
 };
 
 const vector<vector<string>> inFileNameData = {

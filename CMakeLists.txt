@@ -3,7 +3,7 @@ project(event)
 
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 
-find_package(ROOT REQUIRED COMPONENTS)
+find_package(ROOT REQUIRED COMPONENTS Minuit Eve Geom)
 include(${ROOT_USE_FILE})
 
 SET(CMAKE_SKIP_BUILD_RPATH FALSE)

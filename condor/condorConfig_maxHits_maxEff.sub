@@ -1,8 +1,0 @@
-executable 		= run_fitter.sh
-arguments		= max_hits max_eff
-output                	= output/taggerFitter.$(ClusterId).$(ProcId).out
-error                 	= error/taggerFitter.$(ClusterId).$(ProcId).err
-log                   	= log/taggerFitter.$(ClusterId).log
-requirements 		= (OpSysAndVer =?= "CentOS7")
-+JobFlavour = "tomorrow"
-queue
