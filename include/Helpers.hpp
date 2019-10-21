@@ -65,6 +65,7 @@
 #include <variant>
 #include <any>
 #include <sstream>
+#include <string>
 
 using namespace std;
 
@@ -277,10 +278,10 @@ const vector<string> inFileNameSignal = {
   "../data/SIG-SR/Wino_M_800_cTau_20/",
   "../data/SIG-SR/Wino_M_1000_cTau_10/",
   "../data/SIG-SR/Wino_M_1000_cTau_20/",
-  "../pionSignal/",
-//  "../pionBackground/",
-//  "../pionBackgroundNoPU/",
-  "../pionBackground/withPU/",
+  "../data/taggerStudy/signal/noPU/",
+  "../data/taggerStudy/background/noPU/",
+  "../data/taggerStudy/signal/withPU/",
+  "../data/taggerStudy/background/withPU/",
 };
 
 const vector<vector<string>> inFileNameData = {
@@ -317,8 +318,10 @@ enum ESignal{
   kWino_M_800_cTau_20,
   kWino_M_1000_cTau_10,
   kWino_M_1000_cTau_20,
-  kTaggerSignal,
-  kTaggerBackground,
+  kTaggerSignalNoPU,
+  kTaggerBackgroundNoPU,
+  kTaggerSignalWithPU,
+  kTaggerBackgroundWithPU,
   kNsignals
 };
 

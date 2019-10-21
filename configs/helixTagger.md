@@ -112,8 +112,10 @@ do_800_10:     0
 do_800_20:     0
 do_1000_10:   0
 do_1000_20:   0
-do_tagger_signal:             0
-do_tagger_background:   1
+do_tagger_signal_noPU:                0
+do_tagger_background_noPU:      0
+do_tagger_signal_withPU:             0
+do_tagger_background_withPU:   0
 
 do_2017:         0
 

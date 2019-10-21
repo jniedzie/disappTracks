@@ -150,13 +150,21 @@ vector<Monitors> CreateMonitors(ETestParams param)
   return monitors;
 }
 
-/// Fills `monitors` with data found in `events`. Will use signal or background events, depending on `isSignal` value
-void FillMonitors(vector<Monitors> &monitors, const EventSet &events, bool isSignal, ETestParams param)
+/**
+Fills monitors with data found in events.
+\param isSignal If true, will use signal events, otherwise background
+\param withPU If true, will use event with pile-up
+*/
+void FillMonitors(vector<Monitors> &monitors, const EventSet &events, bool isSignal, bool withPU, ETestParams param)
 {
-  for(int iEvent=0;
-          iEvent<events.size(dataType, isSignal ? kTaggerSignal : kTaggerBackground);
-          iEvent++){
-    auto event = events.At(dataType, isSignal ? kTaggerSignal : kTaggerBackground, iEvent);
+  ESignal dataSet = kNsignals;
+  if(isSignal && withPU)        dataSet = kTaggerSignalWithPU;
+  else if(isSignal && !withPU)  dataSet = kTaggerSignalNoPU;
+  else if(!isSignal && withPU)  dataSet = kTaggerBackgroundWithPU;
+  else if(!isSignal && !withPU) dataSet = kTaggerBackgroundNoPU;
+  
+  for(int iEvent=0; iEvent<events.size(dataType, dataSet); iEvent++){
+    auto event = events.At(dataType, dataSet, iEvent);
     if(!event->WasTagged()) continue;
     if(!IsEventOk(*event, param)) continue;
     
@@ -254,8 +262,9 @@ int main(int argc, char* argv[])
     canvasPerformance->cd(testParam);
     
     vector<Monitors> monitors = CreateMonitors((ETestParams)testParam);
-    FillMonitors(monitors, events, true, (ETestParams)testParam);
-    FillMonitors(monitors, events, false, (ETestParams)testParam);
+    // TODO: Remember to change to PU for signal once we have samples !!
+    FillMonitors(monitors, events, true, false, (ETestParams)testParam); // signal, noPU
+    FillMonitors(monitors, events, false, true, (ETestParams)testParam); // bkg, withPU
     
     DrawMonitors(monitors, (ETestParams)testParam, testParam==1);
   }

@@ -12,7 +12,7 @@ PerformanceMonitor::PerformanceMonitor()
 
 PerformanceMonitor::PerformanceMonitor(string _name, string _title,
                                        int _nBins, double min, double max,
-                                       EColor color) :
+                                       EColor color, bool alternativeColors) :
 name(_name),
 title(_title),
 thresholdMin(min),
@@ -26,13 +26,13 @@ nBins(_nBins)
                             title.c_str(),
                             nBins, min, max);
   
-  histSignal->SetFillColorAlpha(kGreen+1, 0.3);
-  histSignal->SetLineColor(kGreen+1);
-  histSignal->SetMarkerColor(kGreen+1);
+  histSignal->SetFillColorAlpha(alternativeColors ? kBlue : kGreen+1, 0.3);
+  histSignal->SetLineColor(alternativeColors ? kBlue : kGreen+1);
+  histSignal->SetMarkerColor(alternativeColors ? kBlue : kGreen+1);
   
-  histBackground->SetFillColorAlpha(kRed, 0.3);
-  histBackground->SetLineColor(kRed);
-  histBackground->SetMarkerColor(kRed);
+  histBackground->SetFillColorAlpha(alternativeColors ? kOrange+1 : kRed, 0.3);
+  histBackground->SetLineColor(alternativeColors ? kOrange+1 : kRed);
+  histBackground->SetMarkerColor(alternativeColors ? kOrange+1 : kRed);
   
   rocFun = GetRocFunction();
   rocGraph = new TGraphErrors();
@@ -260,11 +260,11 @@ void PerformanceMonitor::DrawRocGraph(bool first, TLegend *legend)
   }
 }
 
-void PerformanceMonitor::DrawHists(TLegend *legend)
+void PerformanceMonitor::DrawHists(bool first, TLegend *legend)
 {
   histSignal->Sumw2();
   histSignal->Scale(1/histSignal->GetEntries());
-  histSignal->Draw();
+  histSignal->Draw(first ? "" : "same");
   histSignal->SetMaximum(1.0);
   histBackground->Sumw2();
   histBackground->DrawNormalized("same");

@@ -27,8 +27,10 @@ public:
    \param min Minimum variable value
    \param max Maximum variable value
    \param color Optionally, color of the ROC graph points and curve
+   \param alternativeColors When switched on, alternative colors will be used for signal and background histograms
    */
-  PerformanceMonitor(string _name, string _title, int _nBins, double min, double max, EColor color = kRed);
+  PerformanceMonitor(string _name, string _title, int _nBins, double min, double max, EColor color = kRed,
+                     bool alternativeColors=false);
   
   /// Assignment operator
   void operator=(const PerformanceMonitor &pm);
@@ -55,9 +57,10 @@ public:
   
   /**
    Draws signal and background histograms in the current pad
+   \param first Specify whether this is the first time hists are drawn in this pad or not
    \param legend If legend is provided, hists will be added to it
    */
-  void DrawHists(TLegend *legend = nullptr);
+  void DrawHists(bool first, TLegend *legend = nullptr);
   
   /// Prints two columns: fake rate and efficiency, for different values of threshold
   void PrintFakesEfficiency();
