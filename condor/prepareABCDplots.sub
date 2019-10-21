@@ -1,8 +1,8 @@
 executable 		= run_abcd_optimization.sh
-arguments	        = $(ProcId)
+arguments	        = $(ProcId) 2
 output                	= output/$(ClusterId).$(ProcId).out
 error                 	= error/$(ClusterId).$(ProcId).err
 log                   	= log/$(ClusterId).log
 requirements 		= (OpSysAndVer =?= "CentOS7")
-+JobFlavour = "tomorrow"
++JobFlavour = "espresso"
 queue 11

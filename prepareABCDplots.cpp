@@ -15,7 +15,7 @@ typedef tuple<vector<double>, vector<double>> binning;
 
 // Desired number of MET and dE/dx bins and limits of those
 const int nDedxBins = 3, nMetBins  = 3;
-const double minMet  = 300 , maxMet  = 500 , stepMet  = 10;
+const double minMet  = 300 , maxMet  = 500 , stepMet  = 20;
 //const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1; // for min dE/dx
 const double minDedx = 2.5 , maxDedx = 11.0 , stepDedx = 0.2; // for dE/dx likelihood
 
@@ -601,10 +601,10 @@ tuple<vector<double>,vector<double>> findBestBinning(const TH2D *metVsDedxHistBa
   
   Log(2)<<"\t|\t";
   for(auto groupDedx : groupsDedx){ for(double dedx : groupDedx) Log(2)<<dedx<<"\t";}
-  Log(1)<<"\n";
+  cout<<endl;
   
   for(auto groupMet : groupsMet){
-    for(double met : groupMet) Log(1)<<met<<"\t";
+    for(double met : groupMet) cout<<met<<"\t";
     Log(2)<<"|\t";
   
     for(auto groupDedx : groupsDedx){
@@ -617,7 +617,7 @@ tuple<vector<double>,vector<double>> findBestBinning(const TH2D *metVsDedxHistBa
         bestDedx = groupDedx;
       }
     }
-    Log(1)<<"\n";
+    cout<<endl;
   }
   return make_tuple(bestMet, bestDedx);
 }
@@ -696,12 +696,13 @@ void runBinningScan(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &
     auto result = findBestBinning(metVsDedxHistBackground, metVsDedxHistsSignal.at(iSig), groupsDedx, groupsMet);
     double significance = GetSignificance(metVsDedxHistBackground, metVsDedxHistsSignal.at(iSig), result);
 
+    Log(0)<<"Category: "<<config.category<<"\n";
     Log(0)<<"Sample: "<<signalTitle[iSig]<<"\n";
     Log(0)<<"MET bins: "; for(double met : get<0>(result)) Log(0)<<met<<"\t"; Log(0)<<"\n";
     Log(0)<<"dE/dx bins: "; for(double dedx : get<1>(result)) Log(0)<<dedx<<"\t"; Log(0)<<"\n";
     Log(0)<<"significance: "<<significance<<"\n";
     
-    
+    outFile<<"Category: "<<config.category<<"\n";
     outFile<<"Sample: "<<signalTitle[iSig]<<"\n";
     outFile<<"MET bins: "; for(double met : get<0>(result)) outFile<<met<<"\t"; outFile<<"\n";
     outFile<<"dE/dx bins: "; for(double dedx : get<1>(result)) outFile<<dedx<<"\t"; outFile<<"\n";
@@ -772,6 +773,8 @@ int main(int argc, char* argv[])
     config.runSignal[atoi(argv[2])] = true;
     config.category = argv[3];
   }
+  cout<<"Output will be stored in "<<outputPath<<endl;
+  
   TApplication *theApp = new TApplication("App", &argc, argv);
   
   // Load sll events with initial cuts only
