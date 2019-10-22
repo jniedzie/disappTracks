@@ -15,7 +15,7 @@ typedef tuple<vector<double>, vector<double>> binning;
 
 // Desired number of MET and dE/dx bins and limits of those
 const int nDedxBins = 3, nMetBins  = 3;
-const double minMet  = 300 , maxMet  = 500 , stepMet  = 20;
+const double minMet  = 300 , maxMet  = 500 , stepMet  = 10;
 //const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1; // for min dE/dx
 const double minDedx = 2.5 , maxDedx = 11.0 , stepDedx = 0.2; // for dE/dx likelihood
 
