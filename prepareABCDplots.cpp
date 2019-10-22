@@ -17,7 +17,10 @@ typedef tuple<vector<double>, vector<double>> binning;
 const int nDedxBins = 3, nMetBins  = 3;
 const double minMet  = 300 , maxMet  = 500 , stepMet  = 10;
 //const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1; // for min dE/dx
-const double minDedx = 2.5 , maxDedx = 10.0 , stepDedx = 0.1; // for dE/dx likelihood
+const double minDedx = 2.5 , maxDedx = 11.0 , stepDedx = 0.2; // for dE/dx likelihood
+
+const double limitMet = 1000.0;
+const double limitDedx = 20.0;
 
 string configPath = "configs/analysis.md";
 string outputPath = "results/abcd_optimization.txt";
@@ -27,7 +30,7 @@ double taggerEfficiency = 0.595152;
 double taggerFakeRate   = 0.119221;
 
 const int ratioRebin = 1;
-string sampleTag = "tagSim_noPU";
+string sampleTag = "LH_noTag";
 string backgroundHistNams = "background";
 
 
@@ -170,7 +173,7 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //------------------------------------------------
 // 3x3, 4 layers
 //------------------------------------------------
-
+/*
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_300_cTau_3    , {{310, 400}, {2.1, 3.8}}},
   { kWino_M_300_cTau_10   , {{300, 400}, {2.1, 3.1}}},
@@ -184,7 +187,7 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_1000_cTau_10  , {{320, 440}, {2.5, 3.6}}}, // BEST
   { kWino_M_1000_cTau_20  , {{320, 440}, {2.5, 3.6}}},
 };
-
+*/
 //------------------------------------------------
 // 3x3, 5-6 layers
 //------------------------------------------------
@@ -203,6 +206,61 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_1000_cTau_20  , {{300, 460}, {3.6, 5.1}}},
 };
 */
+//------------------------------------------------
+// 3x3, 3 layers, likelihood
+//------------------------------------------------
+
+map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
+  { kWino_M_300_cTau_3    , {{330, 440}, {4.6}}},
+  { kWino_M_300_cTau_10   , {{300, 370}, {4.0}}},
+  { kWino_M_300_cTau_30   , {{320, 410}, {4.0}}},
+  { kWino_M_500_cTau_10   , {{320, 450}, {4.0}}},
+  { kWino_M_500_cTau_20   , {{330, 450}, {4.0}}},
+  { kWino_M_650_cTau_10   , {{300, 440}, {4.0}}},
+  { kWino_M_650_cTau_20   , {{320, 450}, {4.0}}},
+  { kWino_M_800_cTau_10   , {{300, 440}, {4.0}}},
+  { kWino_M_800_cTau_20   , {{350, 450}, {4.0}}},
+  { kWino_M_1000_cTau_10  , {{350, 450}, {4.0}}},
+  { kWino_M_1000_cTau_20  , {{390, 490}, {4.6}}},
+};
+
+//------------------------------------------------
+// 3x3, 4 layers, likelihood
+//------------------------------------------------
+/*
+map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
+  { kWino_M_300_cTau_3    , {{300, 470}, {3.9, 5.3}}},
+  { kWino_M_300_cTau_10   , {{320, 400}, {4.0}}},
+  { kWino_M_300_cTau_30   , {{320, 400}, {4.0}}},
+  { kWino_M_500_cTau_10   , {{300, 440}, {4.0}}},
+  { kWino_M_500_cTau_20   , {{310, 440}, {4.0}}},
+  { kWino_M_650_cTau_10   , {{310, 490}, {4.0}}},
+  { kWino_M_650_cTau_20   , {{320, 490}, {4.0}}},
+  { kWino_M_800_cTau_10   , {{320, 410}, {3.7, 6.3}}},
+  { kWino_M_800_cTau_20   , {{320, 470}, {4.1, 7.1}}},
+  { kWino_M_1000_cTau_10  , {{310, 350}, {4.1, 6.9}}},
+  { kWino_M_1000_cTau_20  , {{320, 490}, {5.0}}},
+};
+*/
+//------------------------------------------------
+// 3x3, 5-6 layers, likelihood
+//------------------------------------------------
+/*
+map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
+  { kWino_M_300_cTau_3    , {{300, 390}, {3.7, 4.5}}},
+  { kWino_M_300_cTau_10   , {{300, 340}, {4.0}}},
+  { kWino_M_300_cTau_30   , {{300, 340}, {4.0}}},
+  { kWino_M_500_cTau_10   , {{340, 470}, {4.0}}},
+  { kWino_M_500_cTau_20   , {{300, 340}, {4.0}}},
+  { kWino_M_650_cTau_10   , {{340, 450}, {3.7, 5.7}}},
+  { kWino_M_650_cTau_20   , {{340, 470}, {4.0}}},
+  { kWino_M_800_cTau_10   , {{350, 450}, {3.7, 5.3}}},
+  { kWino_M_800_cTau_20   , {{340, 470}, {4.0}}},
+  { kWino_M_1000_cTau_10  , {{300, 360}, {4.3, 5.3}}},
+  { kWino_M_1000_cTau_20  , {{300, 350}, {4.3, 5.3}}},
+};
+*/
+
 
 /**
  Returns number of counts in ABCD... regions determined by criticalMet and criticalDedx values.
@@ -273,8 +331,8 @@ TH2D* GetABCDplot(const TH2D* metVsDedxHist, const binning bestValues,
   for(float met : criticalMet) binsMet.push_back(met);
   for(float dedx : criticalDedx) binsDedx.push_back(dedx);
   
-  binsMet.push_back(1000);
-  binsDedx.push_back(6.0);
+  binsMet.push_back(limitMet);
+  binsDedx.push_back(limitDedx);
   
   float binsMetArray[100];
   float binsDedxArray[100];
@@ -308,8 +366,8 @@ double GetSignificance(const TH2D *metVsDedxHistBackground, const TH2D *metVsDed
   
   for(int x=0; x<abcdBackground.size(); x++){
     for(int y=0; y<abcdBackground[x].size(); y++){
-      if(abcdSignal[x][y] + abcdBackground[x][y] == 0) continue;
       if(abcdBackground[x][y] == 0) return 0; // protection agains bins with no background events
+      if(abcdSignal[x][y] + abcdBackground[x][y] == 0) continue;
       
       double signif = abcdSignal[x][y] / sqrt(abcdSignal[x][y] + abcdBackground[x][y]);
       significance += pow(signif, 2);
@@ -567,10 +625,12 @@ tuple<vector<double>,vector<double>> findBestBinning(const TH2D *metVsDedxHistBa
 /// Creates Combine datacard using Andrea's tool
 void createDatacard(string outFileName, string outputPath)
 {
-  string command = "python3 ../DatacardCreatorABCD/mkDatacards.py  --inputHistoFile "+outputPath;
+  string command = "/usr/local/bin/python3 ../DatacardCreatorABCD/mkDatacards.py  --inputHistoFile "+outputPath;
   command += " --dataHistoName  "+backgroundHistNams;
   command += " --sigHistoNameTemplate  Wino";
   command += " --nuisancesFile   test/nuisances.py";
+  
+  cout<<"Executing command:\n"<<command<<endl;
   
   string commandOutput = exec(command.c_str());
   cout<<commandOutput<<endl;
@@ -602,7 +662,7 @@ void runCombine(string outFileName)
 
 void convertRtoLimits(string outFileName)
 {
-  string command = "/Applications/root_v6.16.00/bin/root -q -b -l ";
+  string command = "/usr/local/Cellar/root/6.18.04/bin/root -q -b -l ";
   command += "\"macros/getLimitsFromR.C(\\\"macros/limitsData/combineOutput/limits_datacard_"+outFileName+".txt\\\", ";
   command += "\\\"macros/limitsData/cms_short_disappearing_"+outFileName+".txt\\\")\"";
   exec(command.c_str());
@@ -695,7 +755,7 @@ void produceLimits(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &m
 /// Starting point of the application
 int main(int argc, char* argv[])
 {
-  if(argc != 0 && argc != 4){
+  if(argc != 1 && argc != 4){
     cout<<"No or 2 argument expected: optimizer_output_path sample_index category"<<endl;
     exit(0);
   }
@@ -723,10 +783,9 @@ int main(int argc, char* argv[])
   TH2D *metVsDedxHistBackground = GetMetVsDedxHist(events, xtracks::kBackground);
   map<int, TH2D*> metVsDedxHistsSignal = loadSignalHists(events);
   
+//  runBinningScan(metVsDedxHistBackground, metVsDedxHistsSignal);
   
-  runBinningScan(metVsDedxHistBackground, metVsDedxHistsSignal);
-  
-//  produceLimits(metVsDedxHistBackground, metVsDedxHistsSignal);
+  produceLimits(metVsDedxHistBackground, metVsDedxHistsSignal);
 
 //  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, {{400},{3.0, 3.1}} , "results/abcd_plots_debug.root");
   

@@ -264,7 +264,7 @@ int main(int argc, char* argv[])
     vector<Monitors> monitors = CreateMonitors((ETestParams)testParam);
     // TODO: Remember to change to PU for signal once we have samples !!
     FillMonitors(monitors, events, true, false, (ETestParams)testParam); // signal, noPU
-    FillMonitors(monitors, events, false, true, (ETestParams)testParam); // bkg, withPU
+    FillMonitors(monitors, events, false, false, (ETestParams)testParam); // bkg, withPU
     
     DrawMonitors(monitors, (ETestParams)testParam, testParam==1);
   }

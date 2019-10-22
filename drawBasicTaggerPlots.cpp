@@ -64,7 +64,7 @@ void FillMonitors(Monitors &monitors, const EventSet &events, bool isSignal, boo
 }
 
 /// Calculates internal parameters of monitors and draws resulting plots
-void DrawMonitors(Monitors &monitorsNoPU, Monitors &monitorsWithPU)
+void DrawMonitors(Monitors &monitorsNoPU, Monitors *monitorsWithPU=nullptr)
 {
   TCanvas *canvasROC          = new TCanvas("canvasROC", "canvasROC", 800, 600);
   TCanvas *canvasDists        = new TCanvas("canvasDists", "canvasDists", 1000, 1500);
@@ -86,16 +86,18 @@ void DrawMonitors(Monitors &monitorsNoPU, Monitors &monitorsWithPU)
     monitor.PrintFakesEfficiency();
     if(first) first = false;
   }
-  first = true;
-  for(auto &[name, monitor] : monitorsWithPU){
-    monitor.CalcEfficiency();
-    canvasROC->cd();
-    monitor.DrawRocGraph(false, legendROC);
-    int pad = get<2>(monitorTypes[name]);
-    canvasDists->cd(pad);
-    monitor.DrawHists(false, first ? legendDists : nullptr);
-    monitor.PrintFakesEfficiency();
-    if(first) first = false;
+  if(monitorsWithPU){
+    first = true;
+    for(auto &[name, monitor] : *monitorsWithPU){
+      monitor.CalcEfficiency();
+      canvasROC->cd();
+      monitor.DrawRocGraph(false, legendROC);
+      int pad = get<2>(monitorTypes[name]);
+      canvasDists->cd(pad);
+      monitor.DrawHists(false, first ? legendDists : nullptr);
+      monitor.PrintFakesEfficiency();
+      if(first) first = false;
+    }
   }
   
   canvasROC->cd();
@@ -130,7 +132,7 @@ int main(int argc, char* argv[])
   FillMonitors(monitorsWithPU, events, true , false);  // signal, withPU
   FillMonitors(monitorsWithPU, events, false, true);  // bkg, withPU
   
-  DrawMonitors(monitorsNoPU, monitorsWithPU);
+  DrawMonitors(monitorsNoPU, nullptr);
   
   theApp.Run();
   return 0;

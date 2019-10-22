@@ -8,12 +8,13 @@ double labelSize = 0.045;
 double titleSizeY = 0.12;
 double titleSizeX = 0.050;
 
-bool drawBySample = false;
-const string binning = "3x3";
-const string category = "5-6-layers";
+bool drawBySample      = true;
+const string binning   = "3x3";
+const string category  = "3-layers";
+const string sampleTag = "_LH_notag_";
 
 bool drawByBinning = false;
-bool drawByCategory = true;
+bool drawByCategory = false;
 
 bool sortbysec(const tuple<double, double>& a, const tuple<double, double>& b){ return (get<1>(a) < get<1>(b)); }
 
@@ -65,10 +66,15 @@ vector<tuple<string, int, int, int, string>> graphParamsByCategory = { // best i
   {"allcategories_notag"          , kCyan+1    , 2, 1, "all categories, no tagger"  },
 //  {"allcategories_notag_run2" , kBlue     , 3, 2, "3x3, 3+4 layers, no tagger, Run 2" },
   
-  {"3x3_3-layers_tagSim_noPU_500_10"    , kGreen     , 2, 2, "3 layers, tagger sim, no PU"    },
-  {"3x3_4-layers_tagSim_noPU_1000_10"   , kMagenta+2 , 2, 2, "4 layers, tagger sim, no PU"    },
-  {"3x3_5-6-layers_tagSim_noPU_650_10"  , kOrange+2  , 2, 2, "5-6 layers, tagger sim, no PU"  },
-  {"tagSim_noPU"                        , kCyan+1    , 2, 2, "all categories, tagger sim, no PU (no tagger for 4 layers"  },
+  {"3x3_3-layers_LH_notag_500_10"    , kGreen     , 2, 2, "3x3, 3 layers, no tagger, LH"   },
+  {"3x3_4-layers_LH_notag_800_20"    , kMagenta+2  , 2, 2, "3x3, 4 layers, no tagger, LH"   },
+  {"3x3_5-6-layers_LH_notag_1000_10" , kOrange+2  , 2, 2, "3x3, 5-6 layers, no tagger, LH" },
+  {"allcategories_LH_notag"          , kCyan+1    , 2, 2, "all categories, no tagger, LH"  },
+  
+//  {"3x3_3-layers_tagSim_noPU_500_10"    , kGreen     , 2, 2, "3 layers, tagger sim, no PU"    },
+//  {"3x3_4-layers_tagSim_noPU_1000_10"   , kMagenta+2 , 2, 2, "4 layers, tagger sim, no PU"    },
+//  {"3x3_5-6-layers_tagSim_noPU_650_10"  , kOrange+2  , 2, 2, "5-6 layers, tagger sim, no PU"  },
+//  {"tagSim_noPU"                        , kCyan+1    , 2, 2, "all categories, tagger sim, no PU (no tagger for 4 layers"  },
 };
 
 vector<tuple<string, int, int>> graphParamsBySample = {
@@ -170,7 +176,7 @@ void drawLimits()
   
   if(drawBySample){
     for(auto &[sampleName, color, style] : graphParamsBySample){
-      string path = binning+"_"+category+"_notag_"+sampleName;
+      string path = binning+"_"+category+sampleTag+sampleName;
       graphs[path] = GetGraphFromTxt(Form("%s/%s%s.txt",prefix.c_str(), thisAnalysisPrefix.c_str(), path.c_str()));
       
       TGraph *graph = graphs[path];

@@ -27,16 +27,16 @@ do_Wmv:         1
 do_Zvv:           1
 
 do_300_3:       1
-do_300_10:     0
-do_300_30:     0
-do_500_10:     0
-do_500_20:     0
-do_650_10:     0
-do_650_20:     0
-do_800_10:     0
-do_800_20:     0
-do_1000_10:   0
-do_1000_20:   0
+do_300_10:     1
+do_300_30:     1
+do_500_10:     1
+do_500_20:     1
+do_650_10:     1
+do_650_20:     1
+do_800_10:     1
+do_800_20:     1
+do_1000_10:   1
+do_1000_20:   1
 do_tagger_signal_noPU:                0
 do_tagger_background_noPU:      0
 do_tagger_signal_withPU:             0
@@ -70,7 +70,7 @@ show_legends: 1
 ### Limit number of events loaded (-1 means load all available)
 max_N_events_background:  -1
 max_N_events_signal: -1
-max_N_events_data:  -1
+max_N_events_data:  1000000
 
 
 

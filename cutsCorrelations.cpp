@@ -47,9 +47,13 @@ map<string, TH2D*> CreateCorrelationHistograms()
 /// Fills correlation histograms from background events
 void FillCorrelationHistograms(map<string, TH2D*> &correlationHists, const EventSet &events)
 {
-  for(int iBck=0; iBck<kNbackgrounds; iBck++){
-    for(int iEvent=0;iEvent<events.size(xtracks::kBackground, iBck);iEvent++){
-      auto event = events.At(xtracks::kBackground, iBck, iEvent);
+//  for(int iBck=0; iBck<kNbackgrounds; iBck++){
+//    for(int iEvent=0;iEvent<events.size(xtracks::kBackground, iBck);iEvent++){
+//      auto event = events.At(xtracks::kBackground, iBck, iEvent);
+  
+  for(int iEvent=0;iEvent<events.size(xtracks::kSignal, kWino_M_650_cTau_10);iEvent++){
+      auto event = events.At(xtracks::kSignal, kWino_M_650_cTau_10, iEvent);
+  
       
       for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
         auto track = event->GetTrack(iTrack);
@@ -70,7 +74,7 @@ void FillCorrelationHistograms(map<string, TH2D*> &correlationHists, const Event
         }
       }
     }
-  }
+//  }
 }
 
 /// Draws correlation histograms in a canvas
@@ -104,7 +108,9 @@ int main(int argc, char* argv[])
   
   // All events with initial cuts only
   EventSet events;
-  string prefix = "after_L"+to_string_with_precision(config.params["cuts_level"], 0)+"/"+config.category+"/";
+  string prefix;
+  if(config.params["cuts_level"]==0) prefix = "after_L0/";
+  if(config.params["cuts_level"]==1) prefix = "after_L1/"+config.category+"/";
   events.LoadEventsFromFiles(prefix);
   
   // Draw correlation plots
