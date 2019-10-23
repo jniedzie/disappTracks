@@ -10,9 +10,9 @@ ConfigManager::ConfigManager(string path)
 {
   if(path=="init") return;
   
-  for(int iBck=0;iBck<kNbackgrounds;iBck++){runBackground.push_back(false);}
-  for(int iSig=0;iSig<kNsignals;iSig++){runSignal.push_back(false);}
-  for(int iData=0;iData<kNdata;iData++){runData.push_back(false);}
+  for(EBackground iBck : backgrounds)   {  runBackground.push_back(false);}
+  for(int iSig=0;iSig<kNsignals;iSig++) {  runSignal.push_back(false);    }
+  for(int iData=0;iData<kNdata;iData++) {  runData.push_back(false);      }
   
   ifstream infile(path);
   

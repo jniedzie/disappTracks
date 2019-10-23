@@ -39,7 +39,7 @@ public:
   void SetupBranchesForReading(TTree *tree, TTree *friendTree=nullptr);
   
   /// Returns an event with parameters and objects read from tree previously set with SetupBranchesForReading(..)
-  shared_ptr<Event> GetEventFromTree(xtracks::EDataType dataType, int setIter,
+  shared_ptr<Event> GetEventFromTree(xtracks::EDataType dataType, int setIter, int year,
                                      TTree *friendTree=nullptr);
   
   /// Link class variables to branches of a specified tree

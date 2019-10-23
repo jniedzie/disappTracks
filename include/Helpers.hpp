@@ -202,86 +202,69 @@ const vector<string> dataTitle = {
   "2018A-CR",
 };
 
+enum EBackground{
+  kQCD = 0,
+  kZmumuJets,
+  kTT,
+  kVV,
+  kWmunuJets,
+  kZnunuJets
+};
+
+constexpr initializer_list<EBackground> backgrounds = {kQCD, kZmumuJets, kTT, kVV, kWmunuJets, kZnunuJets};
+
+const string baseDataPath = "../data/";
+
+const vector<int> years = { 2017, 2018 };
+
 // Path to trees with background, signal and data samples (also determines which samples will be merged)
-const vector<vector<string>> inFileNameBackground = {
-  // QCD
-  {
-    "../data/MC-SR/QCD_HT100to200/",
-    "../data/MC-SR/QCD_HT200to300/",
-    "../data/MC-SR/QCD_HT300to500/",
-    "../data/MC-SR/QCD_HT500to700/",
-    "../data/MC-SR/QCD_HT700to1000/",
-    "../data/MC-SR/QCD_HT1000to1500/",
-    "../data/MC-SR/QCD_HT1500to2000/",
-    "../data/MC-SR/QCD_HT2000toInf/",
-  },
-  // DY + jets (Z->μμ)
-  {
-    "../data/MC-SR/DYJetsM50_HT100to200/",
-    "../data/MC-SR/DYJetsM50_HT100to200e/",
-    "../data/MC-SR/DYJetsM50_HT200to400/",
-    "../data/MC-SR/DYJetsM50_HT200to400e/",
-    "../data/MC-SR/DYJetsM50_HT400to600/",
-    "../data/MC-SR/DYJetsM50_HT400to600e/",
-    "../data/MC-SR/DYJetsM50_HT600to800/",
-    "../data/MC-SR/DYJetsM50_HT800to1200/",
-    "../data/MC-SR/DYJetsM50_HT1200to2500/",
-    "../data/MC-SR/DYJetsM50_HT2500toInf/",
-  },
-  // tops
-  {
-    "../data/MC-SR/TTHad/",
-    "../data/MC-SR/TTLep/",
-    "../data/MC-SR/TTSemi/",
-    "../data/MC-SR/T_tch/",
-    "../data/MC-SR/T_tWch/",
-    "../data/MC-SR/TBar_tch/",
-    "../data/MC-SR/TBar_tWch/",
-  },
-  // VV
-  {
-    "../data/MC-SR/WW/",
-    "../data/MC-SR/WZ/",
-    "../data/MC-SR/ZZ/",
-  },
-  // W->μν + jets
-  {
-    "../data/MC-SR/WJets_HT100to200/",
-    "../data/MC-SR/WJets_HT200to400/",
-    "../data/MC-SR/WJets_HT400to600/",
-    "../data/MC-SR/WJets_HT600to800/",
-    "../data/MC-SR/WJets_HT800to1200/",
-    "../data/MC-SR/WJets_HT1200to2500/",
-    "../data/MC-SR/WJets_HT2500toInf/",
-  },
-  // Z->νν + jets
-  {
-    "../data/MC-SR/ZvvJets_HT100to200/",
-    "../data/MC-SR/ZvvJets_HT200to400/",
-    "../data/MC-SR/ZvvJets_HT400to600/",
-    "../data/MC-SR/ZvvJets_HT600to800/",
-    "../data/MC-SR/ZvvJets_HT800to1200/",
-    "../data/MC-SR/ZvvJets_HT1200to2500/",
-    "../data/MC-SR/ZvvJets_HT2500toInf/",
-  },
+const map<EBackground, map<int, pair<string, vector<string>>>> inFileNameBackground = {
+  { kQCD, {
+      { 2017, {"MC-SR/QCD_HT",
+      {"100to200/", "200to300/", "300to500/", "500to700/", "700to1000/", "1000to1500/", "1500to2000/", "2000toInf/"}}},
+      { 2018, {"", {}}},
+  }},
+  { kZmumuJets, {
+    { 2017, {"MC-SR/DYJetsM50_HT",
+      {"100to200/", "100to200e/", "200to400/", "200to400e/", "400to600/", "400to600e/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
+    { 2018, {"", {}}},
+  }},
+  { kTT, {
+    { 2017, {"MC-SR/", {"TTHad/", "TTLep/", "TTSemi/", "T_tch/", "T_tWch/", "TBar_tch/", "TBar_tWch/"}}},
+    { 2018, {"", {}}},
+  }},
+  { kVV, {
+    { 2017, {"MC-SR/", {"WW/", "WZ/", "ZZ/"}}},
+    { 2018, {"", {}}},
+  }},
+  { kWmunuJets, {
+    { 2017, {"MC-SR/WJets_HT",
+      {"100to200/", "200to400/", "400to600/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
+    { 2018, {"", {}}},
+  }},
+  { kZnunuJets, {
+    { 2017, {"MC-SR/ZvvJets_HT",
+      {"100to200/", "200to400/", "400to600/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
+    { 2018, {"", {}}},
+  }},
 };
 
 const vector<string> inFileNameSignal = {
-  "../data/SIG-SR/Wino_M_300_cTau_3/",
-  "../data/SIG-SR/Wino_M_300_cTau_10/",
-  "../data/SIG-SR/Wino_M_300_cTau_30/",
-  "../data/SIG-SR/Wino_M_500_cTau_10/",
-  "../data/SIG-SR/Wino_M_500_cTau_20/",
-  "../data/SIG-SR/Wino_M_650_cTau_10/",
-  "../data/SIG-SR/Wino_M_650_cTau_20/",
-  "../data/SIG-SR/Wino_M_800_cTau_10/",
-  "../data/SIG-SR/Wino_M_800_cTau_20/",
-  "../data/SIG-SR/Wino_M_1000_cTau_10/",
-  "../data/SIG-SR/Wino_M_1000_cTau_20/",
-  "../data/taggerStudy/signal/noPU/",
-  "../data/taggerStudy/background/noPU/",
-  "../data/taggerStudy/signal/withPU/",
-  "../data/taggerStudy/background/withPU/",
+  "SIG-SR/Wino_M_300_cTau_3/",
+  "SIG-SR/Wino_M_300_cTau_10/",
+  "SIG-SR/Wino_M_300_cTau_30/",
+  "SIG-SR/Wino_M_500_cTau_10/",
+  "SIG-SR/Wino_M_500_cTau_20/",
+  "SIG-SR/Wino_M_650_cTau_10/",
+  "SIG-SR/Wino_M_650_cTau_20/",
+  "SIG-SR/Wino_M_800_cTau_10/",
+  "SIG-SR/Wino_M_800_cTau_20/",
+  "SIG-SR/Wino_M_1000_cTau_10/",
+  "SIG-SR/Wino_M_1000_cTau_20/",
+  "taggerStudy/signal/noPU/",
+  "taggerStudy/background/noPU/",
+  "taggerStudy/signal/withPU/",
+  "taggerStudy/background/withPU/",
 };
 
 const vector<vector<string>> inFileNameData = {
@@ -351,16 +334,6 @@ const double signalCrossSectionOneTrack[kNsignals] = { // (fb)
   4.6,  // wino m=800 cτ=20
   1.3, // wino m=1000 cτ=10
   1.3, // wino m=1000 cτ=20
-};
-
-enum EBackground{
-  kQCD,
-  kZmumuJets,
-  kTT,
-  kVV,
-  kWmunuJets,
-  kZnunuJets,
-  kNbackgrounds
 };
 
 enum EData{

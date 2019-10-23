@@ -374,7 +374,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
   return true;
 }
 
-shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, int setIter, TTree *friendTree)
+shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, int setIter, int year, TTree *friendTree)
 {
   for(auto &name_val : singleValuesInt ){
     if(name_val.second < -999999){
@@ -384,7 +384,7 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   
   auto event = make_shared<Event>();
   
-  double lumi = config.params["total_luminosity"] * 1000.; // transform from fb^-1 to pb^-1
+  double lumi = config.params["total_luminosity_"+to_string(year)] * 1000.; // transform from fb^-1 to pb^-1
   double weight = lumi * singleValuesFloat["genWeight"] / singleValuesFloat["wgtsum"];
   
   //    static map<string,set<double>> wgts;

@@ -382,23 +382,25 @@ TH2D* GetMetVsDedxHist(const EventSet &events, xtracks::EDataType dataType, int 
   TH2D *hist = new TH2D("metVsDedx","metVsDedx",1000, 0.0, 100.0, 1000, 0, 10000);
   
   if(dataType == xtracks::kBackground){
-    for(int iBck=0; iBck<kNbackgrounds; iBck++){
+    for(EBackground iBck : backgrounds){
       if(!config.runBackground[iBck]) continue;
       
-      for(int iEvent=0;iEvent<events.size(dataType, iBck);iEvent++){
-        auto event = events.At(dataType, iBck, iEvent);
-        
-        for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
-          auto track = event->GetTrack(iTrack);
-//          hist->Fill(track->GetMinDedx(), event->GetMetNoMuPt(), event->GetWeight());
-          hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPt(), event->GetWeight());
+      for(int year : years){
+        for(int iEvent=0; iEvent<events.size(dataType, iBck, year); iEvent++){
+          auto event = events.At(dataType, iBck, year, iEvent);
+          
+          for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
+            auto track = event->GetTrack(iTrack);
+            //          hist->Fill(track->GetMinDedx(), event->GetMetNoMuPt(), event->GetWeight());
+            hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPt(), event->GetWeight());
+          }
         }
       }
     }
   }
   else if(dataType == xtracks::kSignal){
-    for(int iEvent=0;iEvent<events.size(dataType, setIter);iEvent++){
-      auto event = events.At(dataType, setIter, iEvent);
+    for(int iEvent=0;iEvent<events.size(dataType, setIter, 2017);iEvent++){
+      auto event = events.At(dataType, setIter, 2017, iEvent);
       
       for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
         auto track = event->GetTrack(iTrack);

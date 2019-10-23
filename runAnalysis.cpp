@@ -29,11 +29,13 @@ void plotEvents(const EventSet &events)
 void printDetails(const EventSet &events)
 {
   if(config.params["print_background_details"]){
-    for(int iBck=0;iBck<kNbackgrounds;iBck++){
+    for(EBackground iBck : backgrounds){
       if(!config.runBackground[iBck]) continue;
-      cout<<"Background events in "<<backgroundTitle[iBck]<<":"<<endl;
-      for(int iEvent=0;iEvent<events.size(xtracks::kBackground,iBck);iEvent++){
-        events.At(xtracks::kBackground,iBck,iEvent)->Print();
+      for(int year : years){
+        cout<<"Background events in "<<backgroundTitle[iBck]<<":"<<endl;
+        for(int iEvent=0; iEvent<events.size(xtracks::kBackground, iBck, year); iEvent++){
+          events.At(xtracks::kBackground, iBck, year, iEvent)->Print();
+        }
       }
     }
   }
@@ -41,8 +43,8 @@ void printDetails(const EventSet &events)
     for(int iData=0;iData<kNdata;iData++){
       if(!config.runData[iData]) continue;
       cout<<"Data events in "<<dataTitle[iData]<<":"<<endl;
-      for(int iEvent=0;iEvent<events.size(xtracks::kData,iData);iEvent++){
-        events.At(xtracks::kData,iData,iEvent)->Print();
+      for(int iEvent=0;iEvent<events.size(xtracks::kData,iData, 2017);iEvent++){
+        events.At(xtracks::kData, iData, 2017, iEvent)->Print();
       }
     }
   }
@@ -50,8 +52,8 @@ void printDetails(const EventSet &events)
     for(int iSig=0;iSig<kNsignals;iSig++){
       if(!config.runSignal[iSig]) continue;
       cout<<"Signal events in "<<signalTitle[iSig]<<":"<<endl;
-      for(int iEvent=0;iEvent<events.size(xtracks::kSignal,iSig);iEvent++){
-        events.At(xtracks::kSignal,iSig,iEvent)->Print();
+      for(int iEvent=0;iEvent<events.size(xtracks::kSignal, iSig, 2017);iEvent++){
+        events.At(xtracks::kSignal, iSig, 2017, iEvent)->Print();
       }
     }
   }
@@ -79,11 +81,12 @@ void saveSurvivingEvents(const EventSet &events)
     
     for(int iData=0;iData<kNdata;iData++){
       if(!config.runData[iData]) continue;
-      cout<<"Data events surviving cuts in "<<dataTitle[iData]<<":"<<events.size(xtracks::kData,iData)<<endl;
-      for(int iEvent=0;iEvent<events.size(xtracks::kData,iData);iEvent++){
-        int runNumber = events.At(xtracks::kData,iData,iEvent)->GetRunNumber();
-        int lumiSection = events.At(xtracks::kData,iData,iEvent)->GetLumiSection();
-        long long int eventNumber = events.At(xtracks::kData,iData,iEvent)->GetEventNumber();
+      cout<<"Data events surviving cuts in "<<dataTitle[iData]<<":"<<events.size(xtracks::kData, iData, 2017)<<endl;
+      for(int iEvent=0; iEvent<events.size(xtracks::kData, iData, 2017); iEvent++){
+        auto event = events.At(xtracks::kData, iData, 2017, iEvent);
+        int runNumber = event->GetRunNumber();
+        int lumiSection = event->GetLumiSection();
+        long long int eventNumber = event->GetEventNumber();
         
         dataSurvivingFile<<runNumber<<":"<<lumiSection<<":"<<eventNumber<<"\n";
         
@@ -108,11 +111,12 @@ void saveSurvivingEvents(const EventSet &events)
     
     for(int iSig=0;iSig<kNsignals;iSig++){
       if(!config.runSignal[iSig]) continue;
-      cout<<"Signal events surviving cuts in "<<signalTitle[iSig]<<":"<<events.size(xtracks::kSignal,iSig)<<endl;
-      for(int iEvent=0;iEvent<events.size(xtracks::kSignal,iSig);iEvent++){
-        int runNumber = events.At(xtracks::kSignal,iSig,iEvent)->GetRunNumber();
-        int lumiSection = events.At(xtracks::kSignal,iSig,iEvent)->GetLumiSection();
-        long long int eventNumber = events.At(xtracks::kSignal,iSig,iEvent)->GetEventNumber();
+      cout<<"Signal events surviving cuts in "<<signalTitle[iSig]<<":"<<events.size(xtracks::kSignal, iSig, 2017)<<endl;
+      for(int iEvent=0; iEvent<events.size(xtracks::kSignal, iSig, 2017); iEvent++){
+        auto event = events.At(xtracks::kSignal, iSig, 2017, iEvent);
+        int runNumber = event->GetRunNumber();
+        int lumiSection = event->GetLumiSection();
+        long long int eventNumber = event->GetEventNumber();
         signalSurvivingFile<<runNumber<<":"<<lumiSection<<":"<<eventNumber<<"\n";
       }
     }

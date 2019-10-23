@@ -43,7 +43,7 @@ public:
   /// \param dataType Specifies whether signal, background or data events should be loaded.
   /// \param setIter Specifies which set should be loaded (e.g. kZmumuJets for Z->mumu)
   /// \param prefix If specified, prefix will be appended at the end of the path, before "tree.root"
-  void LoadEventsFromFiles(xtracks::EDataType dataType, int setIter, string prefix="");
+  void LoadEventsFromFiles(xtracks::EDataType dataType, int setIter, string prefix="", int iEvent=-1);
   
   /// Load single event from a tree
   /// \param dataType Specifies whether signal, background or data events should be loaded.
@@ -78,24 +78,24 @@ public:
   /// Returns number of events in this collection
   /// \param dataType Specifies which data type should be taken into concideration: signal, background or data
   /// \param setIter Specifies which set for given dataType to look at (e.g. kZmumuJets for Z->mumu)
-  int size(xtracks::EDataType dataType, int setIter) const;
+  int size(xtracks::EDataType dataType, int setIter, int year) const;
   
   /// Returns weighted size of a collection (including luminosity, cross section and generator weights.
   /// \param dataType Specifies which data type should be taken into concideration: signal, background or data
   /// \param setIter Specifies which set for given dataType to look at (e.g. kZmumuJets for Z->mumu)
-  double weightedSize(xtracks::EDataType dataType, int setIter) const;
+  double weightedSize(xtracks::EDataType dataType, int setIter, int year) const;
   
   /// Returns the event with given index
   /// \param dataType Specifies from which data type: signal, background or data the events should be taken
   /// \param setIter Specifies which set for given dataType to look at (e.g. kZmumuJets for Z->mumu)
-  shared_ptr<Event> At(xtracks::EDataType dataType, int setIter, int index) const;
+  shared_ptr<Event> At(xtracks::EDataType dataType, int setIter, int year, int index) const;
   
   /// Tries to find an event by run:lumi:event
   shared_ptr<Event> GetEvent(xtracks::EDataType dataType, uint run, uint lumi, unsigned long long event) const;
   
 private:
   vector<vector<shared_ptr<Event>>> eventsSignal;     ///< Vector of signal events - [ESignal][iEvent]
-  vector<vector<shared_ptr<Event>>> eventsBackground; ///< Vector of backgrnd events - [EBackkground][iEvent]
+  map<EBackground, map<int, vector<shared_ptr<Event>>>> eventsBackground; ///< Vector of bkg events - [EBackground][year][iEvent]
   vector<vector<shared_ptr<Event>>> eventsData;       ///< Vector of data events - [EData][iEvent]
   
   vector<TTree*> friendTreeSignal; ///< Friend tries for each ESignal
@@ -107,20 +107,21 @@ private:
   /// \param dataType Event weigth will be calculated differently background, signal and data
   /// \param maxNevents Load just maxNevents from file and then stop
   /// \param iSig Signal type for correct cross section assignment
-  EventSet(string fileName, xtracks::EDataType dataType=xtracks::kBackground, int maxNevents=-1, ESignal iSig=kNsignals);
+  EventSet(string fileName, xtracks::EDataType dataType, int year, int maxNevents=-1, ESignal iSig=kNsignals);
   
   /// Adds event to the collection of events
   /// \param event Event object to be added to the collection
-  void AddEvent(shared_ptr<Event> event, xtracks::EDataType dataType, int setIter);
+  void AddEvent(shared_ptr<Event> event, xtracks::EDataType dataType, int setIter, int year);
   
   /// Adds events from specified path to the existing events collection
   /// \param fileName Path to the ROOT file with ntuples from which events will be loaded
   /// \param dataType Event weigth will be calculated differently for background, signal and data
   /// \param maxNevents Load just maxNevents from file and then stop
   /// \param setIter Data set type (i.a. for correct cross section assignment). Will be casted to ESignal, EBackground or EData, depending on dataType parameter provided
-  void AddEventsFromFile(string fileName, xtracks::EDataType dataType=xtracks::kBackground, int maxNevents=-1, int setIter=-1, int iEvent=-1);
+  void AddEventsFromFile(string fileName, xtracks::EDataType dataType, int year,
+                         int maxNevents=-1, int setIter=-1, int iEvent=-1);
  
-  void SaveToTree(string fileName, xtracks::EDataType type, int setIter) const;
+  void SaveToTree(string fileName, xtracks::EDataType type, int setIter, int year) const;
 };
 
 

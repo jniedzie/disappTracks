@@ -4,7 +4,7 @@
 cuts_level: 1
 
 ### Analysis category ( 2-tracks | 3-layers | 4-layers | 5-6-layers | all ):
-analysis_category:  3-layers
+analysis_category:  all
 
 scan_MET_binning: 0
 do_MET_binning: 0
@@ -26,17 +26,17 @@ do_dibosons:   1
 do_Wmv:         1
 do_Zvv:           1
 
-do_300_3:       1
-do_300_10:     1
-do_300_30:     1
-do_500_10:     1
-do_500_20:     1
-do_650_10:     1
-do_650_20:     1
-do_800_10:     1
-do_800_20:     1
-do_1000_10:   1
-do_1000_20:   1
+do_300_3:       0
+do_300_10:     0
+do_300_30:     0
+do_500_10:     0
+do_500_20:     0
+do_650_10:     0
+do_650_20:     0
+do_800_10:     0
+do_800_20:     0
+do_1000_10:   0
+do_1000_20:   0
 do_tagger_signal_noPU:                0
 do_tagger_background_noPU:      0
 do_tagger_signal_withPU:             0
@@ -57,7 +57,7 @@ print_data_details: 0
 print_signal_details: 0
 
 ### Draw standard (per event/track/jet/helix) plots:
-draw_standard_plots:  0
+draw_standard_plots:  1
 
 ### Draw per-layer plots (mainly dE/dx):
 draw_per_layer_plots: 0
@@ -74,5 +74,11 @@ max_N_events_data:  1000000
 
 
 
-### Luminosity (in fb^-1) [2015: 3.81, 2016: 37.76, 2017: 41.37, 2018: 63.97, total Run 2: 146.91, 17+18: 105.34]:
-total_luminosity: 105.34
+### Luminosity (in fb^-1):
+
+total_luminosity_2015: 3.81
+total_luminosity_2016: 37.76
+total_luminosity_2017: 41.37
+total_luminosity_2018: 63.97
+
+total_luminosity_run2: 146.91
