@@ -8,14 +8,11 @@
 
 EventSet::EventSet()
 {
-  for(int iSig=0;iSig<kNsignals;iSig++){
-    eventsSignal.push_back(vector<shared_ptr<Event>>());
-  }
-  for(EBackground iBck : backgrounds){
-    for(int year : years) eventsBackground[iBck][year] = vector<shared_ptr<Event>>();
-  }
-  for(int iData=0;iData<kNdata;iData++){
-    eventsData.push_back(vector<shared_ptr<Event>>());
+  for(int year : years){
+    
+    for(ESignal iSig : signals)         eventsSignal[iSig][year]      = vector<shared_ptr<Event>>();
+    for(EBackground iBck : backgrounds) eventsBackground[iBck][year]  = vector<shared_ptr<Event>>();
+    for(EData iData : datas)            eventsData[iData][year]       = vector<shared_ptr<Event>>();
   }
 }
 
@@ -26,25 +23,25 @@ EventSet::EventSet(string fileName, xtracks::EDataType dataType, int year, int m
 
 EventSet::EventSet(const EventSet &e)
 {
-  for(int iSig=0;iSig<kNsignals;iSig++){
-    eventsSignal.push_back(vector<shared_ptr<Event>>());
-    for(auto &event : e.eventsSignal[iSig]){
-      eventsSignal[iSig].push_back(make_shared<Event>(*event));
-    }
-  }
-  for(EBackground iBck : backgrounds){
-    for(int year : years){
-      eventsBackground[iBck][year] = vector<shared_ptr<Event>>();
+  for(int year : years){
     
+    for(ESignal iSig : signals){
+      eventsSignal[iSig][year] = vector<shared_ptr<Event>>();
+      for(auto &event : e.eventsSignal.at(iSig).at(year)){
+        eventsSignal[iSig][year].push_back(make_shared<Event>(*event));
+      }
+    }
+    for(EBackground iBck : backgrounds){
+      eventsBackground[iBck][year] = vector<shared_ptr<Event>>();
       for(auto &event : e.eventsBackground.at(iBck).at(year)){
         eventsBackground[iBck][year].push_back(make_shared<Event>(*event));
       }
     }
-  }
-  for(int iData=0;iData<kNdata;iData++){
-    eventsData.push_back(vector<shared_ptr<Event>>());
-    for(auto &event : e.eventsData[iData]){
-      eventsData[iData].push_back(make_shared<Event>(*event));
+    for(EData iData : datas){
+      eventsData[iData][year] = vector<shared_ptr<Event>>();
+      for(auto &event : e.eventsData.at(iData).at(year)){
+        eventsData[iData][year].push_back(make_shared<Event>(*event));
+      }
     }
   }
 }
@@ -52,25 +49,27 @@ EventSet::EventSet(const EventSet &e)
 EventSet EventSet::operator=(const EventSet &e)
 {
   EventSet result;
-  
-  for(int iSig=0;iSig<kNsignals;iSig++){
-    result.eventsSignal.push_back(vector<shared_ptr<Event>>());
-    for(auto &event : e.eventsSignal[iSig]){
-      result.eventsSignal[iSig].push_back(make_shared<Event>(*event));
+ 
+  for(int year :years){
+    for(ESignal iSig : signals){
+      result.eventsSignal[iSig][year] = vector<shared_ptr<Event>>();
+      for(auto &event : e.eventsSignal.at(iSig).at(year)){
+        result.eventsSignal[iSig][year].push_back(make_shared<Event>(*event));
+      }
     }
-  }
-  for(EBackground iBck : backgrounds){
-    for(int year :years){
+    for(EBackground iBck : backgrounds){
+      
       result.eventsBackground[iBck][year] = vector<shared_ptr<Event>>();
       for(auto &event : e.eventsBackground.at(iBck).at(year)){
         result.eventsBackground[iBck][year].push_back(make_shared<Event>(*event));
       }
+      
     }
-  }
-  for(int iData=0;iData<kNdata;iData++){
-    result.eventsData.push_back(vector<shared_ptr<Event>>());
-    for(auto &event : e.eventsData[iData]){
-      result.eventsData[iData].push_back(make_shared<Event>(*event));
+    for(EData iData : datas){
+      result.eventsData[iData][year] = vector<shared_ptr<Event>>();
+      for(auto &event : e.eventsData.at(iData).at(year)){
+        result.eventsData[iData][year].push_back(make_shared<Event>(*event));
+      }
     }
   }
   return result;
@@ -108,13 +107,13 @@ void EventSet::SaveToTree(string fileName, xtracks::EDataType dataType, int setI
   };
   
   if(dataType == xtracks::kSignal){
-    for(auto &event : eventsSignal[(ESignal)setIter]){func(event, tree);}
+    for(auto &event : eventsSignal.at((ESignal)setIter).at(year)){func(event, tree);}
   }
   else if(dataType == xtracks::kBackground){
     for(auto &event : eventsBackground.at((EBackground)setIter).at(year)){func(event, tree);}
   }
   else if(dataType == xtracks::kData){
-    for(auto &event : eventsData[(EData)setIter]){func(event, tree);}
+    for(auto &event : eventsData.at((EData)setIter).at(year)){func(event, tree);}
   }
   else{
     throw out_of_range("Unknown data type provided");
@@ -129,84 +128,74 @@ void EventSet::LoadEventsFromFiles(string prefix)
     if(!config.runBackground[iBck]) continue;
     LoadEventsFromFiles(xtracks::kBackground, iBck, prefix);
   }
-  
-  for(int iSig=0;iSig<kNsignals;iSig++){
+  for(ESignal iSig : signals){
     if(!config.runSignal[iSig]) continue;
-  
-    AddEventsFromFile((inFileNameSignal[iSig]+prefix+"tree.root"),xtracks::kSignal, 2017,
-                      config.params["max_N_events_signal"],iSig);
+    LoadEventsFromFiles(xtracks::kSignal, iSig, prefix);
   }
-  
-  for(int iData=0;iData<kNdata;iData++){
+  for(EData iData : datas){
     if(!config.runData[iData]) continue;
-    
-    if(prefix==""){
-      for(string path : inFileNameData[iData]){
-        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, 2017, config.params["max_N_events_data"], iData);
-      }
-    }
-    else{
-      string path = inFileNameData[iData][0];
-      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, 2017, config.params["max_N_events_data"], iData);
-    }
+    LoadEventsFromFiles(xtracks::kData, iData, prefix);
   }
 }
 
 void EventSet::LoadEventsFromFiles(xtracks::EDataType dataType, int setIter, string prefix, int iEvent)
 {
-  if(dataType == xtracks::kBackground){
-    for(int year : years){
-      auto &[basePath, paths] = inFileNameBackground.at((EBackground)setIter).at(year);
-      for(string path : paths){
-        string fullPath = baseDataPath.at(year) + basePath + path + prefix + "tree.root";
-        AddEventsFromFile(fullPath, dataType, year, config.params["max_N_events_background"], setIter, iEvent);
-        if(prefix != "") break;
-      }
+  for(int year : years){
+    pair<string, vector<string>> paths;
+    int maxEvents = -1;
+    
+    if(dataType == xtracks::kBackground){
+      paths = inFileNameBackground.at((EBackground)setIter).at(year);
+      maxEvents = config.params["max_N_events_background"];
     }
-  }
-  else if(dataType == xtracks::kSignal){
-    AddEventsFromFile((inFileNameSignal[setIter]+prefix+"tree.root"),xtracks::kSignal, 2017, config.params["max_N_events_signal"],setIter);
-  }
-  else if(dataType == xtracks::kData){
-    if(prefix==""){
-      for(string path : inFileNameData[setIter]){
-        AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, 2017, config.params["max_N_events_data"], setIter);
-      }
+    else if(dataType == xtracks::kSignal){
+      paths = inFileNameSignal.at((ESignal)setIter).at(year);
+      maxEvents = config.params["max_N_events_signal"];
     }
-    else{
-      string path = inFileNameData[setIter][0];
-      AddEventsFromFile((path+prefix+"tree.root"),xtracks::kData, 2017, config.params["max_N_events_data"], setIter);
+    else if(dataType == xtracks::kData){
+      paths = inFileNameData.at((EData)setIter).at(year);
+      maxEvents = config.params["max_N_events_data"];
+    }
+    
+    for(string path : paths.second){
+      string fullPath = baseDataPath.at(year) + paths.first + path + prefix + "tree.root";
+      AddEventsFromFile(fullPath, dataType, year, maxEvents, setIter, iEvent);
+      if(prefix != "") break;
     }
   }
 }
 
 void EventSet::SaveEventsToFiles(string prefix) const
 {
-  for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!config.runSignal[iSig]) continue;
-    system(("mkdir -p "+inFileNameSignal[iSig]+prefix).c_str());
+  for(int year : years){
+    for(EBackground iBck : backgrounds){
+      if(!config.runBackground[iBck]) continue;
     
-    SaveToTree((inFileNameSignal[iSig]+prefix+"tree.root").c_str(), xtracks::kSignal, iSig, 2017);
-  }
-  
-  for(EBackground iBck : backgrounds){
-    if(!config.runBackground[iBck]) continue;
-    
-    // merged events will be stored in the first directory for given background
-    for(int year : years){
       auto &[basePath, paths] = inFileNameBackground.at(iBck).at(year);
       if(paths.size() == 0) continue;
       string path = baseDataPath.at(year) + basePath + paths[0];
       system(("mkdir -p "+path+prefix).c_str());
       SaveToTree((path+prefix+"tree.root").c_str(), xtracks::kBackground, iBck, year);
     }
-  }
-  
-  for(int iData=0;iData<kNdata;iData++){
-    if(!config.runData[iData]) continue;
-    string path = inFileNameData[iData][0];
-    system(("mkdir -p "+path+prefix).c_str());
-    SaveToTree((path+prefix+"tree.root").c_str(), xtracks::kData, iData, 2017);
+    for(ESignal iSig : signals){
+      if(!config.runSignal[iSig]) continue;
+      
+      auto &[basePath, paths] = inFileNameSignal.at(iSig).at(year);
+      if(paths.size() == 0) continue;
+      string path = baseDataPath.at(year) + basePath + paths[0];
+      system(("mkdir -p "+path+prefix).c_str());
+      SaveToTree((path+prefix+"tree.root").c_str(), xtracks::kSignal, iSig, year);
+    }
+    for(EData iData : datas){
+      if(!config.runData[iData]) continue;
+      
+      auto &[basePath, paths] = inFileNameData.at(iData).at(year);
+      if(paths.size() == 0) continue;
+      string path = baseDataPath.at(year) + basePath + paths[0];
+      system(("mkdir -p "+path+prefix).c_str());
+      SaveToTree((path+prefix+"tree.root").c_str(), xtracks::kData, iData, year);
+    }
+    
   }
 }
 
@@ -234,27 +223,27 @@ void EventSet::PrintYields() const
   if(config.params["print_yields"]){
     cout<<"Background total:\t"<<nBackgroundTotal<<"\t("<<nBackgroundTotalRaw<<")"<<endl;
     
-    for(int iSig=0;iSig<kNsignals;iSig++){
+    for(ESignal iSig : signals){
       if(!config.runSignal[iSig]) continue;
       cout<<signalTitle[iSig]<<"\tN events:\t";
       cout<<weightedSize(xtracks::kSignal, iSig, 2017);
       cout<<"\t("<<size(xtracks::kSignal, iSig, 2017)<<")"<<endl;
     }
     
-    for(int iData=0;iData<kNdata;iData++){
+    for(EData iData : datas){
       if(!config.runData[iData]) continue;
       cout<<dataTitle[iData]<<"\tsize:\t";
       cout<<weightedSize(xtracks::kData, iData, 2017)<<"\n";
     }
   }
   
-  for(int iSig=0;iSig<kNsignals;iSig++){
+  for(ESignal iSig : signals){
     if(!config.runSignal[iSig]) continue;
     cout<<signalTitle[iSig]<<"\tS/sqrt(S+B):\t";
     cout<<weightedSize(xtracks::kSignal, iSig, 2017)/sqrt(nBackgroundTotal+weightedSize(xtracks::kSignal, iSig, 2017))<<endl;
   }
   
-  for(int iData=0;iData<kNdata;iData++){
+  for(EData iData : datas){
     if(!config.runData[iData]) continue;
     cout<<dataTitle[iData]<<"\t(M-B)/sqrt(M):\t";
     cout<<(weightedSize(xtracks::kData, iData, 2017)-nBackgroundTotal)/sqrt(weightedSize(xtracks::kData, iData, 2017))<<endl;
@@ -273,7 +262,7 @@ vector<double> EventSet::GetSignificance(bool inData) const
   vector<double> results;
   
   if(inData){
-    for(int iData=0;iData<kNdata;iData++){
+    for(EData iData : datas){
       if(!config.runData[iData]){
         results.push_back(-inf);
         continue;
@@ -282,7 +271,7 @@ vector<double> EventSet::GetSignificance(bool inData) const
     }
   }
   else{
-    for(int iSig=0;iSig<kNsignals;iSig++){
+    for(ESignal iSig : signals){
       if(!config.runSignal[iSig]){
         results.push_back(-inf);
         continue;
@@ -298,37 +287,37 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
                          const JetCut     &jetCut,
                          const LeptonCut  &leptonCut)
 {
-  for(int iSig=0;iSig<kNsignals;iSig++){
-    if(!config.runSignal[iSig]) continue;
+  for(int year : years){
     
-    vector<int> *cutReasons = new vector<int>(100);
-    
-    for(int iEvent=0;iEvent<(int)eventsSignal[iSig].size();){
+    for(ESignal iSig : signals){
+      if(!config.runSignal[iSig]) continue;
       
-      eventProcessor.ApplyTrackCut(eventsSignal[iSig][iEvent], trackCut);
-      eventProcessor.ApplyJetCut(eventsSignal[iSig][iEvent], jetCut);
-      eventProcessor.ApplyLeptonCut(eventsSignal[iSig][iEvent], leptonCut);
+      vector<int> *cutReasons = new vector<int>(100);
       
-      if(!eventProcessor.IsPassingCut(eventsSignal[iSig][iEvent], eventCut, cutReasons)){
-        EraseFast(eventsSignal[iSig], iEvent);
+      for(int iEvent=0;iEvent<(int)eventsSignal[iSig].size();){
+        
+        eventProcessor.ApplyTrackCut(eventsSignal[iSig][year][iEvent], trackCut);
+        eventProcessor.ApplyJetCut(eventsSignal[iSig][year][iEvent], jetCut);
+        eventProcessor.ApplyLeptonCut(eventsSignal[iSig][year][iEvent], leptonCut);
+        
+        if(!eventProcessor.IsPassingCut(eventsSignal[iSig][year][iEvent], eventCut, cutReasons)){
+          EraseFast(eventsSignal[iSig][year], iEvent);
+        }
+        else{
+          iEvent++;
+        }
       }
-      else{
-        iEvent++;
+      
+      Log(1)<<"Cut-through for signal sample: "<<signalTitle[iSig]<<"\n";
+      int iter=0;
+      for(int nEventsPassing : *cutReasons){
+        if(nEventsPassing!=0) Log(1)<<nEventsPassing<<" events passing cut "<<iter++<<"\n";
       }
+      
     }
     
-    Log(1)<<"Cut-through for signal sample: "<<signalTitle[iSig]<<"\n";
-    int iter=0;
-    for(int nEventsPassing : *cutReasons){
-      if(nEventsPassing!=0) Log(1)<<nEventsPassing<<" events passing cut "<<iter++<<"\n";
-    }
-    
-  }
-  
-  for(EBackground iBck : backgrounds){
-    if(!config.runBackground[iBck]) continue;
-    
-    for(int year : years){
+    for(EBackground iBck : backgrounds){
+      if(!config.runBackground[iBck]) continue;
       
       vector<int> *cutReasons = new vector<int>(100);
       
@@ -366,37 +355,33 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
       //      cout<<lumi<<":"<<event<<endl;
       //    }
     }
-  }
-  
-  
-  
-  
-  
-  for(int iData=0;iData<kNdata;iData++){
-    if(!config.runData[iData]) continue;
     
-    vector<int> *cutReasons = new vector<int>(100);
-    
-    for(int iEvent=0;iEvent<(int)eventsData[iData].size();){
+    for(EData iData : datas){
+      if(!config.runData[iData]) continue;
       
-      eventProcessor.ApplyTrackCut(eventsData[iData][iEvent], trackCut);
-      eventProcessor.ApplyJetCut(eventsData[iData][iEvent], jetCut);
-      eventProcessor.ApplyLeptonCut(eventsData[iData][iEvent], leptonCut);
+      vector<int> *cutReasons = new vector<int>(100);
       
-      if(!eventProcessor.IsPassingCut(eventsData[iData][iEvent], eventCut, cutReasons)){
-        EraseFast(eventsData[iData], iEvent);
+      for(int iEvent=0;iEvent<(int)eventsData[iData].size();){
+        
+        eventProcessor.ApplyTrackCut(eventsData[iData][year][iEvent], trackCut);
+        eventProcessor.ApplyJetCut(eventsData[iData][year][iEvent], jetCut);
+        eventProcessor.ApplyLeptonCut(eventsData[iData][year][iEvent], leptonCut);
+        
+        if(!eventProcessor.IsPassingCut(eventsData[iData][year][iEvent], eventCut, cutReasons)){
+          EraseFast(eventsData[iData][year], iEvent);
+        }
+        else{
+          iEvent++;
+        }
       }
-      else{
-        iEvent++;
+      
+      Log(1)<<"Cut-through for data sample: "<<dataTitle[iData]<<"\n";
+      int iter=0;
+      for(int nEventsPassing : *cutReasons){
+        if(nEventsPassing!=0) Log(1)<<nEventsPassing<<" events passing cut "<<iter++<<"\n";
       }
+      
     }
-    
-    Log(1)<<"Cut-through for data sample: "<<dataTitle[iData]<<"\n";
-    int iter=0;
-    for(int nEventsPassing : *cutReasons){
-      if(nEventsPassing!=0) Log(1)<<nEventsPassing<<" events passing cut "<<iter++<<"\n";
-    }
-    
   }
 }
 
@@ -546,18 +531,11 @@ int EventSet::size(xtracks::EDataType dataType, int setIter, int year) const
     cout<<"ERROR -- privided year "<<year<<" not in years vector!!"<<endl;
   }
   
-  if(dataType == xtracks::kSignal){
-    return (int)eventsSignal[(ESignal)setIter].size();
-  }
-  else if(dataType == xtracks::kBackground){
-    return (int)eventsBackground.at((EBackground)setIter).at(year).size();
-  }
-  else if(dataType == xtracks::kData){
-    return (int)eventsData[(EData)setIter].size();
-  }
-  else{
-    throw out_of_range("Unknown data type provided");
-  }
+  if(dataType == xtracks::kSignal)          return (int)eventsSignal.at((ESignal)setIter).at(year).size();
+  else if(dataType == xtracks::kBackground) return (int)eventsBackground.at((EBackground)setIter).at(year).size();
+  else if(dataType == xtracks::kData)       return (int)eventsData.at((EData)setIter).at(year).size();
+  else throw out_of_range("Unknown data type provided");
+  
   return 1;
 }
 
@@ -570,13 +548,13 @@ double EventSet::weightedSize(xtracks::EDataType dataType, int setIter, int year
   double sum=0;
   
   if(dataType == xtracks::kSignal){
-    for(auto &ev : eventsSignal[(ESignal)setIter]){sum += ev->GetWeight();}
+    for(auto &ev : eventsSignal.at((ESignal)setIter).at(year)){sum += ev->GetWeight();}
   }
   else if(dataType == xtracks::kBackground){
     for(auto &ev : eventsBackground.at((EBackground)setIter).at(year)){sum += ev->GetWeight();}
   }
   else if(dataType == xtracks::kData){
-    for(auto &ev : eventsData[(EData)setIter]){sum += ev->GetWeight();}
+    for(auto &ev : eventsData.at((EData)setIter).at(year)){sum += ev->GetWeight();}
   }
   else{
     throw out_of_range("Unknown data type provided");
@@ -591,36 +569,29 @@ shared_ptr<Event> EventSet::At(xtracks::EDataType dataType, int setIter, int yea
     cout<<"ERROR -- privided year "<<year<<" not in years vector!!"<<endl;
   }
   
-  if(dataType == xtracks::kSignal){
-    return eventsSignal[(ESignal)setIter][index];
-  }
-  else if(dataType == xtracks::kBackground){
-    return eventsBackground.at((EBackground)setIter).at(year)[index];
-  }
-  else if(dataType == xtracks::kData){
-    return eventsData[(EData)setIter][index];
-  }
-  else{
-    throw out_of_range("Unknown data type provided");
-  }
+  if(dataType == xtracks::kSignal)          return eventsSignal.at((ESignal)setIter).at(year)[index];
+  else if(dataType == xtracks::kBackground) return eventsBackground.at((EBackground)setIter).at(year)[index];
+  else if(dataType == xtracks::kData)       return eventsData.at((EData)setIter).at(year)[index];
+  else  throw out_of_range("Unknown data type provided");
 }
 
 shared_ptr<Event> EventSet::GetEvent(xtracks::EDataType dataType,
                                      uint run, uint lumi, unsigned long long eventNumber) const
 {
-  if(dataType == xtracks::kSignal){
-    for(auto events : eventsSignal){
-      for(auto event : events){
-        if(event->GetRunNumber() == run &&
-           event->GetLumiSection() == lumi &&
-           event->GetEventNumber() == eventNumber){
-          return event;
+  for(int year : years){
+    
+    if(dataType == xtracks::kSignal){
+      for(ESignal iSig : signals){
+        for(auto event : eventsSignal.at(iSig).at(year)){
+          if(event->GetRunNumber() == run &&
+             event->GetLumiSection() == lumi &&
+             event->GetEventNumber() == eventNumber){
+            return event;
+          }
         }
       }
     }
-  }
-  else if(dataType == xtracks::kBackground){
-    for(int year : years){
+    else if(dataType == xtracks::kBackground){
       for(EBackground iBck : backgrounds){
         for(auto event : eventsBackground.at(iBck).at(year)){
           if(event->GetRunNumber() == run &&
@@ -631,20 +602,20 @@ shared_ptr<Event> EventSet::GetEvent(xtracks::EDataType dataType,
         }
       }
     }
-  }
-  else if(dataType == xtracks::kData){
-    for(auto events : eventsData){
-      for(auto event : events){
-        if(event->GetRunNumber() == run &&
-           event->GetLumiSection() == lumi &&
-           event->GetEventNumber() == eventNumber){
-          return event;
+    else if(dataType == xtracks::kData){
+      for(EData iData : datas){
+        for(auto event : eventsData.at(iData).at(year)){
+          if(event->GetRunNumber() == run &&
+             event->GetLumiSection() == lumi &&
+             event->GetEventNumber() == eventNumber){
+            return event;
+          }
         }
       }
     }
-  }
-  else{
-    throw out_of_range("Unknown data type provided");
+    else{
+      throw out_of_range("Unknown data type provided");
+    }
   }
   return nullptr;
 }
@@ -655,18 +626,10 @@ void EventSet::AddEvent(shared_ptr<Event> event, xtracks::EDataType dataType, in
     cout<<"ERROR -- privided year "<<year<<" not in years vector!!"<<endl;
   }
   
-  if(dataType == xtracks::kSignal){
-    eventsSignal[(ESignal)setIter].push_back(event);
-  }
-  else if(dataType == xtracks::kBackground){
-    eventsBackground.at((EBackground)setIter).at(year).push_back(event);
-  }
-  else if(dataType == xtracks::kData){
-    eventsData[(EData)setIter].push_back(event);
-  }
-  else{
-    throw out_of_range("Unknown data type provided");
-  }
+  if(dataType == xtracks::kSignal)          eventsSignal.at((ESignal)setIter).at(year).push_back(event);
+  else if(dataType == xtracks::kBackground) eventsBackground.at((EBackground)setIter).at(year).push_back(event);
+  else if(dataType == xtracks::kData)       eventsData.at((EData)setIter).at(year).push_back(event);
+  else throw out_of_range("Unknown data type provided");
 }
 
 void EventSet::AddEventsFromFile(string fileName, xtracks::EDataType dataType, int year,
@@ -688,13 +651,13 @@ void EventSet::AddEventsFromFile(string fileName, xtracks::EDataType dataType, i
   TTreeReader reader("tree", inFile);
   
   string basePath;
+  pair<string, vector<string>> paths;
   
-  if(dataType == xtracks::kSignal)      basePath = inFileNameSignal[setIter];
-  if(dataType == xtracks::kBackground){
-    auto &[base, paths] = inFileNameBackground.at((EBackground)setIter).at(year);
-    basePath = base + paths[0];
-  }
-  if(dataType == xtracks::kData)        basePath = inFileNameData[setIter][0];
+  if(dataType == xtracks::kSignal)      paths = inFileNameSignal.at((ESignal)setIter).at(year);
+  if(dataType == xtracks::kBackground)  paths = inFileNameBackground.at((EBackground)setIter).at(year);
+  if(dataType == xtracks::kData)        paths = inFileNameData.at((EData)setIter).at(year);
+
+  basePath = paths.first + paths.second[0];
   
   TFile *inFileFriend = nullptr;
   TTree *treeFriend = nullptr;
@@ -759,27 +722,17 @@ void EventSet::AddEventsFromFile(string fileName, xtracks::EDataType dataType, i
     }
     
     Helices helices = helixProcessor.GetHelicesFromTree();
-    
-    for(auto helix : helices){
-      event->AddHelix(helix);
-    }
+    for(auto helix : helices) event->AddHelix(helix);
 
     vector<shared_ptr<Jet>> jets = jetProcessor.GetJetsFromTree();
-    
-    for(auto jet : jets){
-      event->AddJet(jet);
-    }
+    for(auto jet : jets) event->AddJet(jet);
     
     vector<shared_ptr<Lepton>> leptons = leptonProcessor.GetLeptonsFromTree();
+    for(auto lepton : leptons) event->AddLepton(lepton);
     
-    for(auto lepton : leptons){
-      event->AddLepton(lepton);
-    }
-    
-   
-    if(dataType == xtracks::kSignal)          eventsSignal[setIter].push_back(event);
+    if(dataType == xtracks::kSignal)          eventsSignal[(ESignal)setIter][year].push_back(event);
     else if(dataType == xtracks::kBackground) eventsBackground[(EBackground)setIter][year].push_back(event);
-    else if(dataType == xtracks::kData)       eventsData[setIter].push_back(event);
+    else if(dataType == xtracks::kData)       eventsData[(EData)setIter][year].push_back(event);
     else                                      throw out_of_range("Unknown data type provided");
     
     if(iEvent >= 0) break;

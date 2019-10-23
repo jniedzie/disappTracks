@@ -10,9 +10,9 @@ ConfigManager::ConfigManager(string path)
 {
   if(path=="init") return;
   
-  for(EBackground iBck : backgrounds)   {  runBackground.push_back(false);}
-  for(int iSig=0;iSig<kNsignals;iSig++) {  runSignal.push_back(false);    }
-  for(int iData=0;iData<kNdata;iData++) {  runData.push_back(false);      }
+  for(EBackground iBck : backgrounds) {  runBackground.push_back(false);}
+  for(ESignal iSig : signals)         {  runSignal.push_back(false);    }
+  for(EData iData : datas)            {  runData.push_back(false);      }
   
   ifstream infile(path);
   
@@ -58,9 +58,8 @@ ConfigManager::ConfigManager(string path)
     else if(key == "do_tagger_signal_withPU")     runSignal[kTaggerSignalWithPU]      = stoi(value);
     else if(key == "do_tagger_background_withPU") runSignal[kTaggerBackgroundWithPU]  = stoi(value);
      
-    else if(key == "do_2017")                     runData[kElectron_Run2017B]         = stoi(value);
-    else if(key == "do_2018")                     runData[kMET_Run2018A]              = stoi(value);
-    else if(key == "do_2018_CR")                  runData[kMET_Run2018A_CR]           = stoi(value);
+    else if(key == "do_SR")                       runData[kSignalRegion]              = stoi(value);
+    else if(key == "do_CR")                       runData[kControlRegion]             = stoi(value);
     
     else params[key] =  stod(value);
   }

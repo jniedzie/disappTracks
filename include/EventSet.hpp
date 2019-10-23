@@ -94,9 +94,9 @@ public:
   shared_ptr<Event> GetEvent(xtracks::EDataType dataType, uint run, uint lumi, unsigned long long event) const;
   
 private:
-  vector<vector<shared_ptr<Event>>> eventsSignal;     ///< Vector of signal events - [ESignal][iEvent]
+  map<ESignal, map<int, vector<shared_ptr<Event>>>> eventsSignal;     ///< Vector of signal events - [ESignal][iEvent]
   map<EBackground, map<int, vector<shared_ptr<Event>>>> eventsBackground; ///< Vector of bkg events - [EBackground][year][iEvent]
-  vector<vector<shared_ptr<Event>>> eventsData;       ///< Vector of data events - [EData][iEvent]
+  map<EData, map<int, vector<shared_ptr<Event>>>> eventsData;       ///< Vector of data events - [EData][iEvent]
   
   vector<TTree*> friendTreeSignal; ///< Friend tries for each ESignal
   vector<TTree*> friendTreeBackground; ///< Friend tries for each ESignal
@@ -107,7 +107,7 @@ private:
   /// \param dataType Event weigth will be calculated differently background, signal and data
   /// \param maxNevents Load just maxNevents from file and then stop
   /// \param iSig Signal type for correct cross section assignment
-  EventSet(string fileName, xtracks::EDataType dataType, int year, int maxNevents=-1, ESignal iSig=kNsignals);
+  EventSet(string fileName, xtracks::EDataType dataType, int year, int maxNevents, ESignal iSig);
   
   /// Adds event to the collection of events
   /// \param event Event object to be added to the collection

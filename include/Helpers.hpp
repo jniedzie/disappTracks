@@ -225,71 +225,35 @@ const map<EBackground, map<int, pair<string, vector<string>>>> inFileNameBackgro
   { kQCD, {
       { 2017, {"MC-SR/QCD_HT",
       {"100to200/", "200to300/", "300to500/", "500to700/", "700to1000/", "1000to1500/", "1500to2000/", "2000toInf/"}}},
-      { 2018, {"", {}}},
+      { 2018, {"MC-SR/QCD_HT",
+      {"100to200/", "200to300/", "300to500/", "500to700/", "700to1000/", "1000to1500/", "1500to2000/", "2000toInf/"}}},
   }},
   { kZmumuJets, {
     { 2017, {"MC-SR/DYJetsM50_HT",
       {"100to200/", "100to200e/", "200to400/", "200to400e/", "400to600/", "400to600e/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
-    { 2018, {"", {}}},
+    { 2018, {"MC-SR/DYJetsM50_HT",
+    {"100to200/", "100to200e/", "200to400/", "200to400e/", "400to600/", "400to600e/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
   }},
   { kTT, {
     { 2017, {"MC-SR/", {"TTHad/", "TTLep/", "TTSemi/", "T_tch/", "T_tWch/", "TBar_tch/", "TBar_tWch/"}}},
-    { 2018, {"", {}}},
+    { 2018, {"MC-SR/", {"TTHad/", "TTLep/", "TTSemi/", "T_tch/", "T_tWch/", "TBar_tch/", "TBar_tWch/"}}},
   }},
   { kVV, {
     { 2017, {"MC-SR/", {"WW/", "WZ/", "ZZ/"}}},
-    { 2018, {"", {}}},
+    { 2018, {"MC-SR/", {"WW/", "WZ/", "ZZ/"}}},
   }},
   { kWmunuJets, {
     { 2017, {"MC-SR/WJets_HT",
       {"100to200/", "200to400/", "400to600/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
-    { 2018, {"", {}}},
+    { 2018, {"MC-SR/WJets_HT",
+    {"100to200/", "200to400/", "400to600/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
   }},
   { kZnunuJets, {
     { 2017, {"MC-SR/ZvvJets_HT",
       {"100to200/", "200to400/", "400to600/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
-    { 2018, {"", {}}},
+    { 2018, {"MC-SR/ZvvJets_HT",
+    {"100to200/", "200to400/", "400to600/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
   }},
-};
-
-const vector<string> inFileNameSignal = {
-  "SIG-SR/Wino_M_300_cTau_3/",
-  "SIG-SR/Wino_M_300_cTau_10/",
-  "SIG-SR/Wino_M_300_cTau_30/",
-  "SIG-SR/Wino_M_500_cTau_10/",
-  "SIG-SR/Wino_M_500_cTau_20/",
-  "SIG-SR/Wino_M_650_cTau_10/",
-  "SIG-SR/Wino_M_650_cTau_20/",
-  "SIG-SR/Wino_M_800_cTau_10/",
-  "SIG-SR/Wino_M_800_cTau_20/",
-  "SIG-SR/Wino_M_1000_cTau_10/",
-  "SIG-SR/Wino_M_1000_cTau_20/",
-  "taggerStudy/signal/noPU/",
-  "taggerStudy/background/noPU/",
-  "taggerStudy/signal/withPU/",
-  "taggerStudy/background/withPU/",
-};
-
-const vector<vector<string>> inFileNameData = {
-  // 2017 data
-  {
-//    "../SR_DATA/MET_Run2017B_31Mar2018/",
-//    "../SR_DATA/MET_Run2017C_31Mar2018/",
-//    "../SR_DATA/MET_Run2017D_31Mar2018/"
-    "../data/Data-SR/tree_MET_Run2017B_31Mar2018/",
-//    "../data/Data-SR/tree_MET_Run2017D_31Mar2018/",
-//    "../data/Data-SR/tree_MET_Run2017F_31Mar2018/",
-//    "../data/Data-SR/tree_MET_Run2017C_31Mar2018/",
-//    "../data/Data-SR/tree_MET_Run2017E_31Mar2018/",
-  },
-  // 2018 data SR
-  {
-    "../data/Data-SR/MET_Run2018A/",
-  },
-  // 2018 data CR
-  {
-    "../data/Data-CR/MET_Run2018A/",
-  }
 };
 
 enum ESignal{
@@ -307,43 +271,124 @@ enum ESignal{
   kTaggerSignalNoPU,
   kTaggerBackgroundNoPU,
   kTaggerSignalWithPU,
-  kTaggerBackgroundWithPU,
-  kNsignals
+  kTaggerBackgroundWithPU
 };
 
-const double signalCrossSectionTwoTracks[kNsignals] = { // (fb)
-  190,  // wino m=300 cτ=3
-  190,  // wino m=300 cτ=10
-  190,  // wino m=300 cτ=30
-  22,   // wino m=500 cτ=10
-  22,   // wino m=500 cτ=20
-  6.4,  // wino m=650 cτ=10
-  6.4,  // wino m=650 cτ=20
-  2.2,  // wino m=800 cτ=10
-  2.2,  // wino m=800 cτ=20
-  0.62, // wino m=1000 cτ=10
-  0.62, // wino m=1000 cτ=20
+constexpr initializer_list<ESignal> signals = {
+  kWino_M_300_cTau_3, kWino_M_300_cTau_10, kWino_M_300_cTau_30, kWino_M_500_cTau_10, kWino_M_500_cTau_20, kWino_M_650_cTau_10, kWino_M_650_cTau_20, kWino_M_800_cTau_10, kWino_M_800_cTau_20, kWino_M_1000_cTau_10, kWino_M_1000_cTau_20, kTaggerSignalNoPU, kTaggerBackgroundNoPU, kTaggerSignalWithPU, kTaggerBackgroundWithPU
 };
 
-const double signalCrossSectionOneTrack[kNsignals] = { // (fb)
-  380,  // wino m=300 cτ=3
-  380,  // wino m=300 cτ=10
-  380,  // wino m=300 cτ=30
-  45,   // wino m=500 cτ=10
-  45,   // wino m=500 cτ=20
-  13,  // wino m=650 cτ=10
-  13,  // wino m=650 cτ=20
-  4.6,  // wino m=800 cτ=10
-  4.6,  // wino m=800 cτ=20
-  1.3, // wino m=1000 cτ=10
-  1.3, // wino m=1000 cτ=20
+const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
+  { kWino_M_300_cTau_3, {
+    { 2017, {"SIG-SR/Wino_M_", {"300_cTau_3/"}}},
+    { 2018, {"SIG-SR/Wino_M_", {"300_cTau_3/"}}},
+  }},
+  { kWino_M_300_cTau_10, {
+    { 2017, {"SIG-SR/Wino_M_", {"300_cTau_10/"}}},
+    { 2018, {"SIG-SR/Wino_M_", {"300_cTau_10/"}}},
+  }},
+  { kWino_M_300_cTau_30, {
+    { 2017, {"SIG-SR/Wino_M_", {"300_cTau_30/"}}},
+    { 2018, {"SIG-SR/Wino_M_", {"300_cTau_30/"}}},
+  }},
+  { kWino_M_500_cTau_10, {
+    { 2017, {"SIG-SR/Wino_M_", {"500_cTau_10/"}}},
+    { 2018, {"SIG-SR/Wino_M_", {"500_cTau_10/"}}},
+  }},
+  { kWino_M_500_cTau_20, {
+    { 2017, {"SIG-SR/Wino_M_", {"500_cTau_20/"}}},
+    { 2018, {"SIG-SR/Wino_M_", {"500_cTau_20/"}}},
+  }},
+  { kWino_M_650_cTau_10, {
+    { 2017, {"SIG-SR/Wino_M_", {"650_cTau_10/"}}},
+    { 2018, {"SIG-SR/Wino_M_", {"650_cTau_10/"}}},
+  }},
+  { kWino_M_650_cTau_20, {
+    { 2017, {"SIG-SR/Wino_M_", {"650_cTau_20/"}}},
+    { 2018, {"SIG-SR/Wino_M_", {"650_cTau_20/"}}},
+  }},
+  { kWino_M_800_cTau_10, {
+    { 2017, {"SIG-SR/Wino_M_", {"800_cTau_10/"}}},
+    { 2018, {"SIG-SR/Wino_M_", {"800_cTau_10/"}}},
+  }},
+  { kWino_M_800_cTau_20, {
+    { 2017, {"SIG-SR/Wino_M_", {"800_cTau_20/"}}},
+    { 2018, {"SIG-SR/Wino_M_", {"800_cTau_20/"}}},
+  }},
+  { kWino_M_1000_cTau_10, {
+    { 2017, {"SIG-SR/Wino_M_", {"1000_cTau_10/"}}},
+    { 2018, {"SIG-SR/Wino_M_", {"1000_cTau_10/"}}},
+  }},
+  { kWino_M_1000_cTau_20, {
+    { 2017, {"SIG-SR/Wino_M_", {"1000_cTau_20/"}}},
+    { 2018, {"SIG-SR/Wino_M_", {"1000_cTau_20/"}}},
+  }},
+  { kTaggerSignalNoPU, {
+    { 2017, {"taggerStudy/", {"signal/noPU/"}}},
+    { 2018, {"taggerStudy/", {"signal/noPU/"}}},
+  }},
+  { kTaggerBackgroundNoPU, {
+    { 2017, {"taggerStudy/", {"background/noPU/"}}},
+    { 2018, {"taggerStudy/", {"background/noPU/"}}},
+  }},
+  { kTaggerSignalWithPU, {
+    { 2017, {"taggerStudy/", {"signal/withPU/"}}},
+    { 2018, {"taggerStudy/", {"signal/withPU/"}}},
+  }},
+  { kTaggerBackgroundWithPU, {
+    { 2017, {"taggerStudy/", {"background/withPU/"}}},
+    { 2018, {"taggerStudy/", {"background/withPU/"}}},
+  }},
 };
 
 enum EData{
-  kElectron_Run2017B,
-  kMET_Run2018A,
-  kMET_Run2018A_CR,
-  kNdata
+  kSignalRegion,
+  kControlRegion
+};
+
+constexpr initializer_list<EData> datas = { kSignalRegion, kControlRegion };
+
+const map<EData, map<int, pair<string, vector<string>>>> inFileNameData = {
+  { kSignalRegion, {
+    { 2017, {"Data-SR/tree_MET_Run2017",
+      {"B_31Mar2018/"}}},
+    { 2018, {"Data-SR/MET_Run2018",
+      {"A/"}}},
+  }},
+  { kControlRegion, {
+    { 2017, {"",
+      {}}},
+    { 2018, {"Data-CR/MET_Run2018",
+      {"A/"}}},
+  }},
+};
+
+const map<ESignal, double> signalCrossSectionTwoTracks = { // (fb)
+  { kWino_M_300_cTau_3  , 190   },
+  { kWino_M_300_cTau_10 , 190   },
+  { kWino_M_300_cTau_30 , 190   },
+  { kWino_M_500_cTau_10 , 22    },
+  { kWino_M_500_cTau_20 , 22    },
+  { kWino_M_650_cTau_10 , 6.4   },
+  { kWino_M_650_cTau_20 , 6.4   },
+  { kWino_M_800_cTau_10 , 2.2   },
+  { kWino_M_800_cTau_20 , 2.2   },
+  { kWino_M_1000_cTau_10, 0.62  },
+  { kWino_M_1000_cTau_20, 0.62  },
+};
+
+const map<ESignal, double> signalCrossSectionOneTrack = { // (fb)
+  { kWino_M_300_cTau_3  , 380   },
+  { kWino_M_300_cTau_10 , 380   },
+  { kWino_M_300_cTau_30 , 380   },
+  { kWino_M_500_cTau_10 , 45    },
+  { kWino_M_500_cTau_20 , 45    },
+  { kWino_M_650_cTau_10 , 13    },
+  { kWino_M_650_cTau_20 , 13    },
+  { kWino_M_800_cTau_10 , 4.6   },
+  { kWino_M_800_cTau_20 , 4.6   },
+  { kWino_M_1000_cTau_10, 1.3   },
+  { kWino_M_1000_cTau_20, 1.3   },
 };
 
 template <class T>

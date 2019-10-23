@@ -401,8 +401,8 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
     // it's not clear how to calculate weights for the signal...
     
     // cross section for given signal (stored in fb, here transformed to pb to match background units
-    weight *= 0.001 * (signalCrossSectionOneTrack[(ESignal)setIter] +
-                       signalCrossSectionTwoTracks[(ESignal)setIter]);
+    weight *= 0.001 * (signalCrossSectionOneTrack.at((ESignal)setIter) +
+                       signalCrossSectionTwoTracks.at((ESignal)setIter));
     
     //      if(*_nGenChargino == 1){
     //        weight *= 0.001 * signalCrossSectionOneTrack[iSig]; // cross section for given signal (stored in fb, here transformed to pb to match background units

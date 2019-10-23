@@ -535,7 +535,7 @@ void drawAndSaveABCDplots(const TH2D *metVsDedxHistBackground, const map<int, TH
   abcdPlotBackgrounds->Write();
   abcdBackgroundRatio->Write();
   
-  for(int iSig=0; iSig<kNsignals; iSig++){
+  for(ESignal iSig : signals){
     if(!config.runSignal[iSig]) continue;
     cout<<"Plotting "<<signalTitle[iSig]<<" ABCD"<<endl;
     TH2D *abcdPlot = GetABCDplot(metVsDedxHistsSignal.at((ESignal)iSig), bins, xtracks::kSignal, iSig);
@@ -673,7 +673,7 @@ void convertRtoLimits(string outFileName)
 map<int, TH2D*> loadSignalHists(const EventSet &events)
 {
   map<int, TH2D*> metVsDedxHistsSignal;
-  for(int iSig=0; iSig<kNsignals; iSig++){
+  for(ESignal iSig : signals){
     if(!config.runSignal[iSig]) continue;
     metVsDedxHistsSignal[iSig] = GetMetVsDedxHist(events, xtracks::kSignal, iSig);
   }
@@ -693,7 +693,7 @@ void runBinningScan(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &
   
   ofstream outFile(outputPath);
   
-  for(int iSig=0; iSig<kNsignals; iSig++){
+  for(ESignal iSig : signals){
     if(!config.runSignal[iSig]) continue;
     auto result = findBestBinning(metVsDedxHistBackground, metVsDedxHistsSignal.at(iSig), groupsDedx, groupsMet);
     double significance = GetSignificance(metVsDedxHistBackground, metVsDedxHistsSignal.at(iSig), result);
@@ -735,7 +735,7 @@ void produceLimits(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &m
 {
   vector<string> producedLimits;
   
-  for(int iSig=0; iSig<kNsignals; iSig++){
+  for(ESignal iSig : signals){
     if(!config.runSignal[iSig]) continue;
     
     string outFileName = to_string_with_precision(nDedxBins, 0)+"x"+to_string_with_precision(nMetBins, 0)+"_"+config.category+"_"+sampleTag+"_"+signalShortName[iSig];
@@ -771,7 +771,7 @@ int main(int argc, char* argv[])
   
   if(argc == 4){
     outputPath = argv[1];
-    for(int iSig=0; iSig<kNsignals; iSig++) config.runSignal[iSig] = false;
+    for(ESignal iSig : signals) config.runSignal[iSig] = false;
     config.runSignal[atoi(argv[2])] = true;
     config.category = argv[3];
   }
