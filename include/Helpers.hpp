@@ -213,9 +213,12 @@ enum EBackground{
 
 constexpr initializer_list<EBackground> backgrounds = {kQCD, kZmumuJets, kTT, kVV, kWmunuJets, kZnunuJets};
 
-const string baseDataPath = "../data/";
-
 const vector<int> years = { 2017, 2018 };
+
+const map<int, string> baseDataPath = {
+  {2017, "../data/"},
+  {2018, "../data/"},
+};
 
 // Path to trees with background, signal and data samples (also determines which samples will be merged)
 const map<EBackground, map<int, pair<string, vector<string>>>> inFileNameBackground = {

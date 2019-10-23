@@ -158,7 +158,7 @@ void EventSet::LoadEventsFromFiles(xtracks::EDataType dataType, int setIter, str
     for(int year : years){
       auto &[basePath, paths] = inFileNameBackground.at((EBackground)setIter).at(year);
       for(string path : paths){
-        string fullPath = baseDataPath + basePath + path + prefix + "tree.root";
+        string fullPath = baseDataPath.at(year) + basePath + path + prefix + "tree.root";
         AddEventsFromFile(fullPath, dataType, year, config.params["max_N_events_background"], setIter, iEvent);
         if(prefix != "") break;
       }
@@ -196,7 +196,7 @@ void EventSet::SaveEventsToFiles(string prefix) const
     for(int year : years){
       auto &[basePath, paths] = inFileNameBackground.at(iBck).at(year);
       if(paths.size() == 0) continue;
-      string path = baseDataPath + basePath + paths[0];
+      string path = baseDataPath.at(year) + basePath + paths[0];
       system(("mkdir -p "+path+prefix).c_str());
       SaveToTree((path+prefix+"tree.root").c_str(), xtracks::kBackground, iBck, year);
     }
