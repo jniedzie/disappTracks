@@ -14,10 +14,10 @@
 typedef tuple<vector<double>, vector<double>> binning;
 
 // Desired number of MET and dE/dx bins and limits of those
-const int nDedxBins = 3, nMetBins  = 3;
-const double minMet  = 300 , maxMet  = 500 , stepMet  = 10;
+const int nDedxBins = 2, nMetBins  = 2;
+const double minMet  = 200 , maxMet  = 500 , stepMet  = 10;
 //const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1; // for min dE/dx
-const double minDedx = 2.5 , maxDedx = 11.0 , stepDedx = 0.2; // for dE/dx likelihood
+const double minDedx = 2.5 , maxDedx = 11.0 , stepDedx = 0.1; // for dE/dx likelihood
 
 const double limitMet = 1000.0;
 const double limitDedx = 20.0;
@@ -318,7 +318,7 @@ TH2D* GetABCDplot(const TH2D* metVsDedxHist, const binning bestValues,
   double scale = 1.0;
   
   if(dataType == xtracks::kSignal){
-    title += ("_"+signalName[setIter]);
+    title += ("_"+signalName.at((ESignal)setIter));
     if(simulateTagger) scale = taggerEfficiency;
   }
   else{
@@ -370,8 +370,13 @@ double GetSignificance(const TH2D *metVsDedxHistBackground, const TH2D *metVsDed
       if(abcdBackground[x][y] == 0) return 0; // protection agains bins with no background events
       if(abcdSignal[x][y] + abcdBackground[x][y] == 0) continue;
       
+      // Simplified version
       double signif = abcdSignal[x][y] / sqrt(abcdSignal[x][y] + abcdBackground[x][y]);
-      significance += pow(signif, 2);
+      
+      // Full version (from Andrea)
+      double signifFull = sqrt(2*( (abcdSignal[x][y]+abcdBackground[x][y]) * log(1+abcdSignal[x][y]/abcdBackground[x][y])-abcdSignal[x][y]));
+      
+      significance += pow(signifFull, 2);
     }
   }
   return sqrt(significance);
@@ -544,14 +549,14 @@ void drawAndSaveABCDplots(const TH2D *metVsDedxHistBackground, const map<int, TH
   
   for(ESignal iSig : signals){
     if(!config.runSignal[iSig]) continue;
-    cout<<"Plotting "<<signalTitle[iSig]<<" ABCD"<<endl;
+    cout<<"Plotting "<<signalTitle.at(iSig)<<" ABCD"<<endl;
     TH2D *abcdPlot = GetABCDplot(metVsDedxHistsSignal.at((ESignal)iSig), bins, xtracks::kSignal, iSig);
     abcdCanvas->cd(iPad++);
     abcdPlot->SetMarkerSize(3.0);
     abcdPlot->Draw("colzText");
     outFile->cd();
-    abcdPlot->SetName(signalName[iSig].c_str());
-    abcdPlot->SetTitle(signalName[iSig].c_str());
+    abcdPlot->SetName(signalName.at(iSig).c_str());
+    abcdPlot->SetTitle(signalName.at(iSig).c_str());
     abcdPlot->Write();
   }
   
@@ -706,13 +711,13 @@ void runBinningScan(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &
     double significance = GetSignificance(metVsDedxHistBackground, metVsDedxHistsSignal.at(iSig), result);
 
     Log(0)<<"Category: "<<config.category<<"\n";
-    Log(0)<<"Sample: "<<signalTitle[iSig]<<"\n";
+    Log(0)<<"Sample: "<<signalTitle.at(iSig)<<"\n";
     Log(0)<<"MET bins: "; for(double met : get<0>(result)) Log(0)<<met<<"\t"; Log(0)<<"\n";
     Log(0)<<"dE/dx bins: "; for(double dedx : get<1>(result)) Log(0)<<dedx<<"\t"; Log(0)<<"\n";
     Log(0)<<"significance: "<<significance<<"\n";
     
     outFile<<"Category: "<<config.category<<"\n";
-    outFile<<"Sample: "<<signalTitle[iSig]<<"\n";
+    outFile<<"Sample: "<<signalTitle.at(iSig)<<"\n";
     outFile<<"MET bins: "; for(double met : get<0>(result)) outFile<<met<<"\t"; outFile<<"\n";
     outFile<<"dE/dx bins: "; for(double dedx : get<1>(result)) outFile<<dedx<<"\t"; outFile<<"\n";
     outFile<<"significance: "<<significance<<"\n";
@@ -745,7 +750,7 @@ void produceLimits(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &m
   for(ESignal iSig : signals){
     if(!config.runSignal[iSig]) continue;
     
-    string outFileName = to_string_with_precision(nDedxBins, 0)+"x"+to_string_with_precision(nMetBins, 0)+"_"+config.category+"_"+sampleTag+"_"+signalShortName[iSig];
+    string outFileName = to_string_with_precision(nDedxBins, 0)+"x"+to_string_with_precision(nMetBins, 0)+"_"+config.category+"_"+sampleTag+"_"+signalShortName.at(iSig);
     string outputPath = "results/abcd_plots_"+outFileName+".root";
     
     cout<<"\n\n--------------------------------------------------------"<<endl;
@@ -795,9 +800,9 @@ int main(int argc, char* argv[])
   TH2D *metVsDedxHistBackground = GetMetVsDedxHist(events, xtracks::kBackground);
   map<int, TH2D*> metVsDedxHistsSignal = loadSignalHists(events);
   
-//  runBinningScan(metVsDedxHistBackground, metVsDedxHistsSignal);
+  runBinningScan(metVsDedxHistBackground, metVsDedxHistsSignal);
   
-  produceLimits(metVsDedxHistBackground, metVsDedxHistsSignal);
+//  produceLimits(metVsDedxHistBackground, metVsDedxHistsSignal);
 
 //  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, {{400},{3.0, 3.1}} , "results/abcd_plots_debug.root");
   
