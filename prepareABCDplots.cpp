@@ -387,6 +387,8 @@ TH2D* GetMetVsDedxHist(const EventSet &events, xtracks::EDataType dataType, int 
       if(!config.runBackground[iBck]) continue;
       
       for(int year : years){
+        if(!config.params["load_"+to_string(year)]) continue;
+        
         for(int iEvent=0; iEvent<events.size(dataType, iBck, year); iEvent++){
           auto event = events.At(dataType, iBck, year, iEvent);
           
@@ -401,6 +403,8 @@ TH2D* GetMetVsDedxHist(const EventSet &events, xtracks::EDataType dataType, int 
   }
   else if(dataType == xtracks::kSignal){
     for(int year : years){
+      if(!config.params["load_"+to_string(year)]) continue;
+      
       for(int iEvent=0;iEvent<events.size(dataType, setIter, year);iEvent++){
         auto event = events.At(dataType, setIter, year, iEvent);
         

@@ -9,6 +9,7 @@
 EventSet::EventSet()
 {
   for(int year : years){
+    if(!config.params["load_"+to_string(year)]) continue;
     
     for(ESignal iSig : signals)         eventsSignal[iSig][year]      = vector<shared_ptr<Event>>();
     for(EBackground iBck : backgrounds) eventsBackground[iBck][year]  = vector<shared_ptr<Event>>();
@@ -24,6 +25,7 @@ EventSet::EventSet(string fileName, xtracks::EDataType dataType, int year, int m
 EventSet::EventSet(const EventSet &e)
 {
   for(int year : years){
+    if(!config.params["load_"+to_string(year)]) continue;
     
     for(ESignal iSig : signals){
       eventsSignal[iSig][year] = vector<shared_ptr<Event>>();
@@ -117,6 +119,8 @@ void EventSet::LoadEventsFromFiles(string prefix)
 void EventSet::LoadEventsFromFiles(xtracks::EDataType dataType, int setIter, string prefix, int iEvent)
 {
   for(int year : years){
+    if(!config.params["load_"+to_string(year)]) continue;
+    
     pair<string, vector<string>> paths;
     int maxEvents = -1;
     
@@ -133,23 +137,48 @@ void EventSet::LoadEventsFromFiles(xtracks::EDataType dataType, int setIter, str
       maxEvents = config.params["max_N_events_data"];
     }
     
-    for(string path : paths.second){
-      string fullPath = baseDataPath.at(year) + paths.first + path + prefix + "tree.root";
-      AddEventsFromFile(fullPath, dataType, year, maxEvents, setIter, iEvent);
-      if(prefix != "") break;
+    
+    if(config.params["load_single_subpath"]){
+      
+      if(prefix == ""){
+        string fullPath = baseDataPath.at(year) + paths.first + paths.second[config.params["subpath_index"]] + "tree.root";
+        AddEventsFromFile(fullPath, dataType, year, maxEvents, setIter, iEvent);
+      }
+      else{
+        for(string path : paths.second){
+          string fullPath = baseDataPath.at(year) + paths.first + path + prefix + "tree.root";
+          AddEventsFromFile(fullPath, dataType, year, maxEvents, setIter, iEvent);
+          
+          if(prefix != "after_L0/") break;
+        }
+      }
+    }
+    else{
+      for(string path : paths.second){
+        string fullPath = baseDataPath.at(year) + paths.first + path + prefix + "tree.root";
+        AddEventsFromFile(fullPath, dataType, year, maxEvents, setIter, iEvent);
+        
+        if(prefix != "") break;
+      }
     }
   }
 }
 
 void EventSet::SaveEventsToFiles(string prefix) const
 {
+  int subpathIndex = 0;
+  if(config.params["load_single_subpath"]) subpathIndex = config.params["subpath_index"];
+  
   for(int year : years){
+    if(!config.params["load_"+to_string(year)]) continue;
+    
     for(EBackground iBck : backgrounds){
       if(!config.runBackground[iBck]) continue;
       
       auto &[basePath, paths] = inFileNameBackground.at(iBck).at(year);
       if(paths.size() == 0) continue;
-      string path = baseDataPath.at(year) + basePath + paths[0];
+      
+      string path = baseDataPath.at(year) + basePath + paths[subpathIndex];
       system(("mkdir -p "+path+prefix).c_str());
       SaveToTree((path+prefix+"tree.root").c_str(), xtracks::kBackground, iBck, year);
     }
@@ -158,7 +187,7 @@ void EventSet::SaveEventsToFiles(string prefix) const
       
       auto &[basePath, paths] = inFileNameSignal.at(iSig).at(year);
       if(paths.size() == 0) continue;
-      string path = baseDataPath.at(year) + basePath + paths[0];
+      string path = baseDataPath.at(year) + basePath + paths[subpathIndex];
       system(("mkdir -p "+path+prefix).c_str());
       SaveToTree((path+prefix+"tree.root").c_str(), xtracks::kSignal, iSig, year);
     }
@@ -167,7 +196,7 @@ void EventSet::SaveEventsToFiles(string prefix) const
       
       auto &[basePath, paths] = inFileNameData.at(iData).at(year);
       if(paths.size() == 0) continue;
-      string path = baseDataPath.at(year) + basePath + paths[0];
+      string path = baseDataPath.at(year) + basePath + paths[subpathIndex];
       system(("mkdir -p "+path+prefix).c_str());
       SaveToTree((path+prefix+"tree.root").c_str(), xtracks::kData, iData, year);
     }
@@ -181,6 +210,7 @@ void EventSet::PrintYields() const
   int nBackgroundTotalRaw=0;
   
   for(int year : years){
+    if(!config.params["load_"+to_string(year)]) continue;
     
     for(EBackground iBck : backgrounds){
       if(!config.runBackground[iBck]) continue;
@@ -199,6 +229,8 @@ void EventSet::PrintYields() const
   if(config.params["print_yields"]){
     cout<<"Background total:\t"<<nBackgroundTotal<<"\t("<<nBackgroundTotalRaw<<")"<<endl;
     for(int year : years){
+      if(!config.params["load_"+to_string(year)]) continue;
+      
       for(ESignal iSig : signals){
         if(!config.runSignal[iSig]) continue;
         cout<<signalTitle.at(iSig)<<"\tN events:\t";
@@ -215,6 +247,8 @@ void EventSet::PrintYields() const
   }
   
   for(int year : years){
+    if(!config.params["load_"+to_string(year)]) continue;
+    
     for(ESignal iSig : signals){
       if(!config.runSignal[iSig]) continue;
       cout<<signalTitle.at(iSig)<<"\tS/sqrt(S+B):\t";
@@ -236,7 +270,10 @@ vector<double> EventSet::GetSignificance(bool inData) const
   
   for(EBackground iBck : backgrounds){
     if(!config.runBackground[iBck]) continue;
-    for(int year : years) nBackgroundTotal += weightedSize(xtracks::kBackground, iBck, year);
+    for(int year : years){
+      if(!config.params["load_"+to_string(year)]) continue;
+      nBackgroundTotal += weightedSize(xtracks::kBackground, iBck, year);
+    }
   }
   
   vector<double> results;
@@ -248,6 +285,7 @@ vector<double> EventSet::GetSignificance(bool inData) const
         continue;
       }
       for(int year : years){
+        if(!config.params["load_"+to_string(year)]) continue;
         results.push_back((weightedSize(xtracks::kData, iData, year) - nBackgroundTotal)/sqrt(weightedSize(xtracks::kData, iData, year)));
       }
     }
@@ -259,6 +297,7 @@ vector<double> EventSet::GetSignificance(bool inData) const
         continue;
       }
       for(int year : years){
+        if(!config.params["load_"+to_string(year)]) continue;
         results.push_back(weightedSize(xtracks::kSignal, iSig, year)/sqrt(nBackgroundTotal+weightedSize(xtracks::kSignal, iSig, year)));
       }
     }
@@ -272,13 +311,14 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
                          const LeptonCut  &leptonCut)
 {
   for(int year : years){
+    if(!config.params["load_"+to_string(year)]) continue;
     
     for(ESignal iSig : signals){
       if(!config.runSignal[iSig]) continue;
       
       vector<int> *cutReasons = new vector<int>(100);
       
-      for(int iEvent=0;iEvent<(int)eventsSignal[iSig].size();){
+      for(int iEvent=0;iEvent<(int)eventsSignal[iSig][year].size();){
         
         eventProcessor.ApplyTrackCut(eventsSignal[iSig][year][iEvent], trackCut);
         eventProcessor.ApplyJetCut(eventsSignal[iSig][year][iEvent], jetCut);
@@ -345,7 +385,7 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
       
       vector<int> *cutReasons = new vector<int>(100);
       
-      for(int iEvent=0;iEvent<(int)eventsData[iData].size();){
+      for(int iEvent=0;iEvent<(int)eventsData[iData][year].size();){
         
         eventProcessor.ApplyTrackCut(eventsData[iData][year][iEvent], trackCut);
         eventProcessor.ApplyJetCut(eventsData[iData][year][iEvent], jetCut);
@@ -563,6 +603,7 @@ shared_ptr<Event> EventSet::GetEvent(xtracks::EDataType dataType,
                                      uint run, uint lumi, unsigned long long eventNumber) const
 {
   for(int year : years){
+    if(!config.params["load_"+to_string(year)]) continue;
     
     if(dataType == xtracks::kSignal){
       for(ESignal iSig : signals){

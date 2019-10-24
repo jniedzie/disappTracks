@@ -28,32 +28,33 @@ void plotEvents(const EventSet &events)
 
 void printDetails(const EventSet &events)
 {
-  if(config.params["print_background_details"]){
-    for(EBackground iBck : backgrounds){
-      if(!config.runBackground[iBck]) continue;
-      for(int year : years){
+  for(int year : years){
+    if(!config.params["load_"+to_string(year)]) continue;
+    
+    if(config.params["print_background_details"]){
+      for(EBackground iBck : backgrounds){
+        if(!config.runBackground[iBck]) continue;
+        
         cout<<"Background events in "<<backgroundTitle.at(iBck)<<":"<<endl;
         for(int iEvent=0; iEvent<events.size(xtracks::kBackground, iBck, year); iEvent++){
           events.At(xtracks::kBackground, iBck, year, iEvent)->Print();
         }
       }
     }
-  }
-  if(config.params["print_data_details"]){
-    for(EData iData : datas){
-      if(!config.runData[iData]) continue;
-      for(int year : years){
+    if(config.params["print_data_details"]){
+      for(EData iData : datas){
+        if(!config.runData[iData]) continue;
+        
         cout<<"Data events in "<<dataTitle[iData]<<":"<<endl;
         for(int iEvent=0; iEvent<events.size(xtracks::kData, iData, year); iEvent++){
           events.At(xtracks::kData, iData, year, iEvent)->Print();
         }
       }
     }
-  }
-  if(config.params["print_signal_details"]){
-    for(ESignal iSig : signals){
-      if(!config.runSignal[iSig]) continue;
-      for(int year : years){
+    if(config.params["print_signal_details"]){
+      for(ESignal iSig : signals){
+        if(!config.runSignal[iSig]) continue;
+        
         cout<<"Signal events in "<<signalTitle.at(iSig)<<":"<<endl;
         for(int iEvent=0;iEvent<events.size(xtracks::kSignal, iSig, year); iEvent++){
           events.At(xtracks::kSignal, iSig, year, iEvent)->Print();
@@ -86,6 +87,8 @@ void saveSurvivingEvents(const EventSet &events)
     for(EData iData : datas){
       if(!config.runData[iData]) continue;
       for(int year : years){
+        if(!config.params["load_"+to_string(year)]) continue;
+        
         cout<<"Data events surviving cuts in "<<dataTitle[iData]<<":"<<events.size(xtracks::kData, iData, year)<<endl;
         for(int iEvent=0; iEvent<events.size(xtracks::kData, iData, year); iEvent++){
           auto event = events.At(xtracks::kData, iData, year, iEvent);
@@ -118,6 +121,8 @@ void saveSurvivingEvents(const EventSet &events)
     for(ESignal iSig : signals){
       if(!config.runSignal[iSig]) continue;
       for(int year : years){
+        if(!config.params["load_"+to_string(year)]) continue;
+        
         cout<<"Signal events surviving cuts in "<<signalTitle.at(iSig)<<":"<<events.size(xtracks::kSignal, iSig, year)<<endl;
         for(int iEvent=0; iEvent<events.size(xtracks::kSignal, iSig, year); iEvent++){
           auto event = events.At(xtracks::kSignal, iSig, year, iEvent);

@@ -107,6 +107,8 @@ void HistSet::Fill(const shared_ptr<TH1D> &hist,
                    int iDetId)
 {
   for(int year : years){
+    if(!config.params["load_"+to_string(year)]) continue;
+    
     for(int iEvent=0;iEvent<events->size(dataType, setIter, year);iEvent++){
       shared_ptr<Event> event = events->At(dataType, setIter, year, iEvent);
       
