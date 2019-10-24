@@ -14,7 +14,7 @@
 typedef tuple<vector<double>, vector<double>> binning;
 
 // Desired number of MET and dE/dx bins and limits of those
-const int nDedxBins = 2, nMetBins  = 2;
+int nDedxBins = 0, nMetBins  = 0;
 const double minMet  = 200 , maxMet  = 500 , stepMet  = 10;
 //const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1; // for min dE/dx
 const double minDedx = 2.5 , maxDedx = 11.0 , stepDedx = 0.1; // for dE/dx likelihood
@@ -770,8 +770,8 @@ void produceLimits(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &m
 /// Starting point of the application
 int main(int argc, char* argv[])
 {
-  if(argc != 1 && argc != 4){
-    cout<<"No or 2 argument expected: optimizer_output_path sample_index category"<<endl;
+  if(argc != 1 && argc != 6){
+    cout<<"No or 2 argument expected: optimizer_output_path sample_index category nDedxBins nMetBins"<<endl;
     exit(0);
   }
   
@@ -781,11 +781,13 @@ int main(int argc, char* argv[])
   
   config = ConfigManager(configPath);
   
-  if(argc == 4){
+  if(argc == 6){
     outputPath = argv[1];
     for(ESignal iSig : signals) config.runSignal[iSig] = false;
     config.runSignal[atoi(argv[2])] = true;
     config.category = argv[3];
+    nDedxBins = atoi(argv[4]);
+    nMetBins = atoi(argv[5]);
   }
   cout<<"Output will be stored in "<<outputPath<<endl;
   

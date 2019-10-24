@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# arguments: sampleIndex category nDedxBins nMetBins
+
 echo "Starting ABCD optimization"
 
 cd /afs/cern.ch/work/j/jniedzie/private/disapp_tracks/disappTracks/
@@ -18,9 +20,11 @@ then
 fi
 
 sample=$1
+nDedxBins=$3
+nMetBins=$4
 
 echo "Im in `pwd`"
-output_path=results/abcd_optimization_${category}_sample${sample}.txt
+output_path=results/abcd_optimization_${nDedxBins}x${nMetBins}_${category}_sample${sample}.txt
 
 echo "Output path:$output_path"
-./prepareABCDplots $output_path $sample $category
+./prepareABCDplots $output_path $sample $category $nDedxBins $nMetBins

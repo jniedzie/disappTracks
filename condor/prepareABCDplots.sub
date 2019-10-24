@@ -1,5 +1,5 @@
 executable 		= run_abcd_optimization.sh
-arguments	        = $(ProcId) 2
+arguments	        = $(ProcId) 2 3 3
 output                	= output/$(ClusterId).$(ProcId).out
 error                 	= error/$(ClusterId).$(ProcId).err
 log                   	= log/$(ClusterId).log
