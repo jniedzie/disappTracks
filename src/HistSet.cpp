@@ -22,13 +22,13 @@ var(_var)
   logy  = get<4>(settings.at(var));
   
   for(ESignal iSig : signals){
-    string histTitle = title+" (signal "+signalTitle[iSig]+")";
+    string histTitle = title+" (signal "+signalTitle.at(iSig)+")";
     signal.push_back(shared_ptr<TH1D>(new TH1D(histTitle.c_str(), histTitle.c_str(), nBins,min,max)));
   }
   
   
   for(EBackground iBck : backgrounds){
-    string histTitle = title+" (background "+backgroundTitle[iBck]+")";
+    string histTitle = title+" (background "+backgroundTitle.at(iBck)+")";
     background.push_back(shared_ptr<TH1D>(new TH1D(histTitle.c_str(), histTitle.c_str(), nBins,min,max)));
   }
   for(EData iData : datas){
@@ -69,7 +69,7 @@ void HistSet::FillFromEventsPerLayer(shared_ptr<EventSet> events)
   for(ESignal iSig : signals){
     vector<shared_ptr<TH1D>> signalVector;
     for(int iDetId=0;iDetId<nLayers;iDetId++){
-      string histTitle = title + "_subDet["+to_string(iDetId)+"]_signal_"+ signalTitle[iSig];
+      string histTitle = title + "_subDet["+to_string(iDetId)+"]_signal_"+ signalTitle.at(iSig);
       auto histSignal = shared_ptr<TH1D>(new TH1D(histTitle.c_str(),histTitle.c_str(),nBins,min,max));
       
       Fill(histSignal,events,xtracks::kSignal,iSig,iDetId);
@@ -80,7 +80,7 @@ void HistSet::FillFromEventsPerLayer(shared_ptr<EventSet> events)
   for(EBackground iBck : backgrounds){
     vector<shared_ptr<TH1D>> backgroundVector;
     for(int iDetId=0;iDetId<nLayers;iDetId++){
-      string histTitle = title + "_subDet["+to_string(iDetId)+"]_background_"+ backgroundTitle[iBck];
+      string histTitle = title + "_subDet["+to_string(iDetId)+"]_background_"+ backgroundTitle.at(iBck);
       auto histBackground = shared_ptr<TH1D>(new TH1D(histTitle.c_str(),histTitle.c_str(),nBins,min,max));
       
       Fill(histBackground,events,xtracks::kBackground,iBck,iDetId);
@@ -229,13 +229,13 @@ void HistSet::Draw(TCanvas *c1, int pad)
 {
   TLegend *leg = GetLegend();
   
-  for(int iSig=0;iSig<(int)signal.size();iSig++){
+  for(ESignal iSig : signals){
     if(!config.runSignal[iSig]) continue;
-    leg->AddEntry(&*signal[iSig],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
+    leg->AddEntry(&*signal[iSig],Form("Signal %s",signalTitle.at(iSig).c_str()),"lp");
   }
-  for(int iBck=0;iBck<(int)background.size();iBck++){
+  for(EBackground iBck : backgrounds){
     if(!config.runBackground[iBck]) continue;
-    leg->AddEntry(&*background[iBck],Form("Background %s",backgroundTitle[iBck].c_str()),"lp");
+    leg->AddEntry(&*background[iBck],Form("Background %s",backgroundTitle.at(iBck).c_str()),"lp");
   }
   for(int iData=0;iData<(int)data.size();iData++){
     if(!config.runData[iData]) continue;
@@ -330,13 +330,13 @@ void HistSet::Draw(TCanvas *c1, int pad)
 void HistSet::DrawPerLayer()
 {
   TLegend *leg = GetLegend();
-  for(int iSig=0;iSig<(int)signalPerLayer.size();iSig++){
+  for(ESignal iSig : signals){
     if(!config.runSignal[iSig]) continue;
-    leg->AddEntry(&*signalPerLayer[iSig][1],Form("Signal %s",signalTitle[iSig].c_str()),"lp");
+    leg->AddEntry(&*signalPerLayer[iSig][1],Form("Signal %s",signalTitle.at(iSig).c_str()),"lp");
   }
-  for(int iBck=0;iBck<(int)backgroundPerLayer.size();iBck++){
+  for(EBackground iBck : backgrounds){
     if(!config.runBackground[iBck]) continue;
-    leg->AddEntry(&*backgroundPerLayer[iBck][1],Form("Background %s",backgroundTitle[iBck].c_str()),"lp");
+    leg->AddEntry(&*backgroundPerLayer[iBck][1],Form("Background %s",backgroundTitle.at(iBck).c_str()),"lp");
   }
   for(int iData=0;iData<(int)dataPerLayer.size();iData++){
     if(!config.runData[iData]) continue;

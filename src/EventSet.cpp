@@ -48,31 +48,7 @@ EventSet::EventSet(const EventSet &e)
 
 EventSet EventSet::operator=(const EventSet &e)
 {
-  EventSet result;
- 
-  for(int year :years){
-    for(ESignal iSig : signals){
-      result.eventsSignal[iSig][year] = vector<shared_ptr<Event>>();
-      for(auto &event : e.eventsSignal.at(iSig).at(year)){
-        result.eventsSignal[iSig][year].push_back(make_shared<Event>(*event));
-      }
-    }
-    for(EBackground iBck : backgrounds){
-      
-      result.eventsBackground[iBck][year] = vector<shared_ptr<Event>>();
-      for(auto &event : e.eventsBackground.at(iBck).at(year)){
-        result.eventsBackground[iBck][year].push_back(make_shared<Event>(*event));
-      }
-      
-    }
-    for(EData iData : datas){
-      result.eventsData[iData][year] = vector<shared_ptr<Event>>();
-      for(auto &event : e.eventsData.at(iData).at(year)){
-        result.eventsData[iData][year].push_back(make_shared<Event>(*event));
-      }
-    }
-  }
-  return result;
+  return EventSet(e);
 }
 
 EventSet::~EventSet()
@@ -170,7 +146,7 @@ void EventSet::SaveEventsToFiles(string prefix) const
   for(int year : years){
     for(EBackground iBck : backgrounds){
       if(!config.runBackground[iBck]) continue;
-    
+      
       auto &[basePath, paths] = inFileNameBackground.at(iBck).at(year);
       if(paths.size() == 0) continue;
       string path = baseDataPath.at(year) + basePath + paths[0];
@@ -204,49 +180,53 @@ void EventSet::PrintYields() const
   double nBackgroundTotal=0;
   int nBackgroundTotalRaw=0;
   
-  for(EBackground iBck : backgrounds){
-    if(!config.runBackground[iBck]) continue;
+  for(int year : years){
     
-    for(int year : years){
-      
+    for(EBackground iBck : backgrounds){
+      if(!config.runBackground[iBck]) continue;
+
       nBackgroundTotal += weightedSize(xtracks::kBackground, iBck, year);
       nBackgroundTotalRaw += size(xtracks::kBackground, iBck, year);
       
       if(config.params["print_yields"]){
-        cout<<backgroundTitle[iBck]<<"("<<year<<")\t";
+        cout<<backgroundTitle.at(iBck)<<"("<<year<<")\t";
         cout<<weightedSize(xtracks::kBackground, (int)iBck, year);
         cout<<"\t("<<size(xtracks::kBackground,(int)iBck, year)<<")"<<endl;
       }
     }
   }
-  // TODO: Remove hardcoded 2017 by years for data and signals
+  
   if(config.params["print_yields"]){
     cout<<"Background total:\t"<<nBackgroundTotal<<"\t("<<nBackgroundTotalRaw<<")"<<endl;
-    
+    for(int year : years){
+      for(ESignal iSig : signals){
+        if(!config.runSignal[iSig]) continue;
+        cout<<signalTitle.at(iSig)<<"\tN events:\t";
+        cout<<weightedSize(xtracks::kSignal, iSig, year);
+        cout<<"\t("<<size(xtracks::kSignal, iSig, year)<<")"<<endl;
+      }
+      
+      for(EData iData : datas){
+        if(!config.runData[iData]) continue;
+        cout<<dataTitle[iData]<<"\tsize:\t";
+        cout<<weightedSize(xtracks::kData, iData, year)<<"\n";
+      }
+    }
+  }
+  
+  for(int year : years){
     for(ESignal iSig : signals){
       if(!config.runSignal[iSig]) continue;
-      cout<<signalTitle[iSig]<<"\tN events:\t";
-      cout<<weightedSize(xtracks::kSignal, iSig, 2017);
-      cout<<"\t("<<size(xtracks::kSignal, iSig, 2017)<<")"<<endl;
+      cout<<signalTitle.at(iSig)<<"\tS/sqrt(S+B):\t";
+      cout<<weightedSize(xtracks::kSignal, iSig, year)/sqrt(nBackgroundTotal+weightedSize(xtracks::kSignal, iSig, year))<<endl;
     }
     
     for(EData iData : datas){
       if(!config.runData[iData]) continue;
-      cout<<dataTitle[iData]<<"\tsize:\t";
-      cout<<weightedSize(xtracks::kData, iData, 2017)<<"\n";
+      cout<<dataTitle[iData]<<"\t(M-B)/sqrt(M):\t";
+      cout<<(weightedSize(xtracks::kData, iData, year)-nBackgroundTotal)/sqrt(weightedSize(xtracks::kData, iData, year))<<endl;
     }
-  }
-  
-  for(ESignal iSig : signals){
-    if(!config.runSignal[iSig]) continue;
-    cout<<signalTitle[iSig]<<"\tS/sqrt(S+B):\t";
-    cout<<weightedSize(xtracks::kSignal, iSig, 2017)/sqrt(nBackgroundTotal+weightedSize(xtracks::kSignal, iSig, 2017))<<endl;
-  }
-  
-  for(EData iData : datas){
-    if(!config.runData[iData]) continue;
-    cout<<dataTitle[iData]<<"\t(M-B)/sqrt(M):\t";
-    cout<<(weightedSize(xtracks::kData, iData, 2017)-nBackgroundTotal)/sqrt(weightedSize(xtracks::kData, iData, 2017))<<endl;
+    
   }
 }
 
@@ -267,7 +247,9 @@ vector<double> EventSet::GetSignificance(bool inData) const
         results.push_back(-inf);
         continue;
       }
-      results.push_back((weightedSize(xtracks::kData, iData, 2017) - nBackgroundTotal)/sqrt(weightedSize(xtracks::kData, iData, 2017)));
+      for(int year : years){
+        results.push_back((weightedSize(xtracks::kData, iData, year) - nBackgroundTotal)/sqrt(weightedSize(xtracks::kData, iData, year)));
+      }
     }
   }
   else{
@@ -276,7 +258,9 @@ vector<double> EventSet::GetSignificance(bool inData) const
         results.push_back(-inf);
         continue;
       }
-      results.push_back(weightedSize(xtracks::kSignal, iSig, 2017)/sqrt(nBackgroundTotal+weightedSize(xtracks::kSignal, iSig, 2017)));
+      for(int year : years){
+        results.push_back(weightedSize(xtracks::kSignal, iSig, year)/sqrt(nBackgroundTotal+weightedSize(xtracks::kSignal, iSig, year)));
+      }
     }
   }
   return results;
@@ -308,7 +292,7 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
         }
       }
       
-      Log(1)<<"Cut-through for signal sample: "<<signalTitle[iSig]<<"\n";
+      Log(1)<<"Cut-through for signal sample: "<<signalTitle.at(iSig)<<"\n";
       int iter=0;
       for(int nEventsPassing : *cutReasons){
         if(nEventsPassing!=0) Log(1)<<nEventsPassing<<" events passing cut "<<iter++<<"\n";
@@ -335,7 +319,7 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
         }
       }
       
-      Log(1)<<"Cut-through for background sample: "<<backgroundTitle[iBck]<<"\n";
+      Log(1)<<"Cut-through for background sample: "<<backgroundTitle.at(iBck)<<"\n";
       int iter=0;
       for(int nEventsPassing : *cutReasons){
         if(nEventsPassing!=0) Log(1)<<nEventsPassing<<" events passing cut "<<iter++<<"\n";

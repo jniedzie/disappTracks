@@ -76,6 +76,8 @@ using namespace std;
 //  return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 //}
 
+namespace xtracks {
+
 enum EHelixParams
 {
   kMinS = 0,
@@ -85,13 +87,12 @@ enum EHelixParams
   kNhelixParams
 };
 
-namespace xtracks {
-  enum EDataType{
-    kBackground,
-    kSignal,
-    kData
-  };
-}
+
+enum EDataType{
+  kBackground,
+  kSignal,
+  kData
+};
 
 // Plotting style
 const double fillOpacity = 1.0;
@@ -144,64 +145,6 @@ const vector<vector<int>> dataColors = {
   {200 , 10, 10},  // single muon CR (2018A)
 };
 
-// Names of background, signal and data samples
-const vector<string> backgroundTitle = {
-  "QCD",
-  "Z#rightarrow#mu#mu + jets",
-  "tt",
-  "VV",
-  "W#rightarrow#mu#nu + jets",
-  "Z#rightarrow#nu#nu + jets",
-};
-
-const vector<string> signalTitle = {
-  "Wino m=300 c#tau=3",
-  "Wino m=300 c#tau=10",
-  "Wino m=300 c#tau=30",
-  "Wino m=500 c#tau=10",
-  "Wino m=500 c#tau=20",
-  "Wino m=650 c#tau=10",
-  "Wino m=650 c#tau=20",
-  "Wino m=800 c#tau=10",
-  "Wino m=800 c#tau=20",
-  "Wino m=1000 c#tau=10",
-  "Wino m=1000 c#tau=20",
-};
-
-const vector<string> signalName = {
-  "Wino_m300_ct3",
-  "Wino_m300_ct10",
-  "Wino_m300_ct30",
-  "Wino_m500_ct10",
-  "Wino_m500_ct20",
-  "Wino_m650_ct10",
-  "Wino_m650_ct20",
-  "Wino_m800_ct10",
-  "Wino_m800_ct20",
-  "Wino_m1000_ct10",
-  "Wino_m1000_ct20",
-};
-
-const vector<string> signalShortName = {
-  "300_3",
-  "300_10",
-  "300_30",
-  "500_10",
-  "500_20",
-  "650_10",
-  "650_20",
-  "800_10",
-  "800_20",
-  "1000_10",
-  "1000_20",
-};
-
-const vector<string> dataTitle = {
-  "2017B",
-  "2018A",
-  "2018A-CR",
-};
-
 enum EBackground{
   kQCD = 0,
   kZmumuJets,
@@ -212,6 +155,111 @@ enum EBackground{
 };
 
 constexpr initializer_list<EBackground> backgrounds = {kQCD, kZmumuJets, kTT, kVV, kWmunuJets, kZnunuJets};
+
+enum ESignal{
+  kWino_M_300_cTau_3,
+  kWino_M_300_cTau_10,
+  kWino_M_300_cTau_30,
+  kWino_M_500_cTau_10,
+  kWino_M_500_cTau_20,
+  kWino_M_650_cTau_10,
+  kWino_M_650_cTau_20,
+  kWino_M_800_cTau_10,
+  kWino_M_800_cTau_20,
+  kWino_M_1000_cTau_10,
+  kWino_M_1000_cTau_20,
+  kTaggerSignalNoPU,
+  kTaggerBackgroundNoPU,
+  kTaggerSignalWithPU,
+  kTaggerBackgroundWithPU
+};
+
+constexpr initializer_list<ESignal> signals = {
+  kWino_M_300_cTau_3, kWino_M_300_cTau_10, kWino_M_300_cTau_30, kWino_M_500_cTau_10, kWino_M_500_cTau_20,
+  kWino_M_650_cTau_10, kWino_M_650_cTau_20, kWino_M_800_cTau_10, kWino_M_800_cTau_20, kWino_M_1000_cTau_10,
+  kWino_M_1000_cTau_20, kTaggerSignalNoPU, kTaggerBackgroundNoPU, kTaggerSignalWithPU, kTaggerBackgroundWithPU
+};
+
+// Names of background, signal and data samples
+const map<EBackground, string> backgroundTitle = {
+  {kQCD       , "QCD"                       },
+  {kZmumuJets , "Z#rightarrow#mu#mu + jets" },
+  {kTT        , "tt"                        },
+  {kVV        , "VV"                        },
+  {kWmunuJets , "W#rightarrow#mu#nu + jets" },
+  {kZnunuJets , "Z#rightarrow#nu#nu + jets" },
+};
+
+const map<EBackground, string> backgroundName = {
+  {kQCD       , "QCD"       },
+  {kZmumuJets , "Z_mumu"    },
+  {kTT        , "tt"        },
+  {kVV        , "VV"        },
+  {kWmunuJets , "W_munu"    },
+  {kZnunuJets , "Z_nunu"    },
+};
+
+const map<ESignal, string> signalTitle = {
+  {kWino_M_300_cTau_3, "Wino m=300 c#tau=3"},
+  {kWino_M_300_cTau_10, "Wino m=300 c#tau=10"},
+  {kWino_M_300_cTau_30, "Wino m=300 c#tau=30"},
+  {kWino_M_500_cTau_10, "Wino m=500 c#tau=10"},
+  {kWino_M_500_cTau_20, "Wino m=500 c#tau=20"},
+  {kWino_M_650_cTau_10, "Wino m=650 c#tau=10"},
+  {kWino_M_650_cTau_20, "Wino m=650 c#tau=20"},
+  {kWino_M_800_cTau_10, "Wino m=800 c#tau=10"},
+  {kWino_M_800_cTau_20, "Wino m=800 c#tau=20"},
+  {kWino_M_1000_cTau_10, "Wino m=1000 c#tau=10"},
+  {kWino_M_1000_cTau_20, "Wino m=1000 c#tau=20"},
+  {kTaggerSignalNoPU      , "Tagger signal no PU"       },
+  {kTaggerBackgroundNoPU  , "Tagger background no PU"   },
+  {kTaggerSignalWithPU    , "Tagger signal with PU"     },
+  {kTaggerBackgroundWithPU, "Tagger background with PU" },
+};
+
+const map<ESignal, string> signalName = {
+  {kWino_M_300_cTau_3, "Wino_m300_ct3"},
+  {kWino_M_300_cTau_10, "Wino_m300_ct10"},
+  {kWino_M_300_cTau_30, "Wino_m300_ct30"},
+  {kWino_M_500_cTau_10, "Wino_m500_ct10"},
+  {kWino_M_500_cTau_20, "Wino_m500_ct20"},
+  {kWino_M_650_cTau_10, "Wino_m650_ct10"},
+  {kWino_M_650_cTau_20, "Wino_m650_ct20"},
+  {kWino_M_800_cTau_10, "Wino_m800_ct10"},
+  {kWino_M_800_cTau_20, "Wino_m800_ct20"},
+  {kWino_M_1000_cTau_10, "Wino_m1000_ct10"},
+  {kWino_M_1000_cTau_20, "Wino_m1000_ct20"},
+  {kTaggerSignalNoPU      , "Tagger_signal_no_PU"       },
+  {kTaggerBackgroundNoPU  , "Tagger_background_no_PU"   },
+  {kTaggerSignalWithPU    , "Tagger_signal_with_PU"     },
+  {kTaggerBackgroundWithPU, "Tagger_background_with_PU" },
+};
+
+const map<ESignal, string> signalShortName = {
+  {kWino_M_300_cTau_3, "300_3"},
+  {kWino_M_300_cTau_10, "300_10"},
+  {kWino_M_300_cTau_30, "300_30"},
+  {kWino_M_500_cTau_10, "500_10"},
+  {kWino_M_500_cTau_20, "500_20"},
+  {kWino_M_650_cTau_10, "650_10"},
+  {kWino_M_650_cTau_20, "650_20"},
+  {kWino_M_800_cTau_10, "800_10"},
+  {kWino_M_800_cTau_20, "800_20"},
+  {kWino_M_1000_cTau_10, "1000_10"},
+  {kWino_M_1000_cTau_20, "1000_20"},
+  {kTaggerSignalNoPU      , "Tagger_signal_no_PU"       },
+  {kTaggerBackgroundNoPU  , "Tagger_background_no_PU"   },
+  {kTaggerSignalWithPU    , "Tagger_signal_with_PU"     },
+  {kTaggerBackgroundWithPU, "Tagger_background_with_PU" },
+};
+
+const vector<string> dataTitle = {
+  "2017B",
+  "2018A",
+  "2018A-CR",
+};
+
+
 
 const vector<int> years = { 2017, 2018 };
 
@@ -256,27 +304,7 @@ const map<EBackground, map<int, pair<string, vector<string>>>> inFileNameBackgro
   }},
 };
 
-enum ESignal{
-  kWino_M_300_cTau_3,
-  kWino_M_300_cTau_10,
-  kWino_M_300_cTau_30,
-  kWino_M_500_cTau_10,
-  kWino_M_500_cTau_20,
-  kWino_M_650_cTau_10,
-  kWino_M_650_cTau_20,
-  kWino_M_800_cTau_10,
-  kWino_M_800_cTau_20,
-  kWino_M_1000_cTau_10,
-  kWino_M_1000_cTau_20,
-  kTaggerSignalNoPU,
-  kTaggerBackgroundNoPU,
-  kTaggerSignalWithPU,
-  kTaggerBackgroundWithPU
-};
 
-constexpr initializer_list<ESignal> signals = {
-  kWino_M_300_cTau_3, kWino_M_300_cTau_10, kWino_M_300_cTau_30, kWino_M_500_cTau_10, kWino_M_500_cTau_20, kWino_M_650_cTau_10, kWino_M_650_cTau_20, kWino_M_800_cTau_10, kWino_M_800_cTau_20, kWino_M_1000_cTau_10, kWino_M_1000_cTau_20, kTaggerSignalNoPU, kTaggerBackgroundNoPU, kTaggerSignalWithPU, kTaggerBackgroundWithPU
-};
 
 const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
   { kWino_M_300_cTau_3, {
@@ -496,6 +524,7 @@ inline size_t GetDisksArrayIndex(int index, int signZ)
 }
 
 const double solenoidField = 3.7; // T
+
 
 enum EVar{
   kCustom,
@@ -780,5 +809,9 @@ inline string exec(const char* cmd)
   while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr){ result += buffer.data();}
   return result;
 }
+
+}
+
+using namespace xtracks;
 
 #endif /* Helpers_h */

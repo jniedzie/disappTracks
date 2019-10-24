@@ -25,6 +25,8 @@ const double limitDedx = 20.0;
 string configPath = "configs/analysis.md";
 string outputPath = "results/abcd_optimization.txt";
 
+string afsPath = "/afs/cern.ch/work/j/jniedzie/private/disapp_tracks/combine/CMSSW_10_2_13/src/";
+
 bool simulateTagger = false;
 double taggerEfficiency = 0.595152;
 double taggerFakeRate   = 0.119221;
@@ -209,7 +211,7 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //------------------------------------------------
 // 3x3, 3 layers, likelihood
 //------------------------------------------------
-
+/*
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_300_cTau_3    , {{330, 440}, {4.6}}},
   { kWino_M_300_cTau_10   , {{300, 370}, {4.0}}},
@@ -221,9 +223,9 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_800_cTau_10   , {{300, 440}, {4.0}}},
   { kWino_M_800_cTau_20   , {{350, 450}, {4.0}}},
   { kWino_M_1000_cTau_10  , {{350, 450}, {4.0}}},
-  { kWino_M_1000_cTau_20  , {{390, 490}, {4.6}}},
+  { kWino_M_1000_cTau_20  , {{390, 490}, {4.6}}}, // BEST
 };
-
+*/
 //------------------------------------------------
 // 3x3, 4 layers, likelihood
 //------------------------------------------------
@@ -237,7 +239,7 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_650_cTau_10   , {{310, 490}, {4.0}}},
   { kWino_M_650_cTau_20   , {{320, 490}, {4.0}}},
   { kWino_M_800_cTau_10   , {{320, 410}, {3.7, 6.3}}},
-  { kWino_M_800_cTau_20   , {{320, 470}, {4.1, 7.1}}},
+  { kWino_M_800_cTau_20   , {{320, 470}, {4.1, 7.1}}},  // BEST
   { kWino_M_1000_cTau_10  , {{310, 350}, {4.1, 6.9}}},
   { kWino_M_1000_cTau_20  , {{320, 490}, {5.0}}},
 };
@@ -245,7 +247,7 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //------------------------------------------------
 // 3x3, 5-6 layers, likelihood
 //------------------------------------------------
-/*
+
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_300_cTau_3    , {{300, 390}, {3.7, 4.5}}},
   { kWino_M_300_cTau_10   , {{300, 340}, {4.0}}},
@@ -254,12 +256,11 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_500_cTau_20   , {{300, 340}, {4.0}}},
   { kWino_M_650_cTau_10   , {{340, 450}, {3.7, 5.7}}},
   { kWino_M_650_cTau_20   , {{340, 470}, {4.0}}},
-  { kWino_M_800_cTau_10   , {{350, 450}, {3.7, 5.3}}},
+  { kWino_M_800_cTau_10   , {{350, 450}, {3.7, 5.3}}}, // BEST
   { kWino_M_800_cTau_20   , {{340, 470}, {4.0}}},
   { kWino_M_1000_cTau_10  , {{300, 360}, {4.3, 5.3}}},
   { kWino_M_1000_cTau_20  , {{300, 350}, {4.3, 5.3}}},
 };
-*/
 
 
 /**
@@ -399,13 +400,15 @@ TH2D* GetMetVsDedxHist(const EventSet &events, xtracks::EDataType dataType, int 
     }
   }
   else if(dataType == xtracks::kSignal){
-    for(int iEvent=0;iEvent<events.size(dataType, setIter, 2017);iEvent++){
-      auto event = events.At(dataType, setIter, 2017, iEvent);
-      
-      for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
-        auto track = event->GetTrack(iTrack);
-//        hist->Fill(track->GetMinDedx(), event->GetMetNoMuPt(), event->GetWeight());
-        hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPt(), event->GetWeight());
+    for(int year : years){
+      for(int iEvent=0;iEvent<events.size(dataType, setIter, year);iEvent++){
+        auto event = events.At(dataType, setIter, year, iEvent);
+        
+        for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
+          auto track = event->GetTrack(iTrack);
+          //        hist->Fill(track->GetMinDedx(), event->GetMetNoMuPt(), event->GetWeight());
+          hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPt(), event->GetWeight());
+        }
       }
     }
   }
@@ -657,7 +660,7 @@ void runCombine(string outFileName)
   string output = exec(command.c_str());
   cout<<output<<endl;
   
-  command = "cp /afs/cern.ch/work/j/jniedzie/private/CMSSW_9_4_6_patch1/src/limits_datacard_"+outFileName+".txt";
+  command = "cp "+afsPath+"limits_datacard_"+outFileName+".txt";
   command += " macros/limitsData/combineOutput/";
   exec(command.c_str());
 }

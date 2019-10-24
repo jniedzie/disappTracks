@@ -117,7 +117,8 @@ do_tagger_background_noPU:      0
 do_tagger_signal_withPU:             0
 do_tagger_background_withPU:   0
 
-do_2017:         0
+do_SR:         0
+do_CR:         0
 
 ### Do we need additional information stored in the friend trees
 load_friend_tree: 1

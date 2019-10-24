@@ -135,7 +135,7 @@ public:
   inline double GetMetNoMuMass() const {return metNoMuMass;}
   inline double GetMetNoMuPhi() const {return metNoMuPhi;}
   inline double GetMetNoMuEta() const {return metNoMuEta;}
-  inline bool HetMetNoMuTrigger(){return metNoMuTrigger;}
+  inline bool HasMetNoMuTrigger(){return metNoMuTrigger;}
   
   inline bool GetGoodVerticesFlag() const {return flag_goodVertices;}
   inline bool GetBadPFmuonFlag() const {return flag_badPFmuon;}

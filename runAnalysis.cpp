@@ -32,7 +32,7 @@ void printDetails(const EventSet &events)
     for(EBackground iBck : backgrounds){
       if(!config.runBackground[iBck]) continue;
       for(int year : years){
-        cout<<"Background events in "<<backgroundTitle[iBck]<<":"<<endl;
+        cout<<"Background events in "<<backgroundTitle.at(iBck)<<":"<<endl;
         for(int iEvent=0; iEvent<events.size(xtracks::kBackground, iBck, year); iEvent++){
           events.At(xtracks::kBackground, iBck, year, iEvent)->Print();
         }
@@ -40,20 +40,24 @@ void printDetails(const EventSet &events)
     }
   }
   if(config.params["print_data_details"]){
-    for(int iData=0;iData<kNdata;iData++){
+    for(EData iData : datas){
       if(!config.runData[iData]) continue;
-      cout<<"Data events in "<<dataTitle[iData]<<":"<<endl;
-      for(int iEvent=0;iEvent<events.size(xtracks::kData,iData, 2017);iEvent++){
-        events.At(xtracks::kData, iData, 2017, iEvent)->Print();
+      for(int year : years){
+        cout<<"Data events in "<<dataTitle[iData]<<":"<<endl;
+        for(int iEvent=0; iEvent<events.size(xtracks::kData, iData, year); iEvent++){
+          events.At(xtracks::kData, iData, year, iEvent)->Print();
+        }
       }
     }
   }
   if(config.params["print_signal_details"]){
-    for(int iSig=0;iSig<kNsignals;iSig++){
+    for(ESignal iSig : signals){
       if(!config.runSignal[iSig]) continue;
-      cout<<"Signal events in "<<signalTitle[iSig]<<":"<<endl;
-      for(int iEvent=0;iEvent<events.size(xtracks::kSignal, iSig, 2017);iEvent++){
-        events.At(xtracks::kSignal, iSig, 2017, iEvent)->Print();
+      for(int year : years){
+        cout<<"Signal events in "<<signalTitle.at(iSig)<<":"<<endl;
+        for(int iEvent=0;iEvent<events.size(xtracks::kSignal, iSig, year); iEvent++){
+          events.At(xtracks::kSignal, iSig, year, iEvent)->Print();
+        }
       }
     }
   }
@@ -63,7 +67,7 @@ void saveSurvivingEvents(const EventSet &events)
 {
   bool updateData = false;
   
-  for(int iData=0;iData<kNdata;iData++){
+  for(EData iData : datas){
     if(config.runData[iData]){ updateData = true; break; }
   }
   
@@ -79,20 +83,22 @@ void saveSurvivingEvents(const EventSet &events)
     
     set<int> lumiSections;
     
-    for(int iData=0;iData<kNdata;iData++){
+    for(EData iData : datas){
       if(!config.runData[iData]) continue;
-      cout<<"Data events surviving cuts in "<<dataTitle[iData]<<":"<<events.size(xtracks::kData, iData, 2017)<<endl;
-      for(int iEvent=0; iEvent<events.size(xtracks::kData, iData, 2017); iEvent++){
-        auto event = events.At(xtracks::kData, iData, 2017, iEvent);
-        int runNumber = event->GetRunNumber();
-        int lumiSection = event->GetLumiSection();
-        long long int eventNumber = event->GetEventNumber();
-        
-        dataSurvivingFile<<runNumber<<":"<<lumiSection<<":"<<eventNumber<<"\n";
-        
-        if(lumiSections.find(lumiSection) == lumiSections.end()){
-          dataSurvivingFileByLS<<runNumber<<" "<<lumiSection<<"\n";
-          lumiSections.insert(lumiSection);
+      for(int year : years){
+        cout<<"Data events surviving cuts in "<<dataTitle[iData]<<":"<<events.size(xtracks::kData, iData, year)<<endl;
+        for(int iEvent=0; iEvent<events.size(xtracks::kData, iData, year); iEvent++){
+          auto event = events.At(xtracks::kData, iData, year, iEvent);
+          int runNumber = event->GetRunNumber();
+          int lumiSection = event->GetLumiSection();
+          long long int eventNumber = event->GetEventNumber();
+          
+          dataSurvivingFile<<runNumber<<":"<<lumiSection<<":"<<eventNumber<<"\n";
+          
+          if(lumiSections.find(lumiSection) == lumiSections.end()){
+            dataSurvivingFileByLS<<runNumber<<" "<<lumiSection<<"\n";
+            lumiSections.insert(lumiSection);
+          }
         }
       }
     }
@@ -101,7 +107,7 @@ void saveSurvivingEvents(const EventSet &events)
   
   bool updateSignals = false;
   
-  for(int iSig=0;iSig<kNsignals;iSig++){
+  for(ESignal iSig : signals){
     if(config.runSignal[iSig]){ updateSignals = true; break; }
   }
   
@@ -109,15 +115,17 @@ void saveSurvivingEvents(const EventSet &events)
     ofstream signalSurvivingFile;
     signalSurvivingFile.open ("results/survivingSignalEventsAfter"+suffix+".txt");
     
-    for(int iSig=0;iSig<kNsignals;iSig++){
+    for(ESignal iSig : signals){
       if(!config.runSignal[iSig]) continue;
-      cout<<"Signal events surviving cuts in "<<signalTitle[iSig]<<":"<<events.size(xtracks::kSignal, iSig, 2017)<<endl;
-      for(int iEvent=0; iEvent<events.size(xtracks::kSignal, iSig, 2017); iEvent++){
-        auto event = events.At(xtracks::kSignal, iSig, 2017, iEvent);
-        int runNumber = event->GetRunNumber();
-        int lumiSection = event->GetLumiSection();
-        long long int eventNumber = event->GetEventNumber();
-        signalSurvivingFile<<runNumber<<":"<<lumiSection<<":"<<eventNumber<<"\n";
+      for(int year : years){
+        cout<<"Signal events surviving cuts in "<<signalTitle.at(iSig)<<":"<<events.size(xtracks::kSignal, iSig, year)<<endl;
+        for(int iEvent=0; iEvent<events.size(xtracks::kSignal, iSig, year); iEvent++){
+          auto event = events.At(xtracks::kSignal, iSig, year, iEvent);
+          int runNumber = event->GetRunNumber();
+          int lumiSection = event->GetLumiSection();
+          long long int eventNumber = event->GetEventNumber();
+          signalSurvivingFile<<runNumber<<":"<<lumiSection<<":"<<eventNumber<<"\n";
+        }
       }
     }
     signalSurvivingFile.close();
@@ -175,7 +183,7 @@ void runMETbinning(const EventSet &events,
     significances.push_back(eventsForMetBin.GetSignificance());
   }
   
-  for(int iSig=0;iSig<kNsignals;iSig++){
+  for(ESignal iSig : signals){
     if(!config.runSignal[iSig]) continue;
     
     double combinedSignificance = 0;
@@ -187,7 +195,7 @@ void runMETbinning(const EventSet &events,
     }
     combinedSignificance = sqrt(combinedSignificance);
     
-    cout<<signalTitle[iSig]<<"\t"<<combinedSignificance<<endl;
+    cout<<signalTitle.at(iSig)<<"\t"<<combinedSignificance<<endl;
   }
 }
 
@@ -199,14 +207,14 @@ void scanMETbinning(const EventSet &events,
   TCanvas *c1 = new TCanvas("significance","significance",800,500);
   c1->cd();
   
-  TH1D hists[kNsignals];
+  TH1D hists[signals.size()];
   
   
   double min = 201, max = 1001, step = 20;
   int nBins = (max-min)/step + 1;
   
-  for(int iSig=0;iSig<kNsignals;iSig++){
-    hists[iSig] = TH1D(signalTitle[iSig].c_str(),signalTitle[iSig].c_str(),nBins,min,max);
+  for(ESignal iSig : signals){
+    hists[iSig] = TH1D(signalTitle.at(iSig).c_str(),signalTitle.at(iSig).c_str(),nBins,min,max);
   }
   
   for(int i=0;i<nBins;i++){
@@ -224,17 +232,17 @@ void scanMETbinning(const EventSet &events,
     vector<double> significances1 = events1.GetSignificance();
     vector<double> significances2 = events2.GetSignificance();
     
-    for(int iSig=0;iSig<kNsignals;iSig++){
+    for(ESignal iSig : signals){
       if(!config.runSignal[iSig]) continue;
       
       double combinedSignificance = sqrt(pow(significances1[iSig],2) + pow(significances2[iSig],2));
-      cout<<signalTitle[iSig]<<"\t"<<((isnormal(combinedSignificance) && combinedSignificance < 1000) ? combinedSignificance : 0.0)<<endl;
+      cout<<signalTitle.at(iSig)<<"\t"<<((isnormal(combinedSignificance) && combinedSignificance < 1000) ? combinedSignificance : 0.0)<<endl;
       hists[iSig].SetBinContent(i+1, (isnormal(combinedSignificance) && combinedSignificance < 1000) ? combinedSignificance : 0.0);
     }
   }
   
   bool first = true;
-  for(int iSig=0;iSig<kNsignals;iSig++){
+  for(ESignal iSig : signals){
     if(!config.runSignal[iSig]) continue;
     hists[iSig].SetMarkerSize(2.0);
     

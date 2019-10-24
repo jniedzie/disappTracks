@@ -39,19 +39,6 @@ public:
   /// \param prefix If specified, prefix will be appended at the end of the path, before "tree.root"
   void LoadEventsFromFiles(string prefix="");
   
-  /// Loads events from one tree only.
-  /// \param dataType Specifies whether signal, background or data events should be loaded.
-  /// \param setIter Specifies which set should be loaded (e.g. kZmumuJets for Z->mumu)
-  /// \param prefix If specified, prefix will be appended at the end of the path, before "tree.root"
-  void LoadEventsFromFiles(xtracks::EDataType dataType, int setIter, string prefix="", int iEvent=-1);
-  
-  /// Load single event from a tree
-  /// \param dataType Specifies whether signal, background or data events should be loaded.
-  /// \param setIter Specifies which set should be loaded (e.g. kZmumuJets for Z->mumu)
-  /// \param iEvent Number of the event to be loaded
-  /// \param prefix If specified, prefix will be appended at the end of the path, before "tree.root"
-  void LoadEventFromFiles(xtracks::EDataType dataType, int setIter, int iEvent,
-                          string prefix="");
   
   /// Saves signal, background and data events in the ROOT files, according to settings in the config.
   /// \param prefix If specified, prefix will be appended at the end of the path, before "tree.root"
@@ -122,6 +109,12 @@ private:
                          int maxNevents=-1, int setIter=-1, int iEvent=-1);
  
   void SaveToTree(string fileName, xtracks::EDataType type, int setIter, int year) const;
+  
+  /// Loads events from one tree only.
+  /// \param dataType Specifies whether signal, background or data events should be loaded.
+  /// \param setIter Specifies which set should be loaded (e.g. kZmumuJets for Z->mumu)
+  /// \param prefix If specified, prefix will be appended at the end of the path, before "tree.root"
+  void LoadEventsFromFiles(xtracks::EDataType dataType, int setIter, string prefix="", int iEvent=-1);
 };
 
 
