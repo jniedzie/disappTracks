@@ -135,6 +135,10 @@ const vector<vector<int>> signalColors = {
   {128, 0  , 0  },  // wino m=800 cτ=20
   {170, 110, 40 },  // wino m=1000 cτ=10
   {128, 0  , 0  },  // wino m=1000 cτ=20
+  {170, 110, 40 },  //
+  {128, 0  , 0  },  //
+  {170, 110, 40 },  //
+  {128, 0  , 0  },  //
 };
 
 // {140, 50 , 230} {170, 200, 195} {240, 50 , 100} {255, 225, 25 } {0  , 128, 128} {230, 190, 255} {170, 100, 195} {240, 50 , 230}
@@ -405,6 +409,10 @@ const map<ESignal, double> signalCrossSectionTwoTracks = { // (fb)
   { kWino_M_800_cTau_20 , 2.2   },
   { kWino_M_1000_cTau_10, 0.62  },
   { kWino_M_1000_cTau_20, 0.62  },
+  { kTaggerSignalNoPU      , 190},
+  { kTaggerBackgroundNoPU  , 190},
+  { kTaggerSignalWithPU    , 190},
+  { kTaggerBackgroundWithPU, 190},
 };
 
 const map<ESignal, double> signalCrossSectionOneTrack = { // (fb)
@@ -419,6 +427,10 @@ const map<ESignal, double> signalCrossSectionOneTrack = { // (fb)
   { kWino_M_800_cTau_20 , 4.6   },
   { kWino_M_1000_cTau_10, 1.3   },
   { kWino_M_1000_cTau_20, 1.3   },
+  { kTaggerSignalNoPU      , 380},
+  { kTaggerBackgroundNoPU  , 380},
+  { kTaggerSignalWithPU    , 380},
+  { kTaggerBackgroundWithPU, 380},
 };
 
 template <class T>

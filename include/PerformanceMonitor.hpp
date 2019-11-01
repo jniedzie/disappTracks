@@ -30,7 +30,7 @@ public:
    \param alternativeColors When switched on, alternative colors will be used for signal and background histograms
    */
   PerformanceMonitor(string _name, string _title, int _nBins, double min, double max, EColor color = kRed,
-                     bool alternativeColors=false);
+                     bool alternativeColors=false, int _fixUpperThresholdBin=-1);
   
   /// Assignment operator
   void operator=(const PerformanceMonitor &pm);
@@ -72,7 +72,8 @@ public:
   inline double GetValueByName(string name){ return params[name];}
   
   /// Returns the highest distance between efficiency and c_eff = sqrt(c_fake) curve
-  double GetMaxDistanceFromSqrtFake(double &bestEff, double &bestFake);
+  double GetMaxDistanceFromSqrtFake(double &bestEff, double &bestFake,
+                                    int &thresholdLowBin, int &thresholdUpBin);
   
 private:
   double thresholdMin;
@@ -91,14 +92,17 @@ private:
   
   string name, title;
   
-  vector<double> efficiency;  ///< efficiency for given threshold
-  vector<double> fakeRate;    ///< fake rate for given threshold
+  vector<vector<double>> efficiency;  ///< efficiency for given lower and upper threshold
+  vector<vector<double>> fakeRate;    ///< fake rate for given lower and upper threshold
   
   map<string, double> params;
   
   TF1* GetRocFunction();
   void CountEventsAboveThreshold();
   void ResetParams();
+  
+  int fixedUpperThresholdBin;
+  
 };
 
 #endif /* PerformanceMonitor_hpp */

@@ -12,12 +12,14 @@ PerformanceMonitor::PerformanceMonitor()
 
 PerformanceMonitor::PerformanceMonitor(string _name, string _title,
                                        int _nBins, double min, double max,
-                                       EColor color, bool alternativeColors) :
+                                       EColor color, bool alternativeColors,
+                                       int _fixUpperThresholdBin) :
 name(_name),
 title(_title),
 thresholdMin(min),
 thresholdMax(max),
-nBins(_nBins)
+nBins(_nBins),
+fixedUpperThresholdBin(_fixUpperThresholdBin)
 {
   histSignal     = new TH1D(Form("%s%i", name.c_str(), RandInt(0, inf)),
                             title.c_str(),
@@ -45,11 +47,14 @@ nBins(_nBins)
   rocGraph->SetLineColor(color);
   rocGraph->SetLineStyle(2);
   
-  thresholdStep = (max-min)/(nBins+1);
+  thresholdStep = (max-min)/(nBins);
   
   for(int i=0; i<nBins; i++){
-    efficiency.push_back(0);
-    fakeRate.push_back(0);
+    vector<double> tmp(nBins, 0);
+    for(int j=0; j<nBins; j++){
+      efficiency.push_back(tmp);
+      fakeRate.push_back(tmp);
+    }
   }
   ResetParams();
 }
@@ -85,6 +90,8 @@ void PerformanceMonitor::operator=(const PerformanceMonitor &pm)
   name             = pm.name;
   title            = pm.title;
   params           = pm.params;
+  fixedUpperThresholdBin = pm.fixedUpperThresholdBin;
+  
 }
 
 void PerformanceMonitor::SetValue(double value, bool signal)
@@ -101,16 +108,25 @@ void PerformanceMonitor::SetValue(double value, bool signal)
 
 void PerformanceMonitor::CountEventsAboveThreshold()
 {
-  for(int iThreshold=0; iThreshold<nBins; iThreshold++){
-    efficiency[iThreshold] = 0.0;
-    fakeRate[iThreshold]   = 0.0;
-    
-    double threshold = thresholdMin + iThreshold*thresholdStep;
-    for(double nPoints : valuesSignal){
-      if(nPoints >= threshold) efficiency[iThreshold]+=1;
+  for(int iThresholdLow=0; iThresholdLow<efficiency.size(); iThresholdLow++){
+    int thresholdUpMin = iThresholdLow+1;
+    int thresholdUpMax = (int)efficiency[0].size();
+    if(fixedUpperThresholdBin > 0){
+      thresholdUpMin = fixedUpperThresholdBin;
+      thresholdUpMax = fixedUpperThresholdBin+1;
     }
-    for(double nPoints : valuesBackground){
-      if(nPoints >= threshold) fakeRate[iThreshold]+=1;
+    for(int iThresholdUp=thresholdUpMin; iThresholdUp<thresholdUpMax; iThresholdUp++){
+      efficiency[iThresholdLow][iThresholdUp] = 0.0;
+      fakeRate[iThresholdLow][iThresholdUp]   = 0.0;
+    
+      double thresholdLow = thresholdMin + iThresholdLow*thresholdStep;
+      double thresholdUp  = thresholdMin + iThresholdUp*thresholdStep;
+      for(double nPoints : valuesSignal){
+        if(nPoints >= thresholdLow && nPoints <= thresholdUp) efficiency[iThresholdLow][iThresholdUp]+=1;
+      }
+      for(double nPoints : valuesBackground){
+        if(nPoints >= thresholdLow && nPoints <= thresholdUp) fakeRate[iThresholdLow][iThresholdUp]+=1;
+      }
     }
   }
 }
@@ -127,96 +143,136 @@ void PerformanceMonitor::CalcEfficiency()
   double bestEff=-inf;
   double bestFake=inf;
   
-  for(int iThreshold=0; iThreshold<nBins; iThreshold++){
-    double effError;
-    if(valuesSignal.size()==0 || efficiency[iThreshold]==0){
-      effError = 0;
+  int iPoint=0;
+  
+  for(int iThresholdLow=0; iThresholdLow<efficiency.size(); iThresholdLow++){
+    int thresholdUpMin = iThresholdLow+1;
+    int thresholdUpMax = (int)efficiency[0].size();
+    if(fixedUpperThresholdBin > 0){
+      thresholdUpMin = fixedUpperThresholdBin;
+      thresholdUpMax = fixedUpperThresholdBin+1;
     }
-    else{
-      effError = sqrt(1/valuesSignal.size() + 1/efficiency[iThreshold]);
-      efficiency[iThreshold]  /= valuesSignal.size();
-      effError *= efficiency[iThreshold];
-    }
-    
-    double fakeError;
-    if(valuesBackground.size()==0 || fakeRate[iThreshold]==0){
-      fakeError=0;
-    }
-    else{
-      fakeError = sqrt(1/valuesBackground.size() + 1/fakeRate[iThreshold]);
-      fakeRate[iThreshold]    /= valuesBackground.size();
-      fakeError *= fakeRate[iThreshold];
-    }
-    
-    if(efficiency[iThreshold] > params["max_eff"] && efficiency[iThreshold] != 1.0){
-      params["max_eff"]   = efficiency[iThreshold];
-      params["min_fake"]  = 1/fakeRate[iThreshold];
-    }
-    double sigmaApproxInitial = 3986*efficiency[iThreshold]/sqrt(3986*efficiency[iThreshold]+6E+07*fakeRate[iThreshold]);
-    
-    if(sigmaApproxInitial > params["sigma_init"] && fakeRate[iThreshold] > 0)
-      params["sigma_init"] = sigmaApproxInitial;
-    
-    double sigmaApproxL0all = 1388*efficiency[iThreshold]/sqrt(1388*efficiency[iThreshold]+1E+05*fakeRate[iThreshold]);
-    
-    if(sigmaApproxL0all > params["sigma_L0"] && fakeRate[iThreshold] > 0)
-      params["sigma_L0"] = sigmaApproxL0all;
-    
-    double sigmaApproxL1all = 1166*efficiency[iThreshold]/sqrt(1166*efficiency[iThreshold]+6573*fakeRate[iThreshold]);
-    
-    if(sigmaApproxL1all > params["sigma_L1"] && fakeRate[iThreshold] > 0)
-      params["sigma_L1"] = sigmaApproxL1all;
-    
-    double distToSqrtFake = efficiency[iThreshold]-sqrt(fakeRate[iThreshold]);
-    
-    if(fakeRate[iThreshold] > 0.01 && fakeRate[iThreshold] < 0.99){
-      if(distToSqrtFake > params["max_dist_fake"]){
-        params["max_dist_fake"] = distToSqrtFake;
-        bestEff = efficiency[iThreshold];
-        bestFake = fakeRate[iThreshold];
-      }
-      if(first){
-        params["avg_dist_fake"] = distToSqrtFake;
-        first = false;
+    for(int iThresholdUp=thresholdUpMin; iThresholdUp<thresholdUpMax; iThresholdUp++){
+      double effError;
+      if(valuesSignal.size()==0 || efficiency[iThresholdLow][iThresholdUp]==0){
+        effError = 0;
       }
       else{
-        params["avg_dist_fake"] += distToSqrtFake;
+        effError = sqrt(1/valuesSignal.size() + 1/efficiency[iThresholdLow][iThresholdUp]);
+        efficiency[iThresholdLow][iThresholdUp]  /= valuesSignal.size();
+        effError *= efficiency[iThresholdLow][iThresholdUp];
       }
+      
+      double fakeError;
+      if(valuesBackground.size()==0 || fakeRate[iThresholdLow][iThresholdUp]==0){
+        fakeError=0;
+      }
+      else{
+        fakeError = sqrt(1/valuesBackground.size() + 1/fakeRate[iThresholdLow][iThresholdUp]);
+        fakeRate[iThresholdLow][iThresholdUp]    /= valuesBackground.size();
+        fakeError *= fakeRate[iThresholdLow][iThresholdUp];
+      }
+      
+      if(efficiency[iThresholdLow][iThresholdUp] > params["max_eff"] && efficiency[iThresholdLow][iThresholdUp] != 1.0){
+        params["max_eff"]   = efficiency[iThresholdLow][iThresholdUp];
+        params["min_fake"]  = 1/fakeRate[iThresholdLow][iThresholdUp];
+      }
+      double sigmaApproxInitial = 3986*efficiency[iThresholdLow][iThresholdUp]/sqrt(3986*efficiency[iThresholdLow][iThresholdUp]+6E+07*fakeRate[iThresholdLow][iThresholdUp]);
+      
+      if(sigmaApproxInitial > params["sigma_init"] && fakeRate[iThresholdLow][iThresholdUp] > 0)
+        params["sigma_init"] = sigmaApproxInitial;
+      
+      double sigmaApproxL0all = 1388*efficiency[iThresholdLow][iThresholdUp]/sqrt(1388*efficiency[iThresholdLow][iThresholdUp]+1E+05*fakeRate[iThresholdLow][iThresholdUp]);
+      
+      if(sigmaApproxL0all > params["sigma_L0"] && fakeRate[iThresholdLow][iThresholdUp] > 0)
+        params["sigma_L0"] = sigmaApproxL0all;
+      
+      double sigmaApproxL1all = 1166*efficiency[iThresholdLow][iThresholdUp]/sqrt(1166*efficiency[iThresholdLow][iThresholdUp]+6573*fakeRate[iThresholdLow][iThresholdUp]);
+      
+      if(sigmaApproxL1all > params["sigma_L1"] && fakeRate[iThresholdLow][iThresholdUp] > 0)
+        params["sigma_L1"] = sigmaApproxL1all;
+      
+      double distToSqrtFake = efficiency[iThresholdLow][iThresholdUp]-sqrt(fakeRate[iThresholdLow][iThresholdUp]);
+      
+      if(fakeRate[iThresholdLow][iThresholdUp] > 0.01 && fakeRate[iThresholdLow][iThresholdUp] < 0.99){
+        if(distToSqrtFake > params["max_dist_fake"]){
+          params["max_dist_fake"] = distToSqrtFake;
+          bestEff = efficiency[iThresholdLow][iThresholdUp];
+          bestFake = fakeRate[iThresholdLow][iThresholdUp];
+        }
+        if(first){
+          params["avg_dist_fake"] = distToSqrtFake;
+          first = false;
+        }
+        else{
+          params["avg_dist_fake"] += distToSqrtFake;
+        }
+      }
+      
+      rocGraph->SetPoint(iPoint, fakeRate[iThresholdLow][iThresholdUp], efficiency[iThresholdLow][iThresholdUp]);
+      rocGraph->SetPointError(iPoint, fakeError, effError);
+      rocXY.insert(make_pair(fakeRate[iThresholdLow][iThresholdUp], efficiency[iThresholdLow][iThresholdUp]));
+      
+      iPoint++;
     }
-    
-    rocGraph->SetPoint(iThreshold, fakeRate[iThreshold], efficiency[iThreshold]);
-    rocGraph->SetPointError(iThreshold, fakeError, effError);
-    rocXY.insert(make_pair(fakeRate[iThreshold], efficiency[iThreshold]));
   }
   params["avg_dist_fake"] /= nBins;
   
-  cout<<"Distance: "<<params["max_dist_fake"]<<"\teff: "<<bestEff<<"\tfake: "<<bestFake<<endl;
+//  cout<<"Distance: "<<params["max_dist_fake"]<<"\teff: "<<bestEff<<"\tfake: "<<bestFake<<endl;
   
-//  rocGraph->Fit(rocFun,"Q");
+  //  rocGraph->Fit(rocFun,"Q");
   params["auc"] = rocFun->Integral(0,1);
 }
-
-double PerformanceMonitor::GetMaxDistanceFromSqrtFake(double &bestEff, double &bestFake)
+  
+double PerformanceMonitor::GetMaxDistanceFromSqrtFake(double &bestEff, double &bestFake, int &thresholdLowBin, int &thresholdUpBin)
 {
   double maxDistance = -inf;
   
-  for(int iThreshold=0; iThreshold<efficiency.size(); iThreshold++){
-    if(efficiency[iThreshold]==0 || efficiency[iThreshold]==1) continue;
-    double distance = efficiency[iThreshold] - sqrt(fakeRate[iThreshold]);
-    if(distance > maxDistance){
-      maxDistance = distance;
-      bestEff = efficiency[iThreshold];
-      bestFake = fakeRate[iThreshold];
+  for(int iThresholdLow=0; iThresholdLow<efficiency.size(); iThresholdLow++){
+    int thresholdUpMin = iThresholdLow+1;
+    int thresholdUpMax = (int)efficiency[0].size();
+    if(fixedUpperThresholdBin > 0){
+      thresholdUpMin = fixedUpperThresholdBin;
+      thresholdUpMax = fixedUpperThresholdBin+1;
+    }
+    for(int iThresholdUp=thresholdUpMin; iThresholdUp<thresholdUpMax; iThresholdUp++){
+      
+      if(fakeRate[iThresholdLow][iThresholdUp] < 0.01 || fakeRate[iThresholdLow][iThresholdUp] > 0.99) continue;
+      
+      double distance = efficiency[iThresholdLow][iThresholdUp] - sqrt(fakeRate[iThresholdLow][iThresholdUp]);
+      if(distance > maxDistance){
+        maxDistance = distance;
+        bestEff = efficiency[iThresholdLow][iThresholdUp];
+        bestFake = fakeRate[iThresholdLow][iThresholdUp];
+        thresholdLowBin = iThresholdLow;
+        thresholdUpBin  = iThresholdUp;
+      }
     }
   }
+  
   return maxDistance;
 }
 
 void PerformanceMonitor::PrintFakesEfficiency()
 {
   cout<<"Fake-eff avg:"<<endl;
-  for(int iThreshold=0; iThreshold<nBins; iThreshold++){
-    cout<<fakeRate[iThreshold]<<"\t"<<efficiency[iThreshold]<<endl;
+  for(int iThresholdLow=0; iThresholdLow<efficiency.size(); iThresholdLow++){
+    int thresholdUpMin = iThresholdLow+1;
+    int thresholdUpMax = (int)efficiency[0].size();
+    if(fixedUpperThresholdBin > 0){
+      thresholdUpMin = fixedUpperThresholdBin;
+      thresholdUpMax = fixedUpperThresholdBin+1;
+    }
+    for(int iThresholdUp=thresholdUpMin; iThresholdUp<thresholdUpMax; iThresholdUp++){
+      
+      if(fakeRate[iThresholdLow][iThresholdUp] != 0 && efficiency[iThresholdLow][iThresholdUp] != 1){
+        double thresholdLow = thresholdMin + iThresholdLow*thresholdStep;
+        double thresholdUp  = thresholdMin + iThresholdUp*thresholdStep;
+        
+        cout<<"Thresholds: "<<thresholdLow<<" - "<<thresholdUp<<"\t";
+        cout<<fakeRate[iThresholdLow][iThresholdUp]<<"\t"<<efficiency[iThresholdLow][iThresholdUp]<<endl;
+      }
+    }
   }
   cout<<endl;
 }
@@ -253,7 +309,7 @@ void PerformanceMonitor::DrawRocGraph(bool first, TLegend *legend)
     sqrtFun->SetLineStyle(1);
     sqrtFun->SetLineWidth(2.0);
     sqrtFun->Draw("same");
-    legend->AddEntry(sqrtFun, "c_{eff} = #sqrt{c_{fake}}", "L");
+    if(legend) legend->AddEntry(sqrtFun, "c_{eff} = #sqrt{c_{fake}}", "L");
   }
   if(legend){
     legend->AddEntry(rocGraph, title.c_str(), "PL");

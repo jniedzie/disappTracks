@@ -682,13 +682,15 @@ void EventSet::AddEventsFromFile(string fileName, xtracks::EDataType dataType, i
   if(dataType == xtracks::kBackground)  paths = inFileNameBackground.at((EBackground)setIter).at(year);
   if(dataType == xtracks::kData)        paths = inFileNameData.at((EData)setIter).at(year);
 
-  basePath = paths.first + paths.second[0];
+//  basePath = paths.first + paths.second[0];
+  basePath = baseDataPath.at(year) + paths.first + paths.second[config.params["subpath_index"]];
   
   TFile *inFileFriend = nullptr;
   TTree *treeFriend = nullptr;
   
   if(config.params["load_friend_tree"]){
     cout<<"Opening friend file"<<endl;
+
     inFileFriend = TFile::Open(Form("%s/tree_friend.root",basePath.c_str()));
     
     if(!inFileFriend){
