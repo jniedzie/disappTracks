@@ -22,8 +22,9 @@ int main(int argc, char* argv[])
     exit(0);
   }
   cout.imbue(locale("de_DE"));
-  TApplication theApp("App", &argc, argv);
+//  TApplication theApp("App", &argc, argv);
   
+  cout<<"Reading config from "<<configPath<<endl;
   config = ConfigManager(configPath);
   
   string cutLevel;
@@ -49,30 +50,34 @@ int main(int argc, char* argv[])
   for(int year : years){
     if(!config.params["load_"+to_string(year)]) continue;
     
+    cout<<"Runnig for year: "<<year<<endl;
+    
     for(ESignal iSig : signals){
       if(!config.runSignal[iSig]) continue;
+      
+      cout<<"Running for signal: "<<iSig<<endl;
       
       //    if(argc == 1) maxEvents = events.size(dataType, iSig);
       
       for(auto iEvent=eventOffset; iEvent<maxEvents+eventOffset; iEvent++){
         if(find(eventsToSkip.begin(), eventsToSkip.end(), iEvent) != eventsToSkip.end()){
-          Log(0)<<"\n\n=================================================================\n";
-          Log(0)<<"Skipping event "<<iEvent<<"\n";
+          Log(2)<<"\n\n=================================================================\n";
+          Log(2)<<"Skipping event "<<iEvent<<"\n";
           continue;
         }
-        
-        Log(0)<<"\n\n=================================================================\n";
-        Log(0)<<"helixTagger -- processing event "<<iEvent<<"\n";
-        Log(0)<<"cut level: "<<cutLevel<<"\n";
         
         events.LoadEventsFromFiles(dataType, iSig, cutLevel, iEvent);
         auto event = events.At(dataType, iSig, year, iEvent-eventOffset);
         
         if(!event->HasFriendData()){
-          Log(0)<<"Warning -- skipping event "<<iEvent<<" as it has no friend info\n";
+          Log(2)<<"Warning -- skipping event "<<iEvent<<" as it has no friend info\n";
           event->SetWasTagged(false);
           continue;
         }
+        
+        cout<<"\n\n=================================================================\n";
+        cout<<"helixTagger -- processing event "<<iEvent<<"\n";
+        cout<<"cut level: "<<cutLevel<<"\n";
         
         for(auto &track : event->GetTracks()){
           Helices fittedHelices = fitter->FitHelices(event->GetClusters(), *track, *event->GetVertex());
