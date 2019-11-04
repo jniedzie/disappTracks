@@ -121,15 +121,15 @@ double EventToParam(const Event &event, ETestParams param)
   return 0;
 }
 
-//  name          title  color pad
-map<string, tuple<string, int, int>> monitorTypes = {
-  {"avg_hits"   , {"Average number of hits on helix", 40         , 1 }},
-  {"max_hits"   , {"Maximum number of hits on helix", 46         , 2 }},
-  {"avg_layers" , {"Average number of helix layers" , kMagenta   , 3 }},
-  {"max_layers" , {"Maximum number of helix layers" , kViolet+1  , 4 }},
-  {"avg_length" , {"Average length of helix"        , kGreen+2   , 5 }},
-  {"max_length" , {"Maximum length of helix"        , 49         , 6 }},
-  {"n_helices"  , {"Number of helices per event"    , kCyan+1    , 7 }},
+//  name          title  color pad thresholdUpBin
+map<string, tuple<string, int, int, int>> monitorTypes = {
+  {"avg_hits"   , {"Average number of hits on helix", 40         , 1 , 19 }},
+  {"max_hits"   , {"Maximum number of hits on helix", 46         , 2 , 19 }},
+  {"avg_layers" , {"Average number of helix layers" , kMagenta   , 3 , 7, }},
+  {"max_layers" , {"Maximum number of helix layers" , kViolet+1  , 4 , 13 }},
+  {"avg_length" , {"Average length of helix"        , kGreen+2   , 5 , 19 }},
+  {"max_length" , {"Maximum length of helix"        , 49         , 6 , 34 }},
+  {"n_helices"  , {"Number of helices per event"    , kCyan+1    , 7 , 9  }},
 };
 
 /// Defines types of monitors and initializes them
@@ -140,10 +140,10 @@ vector<Monitors> CreateMonitors(ETestParams param)
   for(range<double> r : paramRanges[param]){ // This gives a range of variable, e.g. eta
     Monitors monitorsForParamValue;
     for(auto &[name, params] : monitorTypes){
-      auto [title, color, pad] = params;
+      auto [title, color, pad, thresholdUp] = params;
       int max = 20, nBins = 20;
       if(name=="avg_length" || name=="max_length"){ max = 10; nBins = 40; }
-      monitorsForParamValue[name] = PerformanceMonitor(name, title, nBins, 0, max, (EColor)color);
+      monitorsForParamValue[name] = PerformanceMonitor(name, title, nBins, 0, max, (EColor)color, true, thresholdUp);
     }
     monitors.push_back(monitorsForParamValue);
   }
@@ -157,32 +157,36 @@ Fills monitors with data found in events.
 */
 void FillMonitors(vector<Monitors> &monitors, const EventSet &events, bool isSignal, bool withPU, ETestParams param)
 {
-  ESignal dataSet = kNsignals;
+  ESignal dataSet;
   if(isSignal && withPU)        dataSet = kTaggerSignalWithPU;
   else if(isSignal && !withPU)  dataSet = kTaggerSignalNoPU;
   else if(!isSignal && withPU)  dataSet = kTaggerBackgroundWithPU;
   else if(!isSignal && !withPU) dataSet = kTaggerBackgroundNoPU;
   
-  for(int iEvent=0; iEvent<events.size(dataType, dataSet); iEvent++){
-    auto event = events.At(dataType, dataSet, iEvent);
-    if(!event->WasTagged()) continue;
-    if(!IsEventOk(*event, param)) continue;
-    
-    double value = EventToParam(*event, param);
-    int monitorBin = -1;
-    
-    for(int bin=0; bin<paramRanges[param].size(); bin++){
-      if(paramRanges[param][bin].IsInside(value)){
-        monitorBin = bin;
-        break;
+  for(int year : years){
+    if(!config.params["load_"+to_string(year)]) continue;
+   
+    for(int iEvent=0; iEvent<events.size(dataType, dataSet, year); iEvent++){
+      auto event = events.At(dataType, dataSet, year, iEvent);
+      if(!event->WasTagged()) continue;
+      if(!IsEventOk(*event, param)) continue;
+      
+      double value = EventToParam(*event, param);
+      int monitorBin = -1;
+      
+      for(int bin=0; bin<paramRanges[param].size(); bin++){
+        if(paramRanges[param][bin].IsInside(value)){
+          monitorBin = bin;
+          break;
+        }
       }
-    }
-    
-    if(monitorBin < 0) continue;
-    
-    for(auto &[name, monitor] : monitors[monitorBin]){
-      double value = helixProcessor.GetHelicesParamsByMonitorName(event->GetHelices(), name);
-      monitor.SetValue(value, isSignal);
+      
+      if(monitorBin < 0) continue;
+      
+      for(auto &[name, monitor] : monitors[monitorBin]){
+        double value = helixProcessor.GetHelicesParamsByMonitorName(event->GetHelices(), name);
+        monitor.SetValue(value, isSignal);
+      }
     }
   }
 }
@@ -209,7 +213,7 @@ void DrawMonitors(vector<Monitors> &monitors, ETestParams param, bool first)
   double bestDist = -inf;
   
   for(auto &[name, params] : monitorTypes){
-    auto [title, color, pad] = params;
+    auto [title, color, pad, thresholdUp] = params;
     
     maxDistance[name] = new TH1D(to_string(RandInt(0, inf)).c_str(), "", nBins, histBins);
     maxDistance[name]->GetXaxis()->SetTitle(paramTitles[param].c_str());
@@ -224,7 +228,8 @@ void DrawMonitors(vector<Monitors> &monitors, ETestParams param, bool first)
       PerformanceMonitor monitor = monitors[paramBin][name];
       monitor.CalcEfficiency();
       double eff, fake;
-      double distance = monitor.GetMaxDistanceFromSqrtFake(eff, fake);
+      int thresholdLowBin, thresholdUpBin;
+      double distance = monitor.GetMaxDistanceFromSqrtFake(eff, fake, thresholdLowBin, thresholdUpBin);
       maxDistance[name]->SetBinContent(paramBin+1, distance);
       if(distance > bestDist){
         bestDist = distance;
@@ -262,9 +267,9 @@ int main(int argc, char* argv[])
     canvasPerformance->cd(testParam);
     
     vector<Monitors> monitors = CreateMonitors((ETestParams)testParam);
-    // TODO: Remember to change to PU for signal once we have samples !!
-    FillMonitors(monitors, events, true, false, (ETestParams)testParam); // signal, noPU
-    FillMonitors(monitors, events, false, false, (ETestParams)testParam); // bkg, withPU
+    
+    FillMonitors(monitors, events, true, true, (ETestParams)testParam); // signal, noPU
+    FillMonitors(monitors, events, false, true, (ETestParams)testParam); // bkg, withPU
     
     DrawMonitors(monitors, (ETestParams)testParam, testParam==1);
   }

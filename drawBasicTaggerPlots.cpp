@@ -14,15 +14,15 @@ string cutLevel = "afterHelixTagging/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 
-//  name          title  color pad
-map<string, tuple<string, int, int>> monitorTypes = {
-  {"avg_hits"   , {"Average number of hits on helix", 40         , 1 }},
-  {"max_hits"   , {"Maximum number of hits on helix", 46         , 2 }},
-  {"avg_layers" , {"Average number of helix layers" , kMagenta   , 3 }},
-  {"max_layers" , {"Maximum number of helix layers" , kViolet+1  , 4 }},
-  {"avg_length" , {"Average length of helix"        , kGreen+2   , 5 }},
-  {"max_length" , {"Maximum length of helix"        , 49         , 6 }},
-  {"n_helices"  , {"Number of helices per event"    , kCyan+1    , 7 }},
+//  name          title  color pad thresholdUpBin
+map<string, tuple<string, int, int, int>> monitorTypes = {
+  {"avg_hits"   , {"Average number of hits on helix", 40         , 1 , 19 }},
+  {"max_hits"   , {"Maximum number of hits on helix", 46         , 2 , 19 }},
+  {"avg_layers" , {"Average number of helix layers" , kMagenta   , 3 , 7, }},
+  {"max_layers" , {"Maximum number of helix layers" , kViolet+1  , 4 , 13 }},
+  {"avg_length" , {"Average length of helix"        , kGreen+2   , 5 , 19 }},
+  {"max_length" , {"Maximum length of helix"        , 49         , 6 , 34 }},
+  {"n_helices"  , {"Number of helices per event"    , kCyan+1    , 7 , 9  }},
 };
 
 /// Defines types of monitors and initializes them
@@ -31,10 +31,10 @@ Monitors CreateMonitors(bool withPU)
   Monitors monitors;
   
   for(auto &[name, params] : monitorTypes){
-    auto [title, color, pad] = params;
+    auto [title, color, pad, thresholdUp] = params;
     int max = 20, nBins = 20;
     if(name=="avg_length" || name=="max_length"){ max = 10; nBins = 40; }
-    monitors[name] = PerformanceMonitor(name, title, nBins, 0, max, (EColor)color, withPU);
+    monitors[name] = PerformanceMonitor(name, title, nBins, 0, max, (EColor)color, withPU, thresholdUp);
   }
   return monitors;
 }
@@ -46,19 +46,23 @@ Monitors CreateMonitors(bool withPU)
  */
 void FillMonitors(Monitors &monitors, const EventSet &events, bool isSignal, bool withPU)
 {
-  ESignal dataSet = kNsignals;
+  ESignal dataSet;
   if(isSignal && withPU)        dataSet = kTaggerSignalWithPU;
   else if(isSignal && !withPU)  dataSet = kTaggerSignalNoPU;
   else if(!isSignal && withPU)  dataSet = kTaggerBackgroundWithPU;
   else if(!isSignal && !withPU) dataSet = kTaggerBackgroundNoPU;
   
-  for(int iEvent=0; iEvent<events.size(dataType, dataSet); iEvent++){
-    auto event = events.At(dataType, dataSet, iEvent);
-    if(!event->WasTagged()) continue;
+  for(int year : years){
+    if(!config.params["load_"+to_string(year)]) continue;
     
-    for(auto &[name, monitor] : monitors){
-      double value = helixProcessor.GetHelicesParamsByMonitorName(event->GetHelices(), name);
-      monitor.SetValue(value, isSignal);
+    for(int iEvent=0; iEvent<events.size(dataType, dataSet, year); iEvent++){
+      auto event = events.At(dataType, dataSet, year, iEvent);
+      if(!event->WasTagged()) continue;
+      
+      for(auto &[name, monitor] : monitors){
+        double value = helixProcessor.GetHelicesParamsByMonitorName(event->GetHelices(), name);
+        monitor.SetValue(value, isSignal);
+      }
     }
   }
 }
@@ -76,26 +80,35 @@ void DrawMonitors(Monitors &monitorsNoPU, Monitors *monitorsWithPU=nullptr)
   gStyle->SetOptStat(0);
   
   bool first = true;
-  for(auto &[name, monitor] : monitorsNoPU){
-    monitor.CalcEfficiency();
-    canvasROC->cd();
-    monitor.DrawRocGraph(first, legendROC);
-    int pad = get<2>(monitorTypes[name]);
-    canvasDists->cd(pad);
-    monitor.DrawHists(first, first ? legendDists : nullptr);
-    monitor.PrintFakesEfficiency();
-    if(first) first = false;
-  }
+//  for(auto &[name, monitor] : monitorsNoPU){
+//    monitor.CalcEfficiency();
+//    canvasROC->cd();
+//    monitor.DrawRocGraph(first, legendROC);
+//    int pad = get<2>(monitorTypes[name]);
+//    canvasDists->cd(pad);
+//    monitor.DrawHists(first, first ? legendDists : nullptr);
+//    monitor.PrintFakesEfficiency();
+//    if(first) first = false;
+//  }
   if(monitorsWithPU){
     first = true;
     for(auto &[name, monitor] : *monitorsWithPU){
       monitor.CalcEfficiency();
       canvasROC->cd();
-      monitor.DrawRocGraph(false, legendROC);
+      monitor.DrawRocGraph(first, legendROC);
       int pad = get<2>(monitorTypes[name]);
       canvasDists->cd(pad);
       monitor.DrawHists(false, first ? legendDists : nullptr);
-      monitor.PrintFakesEfficiency();
+      
+      
+      double bestEff, bestFake;
+      int thresholdLowBin, thresholdUpBin;
+      
+      double dist = monitor.GetMaxDistanceFromSqrtFake(bestEff, bestFake, thresholdLowBin, thresholdUpBin);
+      cout<<name<<"\tdist: "<<dist<<"\teff: "<<bestEff<<"\tfake: "<<bestFake;
+      cout<<"\tthreshold: "<<thresholdLowBin<<" -- "<<thresholdUpBin<<endl;
+      
+//      monitor.PrintFakesEfficiency();
       if(first) first = false;
     }
   }
@@ -128,11 +141,10 @@ int main(int argc, char* argv[])
   
   FillMonitors(monitorsNoPU, events, true,  false); // signal, noPU
   FillMonitors(monitorsNoPU, events, false, false); // bkg, noPU
-  // TODO: remember to replace false by true below (for PU) when we have signal samples with PU !!
-  FillMonitors(monitorsWithPU, events, true , false);  // signal, withPU
+  FillMonitors(monitorsWithPU, events, true , true);  // signal, withPU
   FillMonitors(monitorsWithPU, events, false, true);  // bkg, withPU
   
-  DrawMonitors(monitorsNoPU, nullptr);
+  DrawMonitors(monitorsNoPU, &monitorsWithPU);
   
   theApp.Run();
   return 0;
