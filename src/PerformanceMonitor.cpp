@@ -228,6 +228,8 @@ double PerformanceMonitor::GetMaxDistanceFromSqrtFake(double &bestEff, double &b
 {
   double maxDistance = -inf;
   
+  if(valuesSignal.size() == 0) return 0;
+  
   for(int iThresholdLow=0; iThresholdLow<efficiency.size(); iThresholdLow++){
     int thresholdUpMin = iThresholdLow+1;
     int thresholdUpMax = (int)efficiency[0].size();

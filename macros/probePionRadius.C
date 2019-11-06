@@ -50,11 +50,11 @@ pair<double, double> getMaxPionRadii(double trackLength, double phi){
 }
 
 TH1D* getCharginoNlayersHist(){
-  TFile *inFile = TFile::Open("nCharginoLayers.root");
-  TH1D *hist = (TH1D*)inFile->Get("nTrackerLayers");
-  return hist;
-  /*
-  TFile *inFile = TFile::Open("/Users/Jeremi/Documents/Fellow/disappearingTracks/pionSignal/tree_friend.root");
+//  TFile *inFile = TFile::Open("nCharginoLayers.root");
+//  TH1D *hist = (TH1D*)inFile->Get("nTrackerLayers");
+//  return hist;
+  
+  TFile *inFile = TFile::Open("/Users/Jeremi/Documents/Fellow/disappearingTracks/data/taggerStudy/signal/noPU/tree_friend.root");
   
   TTree *tree = (TTree*)inFile->Get("CharginoAnalyzer/tree");
   if(!tree){
@@ -73,9 +73,9 @@ TH1D* getCharginoNlayersHist(){
     }
   }
   
-  hist->SaveAs("nCharginoLayers.root");
+  hist->SaveAs("../results/nCharginoLayers.root");
   
-  return hist;*/
+  return hist;
 }
 
 const int nLayers = 14;

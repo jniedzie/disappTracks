@@ -289,8 +289,10 @@ const map<EBackground, map<int, pair<string, vector<string>>>> inFileNameBackgro
       "1200to2500/", "2500toInf/"}}},
   }},
   { kTT, {
-    { 2017, {"MC-SR/", {"TTHad/", "TTLep/", "TTSemi/", "T_tch/", "T_tWch/", "TBar_tch/", "TBar_tWch/"}}},
-    { 2018, {"MC-SR/", {"TTHad/", "TTLep/", "TTSemi/", "T_tch/", "T_tWch/", "TBar_tch/", "TBar_tWch/"}}},
+    { 2017, {"MC-SR/",
+      {"TTHad/", "TTLep/", "TTSemi/", "T_tch/", "T_tWch/", "TBar_tch/", "TBar_tWch/"}}},
+    { 2018, {"MC-SR/",
+      {"lxplus2018/TTSemi/", "TTHad/", "TTLep/", "TTSemi/", "T_tch/", "T_tWch/", "TBar_tch/", "TBar_tWch/"}}},
   }},
   { kVV, {
     { 2017, {"MC-SR/", {"WW/", "WZ/", "ZZ/"}}},

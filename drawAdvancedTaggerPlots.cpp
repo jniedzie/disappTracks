@@ -163,30 +163,45 @@ void FillMonitors(vector<Monitors> &monitors, const EventSet &events, bool isSig
   else if(!isSignal && withPU)  dataSet = kTaggerBackgroundWithPU;
   else if(!isSignal && !withPU) dataSet = kTaggerBackgroundNoPU;
   
+  
+  
   for(int year : years){
     if(!config.params["load_"+to_string(year)]) continue;
    
     for(int iEvent=0; iEvent<events.size(dataType, dataSet, year); iEvent++){
       auto event = events.At(dataType, dataSet, year, iEvent);
       if(!event->WasTagged()) continue;
-      if(!IsEventOk(*event, param)) continue;
       
-      double value = EventToParam(*event, param);
-      int monitorBin = -1;
-      
-      for(int bin=0; bin<paramRanges[param].size(); bin++){
-        if(paramRanges[param][bin].IsInside(value)){
-          monitorBin = bin;
-          break;
+      if(isSignal){
+        if(!IsEventOk(*event, param)) continue;
+        
+        double value = EventToParam(*event, param);
+        int monitorBin = -1;
+        
+        for(int bin=0; bin<paramRanges[param].size(); bin++){
+          if(paramRanges[param][bin].IsInside(value)){
+            monitorBin = bin;
+            break;
+          }
+        }
+        
+        if(monitorBin < 0) continue;
+        
+        for(auto &[name, monitor] : monitors[monitorBin]){
+          double value = helixProcessor.GetHelicesParamsByMonitorName(event->GetHelices(), name);
+          monitor.SetValue(value, isSignal);
         }
       }
-      
-      if(monitorBin < 0) continue;
-      
-      for(auto &[name, monitor] : monitors[monitorBin]){
-        double value = helixProcessor.GetHelicesParamsByMonitorName(event->GetHelices(), name);
-        monitor.SetValue(value, isSignal);
+      else{
+        for(int bin=0; bin<paramRanges[param].size(); bin++){
+          for(auto &[name, monitor] : monitors[bin]){
+            double value = helixProcessor.GetHelicesParamsByMonitorName(event->GetHelices(), name);
+            monitor.SetValue(value, isSignal);
+          }
+        }
       }
+        
+      
     }
   }
 }

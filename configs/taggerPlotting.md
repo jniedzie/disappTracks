@@ -11,7 +11,7 @@ do_tagger_background_noPU:      1
 do_tagger_signal_withPU:             1
 do_tagger_background_withPU:   1
 
-load_friend_tree:  1
+load_friend_tree:  0
 load_hits:             0
 
 load_2017: 1
