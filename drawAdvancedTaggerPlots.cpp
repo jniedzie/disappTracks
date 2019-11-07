@@ -209,7 +209,7 @@ void FillMonitors(vector<Monitors> &monitors, const EventSet &events, bool isSig
 /// Calculates internal parameters of monitors and draws resulting plots
 void DrawMonitors(vector<Monitors> &monitors, ETestParams param, bool first)
 {
-  TLegend *legend = new TLegend(0.5, 0.6, 0.9, 0.9);
+  TLegend *legend = new TLegend(0.5, 0.1, 0.9, 0.4);
   
   gStyle->SetOptStat(0);
   gStyle->SetErrorX(0);
@@ -283,8 +283,8 @@ int main(int argc, char* argv[])
     
     vector<Monitors> monitors = CreateMonitors((ETestParams)testParam);
     
-    FillMonitors(monitors, events, true, true, (ETestParams)testParam); // signal, noPU
-    FillMonitors(monitors, events, false, true, (ETestParams)testParam); // bkg, withPU
+    FillMonitors(monitors, events, true, true, (ETestParams)testParam); // signal
+    FillMonitors(monitors, events, false, true, (ETestParams)testParam); // bkg
     
     DrawMonitors(monitors, (ETestParams)testParam, testParam==1);
   }

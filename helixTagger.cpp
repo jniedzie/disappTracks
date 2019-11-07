@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
   
   int eventOffset   = 0;
   string outputPath = "afterHelixTagging";
-  int maxEvents     = 0;
+  int maxEvents     = config.params["max_N_events_signal"];
   
   if(argc == 4){
     outputPath  = argv[1];

@@ -21,6 +21,11 @@ Event::Event(const Event &e)
   for(auto l : e.leptons){leptons.push_back(l);}
   for(auto h : e.helices){helices.push_back(h);}
   
+  dataType = e.dataType;
+  setIter = e.setIter;
+  lumiSection = e.lumiSection;
+  runNumber = e.runNumber;
+  
   SetWeight(e.weight);
   SetNvertices(e.nVertices);
   vertex = make_unique<Point>(*e.vertex);
@@ -54,6 +59,16 @@ Event::Event(const Event &e)
   SetXsec(e.xsec);
   SetWgtSum(e.wgtsum);
   SetGenWeight(e.genWeight);
+  
+  hasFriendData     = e.hasFriendData;
+  wasTagged         = e.wasTagged;
+  trackerClusters   = e.trackerClusters;
+  pionClusters      = e.pionClusters;
+  pionSimHits       = e.pionSimHits;
+  charginoSimHits   = e.charginoSimHits;
+  genPionHelices    = e.genPionHelices;
+  genCharginoTrack  = e.genCharginoTrack;
+  friendTree        = e.friendTree;
 }
 
 

@@ -539,7 +539,7 @@ inline size_t GetDisksArrayIndex(int index, int signZ)
   return diskRanges.size()+signZ*(index+1);
 }
 
-const double solenoidField = 3.7; // T
+const double solenoidField = 3.8; // T
 
 
 enum EVar{

@@ -1,36 +1,37 @@
 vector<TFile*> files = {
-  TFile::Open("../results/tmp.root"),
+  TFile::Open("../results/clustersSignalNoPU.root"),
   TFile::Open("../results/nCharginoLayers.root"),
   TFile::Open("../results/clustersSignalWithPU.root"),
 };
 
 
 map<string, tuple<int, string, int, int>> histSettings = {
-//  hist name                   pad x axis title                            in file canvas
+//  hist name                       pad x axis title                            in file canvas
   { "delta_phi_pion_chargino"     , {1, "#Delta#varphi (#chi^{#pm}, #pi^{#pm})" , 0,     0} },
-  { "pion_pt"                     , {2, "Pion p_{t} (MeV)"                      , 0,     0} },
-//  { "nTrackerLayers"              , {3, "#chi N tracker layers"                 , 1,     0} },
-  { "pion_simhits_z"              , {3, "Hit z-coordinate dist. (mm)"           , 0,     0} },
-  { "pion_simhits_range_z"        , {4, "Last hit z position (mm)"              , 0,     0} },
-  { "pion_initial_radius"         , {5, "Initial pion helix radius (mm)"        , 0,     0} },
-  { "pion_final_radius"           , {6, "Final pion helix radius (mm)"          , 0,     0} },
+  { "nTrackerLayers"              , {2, "#chi N tracker layers"                 , 1,     0} },
+  { "pion_pt"                     , {3, "Pion p_{t} (MeV)"                      , 0,     0} },
+
+  { "pion_simhits_z"              , {1, "Hit z-coordinate dist. (mm)"           , 0,     1} },
+  { "pion_simhits_range_z"        , {2, "Last hit z position (mm)"              , 0,     1} },
+  { "pion_initial_radius"         , {3, "Initial pion helix radius (mm)"        , 0,     1} },
+  { "pion_final_radius"           , {4, "Final pion helix radius (mm)"          , 0,     1} },
   
-  { "noise_n_clusters"            , {1, "Number of noise hits"                  , 0,     1} },
-  { "tracker_cluster_charge_TIB"  , {3, "Charge deposit in TIB (a.u.)"          , 0,     1} },
-  { "pion_cluster_charge_TIB"     , {3, "Charge deposit in TIB (a.u.)"          , 0,     1} },
-  { "tracker_cluster_charge_TOB"  , {4, "Charge deposit in TOB (a.u.)"          , 0,     1} },
-  { "pion_cluster_charge_TOB"     , {4, "Charge deposit in TOB (a.u.)"          , 0,     1} },
-  { "tracker_cluster_charge_TID"  , {5, "Charge deposit in TID (a.u.)"          , 0,     1} },
-  { "pion_cluster_charge_TID"     , {5, "Charge deposit in TID (a.u.)"          , 0,     1} },
-  { "tracker_cluster_charge_TEC"  , {6, "Charge deposit in TEC (a.u.)"          , 0,     1} },
-  { "pion_cluster_charge_TEC"     , {6, "Charge deposit in TEC (a.u.)"          , 0,     1} },
+  { "noise_n_clusters"            , {1, "Number of noise hits"                  , 0,     2} },
+  { "tracker_cluster_charge_TIB"  , {3, "Charge deposit in TIB (a.u.)"          , 0,     2} },
+  { "pion_cluster_charge_TIB"     , {3, "Charge deposit in TIB (a.u.)"          , 0,     2} },
+  { "tracker_cluster_charge_TOB"  , {4, "Charge deposit in TOB (a.u.)"          , 0,     2} },
+  { "pion_cluster_charge_TOB"     , {4, "Charge deposit in TOB (a.u.)"          , 0,     2} },
+  { "tracker_cluster_charge_TID"  , {5, "Charge deposit in TID (a.u.)"          , 0,     2} },
+  { "pion_cluster_charge_TID"     , {5, "Charge deposit in TID (a.u.)"          , 0,     2} },
+  { "tracker_cluster_charge_TEC"  , {6, "Charge deposit in TEC (a.u.)"          , 0,     2} },
+  { "pion_cluster_charge_TEC"     , {6, "Charge deposit in TEC (a.u.)"          , 0,     2} },
   
-  { "middle_seed_hit_delta_phi"   , {1, "Middle seed hit #Delta#varphi"         , 0,     2} },
-  { "middle_seed_hit_delta_z"     , {2, "Middle seed hit #Delta Z (mm)"         , 0,     2} },
-  { "last_seed_hit_delta_phi"     , {3, "Last seed hit #Delta#varphi"           , 0,     2} },
-  { "last_seed_hit_delta_z"       , {4, "Last seed hit #Delta Z (mm)"           , 0,     2} },
-  { "next_point_delta_phi"        , {5, "Next hit #Delta#varphi"                , 0,     2} },
-  { "next_point_delta_z"          , {6, "Next hit #Delta Z (mm)"                , 0,     2} },
+  { "middle_seed_hit_delta_phi"   , {1, "Middle seed hit #Delta#varphi"         , 0,     3} },
+  { "middle_seed_hit_delta_z"     , {2, "Middle seed hit #Delta Z (mm)"         , 0,     3} },
+  { "last_seed_hit_delta_phi"     , {3, "Last seed hit #Delta#varphi"           , 0,     3} },
+  { "last_seed_hit_delta_z"       , {4, "Last seed hit #Delta Z (mm)"           , 0,     3} },
+  { "next_point_delta_phi"        , {5, "Next hit #Delta#varphi"                , 0,     3} },
+  { "next_point_delta_z"          , {6, "Next hit #Delta Z (mm)"                , 0,     3} },
 };
 
 void prepareHist(TH1D *hist, string titleX){
@@ -52,11 +53,15 @@ void drawPlots()
   map<string, TH1D*> hists;
   
   vector<TCanvas*> canvas = {
-    new TCanvas("canvas0", "canvas0", 1000, 1500),
-    new TCanvas("canvas1", "canvas1", 1000, 1500),
-    new TCanvas("canvas2", "canvas2", 1000, 1500),
+    new TCanvas("canvas0", "canvas0", 1000, 800),
+    new TCanvas("canvas1", "canvas1", 1000, 800),
+    new TCanvas("canvas2", "canvas2", 1000, 1200),
+    new TCanvas("canvas3", "canvas3", 1000, 1200),
   };
-  for(auto c : canvas) c->Divide(2,3);
+  canvas[0]->Divide(2,2);
+  canvas[1]->Divide(2,2);
+  canvas[2]->Divide(2,3);
+  canvas[3]->Divide(2,3);
   
   vector<vector<int>> nDrawn;
   vector<vector<TLegend*>> leg;
