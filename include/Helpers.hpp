@@ -267,48 +267,74 @@ const vector<string> dataTitle = {
 
 const vector<int> years = { 2017, 2018 };
 
+string commonDataSuffix = "";
+//string commonDataSuffix = "treeProducerXtracks/"; // on lxplus
+
+// Locally on macbook
 const map<int, string> baseDataPath = {
   {2017, "../data/"},
   {2018, "../data/"},
 };
 
+/*
+// On lxplus for tagger studies
+const map<int, string> baseDataPath = {
+  {2017, "/afs/cern.ch/work/j/jniedzie/private/disapp_tracks/data/"},
+  {2018, "/afs/cern.ch/work/j/jniedzie/private/disapp_tracks/data/"},
+};
+*/
+ 
+/*
+// On lxplus for main analysis
+const map<int, string> baseDataPath = {
+  {2017, "/eos/cms/store/group/phys_exotica/xtracks/6Mar2019-Hadded/"},
+  {2018, "/eos/cms/store/group/phys_exotica/xtracks/7Sep2019/"},
+};
+*/
+ 
 // Path to trees with background, signal and data samples (also determines which samples will be merged)
 const map<EBackground, map<int, pair<string, vector<string>>>> inFileNameBackground = {
   { kQCD, {
       { 2017, {"MC-SR/QCD_HT",
+//      { 2017, {"QCD_HT", // on lxplus
         {"100to200/", "200to300/", "300to500/", "500to700/", "700to1000/", "1000to1500/", "1500to2000/", "2000toInf/"}}},
-      { 2018, {"MC-SR/QCD_HT",
+      { 2018, {"Calibrated-MC-SR-2018-Hadded-2/QCD_HT",
         {"100to200/", "200to300/", "300to500/", "500to700/", "700to1000/", "1000to1500/", "1500to2000/", "2000toInf/"}}},
   }},
   { kZmumuJets, {
     { 2017, {"MC-SR/DYJetsM50_HT",
-      {"100to200/", "100to200e/", "200to400/", "200to400e/", "400to600/", "400to600e/", "600to800/", "800to1200/",
-        "1200to2500/", "2500toInf/"}}},
-    { 2018, {"MC-SR/DYJetsM50_HT",
-    {"100to200/", "100to200e/", "200to400/", "200to400e/", "400to600/", "400to600e/", "600to800/", "800to1200/",
-      "1200to2500/", "2500toInf/"}}},
+//    { 2017, {"DYJetsM50_HT", // on lxplus
+      {"100to200/", "100to200e/", "200to400/", "200to400e/", "400to600/", "400to600e/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
+    { 2018, {"Calibrated-MC-SR-2018-Hadded-2/DYJetsToLL_M50_HT", // on lxplus
+      {"100to200/", "200to400/", "400to600/", "400to600_ext2/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
   }},
   { kTT, {
     { 2017, {"MC-SR/",
+//    { 2017, {"", // on lxplus
       {"TTHad/", "TTLep/", "TTSemi/", "T_tch/", "T_tWch/", "TBar_tch/", "TBar_tWch/"}}},
-    { 2018, {"MC-SR/",
-      {"lxplus2018/TTSemi/", "TTHad/", "TTLep/", "TTSemi/", "T_tch/", "T_tWch/", "TBar_tch/", "TBar_tWch/"}}},
+    { 2018, {"Calibrated-MC-SR-2018-Hadded-2/",
+      {"TTHad_pow/", "TTLep_pow/", "TTSemi_pow/", "T_tch/", "T_tWch_noFullyHad/", "TBar_tch/", "TBar_tWch_noFullyHad/", "T_sch_lep/" }}
   }},
   { kVV, {
-    { 2017, {"MC-SR/", {"WW/", "WZ/", "ZZ/"}}},
-    { 2018, {"MC-SR/", {"WW/", "WZ/", "ZZ/"}}},
+    { 2017, {"MC-SR/",
+//    { 2017, {"", // on lxplus
+      {"WW/", "WZ/", "ZZ/"}}},
+    { 2018, {"Calibrated-MC-SR-2018-Hadded-2/",
+      {"WW/", "WZ/", "ZZ/"}}},
   }},
   { kWmunuJets, {
     { 2017, {"MC-SR/WJets_HT",
+//    { 2017, {"WJets_HT", // on lxplus
       {"100to200/", "200to400/", "400to600/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
-    { 2018, {"MC-SR/WJets_HT",
-    {"100to200/", "200to400/", "400to600/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
+    { 2018, {"Calibrated-MC-SR-2018-Hadded-2/WJetsToLNu_HT",
+      {"100to200/", "200to400/", "400to600/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
   }},
   { kZnunuJets, {
     { 2017, {"MC-SR/ZvvJets_HT",
+//    { 2017, {"ZvvJets_HT", /. on lxplus
       {"100to200/", "200to400/", "400to600/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
-    { 2018, {"MC-SR/ZvvJets_HT",
-    {"100to200/", "200to400/", "400to600/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
+    { 2018, {"Calibrated-MC-SR-2018-Hadded-2/ZvvJets_HT",
+      {"100to200/", "200to400/", "400to600/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
   }},
 };
 
