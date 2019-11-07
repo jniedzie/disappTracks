@@ -22,6 +22,12 @@ alias cmake='/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.13.4/Linux-x86_64/bin/cmake'
 # setup Davix
 . /cvmfs/sft.cern.ch/lcg/releases/Davix/0.7.3-d94fa/x86_64-centos7-gcc8-opt/Davix-env.sh
 
+# setup png
+. /cvmfs/sft.cern.ch/lcg/releases/png/1.6.37-9c2fe/x86_64-centos7-gcc8-opt/png-env.sh
+
+#setup GSL
+. /cvmfs/sft.cern.ch/lcg/releases/GSL/2.5-32fc5/x86_64-centos7-gcc8-opt/GSL-env.sh
+
 # setup ROOT
 #. /cvmfs/sft.cern.ch/lcg/releases/LCG_89/ROOT/6.10.02/x86_64-centos7-gcc7-opt/bin/thisroot.sh
 #. /cvmfs/sft.cern.ch/lcg/releases/LCG_91/ROOT/6.10.06/x86_64-centos7-gcc7-opt/bin/thisroot.sh
