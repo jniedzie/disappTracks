@@ -141,12 +141,12 @@ void EventSet::LoadEventsFromFiles(xtracks::EDataType dataType, int setIter, str
     if(config.params["load_single_subpath"]){
       
       if(prefix == ""){
-        string fullPath = baseDataPath.at(year) + paths.first + paths.second[config.params["subpath_index"]] + "tree.root";
+        string fullPath = baseDataPath.at(year) + paths.first + paths.second[config.params["subpath_index"]] + commonDataSuffix + "tree.root";
         AddEventsFromFile(fullPath, dataType, year, maxEvents, setIter, iEvent);
       }
       else{
         for(string path : paths.second){
-          string fullPath = baseDataPath.at(year) + paths.first + path + prefix + "tree.root";
+          string fullPath = baseDataPath.at(year) + paths.first + path + commonDataSuffix + prefix + "tree.root";
           AddEventsFromFile(fullPath, dataType, year, maxEvents, setIter, iEvent);
           
           if(prefix != "after_L0/") break;
@@ -155,7 +155,7 @@ void EventSet::LoadEventsFromFiles(xtracks::EDataType dataType, int setIter, str
     }
     else{
       for(string path : paths.second){
-        string fullPath = baseDataPath.at(year) + paths.first + path + prefix + "tree.root";
+        string fullPath = baseDataPath.at(year) + paths.first + path + commonDataSuffix + prefix + "tree.root";
         AddEventsFromFile(fullPath, dataType, year, maxEvents, setIter, iEvent);
         
         if(prefix != "") break;
@@ -178,7 +178,7 @@ void EventSet::SaveEventsToFiles(string prefix) const
       auto &[basePath, paths] = inFileNameBackground.at(iBck).at(year);
       if(paths.size() == 0) continue;
       
-      string path = baseDataPath.at(year) + basePath + paths[subpathIndex];
+      string path = baseDataPath.at(year) + basePath + paths[subpathIndex] + commonDataSuffix;
       system(("mkdir -p "+path+prefix).c_str());
       SaveToTree((path+prefix+"tree.root").c_str(), xtracks::kBackground, iBck, year);
     }
@@ -187,7 +187,7 @@ void EventSet::SaveEventsToFiles(string prefix) const
       
       auto &[basePath, paths] = inFileNameSignal.at(iSig).at(year);
       if(paths.size() == 0) continue;
-      string path = baseDataPath.at(year) + basePath + paths[subpathIndex];
+      string path = baseDataPath.at(year) + basePath + paths[subpathIndex] + commonDataSuffix;
       system(("mkdir -p "+path+prefix).c_str());
       SaveToTree((path+prefix+"tree.root").c_str(), xtracks::kSignal, iSig, year);
     }
@@ -196,7 +196,7 @@ void EventSet::SaveEventsToFiles(string prefix) const
       
       auto &[basePath, paths] = inFileNameData.at(iData).at(year);
       if(paths.size() == 0) continue;
-      string path = baseDataPath.at(year) + basePath + paths[subpathIndex];
+      string path = baseDataPath.at(year) + basePath + paths[subpathIndex] + commonDataSuffix;
       system(("mkdir -p "+path+prefix).c_str());
       SaveToTree((path+prefix+"tree.root").c_str(), xtracks::kData, iData, year);
     }

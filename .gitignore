@@ -39,4 +39,6 @@ getTrackHeatMap
 condor/output/*
 condor/error/*
 condor/log/*
+condor/jniedzie.cc
+drawAdvancedTaggerPlots
 
