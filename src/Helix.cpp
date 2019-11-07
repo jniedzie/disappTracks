@@ -130,7 +130,7 @@ isPreviousHitMissing(false)
   
   origin = Point(x0, y0, z0);
   UpdateOrigin(origin);
-  SetChi2(result.MinFcnValue());
+  seedChi2 = chi2 = result.MinFcnValue();
 }
 
 

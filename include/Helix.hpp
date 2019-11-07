@@ -163,6 +163,7 @@ private:
   bool   isFinished;  ///< Is extending of this helix over?
   bool   shouldRefit; ///< Does this helix require refitting?
   double chi2;        ///< Chi2 of the fit to helix points
+  double seedChi2;    ///< Chi2 of the seed fit only
   
   int  nMissingHits;          ///< Total number of missing hits along the trajectory
   int  nMissingHitsInRow;     ///< Max number of consecutive missing hits

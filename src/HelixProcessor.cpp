@@ -20,6 +20,15 @@ HelixProcessor::HelixProcessor()
     "helix_chi2",
     "helix_t_min",
     "helix_t_max",
+    
+    "helix_vx",
+    "helix_vy",
+    "helix_vz",
+    "helix_R_0",
+    "helix_a_r",
+    "helix_s_0",
+    "helix_b_s",
+    "helix_seed_chi2",
   };
   
   arrayNamesInt = {
@@ -27,6 +36,8 @@ HelixProcessor::HelixProcessor()
     "helix_n_hits",
     "helix_n_missing_hits",
     "helix_n_layers",
+    
+    "helix_turned_back",
   };
 }
 
@@ -95,11 +106,19 @@ void HelixProcessor::SaveHelicesToTree(Helices helices)
     arrayValuesFloat["helix_chi2"][iHelix]  = helices[iHelix].chi2;
     arrayValuesFloat["helix_t_min"][iHelix] = helices[iHelix].GetTmin();
     arrayValuesFloat["helix_t_max"][iHelix] = helices[iHelix].GetTmax();
-    
+    arrayValuesFloat["helix_vx"][iHelix] = helices[iHelix].points[0]->GetX();
+    arrayValuesFloat["helix_vy"][iHelix] = helices[iHelix].points[0]->GetY();
+    arrayValuesFloat["helix_vz"][iHelix] = helices[iHelix].points[0]->GetZ();
+    arrayValuesFloat["helix_R_0"][iHelix] = helices[iHelix].helixParams.R0;
+    arrayValuesFloat["helix_a_r"][iHelix] = helices[iHelix].helixParams.a;
+    arrayValuesFloat["helix_s_0"][iHelix] = helices[iHelix].helixParams.s0;
+    arrayValuesFloat["helix_b_s"][iHelix] = helices[iHelix].helixParams.b;
+    arrayValuesFloat["helix_seed_chi2"][iHelix] = helices[iHelix].seedChi2;
     arrayValuesInt["helix_charge"][iHelix]         = helices[iHelix].charge;
     arrayValuesInt["helix_n_hits"][iHelix]         = helices[iHelix].nRecHits;
     arrayValuesInt["helix_n_missing_hits"][iHelix] = helices[iHelix].nMissingHits;
     arrayValuesInt["helix_n_layers"][iHelix]       = helices[iHelix].nRecLayers;
+    arrayValuesInt["helix_turned_back"][iHelix] = helices[iHelix].firstTurningPointIndex > 0 ? 1 : 0;
   }
 }
 

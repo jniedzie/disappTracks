@@ -267,8 +267,8 @@ const vector<string> dataTitle = {
 
 const vector<int> years = { 2017, 2018 };
 
-string commonDataSuffix = "";
-//string commonDataSuffix = "treeProducerXtracks/"; // on lxplus
+const string commonDataSuffix = "";
+//const string commonDataSuffix = "treeProducerXtracks/"; // on lxplus
 
 // Locally on macbook
 const map<int, string> baseDataPath = {
@@ -313,7 +313,7 @@ const map<EBackground, map<int, pair<string, vector<string>>>> inFileNameBackgro
 //    { 2017, {"", // on lxplus
       {"TTHad/", "TTLep/", "TTSemi/", "T_tch/", "T_tWch/", "TBar_tch/", "TBar_tWch/"}}},
     { 2018, {"Calibrated-MC-SR-2018-Hadded-2/",
-      {"TTHad_pow/", "TTLep_pow/", "TTSemi_pow/", "T_tch/", "T_tWch_noFullyHad/", "TBar_tch/", "TBar_tWch_noFullyHad/", "T_sch_lep/" }}
+      {"TTHad_pow/", "TTLep_pow/", "TTSemi_pow/", "T_tch/", "T_tWch_noFullyHad/", "TBar_tch/", "TBar_tWch_noFullyHad/", "T_sch_lep/" }}},
   }},
   { kVV, {
     { 2017, {"MC-SR/",
