@@ -10,7 +10,12 @@
 #include "PerformanceMonitor.hpp"
 
 string configPath = "configs/taggerPlotting.md";
-string cutLevel = "afterHelixTagging/";
+string cutLevel = "afterHelixTagging";
+string suffix = "_withEndcaps";
+
+
+
+
 
 xtracks::EDataType dataType = xtracks::kSignal;
 
@@ -122,8 +127,8 @@ void DrawMonitors(Monitors &monitorsNoPU, Monitors *monitorsWithPU=nullptr)
   canvasROC->Update();
   canvasDists->Update();
   
-  canvasROC->SaveAs("plots/tagger_roc.pdf");
-  canvasDists->SaveAs("plots/tagger_distributions.pdf");
+  canvasROC->SaveAs(("plots/tagger_roc"+suffix+".pdf").c_str());
+  canvasDists->SaveAs(("plots/tagger_distributions"+suffix+".pdf").c_str());
 }
 
 /// The program execution starting point.
@@ -134,7 +139,7 @@ int main(int argc, char* argv[])
   auto helixProcessor = HelixProcessor();
   
   EventSet events;
-  events.LoadEventsFromFiles(cutLevel);
+  events.LoadEventsFromFiles(cutLevel+suffix+"/");
   
   Monitors monitorsNoPU   = CreateMonitors(false);
   Monitors monitorsWithPU = CreateMonitors(true);

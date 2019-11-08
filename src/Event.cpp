@@ -100,6 +100,10 @@ Points Event::GetClusters()
 {
   Points resultClusters;
   
+  map<string, double> noiseThreshold = {
+    { "TIB" , 70.0}, { "TOB" , 120.0}, { "TID" , 65.0}, { "TEC" , 80.0},
+  };
+  
   for(auto &point : trackerClusters){
     if(!config.params["include_endcaps"] &&
        (point->GetSubDetName() == "TID" ||
@@ -126,6 +130,12 @@ Points Event::GetClusters()
       if(isPionHit) continue;
     }
     
+    if(config.params["cut_noise_hits"]){
+      
+      if(noiseThreshold.find(point->GetSubDetName()) != noiseThreshold.end()){
+        if(point->GetValue() < noiseThreshold[point->GetSubDetName()]) continue;
+      }
+    }
     resultClusters.push_back(point);
   }
   

@@ -31,7 +31,6 @@ int main(int argc, char* argv[])
   if(config.params["cuts_level"]==0) cutLevel = "after_L0/";
   if(config.params["cuts_level"]==1) cutLevel = "after_L1/"+config.category+"/";
   EventSet events;
-//  events.LoadEventsFromFiles(cutLevel);
   
   int eventOffset   = 0;
   string outputPath = "afterHelixTagging";
@@ -49,15 +48,11 @@ int main(int argc, char* argv[])
   
   for(int year : years){
     if(!config.params["load_"+to_string(year)]) continue;
-    
     cout<<"Runnig for year: "<<year<<endl;
     
     for(ESignal iSig : signals){
       if(!config.runSignal[iSig]) continue;
-      
       cout<<"Running for signal: "<<iSig<<endl;
-      
-      //    if(argc == 1) maxEvents = events.size(dataType, iSig);
       
       for(auto iEvent=eventOffset; iEvent<maxEvents+eventOffset; iEvent++){
         if(find(eventsToSkip.begin(), eventsToSkip.end(), iEvent) != eventsToSkip.end()){

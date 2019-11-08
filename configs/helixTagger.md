@@ -11,7 +11,9 @@ verbosity_level:  1
 ### Limit number of events loaded (-1 means load all available)
 max_N_events_signal:  5
 
-include_endcaps:              0
+include_endcaps: 0
+
+cut_noise_hits: 0
 
 ### Should events after processing be saved on disk:
 save_events:  1
