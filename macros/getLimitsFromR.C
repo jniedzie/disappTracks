@@ -47,7 +47,7 @@ void getLimitsFromR(string inputPath, string outPath)
       }
       
       TF1 *fun3 = new TF1("fun3","[0]*exp([1]*x)",0, 1000);
-      fun3->SetParameter(0, 5);
+      fun3->SetParameter(0, 1);
       fun3->SetParameter(1, -0.01);
       rVsMassCt->Fit(fun3);
       

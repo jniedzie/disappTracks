@@ -27,12 +27,15 @@ string outputPath = "results/abcd_optimization.txt";
 
 string afsPath = "/afs/cern.ch/work/j/jniedzie/private/disapp_tracks/combine/CMSSW_10_2_13/src/";
 
-bool simulateTagger = false;
-double taggerEfficiency = 0.595152;
-double taggerFakeRate   = 0.119221;
+bool simulateTagger = true;
+//double taggerEfficiency = 0.595152; // no PU
+//double taggerFakeRate   = 0.119221;
+double taggerEfficiency = 0.852; // with PU
+double taggerFakeRate   = 0.23;
+
 
 const int ratioRebin = 1;
-string sampleTag = "LH_noTag_fix";
+string sampleTag = "LH_tagSimPU_fix";
 string backgroundHistNams = "background";
 
 
@@ -211,25 +214,25 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //------------------------------------------------
 // 3x3, 3 layers, likelihood
 //------------------------------------------------
-/*
+
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
-  { kWino_M_300_cTau_3    , {{330, 440}, {4.6}}},
-  { kWino_M_300_cTau_10   , {{300, 370}, {4.0}}},
-  { kWino_M_300_cTau_30   , {{320, 410}, {4.0}}},
-  { kWino_M_500_cTau_10   , {{320, 450}, {4.0}}},
-  { kWino_M_500_cTau_20   , {{330, 450}, {4.0}}},
-  { kWino_M_650_cTau_10   , {{300, 440}, {4.0}}},
-  { kWino_M_650_cTau_20   , {{320, 450}, {4.0}}},
-  { kWino_M_800_cTau_10   , {{300, 440}, {4.0}}},
-  { kWino_M_800_cTau_20   , {{350, 450}, {4.0}}},
-  { kWino_M_1000_cTau_10  , {{350, 450}, {4.0}}},
+//  { kWino_M_300_cTau_3    , {{330, 440}, {4.6}}},
+//  { kWino_M_300_cTau_10   , {{300, 370}, {4.0}}},
+//  { kWino_M_300_cTau_30   , {{320, 410}, {4.0}}},
+//  { kWino_M_500_cTau_10   , {{320, 450}, {4.0}}},
+//  { kWino_M_500_cTau_20   , {{330, 450}, {4.0}}},
+//  { kWino_M_650_cTau_10   , {{300, 440}, {4.0}}},
+//  { kWino_M_650_cTau_20   , {{320, 450}, {4.0}}},
+//  { kWino_M_800_cTau_10   , {{300, 440}, {4.0}}},
+//  { kWino_M_800_cTau_20   , {{350, 450}, {4.0}}},
+//  { kWino_M_1000_cTau_10  , {{350, 450}, {4.0}}},
   { kWino_M_1000_cTau_20  , {{390, 490}, {4.6}}}, // BEST
 };
-*/
+
 //------------------------------------------------
 // 3x3, 4 layers, likelihood
 //------------------------------------------------
-
+/*
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //  { kWino_M_300_cTau_3    , {{300, 470}, {3.9, 5.3}}},
 //  { kWino_M_300_cTau_10   , {{320, 400}, {4.0}}},
@@ -243,23 +246,23 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //  { kWino_M_1000_cTau_10  , {{310, 350}, {4.1, 6.9}}},
 //  { kWino_M_1000_cTau_20  , {{320, 490}, {5.0}}},
 };
-
+*/
 //------------------------------------------------
 // 3x3, 5-6 layers, likelihood
 //------------------------------------------------
 /*
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
-  { kWino_M_300_cTau_3    , {{300, 390}, {3.7, 4.5}}},
-  { kWino_M_300_cTau_10   , {{300, 340}, {4.0}}},
-  { kWino_M_300_cTau_30   , {{300, 340}, {4.0}}},
-  { kWino_M_500_cTau_10   , {{340, 470}, {4.0}}},
-  { kWino_M_500_cTau_20   , {{300, 340}, {4.0}}},
-  { kWino_M_650_cTau_10   , {{340, 450}, {3.7, 5.7}}},
-  { kWino_M_650_cTau_20   , {{340, 470}, {4.0}}},
+//  { kWino_M_300_cTau_3    , {{300, 390}, {3.7, 4.5}}},
+//  { kWino_M_300_cTau_10   , {{300, 340}, {4.0}}},
+//  { kWino_M_300_cTau_30   , {{300, 340}, {4.0}}},
+//  { kWino_M_500_cTau_10   , {{340, 470}, {4.0}}},
+//  { kWino_M_500_cTau_20   , {{300, 340}, {4.0}}},
+//  { kWino_M_650_cTau_10   , {{340, 450}, {3.7, 5.7}}},
+//  { kWino_M_650_cTau_20   , {{340, 470}, {4.0}}},
   { kWino_M_800_cTau_10   , {{350, 450}, {3.7, 5.3}}}, // BEST
-  { kWino_M_800_cTau_20   , {{340, 470}, {4.0}}},
-  { kWino_M_1000_cTau_10  , {{300, 360}, {4.3, 5.3}}},
-  { kWino_M_1000_cTau_20  , {{300, 350}, {4.3, 5.3}}},
+//  { kWino_M_800_cTau_20   , {{340, 470}, {4.0}}},
+//  { kWino_M_1000_cTau_10  , {{300, 360}, {4.3, 5.3}}},
+//  { kWino_M_1000_cTau_20  , {{300, 350}, {4.3, 5.3}}},
 };
 */
 
