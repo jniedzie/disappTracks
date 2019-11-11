@@ -13,10 +13,6 @@ string configPath = "configs/taggerPlotting.md";
 string cutLevel = "afterHelixTagging";
 string suffix = "_withEndcaps";
 
-
-
-
-
 xtracks::EDataType dataType = xtracks::kSignal;
 
 //  name          title  color pad thresholdUpBin
