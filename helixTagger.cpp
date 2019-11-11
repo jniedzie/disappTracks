@@ -17,12 +17,14 @@ vector<int> eventsToSkip = { };
 
 int main(int argc, char* argv[])
 {
-  if(argc != 1 && argc != 4){
-    Log(0)<<"helixTagger takes no arguments or: output_path events_offset n_events \n";
+  if(argc != 1 && argc != 5){
+    Log(0)<<"helixTagger takes no arguments or: output_path events_offset n_events config_path\n";
     exit(0);
   }
   cout.imbue(locale("de_DE"));
 //  TApplication theApp("App", &argc, argv);
+  
+  if(argc == 5) configPath = argv[4];
   
   cout<<"Reading config from "<<configPath<<endl;
   config = ConfigManager(configPath);
@@ -36,7 +38,7 @@ int main(int argc, char* argv[])
   string outputPath = "afterHelixTagging";
   int maxEvents     = config.params["max_N_events_signal"];
   
-  if(argc == 4){
+  if(argc == 5){
     outputPath  = argv[1];
     eventOffset = atoi(argv[2]);
     maxEvents   = atoi(argv[3]);

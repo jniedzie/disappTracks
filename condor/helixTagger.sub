@@ -1,5 +1,5 @@
 executable 		= run_helixTagger.sh
-arguments	        = $(ProcId)
+arguments	        = $(ProcId) 6
 output                	= output/$(ClusterId).$(ProcId).out
 error                 	= error/$(ClusterId).$(ProcId).err
 log                   	= log/$(ClusterId).log

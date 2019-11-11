@@ -5,5 +5,38 @@ echo "Starting helix tagger"
 cd /afs/cern.ch/work/j/jniedzie/private/disapp_tracks/disappTracks/
 . setenv.sh
 
+configPath="configs/helixTagger.md"
+outputPath="afterHelixTagging"
+
+if [ $2 -eq 0 ];
+then
+  configPath="configs/helixTagger.md"
+  outputPath="afterHelixTagging"
+elif [ $2 -eq 1 ];
+then
+  configPath="configs/helixTaggerWithEndcaps.md"
+  outputPath="afterHelixTagging_withEndcaps"
+elif [ $2 -eq 2 ];
+then
+  configPath="configs/helixTaggerAsymmetric.md"
+  outputPath="afterHelixTagging_asymmetric"
+elif [ $2 -eq 3 ];
+then
+  configPath="configs/helixTaggerHighMerging.md"
+  outputPath="afterHelixTagging_highMerging"
+elif [ $2 -eq 4 ];
+then
+  configPath="configs/helixTaggerLowSeedChi.md"
+  outputPath="afterHelixTagging_lowSeedChi"
+elif [ $2 -eq 5 ];
+then
+  configPath="configs/helixTaggerLowTrackChi.md"
+  outputPath="afterHelixTagging_lowTrackChi"
+elif [ $2 -eq 6 ];
+then
+  configPath="configs/helixTaggerNoMissing.md"
+  outputPath="afterHelixTagging_noMissing"
+fi
+
 echo "Im in `pwd`"
-./helixTagger afterHelixTagging/chunk$1 $1 1
+./helixTagger $outputPath/chunk$1 $1 1 $configPath

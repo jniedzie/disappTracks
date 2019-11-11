@@ -270,19 +270,19 @@ const vector<int> years = { 2017, 2018 };
 const string commonDataSuffix = "";
 //const string commonDataSuffix = "treeProducerXtracks/"; // on lxplus
 
+/*
 // Locally on macbook
 const map<int, string> baseDataPath = {
   {2017, "../data/"},
   {2018, "../data/"},
 };
+*/
 
-/*
 // On lxplus for tagger studies
 const map<int, string> baseDataPath = {
   {2017, "/afs/cern.ch/work/j/jniedzie/private/disapp_tracks/data/"},
   {2018, "/afs/cern.ch/work/j/jniedzie/private/disapp_tracks/data/"},
 };
-*/
  
 /*
 // On lxplus for main analysis
