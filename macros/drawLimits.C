@@ -1,7 +1,7 @@
-const double yAxisMin = 1E-2;
-const double yAxisMax = 4E2;
-const double xAxisMin = 50;
-const double xAxisMax = 1000;
+const double yAxisMin = 8E-2;
+const double yAxisMax = 1;
+const double xAxisMin = 300;
+const double xAxisMax = 900;
 
 double logLabelSize = 0.10;
 double labelSize = 0.045;
@@ -61,16 +61,20 @@ vector<tuple<string, int, int, int, string>> graphParamsByCategory = { // best i
 // inFileName                                            color     width   style    title
   {"2-tracks"                     , kBlue      , 2, 1, "2 tracks"  },
   
-  {"3x3_3-layers_notag_500_10"    , kGreen     , 2, 1, "3x3, 3 layers, no tagger"   },
-  {"3x3_4-layers_notag_1000_10"   , kMagenta+2 , 2, 1, "3x3, 4 layers, no tagger"   },
-  {"3x3_5-6-layers_notag_650_10"  , kOrange+2  , 2, 1, "3x3, 5-6 layers, no tagger" },
-  {"allcategories_notag"          , kCyan+1    , 2, 1, "all categories, no tagger"  },
+//  {"3x3_3-layers_notag_500_10"    , kGreen     , 2, 1, "3x3, 3 layers, no tagger"   },
+//  {"3x3_4-layers_notag_1000_10"   , kMagenta+2 , 2, 1, "3x3, 4 layers, no tagger"   },
+//  {"3x3_5-6-layers_notag_650_10"  , kOrange+2  , 2, 1, "3x3, 5-6 layers, no tagger" },
+//  {"allcategories_notag"          , kCyan+1    , 2, 1, "all categories, no tagger"  },
 //  {"allcategories_notag_run2" , kBlue     , 3, 2, "3x3, 3+4 layers, no tagger, Run 2" },
   
-  {"3x3_3-layers_LH_notag_1000_20"   , kGreen     , 2, 2, "3x3, 3 layers, no tagger, LH"   },
-  {"3x3_4-layers_LH_notag_800_20"    , kMagenta+2 , 2, 2, "3x3, 4 layers, no tagger, LH"   },
-  {"3x3_5-6-layers_LH_notag_800_10"  , kOrange+2  , 2, 2, "3x3, 5-6 layers, no tagger, LH" },
-  {"allcategories_LH_notag"          , kCyan+1    , 2, 2, "all categories, no tagger, LH"  },
+  {"3x3_3-layers_LH_notag_1000_20"   , kGreen     , 2, 1, "3x3, 3 layers, no tagger, LH"   },
+  {"3x3_4-layers_LH_notag_800_20"    , kMagenta+2 , 2, 1, "3x3, 4 layers, no tagger, LH"   },
+  {"3x3_5-6-layers_LH_notag_800_10"  , kOrange+2  , 2, 1, "3x3, 5-6 layers, no tagger, LH" },
+  {"allcategories_LH_notag"          , kCyan+1    , 2, 1, "all categories, no tagger, LH"  },
+  
+  {"3x3_4-layers_LH_noTag_fix_800_20", kMagenta+2 , 2, 2, "3x3, 4 layers, no tagger, LH, fixed"},
+  {"3x3_4-layers_LH_noTag_fix_800_20_extended", kMagenta+2 , 2, 5, "3x3, 4 layers, no tagger, LH, fixed, extended"},
+  
   
 //  {"3x3_3-layers_tagSim_noPU_500_10"    , kGreen     , 2, 2, "3 layers, tagger sim, no PU"    },
 //  {"3x3_4-layers_tagSim_noPU_1000_10"   , kMagenta+2 , 2, 2, "4 layers, tagger sim, no PU"    },

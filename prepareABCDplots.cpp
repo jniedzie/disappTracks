@@ -14,7 +14,7 @@
 typedef tuple<vector<double>, vector<double>> binning;
 
 // Desired number of MET and dE/dx bins and limits of those
-int nDedxBins = 0, nMetBins  = 0;
+int nDedxBins = 3, nMetBins  = 3;
 const double minMet  = 200 , maxMet  = 500 , stepMet  = 10;
 //const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1; // for min dE/dx
 const double minDedx = 2.5 , maxDedx = 11.0 , stepDedx = 0.1; // for dE/dx likelihood
@@ -32,7 +32,7 @@ double taggerEfficiency = 0.595152;
 double taggerFakeRate   = 0.119221;
 
 const int ratioRebin = 1;
-string sampleTag = "LH_noTag";
+string sampleTag = "LH_noTag_fix";
 string backgroundHistNams = "background";
 
 
@@ -229,25 +229,25 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //------------------------------------------------
 // 3x3, 4 layers, likelihood
 //------------------------------------------------
-/*
+
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
-  { kWino_M_300_cTau_3    , {{300, 470}, {3.9, 5.3}}},
-  { kWino_M_300_cTau_10   , {{320, 400}, {4.0}}},
-  { kWino_M_300_cTau_30   , {{320, 400}, {4.0}}},
-  { kWino_M_500_cTau_10   , {{300, 440}, {4.0}}},
-  { kWino_M_500_cTau_20   , {{310, 440}, {4.0}}},
-  { kWino_M_650_cTau_10   , {{310, 490}, {4.0}}},
-  { kWino_M_650_cTau_20   , {{320, 490}, {4.0}}},
-  { kWino_M_800_cTau_10   , {{320, 410}, {3.7, 6.3}}},
+//  { kWino_M_300_cTau_3    , {{300, 470}, {3.9, 5.3}}},
+//  { kWino_M_300_cTau_10   , {{320, 400}, {4.0}}},
+//  { kWino_M_300_cTau_30   , {{320, 400}, {4.0}}},
+//  { kWino_M_500_cTau_10   , {{300, 440}, {4.0}}},
+//  { kWino_M_500_cTau_20   , {{310, 440}, {4.0}}},
+//  { kWino_M_650_cTau_10   , {{310, 490}, {4.0}}},
+//  { kWino_M_650_cTau_20   , {{320, 490}, {4.0}}},
+//  { kWino_M_800_cTau_10   , {{320, 410}, {3.7, 6.3}}},
   { kWino_M_800_cTau_20   , {{320, 470}, {4.1, 7.1}}},  // BEST
-  { kWino_M_1000_cTau_10  , {{310, 350}, {4.1, 6.9}}},
-  { kWino_M_1000_cTau_20  , {{320, 490}, {5.0}}},
+//  { kWino_M_1000_cTau_10  , {{310, 350}, {4.1, 6.9}}},
+//  { kWino_M_1000_cTau_20  , {{320, 490}, {5.0}}},
 };
-*/
+
 //------------------------------------------------
 // 3x3, 5-6 layers, likelihood
 //------------------------------------------------
-
+/*
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_300_cTau_3    , {{300, 390}, {3.7, 4.5}}},
   { kWino_M_300_cTau_10   , {{300, 340}, {4.0}}},
@@ -261,7 +261,7 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_1000_cTau_10  , {{300, 360}, {4.3, 5.3}}},
   { kWino_M_1000_cTau_20  , {{300, 350}, {4.3, 5.3}}},
 };
-
+*/
 
 /**
  Returns number of counts in ABCD... regions determined by criticalMet and criticalDedx values.
@@ -749,6 +749,7 @@ void produceLimits(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &m
   
   for(ESignal iSig : signals){
     if(!config.runSignal[iSig]) continue;
+    if(bestValues.find((ESignal)iSig) == bestValues.end()) continue;
     
     string outFileName = to_string_with_precision(nDedxBins, 0)+"x"+to_string_with_precision(nMetBins, 0)+"_"+config.category+"_"+sampleTag+"_"+signalShortName.at(iSig);
     string outputPath = "results/abcd_plots_"+outFileName+".root";
@@ -802,9 +803,9 @@ int main(int argc, char* argv[])
   TH2D *metVsDedxHistBackground = GetMetVsDedxHist(events, xtracks::kBackground);
   map<int, TH2D*> metVsDedxHistsSignal = loadSignalHists(events);
   
-  runBinningScan(metVsDedxHistBackground, metVsDedxHistsSignal);
+//  runBinningScan(metVsDedxHistBackground, metVsDedxHistsSignal);
   
-//  produceLimits(metVsDedxHistBackground, metVsDedxHistsSignal);
+  produceLimits(metVsDedxHistBackground, metVsDedxHistsSignal);
 
 //  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, {{400},{3.0, 3.1}} , "results/abcd_plots_debug.root");
   
