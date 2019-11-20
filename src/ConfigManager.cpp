@@ -57,6 +57,10 @@ ConfigManager::ConfigManager(string path)
     else if(key == "do_tagger_background_noPU")   runSignal[kTaggerBackgroundNoPU]    = stoi(value);
     else if(key == "do_tagger_signal_withPU")     runSignal[kTaggerSignalWithPU]      = stoi(value);
     else if(key == "do_tagger_background_withPU") runSignal[kTaggerBackgroundWithPU]  = stoi(value);
+    else if(key == "do_chargino_300_1 ")          runSignal[kChargino300_1]           = stoi(value);
+    else if(key == "do_chargino_500_10")          runSignal[kChargino500_10]          = stoi(value);
+    else if(key == "do_chargino_700_10")          runSignal[kChargino700_10]          = stoi(value);
+    else if(key == "do_chargino_800_10")          runSignal[kChargino800_10]          = stoi(value);
      
     else if(key == "do_SR")                       runData[kSignalRegion]              = stoi(value);
     else if(key == "do_CR")                       runData[kControlRegion]             = stoi(value);

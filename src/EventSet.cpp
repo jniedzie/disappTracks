@@ -691,7 +691,7 @@ void EventSet::AddEventsFromFile(string fileName, xtracks::EDataType dataType, i
   if(config.params["load_friend_tree"]){
     cout<<"Opening friend file"<<endl;
 
-    inFileFriend = TFile::Open(Form("%s/tree_friend.root",basePath.c_str()));
+    inFileFriend = TFile::Open(Form("%s/%s/tree_friend.root",basePath.c_str(), commonDataSuffix.c_str()));
     
     if(!inFileFriend){
       cout<<"WARNING -- no friend file was found in path: "<<basePath<<"/tree_friend.root"<<endl;
