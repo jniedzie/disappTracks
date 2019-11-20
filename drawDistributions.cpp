@@ -36,6 +36,8 @@ int main(int argc, char* argv[])
   cutsManager.GetCuts(eventCut, trackCut, jetCut, leptonCut);
   events.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
+  events.PrintYields();
+  
   cout<<"Drawing plots"<<endl;
   
   if(config.params["draw_standard_plots"]) events.DrawStandardPlots();

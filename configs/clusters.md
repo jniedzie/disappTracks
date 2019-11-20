@@ -20,9 +20,9 @@ do_800_20:     0
 do_1000_10:   0
 do_1000_20:   0
 
-do_tagger_signal_noPU:                1
+do_tagger_signal_noPU:                0
 do_tagger_background_noPU:      0
-do_tagger_signal_withPU:             0
+do_tagger_signal_withPU:             1
 do_tagger_background_withPU:   0
 
 do_SR:         0

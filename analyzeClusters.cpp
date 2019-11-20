@@ -6,7 +6,7 @@
 #include "EventSet.hpp"
 
 string configPath  = "configs/clusters.md";
-string outfileName = "results/tmp.root";
+string outfileName = "results/clustersSignalWithPU.root";
 
 vector<tuple<string, int, double, double, string>> histOptions1D = {
 // title                        nBins  min     max    titleX
@@ -31,6 +31,7 @@ vector<tuple<string, int, double, double, string>> histOptions1D = {
   {"delta_phi_pion_chargino"    , 50 , 0      , 3.2   , "#Delta #phi (#pi, #chi)" },
   {"delta_theta_pion_chargino"  , 100, -6.3   , 6.3   , "#Delta #theta(#pi, #chi)"},
   {"pion_turning_layer"         , 20 , -1     , 19    , "Layer number"            },
+  {"chargino_abs_eta"           , 20 ,  0     , 4.0   , "#chi^{#pm} |#eta|"       },
   
   {"next_point_delta_phi"       , 100, -3.2   , 3.2   , "#Delta #phi"             },
   {"next_point_delta_phi_plu"   , 100, -3.2   , 3.2   , "#Delta #phi"             },
@@ -182,6 +183,7 @@ void fillGenCharginoHists(const shared_ptr<Event> &event)
   auto charginoSimHitsByLayer = pointsProcessor.SortByLayer(charginoSimHits);
   
   hists1D["den_chargino_q_efficiency_vs_gen_pt"]->Fill(chargino.GetPt());
+  hists1D["chargino_abs_eta"]->Fill(fabs(chargino.GetEta()));
   
   int maxCharginoLayer = -1;
   for(auto &hits : charginoSimHitsByLayer){

@@ -10,6 +10,7 @@ map<string, tuple<int, string, int, int>> histSettings = {
   { "delta_phi_pion_chargino"     , {1, "#Delta#varphi (#chi^{#pm}, #pi^{#pm})" , 0,     0} },
   { "nTrackerLayers"              , {2, "#chi N tracker layers"                 , 1,     0} },
   { "pion_pt"                     , {3, "Pion p_{t} (MeV)"                      , 0,     0} },
+  { "chargino_abs_eta"            , {4, "#chi^{#pm} |#eta|"                     , 2,     0} },
 
   { "pion_simhits_z"              , {1, "Hit z-coordinate dist. (mm)"           , 0,     1} },
   { "pion_simhits_range_z"        , {2, "Last hit z position (mm)"              , 0,     1} },
@@ -17,14 +18,14 @@ map<string, tuple<int, string, int, int>> histSettings = {
   { "pion_final_radius"           , {4, "Final pion helix radius (mm)"          , 0,     1} },
   
   { "noise_n_clusters"            , {1, "Number of noise hits"                  , 0,     2} },
-  { "tracker_cluster_charge_TIB"  , {3, "Charge deposit in TIB (a.u.)"          , 0,     2} },
-  { "pion_cluster_charge_TIB"     , {3, "Charge deposit in TIB (a.u.)"          , 0,     2} },
-  { "tracker_cluster_charge_TOB"  , {4, "Charge deposit in TOB (a.u.)"          , 0,     2} },
-  { "pion_cluster_charge_TOB"     , {4, "Charge deposit in TOB (a.u.)"          , 0,     2} },
-  { "tracker_cluster_charge_TID"  , {5, "Charge deposit in TID (a.u.)"          , 0,     2} },
-  { "pion_cluster_charge_TID"     , {5, "Charge deposit in TID (a.u.)"          , 0,     2} },
-  { "tracker_cluster_charge_TEC"  , {6, "Charge deposit in TEC (a.u.)"          , 0,     2} },
-  { "pion_cluster_charge_TEC"     , {6, "Charge deposit in TEC (a.u.)"          , 0,     2} },
+  { "tracker_cluster_charge_TIB"  , {3, "Charge deposit in TIB (ADC counts)"    , 0,     2} },
+  { "pion_cluster_charge_TIB"     , {3, "Charge deposit in TIB (ADC counts)"    , 0,     2} },
+  { "tracker_cluster_charge_TOB"  , {4, "Charge deposit in TOB (ADC counts)"    , 0,     2} },
+  { "pion_cluster_charge_TOB"     , {4, "Charge deposit in TOB (ADC counts)"    , 0,     2} },
+  { "tracker_cluster_charge_TID"  , {5, "Charge deposit in TID (ADC counts)"    , 0,     2} },
+  { "pion_cluster_charge_TID"     , {5, "Charge deposit in TID (ADC counts)"    , 0,     2} },
+  { "tracker_cluster_charge_TEC"  , {6, "Charge deposit in TEC (ADC counts)"    , 0,     2} },
+  { "pion_cluster_charge_TEC"     , {6, "Charge deposit in TEC (ADC counts)"    , 0,     2} },
   
   { "middle_seed_hit_delta_phi"   , {1, "Middle seed hit #Delta#varphi"         , 0,     3} },
   { "middle_seed_hit_delta_z"     , {2, "Middle seed hit #Delta Z (mm)"         , 0,     3} },
@@ -81,6 +82,10 @@ void drawPlots()
     auto &[iPad, titleX, fileIndex, canvasIndex] = settings;
     
     TH1D *hist = (TH1D*)files[fileIndex]->Get(name.c_str());
+    if(!hist){
+      cout<<"Hist: "<<name<<"\t not found!!"<<endl;
+      continue;
+    }
     prepareHist(hist, titleX);
     
     canvas[canvasIndex]->cd(iPad++);
