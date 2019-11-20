@@ -23,6 +23,8 @@ public:
   ~CutsManager();
   
   void GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut, LeptonCut &leptonCut);
+  void GetZmumuCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut, LeptonCut &leptonCut);
+  void GetWmunuCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut, LeptonCut &leptonCut);
   
 private:
   

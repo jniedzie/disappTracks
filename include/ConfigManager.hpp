@@ -24,8 +24,9 @@ struct ConfigManager {
   
   map<string, double> params; ///< All bool, int and double parameters from the config file
   
-  string category;    ///< Name of the analysis category
-  string outputPath;  ///< Output file path
+  string category;              ///< Name of the analysis category
+  string secondaryCategory;     ///< Name of the secondary analysis category (e.g. Wmunu)
+  string outputPath;            ///< Output file path
   
   vector<bool> runBackground; ///< Should run given backgorund sample (by EBackground enum)
   vector<bool> runSignal;     ///< Should run given signal sample (by ESignal enum)
