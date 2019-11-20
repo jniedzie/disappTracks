@@ -11,7 +11,8 @@
 #include "Logger.hpp"
 
 string configPath = "configs/taggerPlotting.md";
-string cutLevel = "afterHelixTagging/";
+string cutLevel = "afterHelixTagging";
+string suffix = "_noNoise";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 
@@ -125,10 +126,10 @@ double EventToParam(const Event &event, ETestParams param)
 map<string, tuple<string, int, int, int>> monitorTypes = {
   {"avg_hits"   , {"Average number of hits on helix", 40         , 1 , 19 }},
   {"max_hits"   , {"Maximum number of hits on helix", 46         , 2 , 19 }},
-  {"avg_layers" , {"Average number of helix layers" , kMagenta   , 3 , 7, }},
-  {"max_layers" , {"Maximum number of helix layers" , kViolet+1  , 4 , 13 }},
+  {"avg_layers" , {"Average number of helix layers" , kMagenta   , 3 , 39, }},
+  {"max_layers" , {"Maximum number of helix layers" , kViolet+1  , 4 , 19 }},
   {"avg_length" , {"Average length of helix"        , kGreen+2   , 5 , 19 }},
-  {"max_length" , {"Maximum length of helix"        , 49         , 6 , 34 }},
+  {"max_length" , {"Maximum length of helix"        , 49         , 6 , 39 }},
   {"n_helices"  , {"Number of helices per event"    , kCyan+1    , 7 , 9  }},
 };
 
@@ -143,6 +144,7 @@ vector<Monitors> CreateMonitors(ETestParams param)
       auto [title, color, pad, thresholdUp] = params;
       int max = 20, nBins = 20;
       if(name=="avg_length" || name=="max_length"){ max = 10; nBins = 40; }
+      if(name=="n_helices"){ max = 1000; nBins = 10; }
       monitorsForParamValue[name] = PerformanceMonitor(name, title, nBins, 0, max, (EColor)color, true, thresholdUp);
     }
     monitors.push_back(monitorsForParamValue);
@@ -273,7 +275,7 @@ int main(int argc, char* argv[])
   auto helixProcessor = HelixProcessor();
   
   EventSet events;
-  events.LoadEventsFromFiles(cutLevel);
+  events.LoadEventsFromFiles(cutLevel+suffix+"/");
   
   TCanvas *canvasPerformance  = new TCanvas("canvasPerformance", "canvasPerformance", 1000, 1500);
   canvasPerformance->Divide(2, 3);
@@ -290,7 +292,7 @@ int main(int argc, char* argv[])
   }
     
   canvasPerformance->Update();
-  canvasPerformance->SaveAs("plots/tagger_performance.pdf");
+  canvasPerformance->SaveAs(("plots/tagger_performance"+suffix+".pdf").c_str());
   
   theApp.Run();
   return 0;

@@ -11,18 +11,19 @@
 
 string configPath = "configs/taggerPlotting.md";
 string cutLevel = "afterHelixTagging";
-string suffix = "_withEndcaps";
+string suffix = "_noNoise";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 
-//  name          title  color pad thresholdUpBin
+
 map<string, tuple<string, int, int, int>> monitorTypes = {
+//  name          title                              color       pad  thresholdUpBin
   {"avg_hits"   , {"Average number of hits on helix", 40         , 1 , 19 }},
   {"max_hits"   , {"Maximum number of hits on helix", 46         , 2 , 19 }},
-  {"avg_layers" , {"Average number of helix layers" , kMagenta   , 3 , 7, }},
-  {"max_layers" , {"Maximum number of helix layers" , kViolet+1  , 4 , 13 }},
-  {"avg_length" , {"Average length of helix"        , kGreen+2   , 5 , 19 }},
-  {"max_length" , {"Maximum length of helix"        , 49         , 6 , 34 }},
+  {"avg_layers" , {"Average number of helix layers" , kMagenta   , 3 , 19 }},
+  {"max_layers" , {"Maximum number of helix layers" , kViolet+1  , 4 , 19 }},
+  {"avg_length" , {"Average length of helix"        , kGreen+2   , 5 , 39 }},
+  {"max_length" , {"Maximum length of helix"        , 49         , 6 , 39 }},
   {"n_helices"  , {"Number of helices per event"    , kCyan+1    , 7 , 9  }},
 };
 
@@ -35,6 +36,7 @@ Monitors CreateMonitors(bool withPU)
     auto [title, color, pad, thresholdUp] = params;
     int max = 20, nBins = 20;
     if(name=="avg_length" || name=="max_length"){ max = 10; nBins = 40; }
+    if(name=="n_helices"){ max = 1000; nBins = 10; }
     monitors[name] = PerformanceMonitor(name, title, nBins, 0, max, (EColor)color, withPU, thresholdUp);
   }
   return monitors;
