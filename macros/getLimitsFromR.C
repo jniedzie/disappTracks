@@ -36,10 +36,14 @@ void getLimitsFromR(string inputPath, string outPath)
         rValues3x3[mass][ct] = rValues3x3[300][ct] * crossSection[300]/crossSection[mass];
       }
     }
+    bool first = true;
     for(int ct : {3, 10, 20, 30}){
       cout<<"ct: "<<ct<<endl;
       
       TGraph *rVsMassCt = new TGraph();
+      rVsMassCt->SetMarkerStyle(20);
+      rVsMassCt->Draw(first ? "AP" : "Psame");
+      first = false;
       
       int iPoint=0;
       for(int mass : {300, 500, 650, 800, 1000}){

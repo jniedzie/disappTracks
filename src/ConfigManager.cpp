@@ -32,8 +32,9 @@ ConfigManager::ConfigManager(string path)
     key.erase(std::remove_if(key.begin(), key.end(), ::isspace), key.end());
     value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
     
-    if(key == "analysis_category")  category    = value;
-    else if(key == "output_path")   outputPath  = value;
+    if(key == "analysis_category")                category          = value;
+    else if(key == "secondary_category")          secondaryCategory = value;
+    else if(key == "output_path")   	            outputPath        = value;
     
     else if(key == "do_QCD")                      runBackground[kQCD]                 = stoi(value);
     else if(key == "do_Zmm")                      runBackground[kZmumuJets]           = stoi(value);

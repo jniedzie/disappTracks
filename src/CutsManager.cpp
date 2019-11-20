@@ -114,3 +114,19 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
   
   return;
 }
+
+void CutsManager::GetZmumuCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut, LeptonCut &leptonCut)
+{
+  GetCuts(eventCut, trackCut, jetCut, leptonCut);
+  eventCut.SetNmuons(range<int>(2,2));
+  eventCut.SetNleptons(range<int>(2,inf));
+  eventCut.SetRequireMuonsFromZ(true);
+  eventCut.SetRequireTwoOppositeMuons(true);
+}
+
+void CutsManager::GetWmunuCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut, LeptonCut &leptonCut)
+{
+  GetCuts(eventCut, trackCut, jetCut, leptonCut);
+  eventCut.SetNmuons(range<int>(1,1));
+  eventCut.SetNleptons(range<int>(1,inf));
+}

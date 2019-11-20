@@ -1,7 +1,7 @@
 const double yAxisMin = 8E-2;
-const double yAxisMax = 0.7;
+const double yAxisMax = 0.66;
 const double xAxisMin = 300;
-const double xAxisMax = 1000;
+const double xAxisMax = 900;
 
 double logLabelSize = 0.10;
 double labelSize = 0.045;
@@ -40,7 +40,7 @@ vector<tuple<string, int, int, int, string>> otherGraphParams = {
 // inFileName                                            color     width   style    title
   {"exo_16_044_observed"      , kBlack   , 2, 1, "CMS EXO-44-016 (observed)"            },
   {"exo_19_010_expected"      , kBlack   , 2, 2, "CMS EXO-19-010 (expected)"            },
-  {"atlas_observed"           , kRed     , 2, 1, "ATLAS JHEP 06 (2018) 022 (observed)"  },
+//  {"atlas_observed"           , kRed     , 2, 1, "ATLAS JHEP 06 (2018) 022 (observed)"  },
 //  {"exo_16_044_expected"      , kBlack   , 2, 2, "EXO-44-016 (expected)"                },
 //  {"exo_16_044_expected_68p"  , kGreen   , 1, 1, "EXO-44-016 (68% expected)"            },
 };
@@ -61,6 +61,7 @@ vector<tuple<string, int, int, int, string>> graphParamsByCategory = { // best i
 // inFileName                                            color     width   style    title
 //  {"2-tracks"                     , kBlue      , 2, 1, "2 tracks"  },
   {"2-tracks_extended", kBlue      , 2, 1, "2 tracks"  },
+  {"2-tracks_with2016", kBlue      , 2, 2, "2 tracks, with 2016"  },
   
 //  {"3x3_3-layers_notag_500_10"    , kGreen     , 2, 1, "3x3, 3 layers, no tagger"   },
 //  {"3x3_4-layers_notag_1000_10"   , kMagenta+2 , 2, 1, "3x3, 4 layers, no tagger"   },
@@ -72,19 +73,35 @@ vector<tuple<string, int, int, int, string>> graphParamsByCategory = { // best i
 //  {"3x3_4-layers_LH_notag_800_20_extended"    , kMagenta+2 , 2, 1, "3x3, 4 layers, no tagger, with bug"   },
 //  {"3x3_5-6-layers_LH_notag_800_10_extended"  , kOrange+2  , 2, 1, "3x3, 5-6 layers, no tagger, with bug" },
 //  {"3x3_LH_notag_extended"                    , kCyan+1    , 2, 1, "all categories, no tagger, with bug"  },
+
+//  {"3x3_3-layers_noTag_1000_20_ext"   , kGreen     , 2, 1, "3x3, 3 layers, no tagger, ext" },
+//  {"3x3_4-layers_noTag_800_20_ext"    , kMagenta+2 , 2, 1, "3x3, 4 layers, no tagger, ext"   },
+//  {"3x3_5-6-layers_noTag_800_10_ext"  , kOrange+2  , 2, 1, "3x3, 5-6 layers, no tagger, ext" },
+//  {"3x3_noTag_ext"                    , kCyan+1    , 2, 1, "all categories, no tagger, ext"  },
+  
+//  {"3x3_3-layers_noTag_1000_20"   , kGreen     , 2, 2, "3x3, 3 layers, no tagger" },
+//  {"3x3_4-layers_noTag_800_20"    , kMagenta+2 , 2, 2, "3x3, 4 layers, no tagger"   },
+//  {"3x3_5-6-layers_noTag_800_10"  , kOrange+2  , 2, 2, "3x3, 5-6 layers, no tagger" },
+//  {"3x3_noTag"                    , kCyan+1    , 2, 2, "all categories, no tagger"  },
+  
+//  {"3x3_3-layers_tagSim_1000_20"   , kGreen     , 2, 1, "3x3, 3 layers, tagSim" },
+//  {"3x3_4-layers_tagSim_800_20"    , kMagenta+2 , 2, 1, "3x3, 4 layers, tagSim"   },
+//  {"3x3_5-6-layers_tagSim_800_10"  , kOrange+2  , 2, 1, "3x3, 5-6 layers, tagSim" },
+//  {"3x3_tagSim"                    , kCyan+1    , 2, 1, "all categories, tagSim"  },
+  
   
 //  {"3x3_4-layers_LH_noTag_fix_800_20", kMagenta+2 , 2, 2, "3x3, 4 layers, no tagger, LH, fixed"},
   
   
-  {"3x3_3-layers_LH_notag_fix_1000_20_extended"   , kGreen     , 2, 2, "3x3, 3 layers, no tagger"   },
-  {"3x3_4-layers_LH_notag_fix_800_20_extended"    , kMagenta+2 , 2, 2, "3x3, 4 layers, no tagger "  },
-  {"3x3_5-6-layers_LH_notag_fix_800_10_extended"  , kOrange+2  , 2, 2, "3x3, 5-6 layers, no tagger" },
-  {"3x3_LH_notag_fix_extended"                    , kCyan+1    , 2, 2, "all categories, no tagger"  },
-  
-  {"3x3_3-layers_LH_tagSimPU_fix_1000_20_extended"  , kGreen     , 2, 1, "3x3, 3 layers, tagSim PU"   },
-  {"3x3_4-layers_LH_tagSimPU_fix_800_20_extended"   , kMagenta+2 , 2, 1, "3x3, 4 layers, tagSim PU"   },
-  {"3x3_5-6-layers_LH_tagSimPU_fix_800_10_extended" , kOrange+2  , 2, 1, "3x3, 5-6 layers, tagSim PU" },
-  {"3x3_LH_tagSimPU_extended"                       , kCyan+1    , 2, 1, "all categories, tagSim PU"  },
+//  {"3x3_3-layers_LH_notag_fix_1000_20_extended"   , kGreen     , 2, 2, "3x3, 3 layers, no tagger"   },
+//  {"3x3_4-layers_LH_notag_fix_800_20_extended"    , kMagenta+2 , 2, 2, "3x3, 4 layers, no tagger "  },
+//  {"3x3_5-6-layers_LH_notag_fix_800_10_extended"  , kOrange+2  , 2, 2, "3x3, 5-6 layers, no tagger" },
+//  {"3x3_LH_notag_fix_extended"                    , kCyan+1    , 2, 2, "all categories, no tagger"  },
+//
+//  {"3x3_3-layers_LH_tagSimPU_fix_1000_20_extended"  , kGreen     , 2, 1, "3x3, 3 layers, tagSim PU"   },
+//  {"3x3_4-layers_LH_tagSimPU_fix_800_20_extended"   , kMagenta+2 , 2, 1, "3x3, 4 layers, tagSim PU"   },
+//  {"3x3_5-6-layers_LH_tagSimPU_fix_800_10_extended" , kOrange+2  , 2, 1, "3x3, 5-6 layers, tagSim PU" },
+//  {"3x3_LH_tagSimPU_extended"                       , kCyan+1    , 2, 1, "all categories, tagSim PU"  },
   
 //  {"3x3_3-layers_tagSim_noPU_500_10"    , kGreen     , 2, 2, "3 layers, tagger sim, no PU"    },
 //  {"3x3_4-layers_tagSim_noPU_1000_10"   , kMagenta+2 , 2, 2, "4 layers, tagger sim, no PU"    },
@@ -163,7 +180,7 @@ void drawLimits()
   string prefix = "limitsData";
   string thisAnalysisPrefix = "cms_short_disappearing_";
   
-  TLegend *leg = new TLegend(0.10, 0.62, 0.50, 0.85);
+  TLegend *leg = new TLegend(0.50, 0.15, 0.95, 0.5);
   leg->SetFillStyle(0);
   leg->SetBorderSize(0);
   

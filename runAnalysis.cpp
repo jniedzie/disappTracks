@@ -12,12 +12,16 @@ string configPath = "configs/analysis.md";
 void saveEvents(const EventSet &events, const string &suffix)
 {
   if(!config.params["save_events"]) return;
-    
-  string prefix = "after_L"+to_string((int)config.params["cuts_level"]);
-  prefix = prefix + "/" + suffix + "/";
-  if(config.params["cuts_level"]==10) prefix = "adish_cuts";
-  events.SaveEventsToFiles(prefix);
   
+  string prefix = "";
+  
+  if(config.secondaryCategory == "Zmumu") prefix += "Zmumu/";
+  if(config.secondaryCategory == "Wmunu") prefix += "Wmunu/";
+  
+  prefix += "after_L"+to_string((int)config.params["cuts_level"])+"/";
+  prefix += suffix+"/";
+  
+  events.SaveEventsToFiles(prefix);
 }
 
 void plotEvents(const EventSet &events)
@@ -157,12 +161,15 @@ void processCuts(EventSet &events,
 /// Returns path prefix for cuts level and category selected in the config file
 string getPathPrefix()
 {
-  string prefix;
+  string prefix = "";
+   
+  if(config.secondaryCategory == "Zmumu") prefix += "Zmumu/";
+  if(config.secondaryCategory == "Wmunu") prefix += "Wmunu/";
   
   if(config.params["cuts_level"]==0 || config.params["cuts_level"]==10) prefix = "";
-  if(config.params["cuts_level"]==1) prefix = "after_L0/";
-  if(config.params["cuts_level"]==2) prefix = "after_L1/"+config.category+"/";
-  if(config.params["cuts_level"]==20) prefix = "afterHelixTagging/";
+  if(config.params["cuts_level"]==1) prefix += "after_L0/";
+  if(config.params["cuts_level"]==2) prefix += "after_L1/"+config.category+"/";
+  if(config.params["cuts_level"]==20) prefix += "afterHelixTagging/";
   
   return prefix;
 }
@@ -297,7 +304,11 @@ int main(int argc, char* argv[])
   
   CutsManager cutsManager;
   EventCut eventCut; TrackCut trackCut; JetCut jetCut; LeptonCut leptonCut;
-  cutsManager.GetCuts(eventCut, trackCut, jetCut, leptonCut);
+  
+  
+  if(config.secondaryCategory == "Zmumu")       cutsManager.GetZmumuCuts(eventCut, trackCut, jetCut, leptonCut);
+  else if(config.secondaryCategory == "Wmunu")  cutsManager.GetWmunuCuts(eventCut, trackCut, jetCut, leptonCut);
+  else                                          cutsManager.GetCuts(eventCut, trackCut, jetCut, leptonCut);
   
   if(config.params["cuts_level"] == 0){
     processCuts(events, eventCut, trackCut, jetCut, leptonCut);
