@@ -37,6 +37,7 @@ double taggerFakeRate   = 0.23;
 const int ratioRebin = 1;
 string sampleTag = "tagSim";
 string backgroundHistNams = "background";
+string dataHistNams = "data";
 
 
 //------------------------------------------------
@@ -268,6 +269,10 @@ TH2D* GetABCDplot(const TH2D* metVsDedxHist, const binning bestValues,
     title += ("_"+signalName.at((ESignal)setIter));
     if(simulateTagger) scale = taggerEfficiency;
   }
+  else if(dataType == kData){
+    title += "_Data";
+    if(simulateTagger) scale = taggerFakeRate;
+  }
   else{
     title += "_Backgrounds";
     if(simulateTagger) scale = taggerFakeRate;
@@ -334,12 +339,12 @@ TH2D* GetMetVsDedxHist(const EventSet &events, xtracks::EDataType dataType, int 
 {
   TH2D *hist = new TH2D("metVsDedx","metVsDedx",1000, 0.0, 100.0, 1000, 0, 10000);
   
-  if(dataType == xtracks::kBackground){
-    for(EBackground iBck : backgrounds){
-      if(!config.runBackground[iBck]) continue;
-      
-      for(int year : years){
-        if(!config.params["load_"+to_string(year)]) continue;
+  for(int year : years){
+    if(!config.params["load_"+to_string(year)]) continue;
+    
+    if(dataType == xtracks::kBackground){
+      for(EBackground iBck : backgrounds){
+        if(!config.runBackground[iBck]) continue;
         
         for(int iEvent=0; iEvent<events.size(dataType, iBck, year); iEvent++){
           auto event = events.At(dataType, iBck, year, iEvent);
@@ -351,12 +356,24 @@ TH2D* GetMetVsDedxHist(const EventSet &events, xtracks::EDataType dataType, int 
           }
         }
       }
-    }
-  }
-  else if(dataType == xtracks::kSignal){
-    for(int year : years){
-      if(!config.params["load_"+to_string(year)]) continue;
       
+    }
+    else if(dataType == kData){
+      for(EData iData : datas){
+        if(!config.runData[iData]) continue;
+        
+        for(int iEvent=0; iEvent<events.size(dataType, iData, year); iEvent++){
+          auto event = events.At(dataType, iData, year, iEvent);
+          
+          for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
+            auto track = event->GetTrack(iTrack);
+            //          hist->Fill(track->GetMinDedx(), event->GetMetNoMuPt(), event->GetWeight());
+            hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPt(), event->GetWeight());
+          }
+        }
+      }
+    }
+    else if(dataType == xtracks::kSignal){
       for(int iEvent=0;iEvent<events.size(dataType, setIter, year);iEvent++){
         auto event = events.At(dataType, setIter, year, iEvent);
         
@@ -366,6 +383,7 @@ TH2D* GetMetVsDedxHist(const EventSet &events, xtracks::EDataType dataType, int 
           hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPt(), event->GetWeight());
         }
       }
+      
     }
   }
   return hist;
@@ -440,8 +458,10 @@ TGraphErrors* GetRatioGraph(const TH2D *metVsDedxHistBackground, const binning b
  \param bins Tuple of vectors with bin possitions for MET and dE/dx, respectively
  \param outputPath Path to which all histograms will be saved
  */
-void drawAndSaveABCDplots(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &metVsDedxHistsSignal,
-                          const binning bins, string outputPath)
+void drawAndSaveABCDplots(const TH2D *metVsDedxHistBackground,
+                          const map<int, TH2D*> &metVsDedxHistsSignal,
+                          const binning bins, string outputPath,
+                          const TH2D *metVsDedxHistData = nullptr)
 {
   TCanvas *abcdCanvas = new TCanvas("ABCD", "ABCD", 1000, 1500);
   abcdCanvas->Divide(4,3);
@@ -452,9 +472,18 @@ void drawAndSaveABCDplots(const TH2D *metVsDedxHistBackground, const map<int, TH
   
   cout<<"Plotting background ABCD"<<endl;
   metVsDedxHistBackground->Write();
-  TH2D *abcdPlotBackgrounds = GetABCDplot(metVsDedxHistBackground, bins, xtracks::kBackground);
+  TH2D *abcdPlotBackgrounds = GetABCDplot(metVsDedxHistBackground, bins, kBackground);
   abcdPlotBackgrounds->SetMarkerSize(3.0);
   
+  if(metVsDedxHistData){
+    metVsDedxHistData->Write();
+    TH2D *abcdPlotData = GetABCDplot(metVsDedxHistData, bins, kData);
+    outFile->cd();
+    abcdPlotData->SetName(dataHistNams.c_str());
+    abcdPlotData->SetTitle(dataHistNams.c_str());
+    abcdPlotData->Write();
+  }
+    
   TCanvas *ratioCanvas = new TCanvas("Ratio", "Ratio", 800, 600);
   ratioCanvas->cd();
   
@@ -743,7 +772,11 @@ int main(int argc, char* argv[])
   
   // Load sll events with initial cuts only
   EventSet events;
-  string prefix = "after_L"+to_string_with_precision(config.params["cuts_level"], 0)+"/"+config.category+"/";
+  string prefix = "";
+  if(config.secondaryCategory == "Wmunu") prefix += "Wmunu/";
+  if(config.secondaryCategory == "Zmumu") prefix += "Zmumu/";
+  
+  prefix += "after_L"+to_string_with_precision(config.params["cuts_level"], 0)+"/"+config.category+"/";
   events.LoadEventsFromFiles(prefix);
   
   // Create histograms with number of events for each MET-dE/dx bin
@@ -752,15 +785,17 @@ int main(int argc, char* argv[])
   
 //  runBinningScan(metVsDedxHistBackground, metVsDedxHistsSignal);
   
-  produceLimits(metVsDedxHistBackground, metVsDedxHistsSignal);
+//  produceLimits(metVsDedxHistBackground, metVsDedxHistsSignal);
 
 //  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, {{400},{3.0, 3.1}} , "results/abcd_plots_debug.root");
   
-   
+  
+  TH2D *metVsDedxHistData = GetMetVsDedxHist(events, kData);
+  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, bestValues[kWino_M_1000_cTau_20] ,
+                       "results/abcd_plots_Wmunu.root", metVsDedxHistData);
+  
+  
   theApp->Run();
   return 0;
 }
-
-
-
 

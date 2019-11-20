@@ -486,8 +486,8 @@ const map<EData, map<int, pair<string, vector<string>>>> inFileNameData = {
       {"A/"}}},
   }},
   { kControlRegion, {
-    { 2017, {"",
-      {}}},
+    { 2017, {"Data-CR/MET_Run2018",
+      {"A/"}}},
     { 2018, {"Data-CR/MET_Run2018",
       {"A/"}}},
   }},
