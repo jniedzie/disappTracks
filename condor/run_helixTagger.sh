@@ -36,6 +36,22 @@ elif [ $2 -eq 6 ];
 then
   configPath="configs/helixTaggerNoMissing.md"
   outputPath="afterHelixTagging_noMissing"
+elif [ $2 -eq 7 ];
+then
+  configPath="configs/helixTaggerNoNoise.md"
+  outputPath="afterHelixTagging_noNoise"
+elif [ $2 -eq 8 ];
+then
+  configPath="configs/helixTaggerNoNoiseBkg.md"
+  outputPath="afterHelixTagging_noNoise"
+elif [ $2 -eq 9 ];
+then
+  configPath="configs/helixTaggerLowSeedChiBkg.md"
+  outputPath="afterHelixTagging_lowSeedChi"
+elif [ $2 -eq 10 ];
+then
+  configPath="configs/helixTaggerLowTrackChiBkg.md"
+  outputPath="afterHelixTagging_lowTrackChi"
 fi
 
 echo "Im in `pwd`"

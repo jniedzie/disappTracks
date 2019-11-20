@@ -13,6 +13,8 @@ max_N_events_signal:  5
 
 include_endcaps:              0
 
+cut_noise_hits: 1
+
 ### Should events after processing be saved on disk:
 save_events:  1
 

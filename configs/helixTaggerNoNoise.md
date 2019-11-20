@@ -8,10 +8,11 @@ analysis_category: all
 
 verbosity_level:  1
 
-### Limit number of events loaded (-1 means load all available)
-max_N_events_signal:  5
+### Limit number of events loaded:
+max_N_events_signal: 1000
 
-include_endcaps:              0
+include_endcaps: 0
+
 cut_noise_hits: 1
 
 ### Should events after processing be saved on disk:
@@ -34,7 +35,7 @@ seed_last_hit_max_delta_phi:       0.5
 seed_last_hit_max_delta_z:          200
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             0.0011
+track_max_chi2:                             0.011
 
 next_point_min_delta_phi:             -0.6
 next_point_max_delta_phi:             1.5
