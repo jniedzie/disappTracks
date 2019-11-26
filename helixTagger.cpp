@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
   EventSet events;
   
   int eventOffset   = 0;
-  string outputPath = "afterHelixTagging";
+  string outputPath = cutLevel+"afterHelixTagging";
   int maxEvents     = config.params["max_N_events_signal"];
   
   if(argc == 5){

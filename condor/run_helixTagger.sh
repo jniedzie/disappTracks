@@ -52,6 +52,19 @@ elif [ $2 -eq 10 ];
 then
   configPath="configs/helixTaggerLowTrackChiBkg.md"
   outputPath="afterHelixTagging_lowTrackChi"
+elif [ $2 -eq 11 ];
+then
+  configPath="configs/helixTagger3layers.md"
+  outputPath="after_L1/3-layers/afterHelixTagging"
+elif [ $2 -eq 12 ];
+then
+  configPath="configs/helixTagger4layers.md"
+  outputPath="after_L1/4-layers/afterHelixTagging"
+elif [ $2 -eq 13 ];
+then
+  configPath="configs/helixTagger5-6layers.md"
+  outputPath="after_L1/5-6-layers/afterHelixTagging"
+
 fi
 
 echo "Im in `pwd`"

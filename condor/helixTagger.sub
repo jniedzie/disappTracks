@@ -1,8 +1,8 @@
 executable 		= run_helixTagger.sh
-arguments	        = $(ProcId) 6
+arguments	        = $(ProcId) 13
 output                	= output/$(ClusterId).$(ProcId).out
 error                 	= error/$(ClusterId).$(ProcId).err
 log                   	= log/$(ClusterId).log
 requirements 		= (OpSysAndVer =?= "CentOS7")
 +JobFlavour = "tomorrow"
-queue 1000
+queue 2000
