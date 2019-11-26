@@ -32,7 +32,7 @@ var(_var)
     background.push_back(shared_ptr<TH1D>(new TH1D(histTitle.c_str(), histTitle.c_str(), nBins,min,max)));
   }
   for(EData iData : datas){
-    string histTitle = title+" (data "+dataTitle[iData]+")";
+    string histTitle = title+" (data "+dataTitle.at(iData)+")";
     data.push_back(shared_ptr<TH1D>(new TH1D(histTitle.c_str(), histTitle.c_str(), nBins,min,max)));
   }
 }
@@ -91,7 +91,7 @@ void HistSet::FillFromEventsPerLayer(shared_ptr<EventSet> events)
   for(EData iData : datas){
     vector<shared_ptr<TH1D>> dataVector;
     for(int iDetId=0;iDetId<nLayers;iDetId++){
-      string histTitle = title + "_subDet["+to_string(iDetId)+"]_data_"+ dataTitle[iData];
+      string histTitle = title + "_subDet["+to_string(iDetId)+"]_data_"+ dataTitle.at(iData);
       auto histData = shared_ptr<TH1D>(new TH1D(histTitle.c_str(),histTitle.c_str(),nBins,min,max));
       
       Fill(histData,events,xtracks::kData,iData,iDetId);
@@ -239,9 +239,9 @@ void HistSet::Draw(TCanvas *c1, int pad)
     if(!config.runBackground[iBck]) continue;
     leg->AddEntry(&*background[iBck],Form("Background %s",backgroundTitle.at(iBck).c_str()),"lp");
   }
-  for(int iData=0;iData<(int)data.size();iData++){
+  for(EData iData : datas){
     if(!config.runData[iData]) continue;
-    leg->AddEntry(&*data[iData],Form("Data  %s",dataTitle[iData].c_str()),"lp");
+    leg->AddEntry(&*data[iData],Form("Data  %s",dataTitle.at(iData).c_str()),"lp");
   }
   
   c1->cd(pad);
@@ -340,9 +340,9 @@ void HistSet::DrawPerLayer()
     if(!config.runBackground[iBck]) continue;
     leg->AddEntry(&*backgroundPerLayer[iBck][1],Form("Background %s",backgroundTitle.at(iBck).c_str()),"lp");
   }
-  for(int iData=0;iData<(int)dataPerLayer.size();iData++){
+  for(EData iData : datas){
     if(!config.runData[iData]) continue;
-    leg->AddEntry(&*dataPerLayer[iData][1],Form("Data %s",dataTitle[iData].c_str()),"lp");
+    leg->AddEntry(&*dataPerLayer[iData][1],Form("Data %s",dataTitle.at(iData).c_str()),"lp");
   }
   TCanvas *c1 = new TCanvas(title.c_str(),title.c_str(),2880,1800);
   
@@ -374,7 +374,7 @@ void HistSet::DrawPerLayer()
       backgroundPerLayer[iBck][iDetId]->SetFillColorAlpha(BackColor((EBackground)iBck), fillOpacity);
       backgroundPerLayer[iBck][iDetId]->Scale(1/backgroundPerLayer[iBck][iDetId]->Integral());
     }
-    for(int iData=0;iData<(int)dataPerLayer.size();iData++){
+    for(EData iData : datas){
       if(!config.runData[iData]) continue;
       
       dataPerLayer[iData][iDetId]->SetLineColor(DataColor((EData)iData));

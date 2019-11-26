@@ -240,7 +240,7 @@ void EventSet::PrintYields() const
       
       for(EData iData : datas){
         if(!config.runData[iData]) continue;
-        cout<<dataTitle[iData]<<"\tsize:\t";
+        cout<<dataTitle.at(iData)<<"\tsize:\t";
         cout<<weightedSize(xtracks::kData, iData, year)<<"\n";
       }
     }
@@ -257,7 +257,7 @@ void EventSet::PrintYields() const
     
     for(EData iData : datas){
       if(!config.runData[iData]) continue;
-      cout<<dataTitle[iData]<<"\t(M-B)/sqrt(M):\t";
+      cout<<dataTitle.at(iData)<<"\t(M-B)/sqrt(M):\t";
       cout<<(weightedSize(xtracks::kData, iData, year)-nBackgroundTotal)/sqrt(weightedSize(xtracks::kData, iData, year))<<endl;
     }
     
@@ -399,7 +399,7 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
         }
       }
       
-      Log(1)<<"Cut-through for data sample: "<<dataTitle[iData]<<"\n";
+      Log(1)<<"Cut-through for data sample: "<<dataTitle.at(iData)<<"\n";
       int iter=0;
       for(int nEventsPassing : *cutReasons){
         if(nEventsPassing!=0) Log(1)<<nEventsPassing<<" events passing cut "<<iter++<<"\n";

@@ -49,7 +49,7 @@ void printDetails(const EventSet &events)
       for(EData iData : datas){
         if(!config.runData[iData]) continue;
         
-        cout<<"Data events in "<<dataTitle[iData]<<":"<<endl;
+        cout<<"Data events in "<<dataTitle.at(iData)<<":"<<endl;
         for(int iEvent=0; iEvent<events.size(xtracks::kData, iData, year); iEvent++){
           events.At(xtracks::kData, iData, year, iEvent)->Print();
         }
@@ -93,7 +93,7 @@ void saveSurvivingEvents(const EventSet &events)
       for(int year : years){
         if(!config.params["load_"+to_string(year)]) continue;
         
-        cout<<"Data events surviving cuts in "<<dataTitle[iData]<<":"<<events.size(xtracks::kData, iData, year)<<endl;
+        cout<<"Data events surviving cuts in "<<dataTitle.at(iData)<<":"<<events.size(xtracks::kData, iData, year)<<endl;
         for(int iEvent=0; iEvent<events.size(xtracks::kData, iData, year); iEvent++){
           auto event = events.At(xtracks::kData, iData, year, iEvent);
           int runNumber = event->GetRunNumber();
