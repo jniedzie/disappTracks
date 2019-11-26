@@ -192,11 +192,32 @@ enum ESignal{
 };
 
 constexpr initializer_list<ESignal> signals = {
-  kWino_M_300_cTau_3, kWino_M_300_cTau_10, kWino_M_300_cTau_30, kWino_M_500_cTau_10, kWino_M_500_cTau_20,
-  kWino_M_650_cTau_10, kWino_M_650_cTau_20, kWino_M_800_cTau_10, kWino_M_800_cTau_20, kWino_M_1000_cTau_10,
-  kWino_M_1000_cTau_20, kTaggerSignalNoPU, kTaggerBackgroundNoPU, kTaggerSignalWithPU, kTaggerBackgroundWithPU,
-  kChargino300_1, kChargino300_10, kChargino400_1, kChargino500_1, kChargino500_10, kChargino600_10,
-  kChargino700_10, kChargino700_30, kChargino800_10, kChargino800_30, kChargino900_30
+ kWino_M_300_cTau_3,
+  kWino_M_300_cTau_10,
+  kWino_M_300_cTau_30,
+  kWino_M_500_cTau_10,
+  kWino_M_500_cTau_20,
+  kWino_M_650_cTau_10,
+  kWino_M_650_cTau_20,
+  kWino_M_800_cTau_10,
+  kWino_M_800_cTau_20,
+  kWino_M_1000_cTau_10,
+  kWino_M_1000_cTau_20,
+  kTaggerSignalNoPU,
+  kTaggerBackgroundNoPU,
+  kTaggerSignalWithPU,
+  kTaggerBackgroundWithPU,
+  kChargino300_1,
+  kChargino300_10,
+  kChargino400_1,
+  kChargino500_1,
+  kChargino500_10,
+  kChargino600_10,
+  kChargino700_10,
+  kChargino700_30,
+  kChargino800_10,
+  kChargino800_30,
+  kChargino900_30,
 };
 
 // Names of background, signal and data samples
@@ -306,13 +327,17 @@ const map<ESignal, string> signalShortName = {
   {kChargino900_30, "Chargino_900_30"  },
 };
 
-const vector<string> dataTitle = {
-  "2017B",
-  "2018A",
-  "2018A-CR",
+enum EData{
+  kSignalRegion,
+  kControlRegion
 };
 
+constexpr initializer_list<EData> datas = { kSignalRegion, kControlRegion };
 
+const map<EData, string> dataTitle = {
+  {kControlRegion, "CR"},
+  {kSignalRegion, "SR"},
+};
 
 const vector<int> years = { 2017, 2018 };
 
@@ -378,7 +403,7 @@ const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
     { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"300_cTau_3/"}}},
   }},
   { kWino_M_300_cTau_10, {
-    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"300_cTau_10/"}}},
+    { 2017, {lxplus ? "SIG-SR-old-Hadded/" : "SIG-SR/Wino_M_", {"300GeV10cm/"}}},
     { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"300_cTau_10/"}}},
   }},
   { kWino_M_300_cTau_30, {
@@ -434,56 +459,57 @@ const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
     { 2018, {"taggerStudy/", {"background/withPU/"}}},
   }},
   { kChargino300_1, {
-    { 2017, {"signals/", {"chargino300GeV_ctau1cm/"}}},
-    { 2018, {"signals/", {"chargino300GeV_ctau1cm/"}}},
+    { 2017, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_300GeV1cm/"}}},
+    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_300GeV1cm/"}}},
   }},
   { kChargino300_10, {
-    { 2017, {"signals/", {"chargino300GeV_ctau10cm/"}}},
-    { 2018, {"signals/", {"chargino300GeV_ctau10cm/"}}},
+    { 2017, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_300GeV10cm/"}}},
+    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_300GeV10cm/"}}},
+  }},
+  { kChargino400_1, {
+    { 2017, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_400GeV1cm/"}}},
+    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_400GeV1cm/"}}},
   }},
   { kChargino500_10, {
-    { 2017, {"signals/", {"chargino500GeV_ctau10cm/"}}},
-    { 2018, {"signals/", {"chargino500GeV_ctau10cm/"}}},
+    { 2017, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_500GeV10cm/"}}},
+    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_500GeV10cm/"}}},
+  }},
+  { kChargino500_1, {
+    { 2017, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_500GeV1cm/"}}},
+    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_500GeV1cm/"}}},
   }},
   { kChargino600_10, {
-    { 2017, {"signals/", {"chargino600GeV_ctau10cm/"}}},
-    { 2018, {"signals/", {"chargino600GeV_ctau10cm/"}}},
+    { 2017, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_600GeV10cm/"}}},
+    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_600GeV10cm/"}}},
   }},
   { kChargino700_10, {
-    { 2017, {"signals/", {"chargino700GeV_ctau10cm/"}}},
-    { 2018, {"signals/", {"chargino700GeV_ctau10cm/"}}},
+    { 2017, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_700GeV10cm/"}}},
+    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_700GeV10cm/"}}},
   }},
   { kChargino700_30, {
-    { 2017, {"signals/", {"chargino700GeV_ctau30cm/"}}},
-    { 2018, {"signals/", {"chargino700GeV_ctau30cm/"}}},
+    { 2017, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_700GeV30cm/"}}},
+    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_700GeV30cm/"}}},
   }},
   { kChargino800_10, {
-    { 2017, {"signals/", {"chargino800GeV_ctau10cm/"}}},
-    { 2018, {"signals/", {"chargino800GeV_ctau10cm/"}}},
+    { 2017, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_800GeV10cm/"}}},
+    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_800GeV10cm/"}}},
   }},
   { kChargino800_30, {
-    { 2017, {"signals/", {"chargino800GeV_ctau30cm/"}}},
-    { 2018, {"signals/", {"chargino800GeV_ctau30cm/"}}},
+    { 2017, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_800GeV30cm/"}}},
+    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_800GeV30cm/"}}},
   }},
   { kChargino900_30, {
-    { 2017, {"signals/", {"chargino900GeV_ctau30cm/"}}},
-    { 2018, {"signals/", {"chargino900GeV_ctau30cm/"}}},
+    { 2017, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_900GeV30cm/"}}},
+    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_900GeV30cm/"}}},
   }},
 };
-
-enum EData{
-  kSignalRegion,
-  kControlRegion
-};
-
-constexpr initializer_list<EData> datas = { kSignalRegion, kControlRegion };
 
 const map<EData, map<int, pair<string, vector<string>>>> inFileNameData = {
   { kSignalRegion, {
-    { 2017, {"Data-SR/tree_MET_Run2017",
-      {"B_31Mar2018/"}}},
-    { 2018, {"Data-SR/MET_Run2018",
-      {"A/"}}},
+    { 2017, {lxplus ? "6Mar2019-Hadded/DATA-SR-2017/MET_Run2017" : "Data-SR/tree_MET_Run2017",
+      {"B_31Mar2018/", "C_31Mar2018/", "D_31Mar2018/", "E_31Mar2018/", "F_31Mar2018/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-DATA-SR-2018-Hadded/MET_Run2018" : "Data-SR/MET_Run2018",
+      {"A_17Sep2018/", "B_17Sep2018/", "C_17Sep2018/", "D_PromptReco_v2/"}}},
   }},
   { kControlRegion, {
     { 2017, {"Data-CR/MET_Run2018",
@@ -516,6 +542,7 @@ const map<ESignal, double> signalCrossSectionTwoTracks = { // (fb)
   { kChargino500_10, 22    },
   { kChargino600_10, 9.5   },
   { kChargino700_10, 4.4   },
+  { kChargino700_30, 4.4   },
   { kChargino800_10, 2.2   },
   { kChargino800_30, 1.15  },
   { kChargino900_30, 1.15  },
@@ -544,6 +571,7 @@ const map<ESignal, double> signalCrossSectionOneTrack = { // (fb)
   { kChargino500_10, 46   },
   { kChargino600_10, 20   },
   { kChargino700_10, 9.5  },
+  { kChargino700_30, 9.5  },
   { kChargino800_10, 4.8  },
   { kChargino800_30, 4.8  },
   { kChargino900_30, 2.5  },
