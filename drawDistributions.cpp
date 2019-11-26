@@ -6,7 +6,7 @@
 #include <TApplication.h>
 
 string configPath = "configs/analysis.md";
-
+ 
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
@@ -15,9 +15,13 @@ int main(int argc, char* argv[])
   config = ConfigManager(configPath);
   EventSet events;
   
-  string inputPrefix;
-  if(config.params["cuts_level"] == 0)       inputPrefix = "after_L0/";
-  else if(config.params["cuts_level"] == 1)  inputPrefix = "after_L1/"+config.category;
+  string inputPrefix = "";
+  
+  if(config.secondaryCategory == "Wmunu") inputPrefix += "Wmunu/";
+  if(config.secondaryCategory == "Zmunu") inputPrefix += "Zmunu/";
+  
+  if(config.params["cuts_level"] == 0)       inputPrefix += "after_L0/";
+  else if(config.params["cuts_level"] == 1)  inputPrefix += "after_L1/"+config.category;
   else{
     cout<<"ERROR -- unknown cuts level: "<<config.params["cuts_level"]<<endl;
     exit(0);

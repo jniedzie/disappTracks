@@ -13,10 +13,94 @@ string suffix = "";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 
+TH2D *vertexX, *vertexY, *vertexZ, *vertexXbest, *vertexYbest, *vertexZbest;
+TH2D *ptHist, *ptHistBest, *pzHist, *pzHistBest;
+
+TH1D *r0, *r0best, *ar, *arBest, *s0, *s0best, *bs, *bsBest ;
+
+TH1D *vertexXRes, *vertexXResBest, *vertexYRes, *vertexYResBest, *vertexZRes, *vertexZResBest, *momentumTRes, *momentumTResBest, *momentumZRes, *momentumZResBest;
+
+TH1D *pionPtHist = new TH1D("pionPt", "pionPt", 100, 0, 1000);
+
 double getPz(double R0, double s0, double q)
 {
   double c = cos(TMath::Pi()/2-atan2(s0, q*R0));
   return c/sqrt(c*c-1)*3*R0*solenoidField/10;
+}
+
+void fillSingleHists(const Helix &helix, bool best)
+{
+  double radius = helix.GetRadius(helix.GetTmin());
+  double slope = helix.GetSlope(helix.GetTmin());
+  
+  r0->Fill(radius);
+  ar->Fill(helix.GetRadiusFactor());
+  s0->Fill(slope);
+  bs->Fill(helix.GetSlopeFactor());
+
+  if(best){
+    r0best->Fill(radius);
+    arBest->Fill(helix.GetRadiusFactor());
+    s0best->Fill(slope);
+    bsBest->Fill(helix.GetSlopeFactor());
+  }
+  else{
+    r0->Fill(radius);
+    ar->Fill(helix.GetRadiusFactor());
+    s0->Fill(slope);
+    bs->Fill(helix.GetSlopeFactor());
+  }
+}
+
+void fillDoubleHists(const Helix &recHelix, const Helix &genHelix, bool best)
+{
+  if(recHelix.GetRadius(recHelix.GetTmin()) > 800 ||
+     recHelix.GetRadius(recHelix.GetTmin()) < 50) return;
+  
+  double genPt = sqrt(pow(genHelix.GetMomentum().GetX(), 2) + pow(genHelix.GetMomentum().GetY(), 2));
+  double genPz = genHelix.GetMomentum().GetZ();
+  double genVx = genHelix.GetVertex()->GetX();
+  double genVy = genHelix.GetVertex()->GetY();
+  double genVz = genHelix.GetVertex()->GetZ();
+  
+  
+  double recSlope = recHelix.GetSlope(recHelix.GetTmin());
+  
+  double recPt = GetPtInMagField(recHelix.GetRadius(recHelix.GetTmin()), solenoidField);
+//  double recPt = GetPtInMagField(recHelix.GetRadius(-recHelix.GetTmin()), solenoidField);
+  
+  double recPz = getPz(recHelix.GetRadius(recHelix.GetTmin()), recSlope, recHelix.GetCharge());
+  double recVx = recHelix.GetVertex()->GetX();
+  double recVy = recHelix.GetVertex()->GetY();
+  double recVz = recHelix.GetVertex()->GetZ();
+  
+  
+  if(best){
+    vertexXbest->Fill(genVx, recVx);
+    vertexYbest->Fill(genVy, recVy);
+    vertexZbest->Fill(genVz, recVz);
+    ptHistBest->Fill(genPt, recPt);
+    pzHistBest->Fill(genPz, recPz);
+    
+    vertexXResBest->Fill((recVx-genVx));
+    vertexYResBest->Fill((recVy-genVy));
+    vertexZResBest->Fill((recVz-genVz));
+    momentumTResBest->Fill((recPt-genPt)/genPt);
+    momentumZResBest->Fill((recPz-genPz)/genPz);
+  }
+  else{
+    vertexX->Fill(genVx, recVx);
+    vertexY->Fill(genVy, recVy);
+    vertexZ->Fill(genVz, recVz);
+    ptHist->Fill(genPt, recPt);
+    pzHist->Fill(genPz, recPz);
+    
+    vertexXRes->Fill((recVx-genVx));
+    vertexYRes->Fill((recVy-genVy));
+    vertexZRes->Fill((recVz-genVz));
+    momentumTRes->Fill((recPt-genPt)/genPt);
+    momentumZRes->Fill((recPz-genPz)/genPz);
+  }
 }
 
 void prepareHist(TH1D *hist, int color, int rebin)
@@ -33,34 +117,48 @@ void prepareHist(TH1D *hist, int color, int rebin)
 
 void FillMonitors(const EventSet &events)
 {
-  TH2D *vertexX = new TH2D("pionVertexX", "pionVertexX", 100, -1000, 1000, 100, -1000, 1000);
-  TH2D *vertexY = new TH2D("pionVertexY", "pionVertexY", 100, -1000, 1000, 100, -1000, 1000);
-  TH2D *vertexZ = new TH2D("pionVertexZ", "pionVertexZ", 100, -1000, 1000, 100, -1000, 1000);
+  vertexX = new TH2D("pionVertexX", "pionVertexX", 100, -1000, 1000, 100, -1000, 1000);
+  vertexY = new TH2D("pionVertexY", "pionVertexY", 100, -1000, 1000, 100, -1000, 1000);
+  vertexZ = new TH2D("pionVertexZ", "pionVertexZ", 100, -1000, 1000, 100, -1000, 1000);
   
-  TH2D *vertexXbest = new TH2D("pionVertexXbest", "pionVertexXbest", 100, -1000, 1000, 100, -1000, 1000);
-  TH2D *vertexYbest = new TH2D("pionVertexYbest", "pionVertexYbest", 100, -1000, 1000, 100, -1000, 1000);
-  TH2D *vertexZbest = new TH2D("pionVertexZbest", "pionVertexZbest", 100, -1000, 1000, 100, -1000, 1000);
+  vertexXbest = new TH2D("pionVertexXbest", "pionVertexXbest", 100, -1000, 1000, 100, -1000, 1000);
+  vertexYbest = new TH2D("pionVertexYbest", "pionVertexYbest", 100, -1000, 1000, 100, -1000, 1000);
+  vertexZbest = new TH2D("pionVertexZbest", "pionVertexZbest", 100, -1000, 1000, 100, -1000, 1000);
   
-  TH2D *ptHist      = new TH2D("ptHist"     ,  "ptHist"   , 100, 0, 1000, 100, 0, 1000);
-  TH2D *ptHistBest  = new TH2D("ptHistBest" , "ptHistBest", 100, 0, 1000, 100, 0, 1000);
+  ptHist      = new TH2D("ptHist"     ,  "ptHist"   , 100, 0, 1000, 100, 0, 1000);
+  ptHistBest  = new TH2D("ptHistBest" , "ptHistBest", 100, 0, 1000, 100, 0, 1000);
   
-  TH2D *pzHist      = new TH2D("pzHist"     ,  "pzHist"   , 100, -1000, 1000, 100, -1000, 1000);
-  TH2D *pzHistBest  = new TH2D("pzHistBest" , "pzHistBest", 100, -1000, 1000, 100, -1000, 1000);
+  pzHist      = new TH2D("pzHist"     ,  "pzHist"   , 100, -1000, 1000, 100, -1000, 1000);
+  pzHistBest  = new TH2D("pzHistBest" , "pzHistBest", 100, -1000, 1000, 100, -1000, 1000);
   
-  TH1D *r0      = new TH1D("r0"     , "r0"    , 100, 0, 1000);
-  TH1D *r0best  = new TH1D("r0best" , "r0best", 100, 0, 1000);
+  r0      = new TH1D("r0"     , "r0"    , 100, 0, 1000);
+  r0best  = new TH1D("r0best" , "r0best", 100, 0, 1000);
   
-  TH1D *ar      = new TH1D("ar"     , "ar"    , 100, 0, 500);
-  TH1D *arBest  = new TH1D("arBest" , "arBest", 100, 0, 500);
+  ar      = new TH1D("ar"     , "ar"    , 100, 0, 500);
+  arBest  = new TH1D("arBest" , "arBest", 100, 0, 500);
   
-  TH1D *s0      = new TH1D("s0"     , "s0"    , 100, 0, 1000);
-  TH1D *s0best  = new TH1D("s0best" , "s0best", 100, 0, 1000);
+  s0      = new TH1D("s0"     , "s0"    , 100, 0, 1000);
+  s0best  = new TH1D("s0best" , "s0best", 100, 0, 1000);
   
-  TH1D *bs      = new TH1D("bs"     , "bs"    , 100, -1000, 0);
-  TH1D *bsBest  = new TH1D("bsBest" , "bsBest", 100, -1000, 0);
+  bs      = new TH1D("bs"     , "bs"    , 100, -1000, 0);
+  bsBest  = new TH1D("bsBest" , "bsBest", 100, -1000, 0);
   
-  TH1D *vertexXRes      = new TH1D("vertexXRes"     , "vertexXRes"    , 40, -6, 6);
-  TH1D *vertexXResBest  = new TH1D("vertexXResBest" , "vertexXResBest", 40, -6, 6);
+  vertexXRes      = new TH1D("vertexXRes"     , "vertexXRes"    , 50, -50, 50);
+  vertexXResBest  = new TH1D("vertexXResBest" , "vertexXResBest", 50, -50, 50);
+  
+  vertexYRes      = new TH1D("vertexYRes"     , "vertexYRes"    , 50, -50, 50);
+  vertexYResBest  = new TH1D("vertexYResBest" , "vertexYResBest", 50, -50, 50);
+  
+  vertexZRes      = new TH1D("vertexZRes"     , "vertexZRes"    , 50, -50, 50);
+  vertexZResBest  = new TH1D("vertexZResBest" , "vertexZResBest", 50, -50, 50);
+  
+  momentumTRes      = new TH1D("momentumTRes"     , "momentumTRes"    , 60, -10, 10);
+  momentumTResBest  = new TH1D("momentumTResBest" , "momentumTResBest", 60, -10, 10);
+  
+  momentumZRes      = new TH1D("momentumZRes"     , "momentumZRes"    , 40, -60, 60);
+  momentumZResBest  = new TH1D("momentumZResBest" , "momentumZResBest", 40, -60, 60);
+  
+  pionPtHist = new TH1D("pionPt", "pionPt", 100, 0, 1000);
   
   for(ESignal iSig : signals){
     if(!config.runSignal[iSig]) continue;
@@ -72,84 +170,30 @@ void FillMonitors(const EventSet &events)
         auto event = events.At(dataType, iSig, year, iEvent);
         if(!event->WasTagged()) continue;
         
+        Helix bestHelix(Point(), Point(), 0);
+        
+        int maxNhitsOnHelix = -inf;
+        
         for(int iHelix=0; iHelix<event->GetNhelices(); iHelix++){
           auto helix = event->GetHelix(iHelix);
+          fillSingleHists(helix, false);
           
-          double radius = helix.GetRadius(helix.GetTmin());
-          double slope = helix.GetSlope(helix.GetTmin());
-          double pt = GetPtInMagField(radius, solenoidField);
-          double pz = getPz(radius, slope, helix.GetCharge());
-          double vx = helix.GetVertex()->GetX();
-          double vy = helix.GetVertex()->GetY();
-          double vz = helix.GetVertex()->GetZ();
-          
-          r0->Fill(radius);
-          ar->Fill(helix.GetRadiusFactor());
-          s0->Fill(slope);
-          bs->Fill(helix.GetSlopeFactor());
+          if((int)helix.GetPoints().size() > maxNhitsOnHelix){
+            maxNhitsOnHelix = (int)helix.GetPoints().size();
+            bestHelix = helix;
+          }
         }
+        
+        fillSingleHists(bestHelix, true);
         
         for(int iPion=0; iPion<event->GetGenPionHelices().size(); iPion++){
           auto pionHelix = event->GetGenPionHelices()[iPion];
-          
-          double bestHelixVertexX=inf;
-          double bestHelixVertexY=inf;
-          double bestHelixVertexZ=inf;
-          double bestPt=inf, bestPz=inf;
-          double bestR0=inf, bestAr=inf, bestS0=inf, bestBs=inf;
-          double bestVertexXres=inf;
-          
-          double pionPt = sqrt(pow(pionHelix.GetMomentum().GetX(), 2) +
-                               pow(pionHelix.GetMomentum().GetY(), 2));
-          double pionPz = pionHelix.GetMomentum().GetZ();
-          
-          int maxNhitsOnHelix = -inf;
+          fillDoubleHists(bestHelix, pionHelix, true);
           
           for(int iHelix=0; iHelix<event->GetNhelices(); iHelix++){
             auto helix = event->GetHelix(iHelix);
-            
-            double radius = helix.GetRadius(helix.GetTmin());
-            double slope = helix.GetSlope(helix.GetTmin());
-            double pt = GetPtInMagField(radius, solenoidField);
-            double pz = getPz(radius, slope, helix.GetCharge());
-            double vx = helix.GetVertex()->GetX();
-            double vy = helix.GetVertex()->GetY();
-            double vz = helix.GetVertex()->GetZ();
-            
-            vertexX->Fill(pionHelix.GetVertex()->GetX(), vx);
-            vertexY->Fill(pionHelix.GetVertex()->GetY(), vy);
-            vertexZ->Fill(pionHelix.GetVertex()->GetZ(), vz);
-            ptHist->Fill(pionPt, pt);
-            pzHist->Fill(pionPz, pz);
-   
-            vertexXRes->Fill((pionHelix.GetVertex()->GetX()-vx)/pionHelix.GetVertex()->GetX());
-            
-            if((int)helix.GetPoints().size() > maxNhitsOnHelix){
-              maxNhitsOnHelix = (int)helix.GetPoints().size();
-              
-              bestHelixVertexX = vx;
-              bestHelixVertexY = vy;
-              bestHelixVertexZ = vz;
-              bestPt = pt;
-              bestPz = pz;
-              bestR0 = helix.GetRadius(helix.GetTmin());
-              bestAr = helix.GetRadiusFactor();
-              bestS0 = helix.GetSlope(helix.GetTmin());
-              bestBs = helix.GetSlopeFactor();
-              bestVertexXres = (pionHelix.GetVertex()->GetX()-vx)/pionHelix.GetVertex()->GetX();
-            }
+            fillDoubleHists(helix, pionHelix, false);
           }
-          
-          vertexXbest->Fill(pionHelix.GetVertex()->GetX(), bestHelixVertexX);
-          vertexYbest->Fill(pionHelix.GetVertex()->GetY(), bestHelixVertexY);
-          vertexZbest->Fill(pionHelix.GetVertex()->GetZ(), bestHelixVertexZ);
-          ptHistBest->Fill(pionPt, bestPt);
-          pzHistBest->Fill(pionPz, bestPz);
-          r0best->Fill(bestR0);
-          arBest->Fill(bestAr);
-          s0best->Fill(bestS0);
-          bsBest->Fill(bestBs);
-          vertexXResBest->Fill(bestVertexXres);
         }
       }
     }
@@ -197,15 +241,52 @@ void FillMonitors(const EventSet &events)
   c1->cd(13); pzHist->Draw("colz");
   c1->cd(14); pzHistBest->Draw("colz");
 
-  c1->cd(15);
+  
+  TCanvas *c2 = new TCanvas("c2","c2",2880,1800);
+  c2->Divide(2,3);
+  
+  c2->cd(1);
   prepareHist(vertexXRes, kBlack, 1);
   vertexXRes->Fit("gaus");
   vertexXRes->Draw();
-  
   prepareHist(vertexXResBest, kMagenta, 1);
   vertexXResBest->Draw("same");
   
+  c2->cd(2);
+  prepareHist(vertexYRes, kBlack, 1);
+  vertexYRes->Fit("gaus");
+  vertexYRes->Draw();
+  prepareHist(vertexYResBest, kMagenta, 1);
+  vertexYResBest->Draw("same");
+  
+  c2->cd(3);
+  prepareHist(vertexZRes, kBlack, 1);
+  vertexZRes->Fit("gaus");
+  vertexZRes->Draw();
+  prepareHist(vertexZResBest, kMagenta, 1);
+  vertexZResBest->Draw("same");
+  
+  c2->cd(4);
+  prepareHist(momentumTRes, kBlack, 1);
+  momentumTRes->Fit("gaus");
+  momentumTRes->Draw();
+  prepareHist(momentumTResBest, kMagenta, 1);
+  momentumTResBest->Draw("same");
+  
+  c2->cd(5);
+  prepareHist(momentumZRes, kBlack, 1);
+  momentumZRes->Fit("gaus");
+  momentumZRes->Draw();
+  prepareHist(momentumZResBest, kMagenta, 1);
+  momentumZResBest->Draw("same");
+  
+  c2->cd(6);
+  pionPtHist->Draw();
+
+  
+  
   c1->Update();
+  c2->Update();
 }
 
 

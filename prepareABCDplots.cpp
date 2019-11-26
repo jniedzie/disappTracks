@@ -27,7 +27,7 @@ string outputPath = "results/abcd_optimization.txt";
 
 string afsPath = "/afs/cern.ch/work/j/jniedzie/private/disapp_tracks/combine/CMSSW_10_2_13/src/";
 
-bool simulateTagger = true;
+bool simulateTagger = false;
 //double taggerEfficiency = 0.595152; // no PU
 //double taggerFakeRate   = 0.119221;
 double taggerEfficiency = 0.852; // with PU
@@ -35,7 +35,7 @@ double taggerFakeRate   = 0.23;
 
 
 const int ratioRebin = 1;
-string sampleTag = "tagSim";
+string sampleTag = "_Wmunu";
 string backgroundHistNams = "background";
 string dataHistNams = "data";
 

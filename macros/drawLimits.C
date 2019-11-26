@@ -60,8 +60,8 @@ vector<tuple<string, int, int, string>> graphParamsByBinning = { // best in each
 vector<tuple<string, int, int, int, string>> graphParamsByCategory = { // best in each category
 // inFileName                                            color     width   style    title
 //  {"2-tracks"                     , kBlue      , 2, 1, "2 tracks"  },
-  {"2-tracks_extended", kBlue      , 2, 1, "2 tracks"  },
-  {"2-tracks_with2016", kBlue      , 2, 2, "2 tracks, with 2016"  },
+//  {"2-tracks_extended", kBlue      , 2, 1, "2 tracks"  },
+//  {"2-tracks_with2016", kBlue      , 2, 2, "2 tracks, with 2016"  },
   
 //  {"3x3_3-layers_notag_500_10"    , kGreen     , 2, 1, "3x3, 3 layers, no tagger"   },
 //  {"3x3_4-layers_notag_1000_10"   , kMagenta+2 , 2, 1, "3x3, 4 layers, no tagger"   },
@@ -69,25 +69,20 @@ vector<tuple<string, int, int, int, string>> graphParamsByCategory = { // best i
 //  {"allcategories_notag"          , kCyan+1    , 2, 1, "all categories, no tagger"  },
 //  {"allcategories_notag_run2" , kBlue     , 3, 2, "3x3, 3+4 layers, no tagger, Run 2" },
   
-//  {"3x3_3-layers_LH_notag_1000_20_extended"   , kGreen     , 2, 1, "3x3, 3 layers, no tagger, with bug"   },
-//  {"3x3_4-layers_LH_notag_800_20_extended"    , kMagenta+2 , 2, 1, "3x3, 4 layers, no tagger, with bug"   },
-//  {"3x3_5-6-layers_LH_notag_800_10_extended"  , kOrange+2  , 2, 1, "3x3, 5-6 layers, no tagger, with bug" },
-//  {"3x3_LH_notag_extended"                    , kCyan+1    , 2, 1, "all categories, no tagger, with bug"  },
-
-//  {"3x3_3-layers_noTag_1000_20_ext"   , kGreen     , 2, 1, "3x3, 3 layers, no tagger, ext" },
-//  {"3x3_4-layers_noTag_800_20_ext"    , kMagenta+2 , 2, 1, "3x3, 4 layers, no tagger, ext"   },
-//  {"3x3_5-6-layers_noTag_800_10_ext"  , kOrange+2  , 2, 1, "3x3, 5-6 layers, no tagger, ext" },
-//  {"3x3_noTag_ext"                    , kCyan+1    , 2, 1, "all categories, no tagger, ext"  },
+  {"3x3_3-layers_noTag_1000_20_ext"   , kGreen     , 2, 1, "3x3, 3 layers, no tagger" },
+  {"3x3_4-layers_noTag_800_20_ext"    , kMagenta+2 , 2, 1, "3x3, 4 layers, no tagger"   },
+  {"3x3_5-6-layers_noTag_800_10_ext"  , kOrange+2  , 2, 1, "3x3, 5-6 layers, no tagger" },
+  {"3x3_noTag_ext"                    , kCyan+1    , 2, 1, "all categories, no tagger"  },
   
 //  {"3x3_3-layers_noTag_1000_20"   , kGreen     , 2, 2, "3x3, 3 layers, no tagger" },
 //  {"3x3_4-layers_noTag_800_20"    , kMagenta+2 , 2, 2, "3x3, 4 layers, no tagger"   },
 //  {"3x3_5-6-layers_noTag_800_10"  , kOrange+2  , 2, 2, "3x3, 5-6 layers, no tagger" },
 //  {"3x3_noTag"                    , kCyan+1    , 2, 2, "all categories, no tagger"  },
   
-//  {"3x3_3-layers_tagSim_1000_20"   , kGreen     , 2, 1, "3x3, 3 layers, tagSim" },
-//  {"3x3_4-layers_tagSim_800_20"    , kMagenta+2 , 2, 1, "3x3, 4 layers, tagSim"   },
-//  {"3x3_5-6-layers_tagSim_800_10"  , kOrange+2  , 2, 1, "3x3, 5-6 layers, tagSim" },
-//  {"3x3_tagSim"                    , kCyan+1    , 2, 1, "all categories, tagSim"  },
+  {"3x3_3-layers_tagSim_1000_20"   , kGreen     , 2, 2, "3x3, 3 layers, tagSim" },
+  {"3x3_4-layers_tagSim_800_20"    , kMagenta+2 , 2, 2, "3x3, 4 layers, tagSim"   },
+  {"3x3_5-6-layers_tagSim_800_10"  , kOrange+2  , 2, 2, "3x3, 5-6 layers, tagSim" },
+  {"3x3_tagSim"                    , kCyan+1    , 2, 2, "all categories, tagSim"  },
   
   
 //  {"3x3_4-layers_LH_noTag_fix_800_20", kMagenta+2 , 2, 2, "3x3, 4 layers, no tagger, LH, fixed"},
@@ -215,8 +210,13 @@ void drawLimits()
       graph->SetLineColor(color);
       graph->SetLineWidth(2);
       graph->SetLineStyle(style);
-      graph->Draw("Lsame");
+      graph->Draw(first ? "AL" : "Lsame");
       leg->AddEntry(graph, (binning+", "+category+", no tagger, "+sampleName).c_str(), "L");
+      if(first){
+        setFirstGraphOptions(graph);
+        drawLines();
+        first = false;
+      }
     }
   }
 
@@ -228,8 +228,13 @@ void drawLimits()
       graph->SetLineColor(color);
       graph->SetLineWidth(2);
       graph->SetLineStyle(style);
-      graph->Draw("Lsame");
+      graph->Draw(first ? "AL" : "Lsame");
       leg->AddEntry(graph, title.c_str(), "L");
+      if(first){
+        setFirstGraphOptions(graph);
+        drawLines();
+        first = false;
+      }
     }
   }
   
@@ -241,8 +246,13 @@ void drawLimits()
       graph->SetLineColor(color);
       graph->SetLineWidth(width);
       graph->SetLineStyle(style);
-      graph->Draw("Lsame");
+      graph->Draw(first ? "AL" : "Lsame");
       leg->AddEntry(graph, title.c_str(), "L");
+      if(first){
+        setFirstGraphOptions(graph);
+        drawLines();
+        first = false;
+      }
     }
   }
   
