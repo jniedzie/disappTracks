@@ -112,6 +112,7 @@ bool TrackProcessor::IsPassingCut(const shared_ptr<Track> track,
   // check basic kinematical variables
   if(cut.pt.IsOutside(track->pt)) return false;
   if(cut.eta.IsOutside(track->eta)) return false;
+  if(cut.vetoCracks && fabs(track->eta) > 1.442 && fabs(track->eta) < 1.566) return false;
   
   // check calo energy
   if(cut.caloEmEnergy.IsOutside(track->caloEmEnergy))  return false;

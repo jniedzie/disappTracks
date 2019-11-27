@@ -8,6 +8,7 @@ TrackCut::TrackCut() :
 
 pt(range<double>()),
 eta(range<double>()),
+vetoCracks(false),
 caloEmEnergy(range<double>()),
 caloHadEnergy(range<double>()),
 relativeIsolation(range<double>()),
@@ -37,6 +38,7 @@ TrackCut::TrackCut(const TrackCut &c)
 {
   pt                     = c.pt;
   eta                    = c.eta;
+  vetoCracks             = c.vetoCracks;
   caloEmEnergy           = c.caloEmEnergy;
   caloHadEnergy          = c.caloHadEnergy;
   relativeIsolation      = c.relativeIsolation;

@@ -59,38 +59,28 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
   // Level 1 cuts
   //----------------------------------------------------------------------------
  
+  
+  trackCut.SetCaloEmEnergy(range<double>(0.0, 2.0));
+//  trackCut.SetVetoCracks(true);
+  
   if(config.category == "2-tracks"){
     eventCut.SetNtracks(range<int>(2,2));
     trackCut.SetNlayers(range<int>(2,6));
-    
-    trackCut.SetCaloEmEnergy(range<double>(0.0, 2.0));
   }
   else if(config.category == "3-layers"){
     eventCut.SetNtracks(range<int>(1,1));
     trackCut.SetNlayers(range<int>(3, 3));
-    
-    trackCut.SetCaloEmEnergy(range<double>(0.0, 2.0));
-//    trackCut.SetTrackMetDeltaPhi(range<double>(-TMath::Pi()/2,TMath::Pi()/2));
-//    trackCut.SetTrackMetDeltaPhi(range<double>(-2.5,2.5));
-//    trackCut.SetDedxPerCluster(range<double>(3.0,inf));
   }
   else if(config.category == "4-layers"){
     eventCut.SetNtracks(range<int>(1,1));
     trackCut.SetNlayers(range<int>(4, 4));
-
-    trackCut.SetCaloEmEnergy(range<double>(0.0, 2.0));
-//    trackCut.SetTrackMetDeltaPhi(range<double>(-TMath::Pi()/2,TMath::Pi()/2));
-//    trackCut.SetDedxPerCluster(range<double>(3.0,inf));
   }
   else if(config.category == "5-6-layers"){
-      eventCut.SetNtracks(range<int>(1,1));
-      trackCut.SetNlayers(range<int>(5, 6));
-      trackCut.SetCaloEmEnergy(range<double>(0.0, 2.0));
+    eventCut.SetNtracks(range<int>(1,1));
+    trackCut.SetNlayers(range<int>(5, 6));
   }
   else if(config.category == "all"){
     eventCut.SetNtracks(range<int>(1,inf));
-    trackCut.SetCaloEmEnergy(range<double>(0.0, 2.0));
-//    eventCut.SetMetPt(range<double>(700, inf));
   }
   
   if(config.params["cuts_level"] == 1) return;
