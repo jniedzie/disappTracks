@@ -10,11 +10,30 @@
 #include "PerformanceMonitor.hpp"
 
 string configPath = "configs/taggerPlotting.md";
-string cutLevel = "afterHelixTagging";
-string suffix = "_noNoise";
+string suffix = "";
+
+ESignal signalDataset     = kChargino500_10;
+ESignal backgroundDataset = kTaggerBackgroundWithPU;
 
 xtracks::EDataType dataType = xtracks::kSignal;
 
+
+
+/// Returns path prefix for cuts level and category selected in the config file
+string getPathPrefix()
+{
+  string prefix = "";
+   
+  if(config.secondaryCategory == "Zmumu") prefix += "Zmumu/";
+  if(config.secondaryCategory == "Wmunu") prefix += "Wmunu/";
+  
+  if(config.params["cuts_level"]==0) prefix += "after_L0/";
+  if(config.params["cuts_level"]==1) prefix += "after_L1/"+config.category+"/";
+  
+  prefix += "afterHelixTagging"+suffix+"/";
+  
+  return prefix;
+}
 
 map<string, tuple<string, int, int, int>> monitorTypes = {
 //  name          title                              color       pad  thresholdUpBin
@@ -28,7 +47,7 @@ map<string, tuple<string, int, int, int>> monitorTypes = {
 };
 
 /// Defines types of monitors and initializes them
-Monitors CreateMonitors(bool withPU)
+Monitors CreateMonitors()
 {
   Monitors monitors;
   
@@ -37,7 +56,7 @@ Monitors CreateMonitors(bool withPU)
     int max = 20, nBins = 20;
     if(name=="avg_length" || name=="max_length"){ max = 10; nBins = 40; }
     if(name=="n_helices"){ max = 1000; nBins = 10; }
-    monitors[name] = PerformanceMonitor(name, title, nBins, 0, max, (EColor)color, withPU, thresholdUp);
+    monitors[name] = PerformanceMonitor(name, title, nBins, 0, max, (EColor)color, true, thresholdUp);
   }
   return monitors;
 }
@@ -47,13 +66,9 @@ Monitors CreateMonitors(bool withPU)
  \param isSignal If true, will use signal events, otherwise background
  \param withPU If true, will use event with pile-up
  */
-void FillMonitors(Monitors &monitors, const EventSet &events, bool isSignal, bool withPU)
+void FillMonitors(Monitors &monitors, const EventSet &events, bool isSignal)
 {
-  ESignal dataSet;
-  if(isSignal && withPU)        dataSet = kTaggerSignalWithPU;
-  else if(isSignal && !withPU)  dataSet = kTaggerSignalNoPU;
-  else if(!isSignal && withPU)  dataSet = kTaggerBackgroundWithPU;
-  else if(!isSignal && !withPU) dataSet = kTaggerBackgroundNoPU;
+  ESignal dataSet = isSignal ? signalDataset : backgroundDataset;
   
   for(int year : years){
     if(!config.params["load_"+to_string(year)]) continue;
@@ -71,7 +86,7 @@ void FillMonitors(Monitors &monitors, const EventSet &events, bool isSignal, boo
 }
 
 /// Calculates internal parameters of monitors and draws resulting plots
-void DrawMonitors(Monitors &monitorsNoPU, Monitors *monitorsWithPU=nullptr)
+void DrawMonitors(Monitors &monitors)
 {
   TCanvas *canvasROC          = new TCanvas("canvasROC", "canvasROC", 800, 600);
   TCanvas *canvasDists        = new TCanvas("canvasDists", "canvasDists", 1000, 1500);
@@ -83,37 +98,25 @@ void DrawMonitors(Monitors &monitorsNoPU, Monitors *monitorsWithPU=nullptr)
   gStyle->SetOptStat(0);
   
   bool first = true;
-//  for(auto &[name, monitor] : monitorsNoPU){
-//    monitor.CalcEfficiency();
-//    canvasROC->cd();
-//    monitor.DrawRocGraph(first, legendROC);
-//    int pad = get<2>(monitorTypes[name]);
-//    canvasDists->cd(pad);
-//    monitor.DrawHists(first, first ? legendDists : nullptr);
-//    monitor.PrintFakesEfficiency();
-//    if(first) first = false;
-//  }
-  if(monitorsWithPU){
-    first = true;
-    for(auto &[name, monitor] : *monitorsWithPU){
-      monitor.CalcEfficiency();
-      canvasROC->cd();
-      monitor.DrawRocGraph(first, legendROC);
-      int pad = get<2>(monitorTypes[name]);
-      canvasDists->cd(pad);
-      monitor.DrawHists(false, first ? legendDists : nullptr);
-      
-      
-      double bestEff, bestFake;
-      int thresholdLowBin, thresholdUpBin;
-      
-      double dist = monitor.GetMaxDistanceFromSqrtFake(bestEff, bestFake, thresholdLowBin, thresholdUpBin);
-      cout<<name<<"\tdist: "<<dist<<"\teff: "<<bestEff<<"\tfake: "<<bestFake;
-      cout<<"\tthreshold: "<<thresholdLowBin<<" -- "<<thresholdUpBin<<endl;
-      
-//      monitor.PrintFakesEfficiency();
-      if(first) first = false;
-    }
+  
+  for(auto &[name, monitor] : monitors){
+    monitor.CalcEfficiency();
+    canvasROC->cd();
+    monitor.DrawRocGraph(first, legendROC);
+    int pad = get<2>(monitorTypes[name]);
+    canvasDists->cd(pad);
+    monitor.DrawHists(false, first ? legendDists : nullptr);
+    
+    
+    double bestEff, bestFake;
+    int thresholdLowBin, thresholdUpBin;
+    
+    double dist = monitor.GetMaxDistanceFromSqrtFake(bestEff, bestFake, thresholdLowBin, thresholdUpBin);
+    cout<<name<<"\tdist: "<<dist<<"\teff: "<<bestEff<<"\tfake: "<<bestFake;
+    cout<<"\tthreshold: "<<thresholdLowBin<<" -- "<<thresholdUpBin<<endl;
+    
+    //      monitor.PrintFakesEfficiency();
+    if(first) first = false;
   }
   
   canvasROC->cd();
@@ -137,17 +140,14 @@ int main(int argc, char* argv[])
   auto helixProcessor = HelixProcessor();
   
   EventSet events;
-  events.LoadEventsFromFiles(cutLevel+suffix+"/");
+  events.LoadEventsFromFiles(getPathPrefix());
   
-  Monitors monitorsNoPU   = CreateMonitors(false);
-  Monitors monitorsWithPU = CreateMonitors(true);
+  Monitors monitors = CreateMonitors();
   
-  FillMonitors(monitorsNoPU, events, true,  false); // signal, noPU
-  FillMonitors(monitorsNoPU, events, false, false); // bkg, noPU
-  FillMonitors(monitorsWithPU, events, true , true);  // signal, withPU
-  FillMonitors(monitorsWithPU, events, false, true);  // bkg, withPU
+  FillMonitors(monitors, events, true);
+  FillMonitors(monitors, events, false);
   
-  DrawMonitors(monitorsNoPU, &monitorsWithPU);
+  DrawMonitors(monitors);
   
   theApp.Run();
   return 0;
