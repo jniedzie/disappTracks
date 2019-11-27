@@ -41,4 +41,5 @@ condor/error/*
 condor/log/*
 condor/jniedzie.cc
 drawAdvancedTaggerPlots
+drawBasicTaggerPlots
 

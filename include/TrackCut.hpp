@@ -23,6 +23,7 @@ public:
   // Setters
   inline void SetPt(range<double> val){pt = val;}
   inline void SetEta(range<double> val){eta = val;}
+  inline void SetVetoCracks(bool val){vetoCracks = val;}
   inline void SetCaloEmEnergy(range<double> val){caloEmEnergy = val;}
   inline void SetCaloHadEnergy(range<double> val){caloHadEnergy = val;}
   inline void SetRelativeIsolation(range<double> val){relativeIsolation = val;}
@@ -49,6 +50,7 @@ public:
 private:
   range<double> pt;                 ///< allowed transverse momentum of the track
   range<double> eta;                ///< allowed pseudorapidity
+  bool vetoCracks;                  ///< should cracks between barrel and end-caps be vetoed
   range<double> caloEmEnergy;       ///< allowed energy deposit in EM calorimeter
   range<double> caloHadEnergy;      ///< allowed energy deposit in Hadronic calorimeter
   range<double> relativeIsolation;  ///< allowed relative isolation in dR=0.3

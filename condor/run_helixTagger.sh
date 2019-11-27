@@ -64,7 +64,10 @@ elif [ $2 -eq 13 ];
 then
   configPath="configs/helixTagger5-6layers.md"
   outputPath="after_L1/5-6-layers/afterHelixTagging"
-
+elif [ $2 -eq 14 ];
+then
+  configPath="configs/helixTaggerBkg.md"
+  outputPath="after_L0/afterHelixTagging"
 fi
 
 echo "Im in `pwd`"
