@@ -78,7 +78,7 @@ using namespace std;
 
 namespace xtracks {
 
-const bool lxplus = true;
+const bool lxplus = false;
 
 enum EHelixParams
 {
@@ -471,7 +471,7 @@ const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
     { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_400GeV1cm/"}}},
   }},
   { kChargino500_10, {
-    { 2017, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_500GeV10cm/"}}},
+    { 2017, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/" : "SIG-SR/", {"Wino_500GeV10cm/"}}},
     { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_500GeV10cm/"}}},
   }},
   { kChargino500_1, {

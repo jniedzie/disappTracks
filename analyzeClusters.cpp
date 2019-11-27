@@ -6,7 +6,7 @@
 #include "EventSet.hpp"
 
 string configPath  = "configs/clusters.md";
-string outfileName = "results/clustersSignalWithPU.root";
+string outfileName = "results/clustersSignalWithPUfiltered.root";
 
 vector<tuple<string, int, double, double, string>> histOptions1D = {
 // title                        nBins  min     max    titleX
@@ -76,7 +76,7 @@ vector<tuple<string, int, double, double, string>> histOptions1D = {
   {"pion_pt_noTIB"              , 50 , 0      , 1000  , " p_{t}  (MeV)"           },
   {"pion_vertex_xy_noTIB"       , 100, 0      , 500   , "v_{xy} (mm)"             },
   {"pion_vertex_z_noTIB"        , 50 , -1000  , 1000  , "v_{z} (mm)"              },
-  {"noise_n_clusters"           , 100, 0      , 150000, "# clusters"              },
+  {"noise_n_clusters"           , 50 , 0      , 50000 , "# clusters"              },
   {"tracker_clusters_r"         , 1100,0      , 1500  , "R (mm)"                  },
   {"tracker_clusters_z_PXE"     , 100 ,-600   , 600   , "z (mm)"                  },
   {"tracker_clusters_z_TID"     , 400 ,-1200  , 1200  , "z (mm)"                  },
@@ -230,6 +230,8 @@ void fillTrackHists(const shared_ptr<Event> &event)
 
 void fillClusterHists(const shared_ptr<Event> &event)
 {
+  if(!event->HasFriendData()) return;
+  
   auto trackerClusters = event->GetTrackerClusters();
   auto trackerClustersPerLayer = pointsProcessor.SortByLayer(trackerClusters);
   
@@ -238,7 +240,8 @@ void fillClusterHists(const shared_ptr<Event> &event)
   pointsProcessor.SetPointsLayers(pionSimHits);
   sort(pionSimHits.begin(), pionSimHits.end(), PointsProcessor::ComparePointByZ());
   
-  hists1D["noise_n_clusters"]->Fill(trackerClusters.size()-pionClusters.size());
+  unsigned long nNoise = trackerClusters.size()-pionClusters.size();
+  hists1D["noise_n_clusters"]->Fill(nNoise);
   
   if(pionClusters.size() >= 3 && pionSimHits.size() >= 3){
     if(event->GetNtracks() == 1){
@@ -407,9 +410,9 @@ int main(int argc, char* argv[])
   TApplication theApp("App", &argc, argv);
   config = ConfigManager(configPath);
   
-  string cutLevel;
-  if(config.params["cuts_level"]==0) cutLevel = "after_L0/";
-  if(config.params["cuts_level"]==1) cutLevel = "after_L1/"+config.category+"/";
+  string cutLevel = "";
+  if(config.params["cuts_level"]==0) cutLevel += "after_L0/";
+  if(config.params["cuts_level"]==1) cutLevel += "after_L1/"+config.category+"/";
   
   EventSet events; events.LoadEventsFromFiles(cutLevel);
   SetupHists();

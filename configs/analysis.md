@@ -9,9 +9,6 @@ analysis_category: all
 ### Secondary category ( Zmumu | Wmunu ):
 secondary_category: 
 
-scan_MET_binning: 0
-do_MET_binning: 0
-
 ### Should events after processing be saved on disk:
 save_events:  1
 
@@ -56,7 +53,6 @@ do_chargino_800_10: 0
 
 do_SR: 0
 do_CR: 0
-
 
 ### For samples slit into several chunks, one can load all chunks or just a single one.
 ### Setting load_single_subpath: 1 at L1 means that for each chunk input files will be loaded

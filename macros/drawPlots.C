@@ -1,7 +1,8 @@
 vector<TFile*> files = {
   TFile::Open("../results/clustersSignalNoPU.root"),
   TFile::Open("../results/nCharginoLayers.root"),
-  TFile::Open("../results/clustersSignalWithPU.root"),
+  //  TFile::Open("../results/clustersSignalWithPU.root"),
+  TFile::Open("../results/clustersSignalWithPUfiltered.root"),
 };
 
 

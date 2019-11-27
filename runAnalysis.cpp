@@ -174,138 +174,18 @@ string getPathPrefix()
   return prefix;
 }
 
-void runMETbinning(const EventSet &events,
-                   EventCut &eventCut, const TrackCut &trackCut,
-                   const JetCut &jetCut, const LeptonCut &leptonCut)
-{
-  cout<<"Combined significances from MET bins:"<<endl;
-  
-  int nMetBins = 10;
-  
-  vector<vector<double>> significances; // [metBin][iSig]
-  
-  for(int iMetBin=0; iMetBin<nMetBins; iMetBin++){
-    
-    double binMin = 200+iMetBin*100;
-    double binMax = 200+(iMetBin+1)*100;
-    eventCut.SetMetPt(range<double>(binMin, binMax));
-    
-    EventSet eventsForMetBin(events);
-    processCuts(eventsForMetBin, eventCut, trackCut, jetCut, leptonCut);
-    significances.push_back(eventsForMetBin.GetSignificance());
-  }
-  
-  for(ESignal iSig : signals){
-    if(!config.runSignal[iSig]) continue;
-    
-    double combinedSignificance = 0;
-    
-    for(int iMetBin=0; iMetBin<nMetBins; iMetBin++){
-      if(significances[iMetBin][iSig] < 0 || !isnormal(significances[iMetBin][iSig])) continue;
-      
-      combinedSignificance += pow(significances[iMetBin][iSig],2);
-    }
-    combinedSignificance = sqrt(combinedSignificance);
-    
-    cout<<signalTitle.at(iSig)<<"\t"<<combinedSignificance<<endl;
-  }
-}
-
-void scanMETbinning(const EventSet &events,
-                    EventCut &eventCut, const TrackCut &trackCut,
-                    const JetCut &jetCut, const LeptonCut &leptonCut)
-{
-  gStyle->SetOptStat(0);
-  TCanvas *c1 = new TCanvas("significance","significance",800,500);
-  c1->cd();
-  
-  TH1D hists[signals.size()];
-  
-  
-  double min = 201, max = 1001, step = 20;
-  int nBins = (max-min)/step + 1;
-  
-  for(ESignal iSig : signals){
-    hists[iSig] = TH1D(signalTitle.at(iSig).c_str(),signalTitle.at(iSig).c_str(),nBins,min,max);
-  }
-  
-  for(int i=0;i<nBins;i++){
-    double split = min+i*step;
-    cout<<"\n\nSplit:"<<split<<"\n";
-    EventSet events1(events);
-    EventSet events2(events);
-    
-    eventCut.SetMetPt(range<double>(200,split));
-    processCuts(events1, eventCut, trackCut, jetCut, leptonCut);
-    
-    eventCut.SetMetPt(range<double>(split,inf));
-    processCuts(events2, eventCut, trackCut, jetCut, leptonCut);
-    
-    vector<double> significances1 = events1.GetSignificance();
-    vector<double> significances2 = events2.GetSignificance();
-    
-    for(ESignal iSig : signals){
-      if(!config.runSignal[iSig]) continue;
-      
-      double combinedSignificance = sqrt(pow(significances1[iSig],2) + pow(significances2[iSig],2));
-      cout<<signalTitle.at(iSig)<<"\t"<<((isnormal(combinedSignificance) && combinedSignificance < 1000) ? combinedSignificance : 0.0)<<endl;
-      hists[iSig].SetBinContent(i+1, (isnormal(combinedSignificance) && combinedSignificance < 1000) ? combinedSignificance : 0.0);
-    }
-  }
-  
-  bool first = true;
-  for(ESignal iSig : signals){
-    if(!config.runSignal[iSig]) continue;
-    hists[iSig].SetMarkerSize(2.0);
-    
-    hists[iSig].SetLineColor(SignalColor((ESignal)iSig));
-    hists[iSig].SetMarkerStyle(signalMarkers[iSig]);
-    hists[iSig].SetMarkerColor(SignalColor((ESignal)iSig));
-    
-    
-    double mean = 0;
-    double minY = inf;
-    
-    for(int i=0;i<hists[iSig].GetNbinsX();i++){
-      mean += hists[iSig].GetBinContent(i+1);
-      if(hists[iSig].GetBinContent(i+1) < minY) minY = hists[iSig].GetBinContent(i+1);
-    }
-    mean /= nBins;
-    
-    for(int i=0;i<hists[iSig].GetNbinsX();i++){
-      hists[iSig].SetBinContent(i+1,hists[iSig].GetBinContent(i+1)-minY);
-    }
-    hists[iSig].Scale(1/hists[iSig].Integral());
-    hists[iSig].Sumw2(false);
-    if(first){
-      
-      hists[iSig].Draw("PL");
-      first = false;
-    }
-    else{
-      hists[iSig].Draw("samePL");
-    }
-  }
-  c1->Update();
-}
-
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
   
   config = ConfigManager(configPath);
   
-  string initPrefix = getPathPrefix();
-
-  EventSet events;
-  events.LoadEventsFromFiles(initPrefix);
-  cout<<"\n\nInitial yields"<<endl;
-  events.PrintYields();
+  EventSet events; events.LoadEventsFromFiles(getPathPrefix());
+  cout<<"\n\nInitial yields"<<endl; events.PrintYields();
   
   CutsManager cutsManager;
   EventCut eventCut; TrackCut trackCut; JetCut jetCut; LeptonCut leptonCut;
-  
-  
+    
   if(config.secondaryCategory == "Zmumu")       cutsManager.GetZmumuCuts(eventCut, trackCut, jetCut, leptonCut);
   else if(config.secondaryCategory == "Wmunu")  cutsManager.GetWmunuCuts(eventCut, trackCut, jetCut, leptonCut);
   else                                          cutsManager.GetCuts(eventCut, trackCut, jetCut, leptonCut);
@@ -313,37 +193,14 @@ int main(int argc, char* argv[])
   if(config.params["cuts_level"] == 0){
     processCuts(events, eventCut, trackCut, jetCut, leptonCut);
   }
-	
-  if(config.params["cuts_level"] == 1){
-    if(config.params["scan_MET_binning"]){
-      scanMETbinning(events, eventCut, trackCut, jetCut, leptonCut);
-    }
-    else if(config.params["do_MET_binning"]){
-      // for 2 tracks we don't have enough stats to do MET binning, just get a regular S/B
-      if(config.category != "2-tracks") runMETbinning(events, eventCut, trackCut, jetCut, leptonCut);
-      else                              processCuts(events, eventCut, trackCut, jetCut, leptonCut);
-    }
-    else{
-      processCuts(events, eventCut, trackCut, jetCut, leptonCut, config.category);
-    }
-  }
-  
-  if(config.params["cuts_level"] == 2){
+  else{
     processCuts(events, eventCut, trackCut, jetCut, leptonCut, config.category);
   }
-  
-  //---------------------------------------------------------------------------
-  // Draw plots after helix tagging
-  //---------------------------------------------------------------------------
+
   if(config.params["cuts_level"] == 20) events.DrawStandardPlots();
-  
   cout<<"Done"<<endl;
   
-  if(config.params["draw_standard_plots"]  ||
-     config.params["draw_per_layer_plots"] ||
-     config.params["scan_MET_binning"])
-    theApp.Run();
-  
+  if(config.params["draw_standard_plots"]  || config.params["draw_per_layer_plots"]) theApp.Run();
   return 0;
 }
 

@@ -1,5 +1,8 @@
 **Input options**
 
+### Which level of cuts to apply:
+cuts_level: -1
+
 ### turn on/off different backgrounds, signals and data samples
 do_QCD:         0
 do_Zmm:         0
@@ -22,15 +25,17 @@ do_1000_20:   0
 
 do_tagger_signal_noPU:                0
 do_tagger_background_noPU:      0
-do_tagger_signal_withPU:             1
+do_tagger_signal_withPU:             0
 do_tagger_background_withPU:   0
+
+do_chargino_500_10: 1
 
 do_SR:         0
 do_CR:         0
 
 ### Select for which years to run:
-load_2017: 0
-load_2018: 1
+load_2017: 1
+load_2018: 0
 
 ### Do we need additional information stored in the friend trees
 load_friend_tree: 1
