@@ -1,7 +1,7 @@
 vector<TFile*> files = {
   TFile::Open("../results/clustersSignalNoPU.root"),
   TFile::Open("../results/nCharginoLayers.root"),
-  //  TFile::Open("../results/clustersSignalWithPU.root"),
+//  TFile::Open("../results/clustersSignalWithPU.root"),
   TFile::Open("../results/clustersSignalWithPUfiltered.root"),
 };
 
@@ -11,7 +11,8 @@ map<string, tuple<int, string, int, int>> histSettings = {
   { "delta_phi_pion_chargino"     , {1, "#Delta#varphi (#chi^{#pm}, #pi^{#pm})" , 0,     0} },
   { "nTrackerLayers"              , {2, "#chi N tracker layers"                 , 1,     0} },
   { "pion_pt"                     , {3, "Pion p_{t} (MeV)"                      , 0,     0} },
-  { "chargino_abs_eta"            , {4, "#chi^{#pm} |#eta|"                     , 2,     0} },
+  { "pion_pz"                     , {4, "Pion p_{z} (MeV)"                      , 0,     0} },
+  { "chargino_abs_eta"            , {5, "#chi^{#pm} |#eta|"                     , 0,     0} },
 
   { "pion_simhits_z"              , {1, "Hit z-coordinate dist. (mm)"           , 0,     1} },
   { "pion_simhits_range_z"        , {2, "Last hit z position (mm)"              , 0,     1} },
@@ -55,12 +56,12 @@ void drawPlots()
   map<string, TH1D*> hists;
   
   vector<TCanvas*> canvas = {
-    new TCanvas("canvas0", "canvas0", 1000, 800),
+    new TCanvas("canvas0", "canvas0", 1000, 1200),
     new TCanvas("canvas1", "canvas1", 1000, 800),
     new TCanvas("canvas2", "canvas2", 1000, 1200),
     new TCanvas("canvas3", "canvas3", 1000, 1200),
   };
-  canvas[0]->Divide(2,2);
+  canvas[0]->Divide(2,3);
   canvas[1]->Divide(2,2);
   canvas[2]->Divide(2,3);
   canvas[3]->Divide(2,3);

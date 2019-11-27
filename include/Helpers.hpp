@@ -506,11 +506,11 @@ const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
 
 const map<EData, map<int, pair<string, vector<string>>>> inFileNameData = {
   { kSignalRegion, {
-    { 2017, {lxplus ? "6Mar2019-Hadded/DATA-SR-2017/MET_Run2017" : "Data-SR/tree_MET_Run2017",
+    { 2017, {lxplus ? "6Mar2019-Hadded/DATA-SR-2017/MET_Run2017" : "Data-SR/MET_Run2018",
       {"B_31Mar2018/", "C_31Mar2018/", "D_31Mar2018/", "E_31Mar2018/", "F_31Mar2018/"}}},
+//      {"A/"}}},
     { 2018, {lxplus ? "7Sep2019/Calibrated-DATA-SR-2018-Hadded/MET_Run2018" : "Data-SR/MET_Run2018",
-      {"A_17Sep2018/", "B_17Sep2018/", "C_17Sep2018/",
-        "D_PromptReco_v2_1/", "D_PromptReco_v2_2/", "D_PromptReco_v2_3/", "D_PromptReco_v2_4/"}}},
+      {"A_17Sep2018/", "B_17Sep2018/", "C_17Sep2018/", "D_PromptReco_v2_1/", "D_PromptReco_v2_2/", "D_PromptReco_v2_3/", "D_PromptReco_v2_4/"}}},
   }},
   { kControlRegion, {
     { 2017, {"Data-CR/MET_Run2018",

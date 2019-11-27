@@ -34,7 +34,7 @@ double taggerEfficiency = 0.852; // with PU
 double taggerFakeRate   = 0.23;
 
 
-const int ratioRebin = 1;
+const int ratioRebin = 2;
 string sampleTag = "_Wmunu";
 string backgroundHistNams = "background";
 string dataHistNams = "data";
@@ -442,9 +442,11 @@ TGraphErrors* GetRatioGraph(const TH2D *metVsDedxHistBackground, const binning b
     for(int binX=1; binX<=histNum->GetNbinsX(); binX++){
       double dedx = histNum->GetXaxis()->GetBinCenter(binX);
 
-      abcdBackgroundRatio->SetPoint(iPoint, dedx, histNum->GetBinContent(binX));
-      abcdBackgroundRatio->SetPointError(iPoint, 0, histNum->GetBinError(binX));
-      iPoint++;
+      if(histNum->GetBinContent(binX) != 0){
+        abcdBackgroundRatio->SetPoint(iPoint, dedx, histNum->GetBinContent(binX));
+        abcdBackgroundRatio->SetPointError(iPoint, 0, histNum->GetBinError(binX));
+        iPoint++;
+      }
     }
   }
   return abcdBackgroundRatio;
@@ -475,6 +477,9 @@ void drawAndSaveABCDplots(const TH2D *metVsDedxHistBackground,
   TH2D *abcdPlotBackgrounds = GetABCDplot(metVsDedxHistBackground, bins, kBackground);
   abcdPlotBackgrounds->SetMarkerSize(3.0);
   
+  TCanvas *ratioCanvas = new TCanvas("Ratio", "Ratio", 1200, 600);
+  ratioCanvas->Divide(2, 1);
+  
   if(metVsDedxHistData){
     metVsDedxHistData->Write();
     TH2D *abcdPlotData = GetABCDplot(metVsDedxHistData, bins, kData);
@@ -482,10 +487,35 @@ void drawAndSaveABCDplots(const TH2D *metVsDedxHistBackground,
     abcdPlotData->SetName(dataHistNams.c_str());
     abcdPlotData->SetTitle(dataHistNams.c_str());
     abcdPlotData->Write();
-  }
+  
+    ratioCanvas->cd(1);
     
-  TCanvas *ratioCanvas = new TCanvas("Ratio", "Ratio", 800, 600);
-  ratioCanvas->cd();
+    TGraphErrors *abcdDataRatio = GetRatioGraph(metVsDedxHistData, bins);
+    abcdDataRatio->SetMarkerStyle(20);
+    abcdDataRatio->SetMarkerSize(1.0);
+    abcdDataRatio->SetMarkerColor(kViolet);
+    abcdDataRatio->GetXaxis()->SetTitle("dE/dx likelihood");
+    abcdDataRatio->GetYaxis()->SetTitle("Ratio");
+    
+    TF1 *linearFunction = new TF1("linearFunction", "[0]", 3, 10);
+    linearFunction->SetParameter(0, 1.0);
+    linearFunction->SetLineColor(kGreen);
+    
+    TF1 *linearFunctionWithTilt = new TF1("linearFunctionWithTilt", "[1]+x*[0]", 3, 10);
+    linearFunctionWithTilt->SetParameter(0, 1.0);
+    linearFunctionWithTilt->SetParameter(1, 0.0);
+    linearFunctionWithTilt->SetLineColor(kRed);
+    abcdDataRatio->Draw("APE");
+    
+    abcdDataRatio->Fit(linearFunction, "", "", 3, 10);
+    linearFunction->Draw("sameL");
+    
+    abcdDataRatio->Fit(linearFunctionWithTilt, "", "", 3, 10);
+    linearFunctionWithTilt->Draw("sameL");
+    
+  }
+  
+  ratioCanvas->cd(2);
   
   TGraphErrors *abcdBackgroundRatio = GetRatioGraph(metVsDedxHistBackground, bins);
   abcdBackgroundRatio->SetMarkerStyle(20);
@@ -494,20 +524,20 @@ void drawAndSaveABCDplots(const TH2D *metVsDedxHistBackground,
   abcdBackgroundRatio->GetXaxis()->SetTitle("dE/dx (MeV/cm)");
   abcdBackgroundRatio->GetYaxis()->SetTitle("Ratio");
   
-  TF1 *linearFunction = new TF1("linearFunction", "[0]", 0, 7.0);
+  TF1 *linearFunction = new TF1("linearFunction", "[0]", 3, 10);
   linearFunction->SetParameter(0, 1.0);
   linearFunction->SetLineColor(kGreen);
   
-  TF1 *linearFunctionWithTilt = new TF1("linearFunctionWithTilt", "[1]+x*[0]", 0, 7.0);
+  TF1 *linearFunctionWithTilt = new TF1("linearFunctionWithTilt", "[1]+x*[0]", 3, 10);
   linearFunctionWithTilt->SetParameter(0, 1.0);
   linearFunctionWithTilt->SetParameter(1, 0.0);
   linearFunctionWithTilt->SetLineColor(kRed);
   abcdBackgroundRatio->Draw("APE");
   
-  abcdBackgroundRatio->Fit(linearFunction, "", "", 0, 7.0);
+  abcdBackgroundRatio->Fit(linearFunction, "", "", 3, 10);
   linearFunction->Draw("sameL");
   
-  abcdBackgroundRatio->Fit(linearFunctionWithTilt, "", "", 0, 7.0);
+  abcdBackgroundRatio->Fit(linearFunctionWithTilt, "", "", 3, 10);
   linearFunctionWithTilt->Draw("sameL");
   
   ratioCanvas->Update();
@@ -791,7 +821,8 @@ int main(int argc, char* argv[])
   
   
   TH2D *metVsDedxHistData = GetMetVsDedxHist(events, kData);
-  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, bestValues[kWino_M_1000_cTau_20] ,
+  
+  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, {{250},{3.0}} ,
                        "results/abcd_plots_Wmunu.root", metVsDedxHistData);
   
   

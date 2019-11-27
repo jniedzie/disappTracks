@@ -23,12 +23,12 @@ do_QCD:         0
 do_Zmm:         0
 do_tops:          0
 do_dibosons:   0
-do_Wmv:         0
+do_Wmv:         1
 do_Zvv:           0
 
 do_300_3:       0
 do_300_10:     0
-do_300_30:     1
+do_300_30:     0
 do_500_10:     0
 do_500_20:     0
 do_650_10:     0
@@ -51,7 +51,7 @@ do_chargino_700_10: 0
 do_chargino_700_30: 0
 do_chargino_800_10: 0
 
-do_SR: 0
+do_SR: 1
 do_CR: 0
 
 ### For samples slit into several chunks, one can load all chunks or just a single one.
@@ -63,7 +63,7 @@ subpath_index: 0
 
 ### Select for which years to run:
 load_2017: 1
-load_2018: 1
+load_2018: 0
 
 **Printing & plotting options**
 
