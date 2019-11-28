@@ -19,20 +19,20 @@ const double pionMass = 0.13957061; // GeV
 
 string configPath = "configs/analysis.md";
 
-
-void saveEvents(const EventSet &events)
-{
-  if(!config.params["save_events"]) return;
-  string prefix = "after_L"+to_string((int)config.params["cuts_level"])+"/";
-  events.SaveEventsToFiles(prefix);
-}
-
 /// Returns path prefix for cuts level and category selected in the config file
 string getPathPrefix()
 {
-  string prefix;
+  string prefix = "";
+   
+  if(config.secondaryCategory == "Zmumu")   prefix += "Zmumu/";
+  if(config.secondaryCategory == "Wmunu")   prefix += "Wmunu/";
+  if(config.secondaryCategory == "LowMET")   prefix += "LowMET/";
+  
   if(config.params["cuts_level"]==0) prefix = "";
-  if(config.params["cuts_level"]==1) prefix = "after_L0/";
+  if(config.params["cuts_level"]==1) prefix += "after_L0/";
+  if(config.params["cuts_level"]==2) prefix += "after_L1/"+config.category+"/";
+  if(config.params["cuts_level"]==20) prefix += "afterHelixTagging/";
+  
   return prefix;
 }
 
@@ -215,26 +215,30 @@ int main(int argc, char* argv[])
   
   
   for(int i=1; i<5; i++){
+    if(nEvents[i]==0) continue;
     cout<<"2 fakes probability ("<<i<<"σ): "<<pow((double)nEventsWithFakeTrack[i]/nEvents[i], 2);
     cout<<" +/- "<<2*nEventsWithFakeTrack[i]/pow(nEvents[i],2)*sqrt(nEventsWithFakeTrack[i]+1/nEvents[i])<<endl;
   }
   
   
   EventSet singleLeptonEvents = getSingleLeptonEvents();
-  
-  int nSingleLeptonEvents =  singleLeptonEvents.size(kData, kControlRegion, 2018);
-  
   trackCut.SetCaloEmEnergy(range<double>(0.0, 2.0));
   trackCut.SetNlayers(range<int>(2, 6));
   eventCut.SetNtracks(range<int>(2, 2));
-  
   singleLeptonEvents.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
-  int nTwoFakeTrackEvents =  singleLeptonEvents.size(kData, kControlRegion, 2018);
   
-  cout<<"N single lepton events: "<<nSingleLeptonEvents<<endl;
-  cout<<"N single lepton events with two fake tracks: "<<nTwoFakeTrackEvents<<endl;
-  cout<<"Fraction: "<<(double)nTwoFakeTrackEvents/nSingleLeptonEvents<<endl;
+  for(int year : years){
+    if(!config.params["load_"+to_string(year)]) continue;
+    
+    int nSingleLeptonEvents =  singleLeptonEvents.size(kData, kControlRegion, year);
+    int nTwoFakeTrackEvents =  singleLeptonEvents.size(kData, kControlRegion, year);
+    
+    cout<<"Year: "<<year<<endl;
+    cout<<"N single lepton events: "<<nSingleLeptonEvents<<endl;
+    cout<<"N single lepton events with two fake tracks: "<<nTwoFakeTrackEvents<<endl;
+    cout<<"Fraction: "<<(double)nTwoFakeTrackEvents/nSingleLeptonEvents<<endl;
+  }
   
   
   theApp.Run();
