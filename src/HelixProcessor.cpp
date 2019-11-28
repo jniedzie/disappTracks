@@ -36,7 +36,7 @@ HelixProcessor::HelixProcessor()
     "helix_n_hits",
     "helix_n_missing_hits",
     "helix_n_layers",
-    
+    "helix_n_true_pion_hits",
     "helix_turned_back",
   };
 }
@@ -129,6 +129,7 @@ void HelixProcessor::SaveHelicesToTree(Helices helices)
     arrayValuesInt["helix_charge"][iHelix]          = helices[iHelix].charge;
     arrayValuesInt["helix_n_hits"][iHelix]          = helices[iHelix].nRecHits;
     arrayValuesInt["helix_n_missing_hits"][iHelix]  = helices[iHelix].nMissingHits;
+    arrayValuesInt["helix_n_true_pion_hits"][iHelix]  = helices[iHelix].GetNtruePionHits();
     arrayValuesInt["helix_n_layers"][iHelix]        = helices[iHelix].nRecLayers;
     arrayValuesInt["helix_turned_back"][iHelix] = helices[iHelix].firstTurningPointIndex > 0 ? 1 : 0;
   }

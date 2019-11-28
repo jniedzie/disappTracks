@@ -119,6 +119,13 @@ Points Event::GetClusters()
       cout<<"Unknown detector:"<<point->GetSubDetName()<<endl;
     }
     
+    for(auto &pionCluster : pionClusters){
+      if(*pionCluster == *point){
+        point->SetIsPionHit(true);
+        break;
+      }
+    }
+    
     if(config.params["fit_noise_clusters_only"]){
       bool isPionHit = false;
       for(auto &pionCluster : pionClusters){

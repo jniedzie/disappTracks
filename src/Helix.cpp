@@ -391,3 +391,14 @@ void Helix::SetPointsAndSortByT(const Points &_points, const vector<double> &_po
     }
   }
 }
+
+int Helix::GetNtruePionHits() const
+{
+  int nPionHits=0;
+  
+  for(auto hit : points){
+    if(hit->IsPionHit()) nPionHits++;
+  }
+  
+  return nPionHits;
+}

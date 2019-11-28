@@ -120,6 +120,7 @@ public:
   inline Points             GetSecontToLastPoints()     const {return secondToLastPoints;}
          vector<size_t>     GetLastPointsIndices()      const;
   inline int                GetFirstTurningPointIndex() const {return firstTurningPointIndex;}
+         int                GetNtruePionHits()          const;
   
   // Missing hits
   inline int  GetNmissingHits() 	    const {return nMissingHits;}
