@@ -15,8 +15,9 @@ void saveEvents(const EventSet &events, const string &suffix)
   
   string prefix = "";
   
-  if(config.secondaryCategory == "Zmumu") prefix += "Zmumu/";
-  if(config.secondaryCategory == "Wmunu") prefix += "Wmunu/";
+  if(config.secondaryCategory == "Zmumu")   prefix += "Zmumu/";
+  if(config.secondaryCategory == "Wmunu")   prefix += "Wmunu/";
+  if(config.secondaryCategory == "LowMET")  prefix += "LowMET/";
   
   prefix += "after_L"+to_string((int)config.params["cuts_level"])+"/";
   prefix += suffix+"/";
@@ -163,8 +164,9 @@ string getPathPrefix()
 {
   string prefix = "";
    
-  if(config.secondaryCategory == "Zmumu") prefix += "Zmumu/";
-  if(config.secondaryCategory == "Wmunu") prefix += "Wmunu/";
+  if(config.secondaryCategory == "Zmumu")   prefix += "Zmumu/";
+  if(config.secondaryCategory == "Wmunu")   prefix += "Wmunu/";
+  if(config.secondaryCategory == "LowMET") 	prefix += "LowMET/";
   
   if(config.params["cuts_level"]==0 || config.params["cuts_level"]==10) prefix = "";
   if(config.params["cuts_level"]==1) prefix += "after_L0/";
@@ -188,6 +190,7 @@ int main(int argc, char* argv[])
     
   if(config.secondaryCategory == "Zmumu")       cutsManager.GetZmumuCuts(eventCut, trackCut, jetCut, leptonCut);
   else if(config.secondaryCategory == "Wmunu")  cutsManager.GetWmunuCuts(eventCut, trackCut, jetCut, leptonCut);
+  else if(config.secondaryCategory == "LowMET") cutsManager.GetLowMetCuts(eventCut, trackCut, jetCut, leptonCut);
   else                                          cutsManager.GetCuts(eventCut, trackCut, jetCut, leptonCut);
   
   if(config.params["cuts_level"] == 0){

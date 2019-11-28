@@ -6,7 +6,7 @@ cuts_level: 1
 ### Analysis category ( 2-tracks | 3-layers | 4-layers | 5-6-layers | all ):
 analysis_category: all
 
-### Secondary category ( Zmumu | Wmunu ):
+### Secondary category ( Zmumu | Wmunu | LowMET ):
 secondary_category: 
 
 ### Should events after processing be saved on disk:

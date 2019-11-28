@@ -120,3 +120,9 @@ void CutsManager::GetWmunuCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &j
   eventCut.SetNmuons(range<int>(1,1));
   eventCut.SetNleptons(range<int>(1,inf));
 }
+
+void CutsManager::GetLowMetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut, LeptonCut &leptonCut)
+{
+  GetCuts(eventCut, trackCut, jetCut, leptonCut);
+  eventCut.SetMetNoMuPt(range<double>(150, inf));
+}
