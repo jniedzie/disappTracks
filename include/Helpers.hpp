@@ -78,7 +78,7 @@ using namespace std;
 
 namespace xtracks {
 
-const bool lxplus = false;
+const bool lxplus = true;
 
 enum EHelixParams
 {
@@ -515,8 +515,8 @@ const map<EData, map<int, pair<string, vector<string>>>> inFileNameData = {
   { kControlRegion, {
     { 2017, {"Data-CR/MET_Run2018",
       {"A/"}}},
-    { 2018, {"Data-CR/MET_Run2018",
-      {"A/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-DATA-CR-2018-Hadded/SingleMuon_Run2018" : "Data-CR/MET_Run2018",
+      {"A_17Sep2018/", "B_17Sep2018/", "C_17Sep2018/", "D_PromptReco_v2/"}}},
   }},
 };
 

@@ -139,7 +139,6 @@ void EventSet::LoadEventsFromFiles(xtracks::EDataType dataType, int setIter, str
     
     
     if(config.params["load_single_subpath"]){
-      
       if(prefix == ""){
         string fullPath = baseDataPath.at(year) + paths.first + paths.second[config.params["subpath_index"]] + commonDataSuffix + "tree.root";
         AddEventsFromFile(fullPath, dataType, year, maxEvents, setIter, iEvent);
@@ -149,7 +148,7 @@ void EventSet::LoadEventsFromFiles(xtracks::EDataType dataType, int setIter, str
           string fullPath = baseDataPath.at(year) + paths.first + path + commonDataSuffix + prefix + "tree.root";
           AddEventsFromFile(fullPath, dataType, year, maxEvents, setIter, iEvent);
           
-          if(prefix != "after_L0/") break;
+          if(prefix.find("after_L0/") == string::npos) break;
         }
       }
     }

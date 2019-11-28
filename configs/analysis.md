@@ -1,13 +1,13 @@
 **Analysis settings**
 
 ### Which level of cuts to apply:
-cuts_level: 1
+cuts_level: 0
 
 ### Analysis category ( 2-tracks | 3-layers | 4-layers | 5-6-layers | all ):
-analysis_category: all
+analysis_category: 5-6-layers
 
-### Secondary category ( Zmumu | Wmunu | LowMET ):
-secondary_category: 
+### Secondary category ( Zmumu | Wmunu | LowMET | none ):
+secondary_category:  Zmumu
 
 ### Should events after processing be saved on disk:
 save_events:  1
@@ -23,7 +23,7 @@ do_QCD:         0
 do_Zmm:         0
 do_tops:          0
 do_dibosons:   0
-do_Wmv:         1
+do_Wmv:         0
 do_Zvv:           0
 
 do_300_3:       0
@@ -51,19 +51,19 @@ do_chargino_700_10: 0
 do_chargino_700_30: 0
 do_chargino_800_10: 0
 
-do_SR: 1
-do_CR: 0
+do_SR: 0
+do_CR: 1
 
 ### For samples slit into several chunks, one can load all chunks or just a single one.
 ### Setting load_single_subpath: 1 at L1 means that for each chunk input files will be loaded
 ### from its corresponding directory, rather than from the first one.
 
-load_single_subpath: 0
-subpath_index: 0
+load_single_subpath: 1
+subpath_index: 1
 
 ### Select for which years to run:
-load_2017: 1
-load_2018: 0
+load_2017: 0
+load_2018: 1
 
 **Printing & plotting options**
 
