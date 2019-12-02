@@ -1,13 +1,13 @@
 **Analysis settings**
 
 ### Which level of cuts to apply:
-cuts_level: 0
+cuts_level: 1
 
 ### Analysis category ( 2-tracks | 3-layers | 4-layers | 5-6-layers | all ):
 analysis_category: 5-6-layers
 
 ### Secondary category ( Zmumu | Wmunu | LowMET | none ):
-secondary_category:  Zmumu
+secondary_category:  none
 
 ### Should events after processing be saved on disk:
 save_events:  1
@@ -40,10 +40,10 @@ do_1000_20:   0
 do_tagger_signal_noPU:                0
 do_tagger_background_noPU:      0
 do_tagger_signal_withPU:             0
-do_tagger_background_withPU:   0
+do_tagger_background_withPU:   1
 
 do_chargino_300_1:   0
-do_chargino_400_1:   0 
+do_chargino_400_1:   0
 do_chargino_300_10: 0
 do_chargino_500_10: 0
 do_chargino_500_1:   0
@@ -52,14 +52,14 @@ do_chargino_700_30: 0
 do_chargino_800_10: 0
 
 do_SR: 0
-do_CR: 1
+do_CR: 0
 
 ### For samples slit into several chunks, one can load all chunks or just a single one.
 ### Setting load_single_subpath: 1 at L1 means that for each chunk input files will be loaded
 ### from its corresponding directory, rather than from the first one.
 
-load_single_subpath: 1
-subpath_index: 1
+load_single_subpath: 0
+subpath_index: 0
 
 ### Select for which years to run:
 load_2017: 0

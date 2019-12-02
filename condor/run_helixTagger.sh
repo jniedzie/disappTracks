@@ -11,7 +11,7 @@ outputPath="afterHelixTagging"
 if [ $2 -eq 0 ];
 then
   configPath="configs/helixTagger.md"
-  outputPath="afterHelixTagging"
+  outputPath="after_L1/all/afterHelixTagging_noHighPtHits"
 elif [ $2 -eq 1 ];
 then
   configPath="configs/helixTaggerWithEndcaps.md"

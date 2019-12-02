@@ -18,6 +18,7 @@ const double muonMass = 0.1056583745; // GeV
 const double pionMass = 0.13957061; // GeV
 
 string configPath = "configs/analysis.md";
+string outFileName = "results/tracksHeatMap.root";
 
 /// Returns path prefix for cuts level and category selected in the config file
 string getPathPrefix()
@@ -73,17 +74,10 @@ EventSet getZmumuEvents()
   
   EventSet events; events.LoadEventsFromFiles(initPrefix);
 
-  EventCut eventCut; TrackCut trackCut; JetCut jetCut; LeptonCut leptonCut;
-  CutsManager cutsManager;
-  cutsManager.GetCuts(eventCut, trackCut, jetCut, leptonCut);
-  
-  // Pre-select Z->μμ events
-  eventCut.SetNmuons(range<int>(2,2));
-  eventCut.SetNleptons(range<int>(2,inf));
-  eventCut.SetRequireMuonsFromZ(true);
-  eventCut.SetRequireTwoOppositeMuons(true);
-  
-  events.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+//  EventCut eventCut; TrackCut trackCut; JetCut jetCut; LeptonCut leptonCut;
+//  CutsManager cutsManager;
+//  cutsManager.GetZmumuCuts(eventCut, trackCut, jetCut, leptonCut);
+//  events.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
   return events;
 }
@@ -133,6 +127,7 @@ map<string, TH2D*> initHeatMaps()
     "2sigma_all", "2sigma_2layers", "2sigma_3layers", "2sigma_4layers", "2sigma_5layers", "2sigma_6layers",
     "3sigma_all", "3sigma_2layers", "3sigma_3layers", "3sigma_4layers", "3sigma_5layers", "3sigma_6layers",
     "4sigma_all", "4sigma_2layers", "4sigma_3layers", "4sigma_4layers", "4sigma_5layers", "4sigma_6layers",
+    "all", "2layers", "3layers", "4layers", "5layers", "6layers",
   };
   
   for(string name : heatMapsNames){
@@ -151,20 +146,16 @@ int main(int argc, char* argv[])
   
   EventSet events = getZmumuEvents();
   
-  cout<<"\nCreating inv mass plot"<<endl;
-  
   TH1D *invMass = new TH1D("invMass #mu#mu", "invMass #mu#mu", 1000, 0, 500);
-  
-  
   map<string, TH2D*> heatMaps = initHeatMaps();
   
-  EventCut eventCut; TrackCut trackCut; JetCut jetCut; LeptonCut leptonCut;
-  trackCut.SetCaloEmEnergy(range<double>(0.0, 2.0));
-  trackCut.SetNlayers(range<int>(2, 6));
-  events.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
+//  EventCut eventCut; TrackCut trackCut; JetCut jetCut; LeptonCut leptonCut;
+//  trackCut.SetCaloEmEnergy(range<double>(0.0, 2.0));
+//  trackCut.SetNlayers(range<int>(2, 6));
+//  events.ApplyCuts(eventCut, trackCut, jetCut, leptonCut);
   
-  vector<int> nEventsWithFakeTrack(5, 0);
-  vector<int> nEvents(5, 0);
+//  vector<int> nEventsWithFakeTrack(5, 0);
+//  vector<int> nEvents(5, 0);
   
   for(int year : years){
     if(!config.params["load_"+to_string(year)]) continue;
@@ -177,16 +168,21 @@ int main(int argc, char* argv[])
       
       invMass->Fill(mass);
       
-      for(int i=0; i<5; i++){
-        if(fabs(mass-Zmass) < i*Zwidth){
-          if(event->GetNtracks() == 1) nEventsWithFakeTrack[i]++;
-          nEvents[i]++;
-        }
-      }
-      
+//      for(int i=0; i<5; i++){
+//        if(fabs(mass-Zmass) < i*Zwidth){
+//          if(event->GetNtracks() == 1) nEventsWithFakeTrack[i]++;
+//          nEvents[i]++;
+//        }
+//      }
       for(int iTrack=0; iTrack<event->GetNtracks(); iTrack++){
         auto track = event->GetTrack(iTrack);
         int nLayers = track->GetNtrackerLayers();
+        
+        heatMaps["all"]->Fill(track->GetPhi(), track->GetEta());
+        if(nLayers >= 2 && nLayers <= 6){
+          string name = to_string(nLayers)+"layers";
+          heatMaps[name]->Fill(track->GetPhi(), track->GetEta());
+        }
         
         for(int i=0; i<5; i++){
           if(fabs(mass-Zmass) < i*Zwidth){
@@ -203,24 +199,24 @@ int main(int argc, char* argv[])
   plotResults(heatMaps, invMass);
   
 
-  TFile *outFile = new TFile("results/tracksHeatMap.root", "recreate");
+  TFile *outFile = new TFile(outFileName.c_str(), "recreate");
   outFile->cd();
   invMass->Write();
   for(auto &[name, hist] : heatMaps) hist->Write();
   outFile->Close();
   
 
-  cout<<"Number of events with a fake track below 7 layers: "<<nEventsWithFakeTrack[4]<<endl;
-  cout<<"Total number of events analyzed: "<<nEvents[4]<<endl;
+//  cout<<"Number of events with a fake track below 7 layers: "<<nEventsWithFakeTrack[4]<<endl;
+//  cout<<"Total number of events analyzed: "<<nEvents[4]<<endl;
   
   
-  for(int i=1; i<5; i++){
-    if(nEvents[i]==0) continue;
-    cout<<"2 fakes probability ("<<i<<"σ): "<<pow((double)nEventsWithFakeTrack[i]/nEvents[i], 2);
-    cout<<" +/- "<<2*nEventsWithFakeTrack[i]/pow(nEvents[i],2)*sqrt(nEventsWithFakeTrack[i]+1/nEvents[i])<<endl;
-  }
+//  for(int i=1; i<5; i++){
+//    if(nEvents[i]==0) continue;
+//    cout<<"2 fakes probability ("<<i<<"σ): "<<pow((double)nEventsWithFakeTrack[i]/nEvents[i], 2);
+//    cout<<" +/- "<<2*nEventsWithFakeTrack[i]/pow(nEvents[i],2)*sqrt(nEventsWithFakeTrack[i]+1/nEvents[i])<<endl;
+//  }
   
-  
+  /*
   EventSet singleLeptonEvents = getSingleLeptonEvents();
   trackCut.SetCaloEmEnergy(range<double>(0.0, 2.0));
   trackCut.SetNlayers(range<int>(2, 6));
@@ -239,7 +235,7 @@ int main(int argc, char* argv[])
     cout<<"N single lepton events with two fake tracks: "<<nTwoFakeTrackEvents<<endl;
     cout<<"Fraction: "<<(double)nTwoFakeTrackEvents/nSingleLeptonEvents<<endl;
   }
-  
+  */
   
   theApp.Run();
   return 0;
