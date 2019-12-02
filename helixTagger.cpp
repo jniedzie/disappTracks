@@ -77,7 +77,12 @@ int main(int argc, char* argv[])
         cout<<"cut level: "<<cutLevel<<"\n";
         
         for(auto &track : event->GetTracks()){
-          Helices fittedHelices = fitter->FitHelices(event->GetClusters(), *track, *event->GetVertex());
+          int nTrackerLayers = -1;
+          if(iSig == kTaggerBackgroundWithPU || iSig == kTaggerBackgroundNoPU){
+            nTrackerLayers = RandInt(3, 6);
+          }
+          
+          Helices fittedHelices = fitter->FitHelices(event->GetClusters(), *track, *event->GetVertex(), nTrackerLayers);
           
           for(auto helix : fittedHelices){
             helix.Print();

@@ -77,14 +77,15 @@ Fitter::~Fitter()
 
 Helices Fitter::FitHelices(const Points &_points,
                            const Track &_track,
-                           const Point &_eventVertex)
+                           const Point &_eventVertex,
+                           int _nTrackerLayers)
 {
   points        = _points;
   pointsByLayer = pointsProcessor.SortByLayer(points);
   pointsByDisk  = pointsProcessor.SortByDisk(points);
   track         = _track;
   eventVertex   = _eventVertex;
-  nTrackLayers  = track.GetNtrackerLayers();
+  nTrackLayers  = _nTrackerLayers > 0 ? _nTrackerLayers : track.GetNtrackerLayers();
   
   InitLparams();
   charge        = track.GetCharge();

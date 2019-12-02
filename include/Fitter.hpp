@@ -28,7 +28,8 @@ public:
   /// \param _eventVertex Primary vertex of the event
   Helices FitHelices(const Points &_points,
                      const Track &_track,
-                     const Point &_eventVertex);
+                     const Point &_eventVertex,
+                     int _nTrackerLayers=-1);
   
 private:
   Points points;                    ///< collection of all points in the event
