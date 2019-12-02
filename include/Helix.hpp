@@ -121,6 +121,8 @@ public:
          vector<size_t>     GetLastPointsIndices()      const;
   inline int                GetFirstTurningPointIndex() const {return firstTurningPointIndex;}
          int                GetNtruePionHits()          const;
+  inline int                GetNrecHits()               const {return nRecHits;}
+  inline int                GetNrecPionHits()           const {return nRecPionHits;}
   
   // Missing hits
   inline int  GetNmissingHits() 	    const {return nMissingHits;}
@@ -171,6 +173,7 @@ private:
   bool isPreviousHitMissing;  ///< Is the point on helix a missing hit?
   int nRecLayers;             ///< Total number of reconstructed layers (should be set when fitting is done)
   int nRecHits;               ///< Total number of reconstructed hits (should be set when fitting is done)
+  int nRecPionHits;           ///< Total number of reconstructed true pion hits
   
   
   /// Sorts collection of all points by t param in increasing order (or decreasing

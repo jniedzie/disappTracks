@@ -9,7 +9,7 @@
 
 string configPath = "configs/taggerPlotting.md";
 string cutLevel = "afterHelixTagging";
-string suffix = "";
+string suffix = "_noHighPtHits";
 
 xtracks::EDataType dataType = xtracks::kSignal;
 
@@ -18,9 +18,25 @@ TH2D *ptHist, *ptHistBest, *pzHist, *pzHistBest;
 
 TH1D *r0, *r0best, *ar, *arBest, *s0, *s0best, *bs, *bsBest ;
 
-TH1D *vertexXRes, *vertexXResBest, *vertexYRes, *vertexYResBest, *vertexZRes, *vertexZResBest, *momentumTRes, *momentumTResBest, *momentumZRes, *momentumZResBest;
+TH1D *vertexXRes, *vertexXResBest, *vertexYRes, *vertexYResBest, *vertexZRes, *vertexZResBest, *momentumTRes, *momentumTResBest, *momentumZRes, *momentumZResBest, *fractionTrueHitsHist, *fractionTrueHitsHistBest;
 
 TH1D *pionPtHist = new TH1D("pionPt", "pionPt", 100, 0, 1000);
+
+/// Returns path prefix for cuts level and category selected in the config file
+string getPathPrefix()
+{
+  string prefix = "";
+   
+  if(config.secondaryCategory == "Zmumu") prefix += "Zmumu/";
+  if(config.secondaryCategory == "Wmunu") prefix += "Wmunu/";
+  
+  if(config.params["cuts_level"]==0) prefix += "after_L0/";
+  if(config.params["cuts_level"]==1) prefix += "after_L1/"+config.category+"/";
+  
+  prefix += "afterHelixTagging"+suffix+"/";
+  
+  return prefix;
+}
 
 double getPz(double R0, double s0, double q)
 {
@@ -32,24 +48,21 @@ void fillSingleHists(const Helix &helix, bool best)
 {
   double radius = helix.GetRadius(helix.GetTmin());
   double slope = helix.GetSlope(helix.GetTmin());
+  double trueHitsFraction = helix.GetNrecPionHits()/(double)(helix.GetNrecHits()-1);
   
+  if(best){
+    fractionTrueHitsHistBest->Fill(trueHitsFraction);
+    r0best->Fill(radius);
+    arBest->Fill(helix.GetRadiusFactor());
+    s0best->Fill(slope);
+  }
+  
+  fractionTrueHitsHist->Fill(trueHitsFraction);
   r0->Fill(radius);
   ar->Fill(helix.GetRadiusFactor());
   s0->Fill(slope);
   bs->Fill(helix.GetSlopeFactor());
-
-  if(best){
-    r0best->Fill(radius);
-    arBest->Fill(helix.GetRadiusFactor());
-    s0best->Fill(slope);
-    bsBest->Fill(helix.GetSlopeFactor());
-  }
-  else{
-    r0->Fill(radius);
-    ar->Fill(helix.GetRadiusFactor());
-    s0->Fill(slope);
-    bs->Fill(helix.GetSlopeFactor());
-  }
+  
 }
 
 void fillDoubleHists(const Helix &recHelix, const Helix &genHelix, bool best)
@@ -160,6 +173,14 @@ void FillMonitors(const EventSet &events)
   
   pionPtHist = new TH1D("pionPt", "pionPt", 100, 0, 1000);
   
+  fractionTrueHitsHist      = new TH1D("fractionTrueHitsHist", "fractionTrueHitsHist", 100, 0, 1);
+  fractionTrueHitsHistBest  = new TH1D("fractionTrueHitsHistBest", "fractionTrueHitsHistBest", 100, 0, 1);
+  
+  map<double, int> nEventsWithTrueHelix;
+  map<double, int> nEventsWithTrueHelix2;
+  int nEvents = 0;
+  vector<double> trueHelixThresholds = {0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
+  
   for(ESignal iSig : signals){
     if(!config.runSignal[iSig]) continue;
     
@@ -169,17 +190,50 @@ void FillMonitors(const EventSet &events)
       for(int iEvent=0; iEvent<events.size(dataType, iSig, year); iEvent++){
         auto event = events.At(dataType, iSig, year, iEvent);
         if(!event->WasTagged()) continue;
+      
+        map<double, bool> trueHelixFound;
+        map<double, bool> trueHelixFound2;
+        
         
         Helix bestHelix(Point(), Point(), 0);
         
         int maxNhitsOnHelix = -inf;
         
+        int nPionHits = event->GetPionClusters().size();
+//        if(nPionHits==0) continue;
+        
+        nEvents++;
+        
         for(int iHelix=0; iHelix<event->GetNhelices(); iHelix++){
           auto helix = event->GetHelix(iHelix);
+          
+          double trueHitsFraction = helix.GetNrecPionHits()/(double)(helix.GetNrecHits()-1);
+          double pionHitsFraction = helix.GetNrecPionHits()/(double)nPionHits;
+          
+          if(helix.GetNrecHits()==0) trueHitsFraction=0;
+          if(nPionHits == 0) pionHitsFraction=0;
+          
+          for(double threshold : trueHelixThresholds){
+            
+            if(!trueHelixFound[threshold]){
+              if(trueHitsFraction >= threshold){
+                nEventsWithTrueHelix[threshold]++;
+                trueHelixFound[threshold] = true;
+              }
+            }
+            if(!trueHelixFound2[threshold]){
+              if(pionHitsFraction >= threshold){
+                nEventsWithTrueHelix2[threshold]++;
+                trueHelixFound2[threshold] = true;
+              }
+            }
+          }
+          
           fillSingleHists(helix, false);
           
-          if((int)helix.GetPoints().size() > maxNhitsOnHelix){
-            maxNhitsOnHelix = (int)helix.GetPoints().size();
+          if(helix.GetNrecHits() > maxNhitsOnHelix){
+//          if((int)helix.GetPoints().size() > maxNhitsOnHelix){
+            maxNhitsOnHelix = helix.GetNrecHits();
             bestHelix = helix;
           }
         }
@@ -195,6 +249,18 @@ void FillMonitors(const EventSet &events)
             fillDoubleHists(helix, pionHelix, false);
           }
         }
+      }
+      
+      cout<<"N events: "<<nEvents<<endl;
+      
+      for(double threshold : trueHelixThresholds){
+//        cout<<"N events with true helix above "<<threshold<<": "<<nEventsWithTrueHelix[threshold]<<endl;
+        cout<<"Fraction of events with true helix above "<<threshold<<":\t"<<nEventsWithTrueHelix[threshold]/(double)nEvents<<"\t\t";
+    cout<<"+/-\t\t"<<nEventsWithTrueHelix[threshold]/(double)nEvents*sqrt(1./nEventsWithTrueHelix[threshold]+1/nEvents)<<endl;
+        
+        cout<<"Fraction of events with true helix above "<<threshold<<" (second method):\t"<<nEventsWithTrueHelix2[threshold]/(double)nEvents<<"\t\t";
+        cout<<"+\-\t\t"<<nEventsWithTrueHelix2[threshold]/(double)nEvents*sqrt(1./nEventsWithTrueHelix2[threshold]+1/nEvents)<<endl;
+        
       }
     }
   }
@@ -240,6 +306,9 @@ void FillMonitors(const EventSet &events)
   
   c1->cd(13); pzHist->Draw("colz");
   c1->cd(14); pzHistBest->Draw("colz");
+  
+  c1->cd(15); fractionTrueHitsHist->Draw();
+  c1->cd(16); fractionTrueHitsHistBest->Draw();
 
   
   TCanvas *c2 = new TCanvas("c2","c2",2880,1800);
@@ -298,7 +367,7 @@ int main(int argc, char* argv[])
   config = ConfigManager(configPath);
   auto helixProcessor = HelixProcessor();
   
-  EventSet events; events.LoadEventsFromFiles(cutLevel+suffix+"/");
+  EventSet events; events.LoadEventsFromFiles(getPathPrefix());
   FillMonitors(events);
 
   theApp.Run();

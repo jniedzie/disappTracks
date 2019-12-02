@@ -92,6 +92,7 @@ Helices HelixProcessor::GetHelicesFromTree()
     helix.helixParams.a   = arrayValuesFloat["helix_a_r"][iHelix];
     helix.helixParams.s0  = arrayValuesFloat["helix_s_0"][iHelix];
     helix.helixParams.b   = arrayValuesFloat["helix_b_s"][iHelix];
+    helix.nRecPionHits    = arrayValuesInt["helix_n_true_pion_hits"][iHelix];
     
     helix.seedChi2 = arrayValuesFloat["helix_seed_chi2"][iHelix];
     

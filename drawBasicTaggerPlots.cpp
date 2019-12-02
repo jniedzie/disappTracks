@@ -10,7 +10,7 @@
 #include "PerformanceMonitor.hpp"
 
 string configPath = "configs/taggerPlotting.md";
-string suffix = "";
+string suffix = "_noHighPtHits";
 
 ESignal signalDataset     = kChargino500_10;
 ESignal backgroundDataset = kTaggerBackgroundWithPU;
