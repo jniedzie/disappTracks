@@ -27,12 +27,12 @@ vector<Points> pointsNoEndcapsBackground;
 
 vector<string> monitorTypes = {
   "avg_hits",
-  "max_hits",
-  "avg_layers",
-  "max_layers",
-  "avg_length",
-  "max_length",
-  "n_helices"
+//  "max_hits",
+//  "avg_layers",
+//  "max_layers",
+//  "avg_length",
+//  "max_length",
+//  "n_helices"
 };
 
 vector<string> optimizationVars = {
@@ -54,7 +54,7 @@ vector<tuple<string, double, double, double, bool>> paramsToTest = {
 //  {"double_hit_max_distance", 20, 0, -1},
   {"seed_max_chi2", 0.00001, 0.010, 0.001, true},
 //  {"seed_middle_hit_min_delta_phi", 0, -0.9, -0.1},
-  {"seed_middle_hit_max_delta_phi", 0, 0.9, 0.1, false},
+//  {"seed_middle_hit_max_delta_phi", 0, 0.9, 0.1, false},
 //  {"seed_middle_hit_max_delta_z", 50, 300, 50},
 //  {"seed_last_hit_min_delta_phi", 0.0, -0.9, -0.1},
 //    {"seed_last_hit_max_delta_phi", 0.0, 0.5, 0.3},
@@ -169,6 +169,10 @@ int main(int argc, char* argv[])
       CheckParamForCurrentConfig(name);
     }
     cout<<endl;
+    
+    cout<<"Best monitor value:"<<bestMonitorValue[monitorTypes[0]][optimizationVars[0]]<<endl;
+    cout<<"Best param value "<<name<<": "<<bestParamValue[monitorTypes[0]][optimizationVars[0]][name]<<endl;
+    
   }
   
   for(string monitorType : monitorTypes){
