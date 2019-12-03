@@ -10,8 +10,15 @@
 
 using namespace TMVA;
 
-const int nEvents = 10;
+const int nEvents = 5;
 const int eventOffset = 0;
+
+/*
+ mind: big population sizes will help in searching the domain space of the solution but you have to weight this
+ out to the number of generations the extreme case of 1 generation and populationsize n is equal to a Monte Carlo
+ calculation with n tries
+ */
+int populationSize = 1;
 
 auto helixFitter = make_unique<Fitter>();
 
@@ -24,7 +31,7 @@ map<string, double> bestParamValue; //[configParam]
 
 //           name     start    stop   nBins
 vector<tuple<string, double, double, int>> paramsToTest = {
-  {"double_hit_max_distance"      , 0   , 20  , 20  },
+  {"double_hit_max_distance"      , 10   , 20  , 6  },
   //  {"seed_max_chi2", 0.00001, 0.010, 0.001 },
   //    {"seed_middle_hit_min_delta_phi", 0, -0.9, -0.1},
   {"seed_middle_hit_max_delta_phi", 0.0 , 1.0 , 6   },
@@ -32,11 +39,11 @@ vector<tuple<string, double, double, int>> paramsToTest = {
   //    {"seed_last_hit_min_delta_phi", 0.0, -0.9, -0.1},
   {"seed_last_hit_max_delta_phi"  , 0.0 , 1.2 ,  7  },
   {"seed_last_hit_max_delta_z"    , 50  , 300 , 6   },
-  {"track_max_chi2"               , 0.0 , 0.1 , 1e5 },
+  {"track_max_chi2"               , 0.0 , 0.01 , 1e5},
   //  {"double_hit_max_distance", 0.0, 30.0, 5.0},
   //  {"next_point_min_delta_phi", 0.0, -0.9, -0.1},
   {"next_point_max_delta_phi"     , 0.0 , 1.5 , 6   },
-  {"next_point_max_delta_z"       , 0   , 1000, 10  },
+  {"next_point_max_delta_z"       , 0   , 1000, 11  },
   {"next_point_max_delta_xy"      , 50  , 400 , 8   },
 };
 
@@ -121,7 +128,14 @@ void setDefaultConfigParams()
   config.params["max_Z0"] =  5000;
 }
 
-
+void printParams(vector<double> &params)
+{
+  for(int iParam=0; iParam < params.size(); iParam++){
+    string name = get<0>(paramsToTest[iParam]);
+    double value = params.at(iParam);
+    cout<<"Setting param: "<<name<<"\t to value: "<<value<<endl;
+  }
+}
 
 class MyFitness : public IFitterTarget {
 public:
@@ -144,6 +158,7 @@ public:
     for(int iParam=0; iParam < factors.size(); iParam++){
       string name = get<0>(paramsToTest[iParam]);
       config.params[name] = factors.at(iParam);
+      cout<<"Setting param: "<<name<<"\t to value: "<<factors.at(iParam)<<endl;
     }
     
     // Create monitor
@@ -153,6 +168,7 @@ public:
     PerformanceMonitor monitor(monitorType, monitorType, nBins, 0, max);
     
     // Run reconstruction on loaded events
+    auto start = now();
     cout<<"Event: ";
     for(auto iEvent=0; iEvent<loadedEvents.size(); iEvent++){
       auto event = loadedEvents[iEvent];
@@ -167,9 +183,12 @@ public:
     }
     cout<<endl;
     
+    cout<<"Time: "<<duration(start, now())<<" s"<<endl;
+    
     // Get max distance to √fake curve
     monitor.CalcEfficiency();
     double value = monitor.GetValueByName("max_dist_fake");
+    cout<<"Distance to √fake: "<<value<<endl;
     
     // return something that should be minimized
     return 1-value;
@@ -194,14 +213,6 @@ int main(int argc, char* argv[])
   IFitterTarget *myFitness = new MyFitness();
   vector<Interval*> ranges = getRanges();
   
-  /*
-   prepare the genetic algorithm with an initial population size of 20
-   mind: big population sizes will help in searching the domain space of the solution but you have to weight this
-   out to the number of generations the extreme case of 1 generation and populationsize n is equal to a Monte Carlo
-   calculation with n tries
-   */
-  int populationSize = 10;
-  
   GeneticAlgorithm geneticOptimizer(*myFitness, populationSize, ranges);
   // geneticOptimizer.SetParameters( 4, 30, 200, 10,5, 0.95, 0.001 );
   
@@ -211,12 +222,18 @@ int main(int argc, char* argv[])
 #define SCRATE 5
 #define SCFACTOR 0.95
   
-  do {
+  int iIter=0;
+  
+  
+  do{
+    cout<<"===================================================================="<<endl;
+    cout<<"\tStarting iteration "<<iIter<<endl;
+    cout<<"===================================================================="<<endl;
+    iIter++;
     
     geneticOptimizer.Init();              // prepares the new generation and does evolution
     geneticOptimizer.CalculateFitness();  // assess the quality of the individuals
     geneticOptimizer.GetGeneticPopulation().Print(0);
-    
     
     geneticOptimizer.GetGeneticPopulation().TrimPopulation(); // reduce the population size to the initially defined one
     
@@ -228,18 +245,22 @@ int main(int argc, char* argv[])
     // B) equal to SCRATE: do nothing
     // C) greater than SCRATE: multiply the preset sigma by SCFACTOR
     // if you don't know what to do, leave it unchanged or even delete this function call
-    geneticOptimizer.SpreadControl( SCSTEPS, SCRATE, SCFACTOR );
+    geneticOptimizer.SpreadControl(SCSTEPS, SCRATE, SCFACTOR);
+    
+    GeneticGenes* genes = geneticOptimizer.GetGeneticPopulation().GetGenes(0);
+    vector<double> gvec = genes->GetFactors();
+    
+    cout<<"BEST PARAMS in this iteration:"<<endl;
+    printParams(gvec);
+    
   }
   while(!geneticOptimizer.HasConverged(CONVSTEPS, CONVCRIT));  // converged if: fitness-improvement < CONVCRIT within the last CONVSTEPS loops
   
   GeneticGenes* genes = geneticOptimizer.GetGeneticPopulation().GetGenes(0);
   vector<double> gvec = genes->GetFactors();
   
-  for(int iParam=0; iParam < gvec.size(); iParam++){
-    string name = get<0>(paramsToTest[iParam]);
-    double value = gvec.at(iParam);
-    cout<<"Best "<<name<<" value: "<<value<<endl;
-  }
+  cout<<"BEST PARAMS EVER:"<<endl;
+  printParams(gvec);
   
   return 0;
 }
