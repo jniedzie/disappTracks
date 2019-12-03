@@ -11,7 +11,7 @@
 
 string configPath = "configs/helixTagger.md";
 
-const int nEvents = 10;
+const int nEvents = 50;
 const int eventOffset = 0;
 
 string suffix = "";
@@ -53,13 +53,13 @@ map<string, map<string, map<string, double>>> bestParamValue; //[monitorType][op
 vector<tuple<string, double, double, double, bool>> paramsToTest = {
 //  {"double_hit_max_distance", 20, 0, -1},
   {"seed_max_chi2", 0.00001, 0.010, 0.001, true},
-//  {"seed_middle_hit_min_delta_phi", 0, -0.9, -0.1},
-//  {"seed_middle_hit_max_delta_phi", 0, 0.9, 0.1, false},
-//  {"seed_middle_hit_max_delta_z", 50, 300, 50},
-//  {"seed_last_hit_min_delta_phi", 0.0, -0.9, -0.1},
-//    {"seed_last_hit_max_delta_phi", 0.0, 0.5, 0.3},
-//  {"seed_last_hit_max_delta_z", 50, 300, 50},
-//  {"track_max_chi2", 0.001, 0.010, 0.001},
+  //  {"seed_middle_hit_min_delta_phi", 0, -0.9, -0.1},
+  {"seed_middle_hit_max_delta_phi", 0.1, 0.9, 0.2, false},
+  {"seed_middle_hit_max_delta_z", 50, 300, 50, false},
+  //  {"seed_last_hit_min_delta_phi", 0.0, -0.9, -0.1},
+  {"seed_last_hit_max_delta_phi", 0.1, 1.2, 0.3, false},
+  {"seed_last_hit_max_delta_z", 50, 300, 50, false},
+  {"track_max_chi2", 0.00001, 0.010, 0.001, true},
 //  {"double_hit_max_distance", 0.0, 30.0, 5.0},
 //  {"next_point_min_delta_phi", 0.0, -0.9, -0.1},
 //  {"next_point_max_delta_phi", 0.0, 0.9, 0.1},
@@ -169,6 +169,10 @@ int main(int argc, char* argv[])
       CheckParamForCurrentConfig(name);
     }
     cout<<endl;
+    
+    if(bestParamValue[monitorTypes[0]][optimizationVars[0]][name] > -9999){
+      config.params[name] = bestParamValue[monitorTypes[0]][optimizationVars[0]][name];
+    }
     
     cout<<"Best monitor value:"<<bestMonitorValue[monitorTypes[0]][optimizationVars[0]]<<endl;
     cout<<"Best param value "<<name<<": "<<bestParamValue[monitorTypes[0]][optimizationVars[0]][name]<<endl;
