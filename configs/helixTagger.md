@@ -15,6 +15,8 @@ include_endcaps: 0
 
 cut_noise_hits: 1
 
+fit_noise_clusters_only: 1
+
 ### Should events after processing be saved on disk:
 save_events:  1
 
@@ -118,12 +120,13 @@ do_800_20:     0
 do_1000_10:   0
 do_1000_20:   0
 do_tagger_signal_noPU:                0
+do_tagger_signal_noPU_pion_removed: 1
 do_tagger_background_noPU:      0
 do_tagger_signal_withPU:             0
 do_tagger_background_withPU:   0
 
 do_chargino_300_1:     0
-do_chargino_500_10:   1
+do_chargino_500_10:   0
 
 do_SR:         0
 do_CR:         0
