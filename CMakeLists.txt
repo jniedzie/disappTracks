@@ -3,7 +3,7 @@ project(event)
 
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 
-find_package(ROOT REQUIRED COMPONENTS Minuit Eve Geom TreePlayer Gui ASImage)
+find_package(ROOT REQUIRED COMPONENTS Minuit Eve Geom TreePlayer Gui ASImage TMVA)
 include(${ROOT_USE_FILE})
 
 SET(CMAKE_SKIP_BUILD_RPATH FALSE)
@@ -27,6 +27,7 @@ add_executable(cutsCorrelations cutsCorrelations.cpp)
 add_executable(getFfactor getFfactor.cpp)
 add_executable(drawBasicTaggerPlots drawBasicTaggerPlots.cpp)
 add_executable(drawAdvancedTaggerPlots drawAdvancedTaggerPlots.cpp)
+add_executable(geneticOptimizer geneticOptimizer.cpp)
 
 set_property(TARGET getTrackHeatMap PROPERTY CXX_STANDARD 17)
 set_property(TARGET eventDisplay PROPERTY CXX_STANDARD 17)
@@ -44,6 +45,7 @@ set_property(TARGET cutsCorrelations PROPERTY CXX_STANDARD 17)
 set_property(TARGET getFfactor PROPERTY CXX_STANDARD 17)
 set_property(TARGET drawBasicTaggerPlots PROPERTY CXX_STANDARD 17)
 set_property(TARGET drawAdvancedTaggerPlots PROPERTY CXX_STANDARD 17)
+set_property(TARGET geneticOptimizer PROPERTY CXX_STANDARD 17)
 
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
@@ -91,3 +93,4 @@ target_link_libraries(cutsCorrelations libAnalysis ${ROOT_LIBRARIES})
 target_link_libraries(getFfactor libAnalysis ${ROOT_LIBRARIES})
 target_link_libraries(drawBasicTaggerPlots libAnalysis ${ROOT_LIBRARIES})
 target_link_libraries(drawAdvancedTaggerPlots libAnalysis ${ROOT_LIBRARIES})
+target_link_libraries(geneticOptimizer libAnalysis ${ROOT_LIBRARIES})

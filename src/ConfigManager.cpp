@@ -8,11 +8,11 @@ ConfigManager config("init");
 
 ConfigManager::ConfigManager(string path)
 {
-  if(path=="init") return;
-  
   for(EBackground iBck : backgrounds) {  runBackground.push_back(false);}
   for(ESignal iSig : signals)         {  runSignal.push_back(false);    }
   for(EData iData : datas)            {  runData.push_back(false);      }
+ 
+  if(path=="init") return;
   
   ifstream infile(path);
   

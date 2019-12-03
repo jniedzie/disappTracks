@@ -50,6 +50,9 @@
 #include <TEnv.h>
 #include <TTreeReaderArray.h>
 #include <TLorentzVector.h>
+#include "TMVA/GeneticAlgorithm.h"
+#include "TMVA/GeneticFitter.h"
+#include "TMVA/IFitterTarget.h"
 
 #pragma clang diagnostic pop // restores the saved state for diagnostics
 
