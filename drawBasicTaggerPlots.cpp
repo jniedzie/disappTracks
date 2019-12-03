@@ -10,10 +10,10 @@
 #include "PerformanceMonitor.hpp"
 
 string configPath = "configs/taggerPlotting.md";
-string suffix = "_noHighPtHits";
+string suffix = "";
 
-ESignal signalDataset     = kChargino500_10;
-ESignal backgroundDataset = kTaggerBackgroundWithPU;
+ESignal signalDataset     = kTaggerSignalNoPU;
+ESignal backgroundDataset = kTaggerSignalNoPUpionRemoved;
 
 xtracks::EDataType dataType = xtracks::kSignal;
 

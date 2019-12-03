@@ -15,12 +15,13 @@ verbosity_level:  1
 max_N_events_signal:  1000
 
 ### turn on/off different backgrounds, signals and data samples
-do_tagger_signal_noPU:                0
+do_tagger_signal_noPU:                          1
+do_tagger_signal_noPU_pion_removed: 1
 do_tagger_background_noPU:      0
 do_tagger_signal_withPU:             0
-do_tagger_background_withPU:   1
+do_tagger_background_withPU:   0
 
-do_chargino_300_1:   1
+do_chargino_300_1:   0
 do_chargino_400_1:   0
 do_chargino_500_1:   0
 

@@ -80,7 +80,8 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
     trackCut.SetNlayers(range<int>(5, 6));
   }
   else if(config.category == "all"){
-    eventCut.SetNtracks(range<int>(1,inf));
+    eventCut.SetNtracks(range<int>(1, 2));
+    trackCut.SetNlayers(range<int>(3, 6));
   }
   
   if(config.params["cuts_level"] == 1) return;
