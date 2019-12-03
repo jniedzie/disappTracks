@@ -10,13 +10,18 @@
 #include "PerformanceMonitor.hpp"
 
 string configPath = "configs/taggerPlotting.md";
-string suffix = "";
+//string suffix = "_noHighPtHits";
+//string suffix = "_default";
+//string suffix = "_highMerging";
+//string suffix = "_lowSeedChi";
+//string suffix = "_noMissing";
+//string suffix = "_lowTrackChi";
+string suffix = "_removingPionHits";
 
 ESignal signalDataset     = kTaggerSignalNoPU;
 ESignal backgroundDataset = kTaggerSignalNoPUpionRemoved;
 
 xtracks::EDataType dataType = xtracks::kSignal;
-
 
 
 /// Returns path prefix for cuts level and category selected in the config file
@@ -75,6 +80,18 @@ void FillMonitors(Monitors &monitors, const EventSet &events, bool isSignal)
     
     for(int iEvent=0; iEvent<events.size(dataType, dataSet, year); iEvent++){
       auto event = events.At(dataType, dataSet, year, iEvent);
+      
+      bool hasLowMomentumLepton = false;
+      
+      for(int iLepton=0; iLepton<event->GetNleptons(); iLepton++){
+        if(event->GetLepton(iLepton)->GetPt() < 1.0){
+          hasLowMomentumLepton = true;
+          break;
+        }
+      }
+      
+      if(hasLowMomentumLepton) continue;
+      
       if(!event->WasTagged()) continue;
       
       for(auto &[name, monitor] : monitors){
