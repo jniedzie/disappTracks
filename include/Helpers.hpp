@@ -465,7 +465,7 @@ const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
   }},
   { kTaggerBackgroundWithPU, {
     { 2017, {"taggerStudy/", {"background/withPU/"}}},
-    { 2018, {"7Sep2019/Calibrated-MC-ext-CR-2018-Hadded/",
+    { 2018, {"7Sep2019/Calibrated-MC-ext-SR-2018-Hadded/",
       { "WJetsToLNu_HT200to400_special/",
         "WJetsToLNu_HT200to400_special_Chunk0/",
         "WJetsToLNu_HT200to400_special_Chunk1/",
