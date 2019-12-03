@@ -10,19 +10,18 @@
 #include "EventSet.hpp"
 
 string configPath = "configs/helixTagger.md";
-string cutLevel = "after_L1/all_met_ge_700/";//after_L1/";
 
-const int nEvents = 50;
+const int nEvents = 10;
 const int eventOffset = 0;
 
-xtracks::EDataType dataType = xtracks::kSignal;
-int setIter = kWino_M_300_cTau_10;
+string suffix = "";
+
+xtracks::EDataType dataType = kSignal;
+int setIter = kTaggerSignalNoPU;
 
 auto helixFitter = make_unique<Fitter>();
 
-shared_ptr<Event> GetEvent(int iEvent);
-
-vector<shared_ptr<Event>> events;
+vector<shared_ptr<Event>> loadedEvents;
 vector<Points> pointsNoEndcapsSignal;
 vector<Points> pointsNoEndcapsBackground;
 
@@ -50,12 +49,12 @@ vector<string> optimizationVars = {
 map<string, map<string, double>> bestMonitorValue; //[monitorType][optimizeFor]
 map<string, map<string, map<string, double>>> bestParamValue; //[monitorType][optimizeFor][configParam]
 
-//           name     start    stop   step
-vector<tuple<string, double, double, double>> paramsToTest = {
+//           name     start    stop   step   log
+vector<tuple<string, double, double, double, bool>> paramsToTest = {
 //  {"double_hit_max_distance", 20, 0, -1},
-  {"seed_max_chi2", 0.001, 0.010, 0.001},
-//    {"seed_middle_hit_min_delta_phi", 0, -0.9, -0.1},
-//  {"seed_middle_hit_max_delta_phi", 0, 0.9, 0.1},
+  {"seed_max_chi2", 0.00001, 0.010, 0.001, true},
+//  {"seed_middle_hit_min_delta_phi", 0, -0.9, -0.1},
+  {"seed_middle_hit_max_delta_phi", 0, 0.9, 0.1, false},
 //  {"seed_middle_hit_max_delta_z", 50, 300, 50},
 //  {"seed_last_hit_min_delta_phi", 0.0, -0.9, -0.1},
 //    {"seed_last_hit_max_delta_phi", 0.0, 0.5, 0.3},
@@ -68,6 +67,22 @@ vector<tuple<string, double, double, double>> paramsToTest = {
 //  {"next_point_max_delta_xy", 50, 400, 50},
 };
 
+/// Returns path prefix for cuts level and category selected in the config file
+string getPathPrefix()
+{
+  string prefix = "";
+   
+  if(config.secondaryCategory == "Zmumu") prefix += "Zmumu/";
+  if(config.secondaryCategory == "Wmunu") prefix += "Wmunu/";
+  
+  if(config.params["cuts_level"]==0) prefix += "after_L0/";
+  if(config.params["cuts_level"]==1) prefix += "after_L1/"+config.category+"/";
+  
+  prefix += suffix+"/";
+  
+  return prefix;
+}
+
 void CheckParamForCurrentConfig(string paramName)
 {
   map<string, PerformanceMonitor> monitors;
@@ -78,8 +93,8 @@ void CheckParamForCurrentConfig(string paramName)
     monitors[monitorType] = PerformanceMonitor(monitorType, monitorType, nBins, 0, max);
   }
 
-  for(auto iEvent=0; iEvent<events.size(); iEvent++){
-    auto event = events[iEvent];
+  for(auto iEvent=0; iEvent<loadedEvents.size(); iEvent++){
+    auto event = loadedEvents[iEvent];
     cout<<"Event: "<<iEvent<<endl;
     
     for(auto &track : event->GetTracks()){
@@ -106,33 +121,50 @@ void CheckParamForCurrentConfig(string paramName)
   }
 };
 
+void loadEventsAndClusters()
+{
+  EventSet events; events.LoadEventsFromFiles(getPathPrefix());
+  
+  for(int year : years){
+    if(!config.params["load_"+to_string(year)]) continue;
+    
+    for(auto iEvent=eventOffset; iEvent<eventOffset+nEvents; iEvent++){
+      auto event = events.At(dataType, setIter, year, iEvent);
+      loadedEvents.push_back(event);
+      config.params["fit_noise_clusters_only"] = false;
+      pointsNoEndcapsSignal.push_back(event->GetClusters());
+      config.params["fit_noise_clusters_only"] = true;
+      pointsNoEndcapsBackground.push_back(event->GetClusters());
+    }
+  }
+}
+
+void initMonitors()
+{
+  for(string monitorType : monitorTypes){
+     for(string optimizeFor : optimizationVars){
+       bestMonitorValue[monitorType][optimizeFor] = -inf;
+       for(auto &[paramName, min, max, step, doLog] : paramsToTest){
+         bestParamValue[monitorType][optimizeFor][paramName] = -inf;
+       }
+     }
+   }
+}
+
 int main(int argc, char* argv[])
 {
   config = ConfigManager(configPath);
   
-  for(auto iEvent=eventOffset; iEvent<eventOffset+nEvents; iEvent++){
-    auto event = GetEvent(iEvent);
-    events.push_back(event);
-    pointsNoEndcapsSignal.push_back(event->GetClusters());
-    pointsNoEndcapsBackground.push_back(event->GetClusters());
-  }
+  loadEventsAndClusters();
+  initMonitors();
   
-  for(string monitorType : monitorTypes){
-    for(string optimizeFor : optimizationVars){
-      bestMonitorValue[monitorType][optimizeFor] = -inf;
-      for(auto &[paramName, min, max, step] : paramsToTest){
-        bestParamValue[monitorType][optimizeFor][paramName] = -inf;
-      }
-    }
-  }
- 
-  // double hit max distance
-  for(auto &[name, min, max, step] : paramsToTest){
+  
+  for(auto &[name, min, max, step, doLog] : paramsToTest){
     cout<<"Testing "<<name<<endl;
     
     for(config.params[name]  = min;
         step < 0 ? config.params[name] >= max : config.params[name] <= max;
-        config.params[name] += step){
+        doLog ?  config.params[name] *= 10 : config.params[name] += step){
       cout<<"\t"<<config.params[name]<<endl;
       CheckParamForCurrentConfig(name);
     }
@@ -145,7 +177,7 @@ int main(int argc, char* argv[])
     for(string optimizeFor : optimizationVars){
       cout<<"\tbest "<<optimizeFor<<": "<<bestMonitorValue[monitorType][optimizeFor]<<endl;
 
-      for(auto &[paramName, min, max, step] : paramsToTest){
+      for(auto &[paramName, min, max, step, doLog] : paramsToTest){
         cout<<"\t\t"<<paramName<<": "<<bestParamValue[monitorType][optimizeFor][paramName]<<endl;
       }
     }
@@ -169,18 +201,4 @@ int main(int argc, char* argv[])
 //  outFile.close();
   
   return 0;
-}
-
-shared_ptr<Event> GetEvent(int iEvent)
-{
-  EventSet events;
-  events.LoadEventFromFiles(dataType, setIter, iEvent, cutLevel);
-  auto event = events.At(dataType, setIter, 0);
-  
-  if(!event){
-    cout<<"helixTagger -- event not found"<<endl;
-    exit(0);
-  }
-  
-  return event;
 }
