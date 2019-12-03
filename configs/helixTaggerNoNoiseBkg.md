@@ -126,8 +126,8 @@ do_SR:         0
 do_CR:         0
 
 ### Select for which years to run:
-load_2017: 1
-load_2018: 0
+load_2017: 0
+load_2018: 1
 
 ### Do we need additional information stored in the friend trees
 load_friend_tree: 1

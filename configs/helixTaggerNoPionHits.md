@@ -1,19 +1,21 @@
 **General settings**
 
 ### At which level of cuts should the tagging be applied:
-cuts_level: 0
+cuts_level: 1
 
 ### Analysis category ( 2-tracks | 3-layers | 4-layers | 5-6-layers | all ):
 analysis_category: all
 
 verbosity_level:  1
 
-### Limit number of events loaded (-1 means load all available)
-max_N_events_signal:  5
+### Limit number of events loaded:
+max_N_events_signal: 100
 
-include_endcaps:              0
+include_endcaps: 0
 
 cut_noise_hits: 1
+
+fit_noise_clusters_only: 1
 
 ### Should events after processing be saved on disk:
 save_events:  1
@@ -35,7 +37,7 @@ seed_last_hit_max_delta_phi:       0.5
 seed_last_hit_max_delta_z:          200
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             0.0011
+track_max_chi2:                             0.011
 
 next_point_min_delta_phi:             -0.6
 next_point_max_delta_phi:             1.5
@@ -120,9 +122,10 @@ do_1000_20:   0
 do_tagger_signal_noPU:                0
 do_tagger_background_noPU:      0
 do_tagger_signal_withPU:             0
-do_tagger_background_withPU:   1
+do_tagger_background_withPU:   0
 
-do_chargino_500_10:   0
+do_chargino_300_1:     0
+do_chargino_500_10:   1
 
 do_SR:         0
 do_CR:         0

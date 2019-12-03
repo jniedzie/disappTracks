@@ -122,12 +122,14 @@ do_tagger_background_noPU:      0
 do_tagger_signal_withPU:             0
 do_tagger_background_withPU:   1
 
+do_chargino_500_10:   0
+
 do_SR:         0
 do_CR:         0
 
 ### Select for which years to run:
-load_2017: 1
-load_2018: 0
+load_2017: 0
+load_2018: 1
 
 ### Do we need additional information stored in the friend trees
 load_friend_tree: 1

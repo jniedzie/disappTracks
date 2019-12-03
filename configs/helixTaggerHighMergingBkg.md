@@ -35,7 +35,7 @@ seed_last_hit_max_delta_phi:       0.5
 seed_last_hit_max_delta_z:          200
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             0.0011
+track_max_chi2:                             0.011
 
 next_point_min_delta_phi:             -0.6
 next_point_max_delta_phi:             1.5
@@ -50,7 +50,7 @@ track_min_n_layers:                       2
 min_layers_for_delta_xy:                5
 
 ### Max number of different points and min number of points to merge two helices:
-merging_max_different_point:         2
+merging_max_different_point:         5
 candidate_min_n_points:                3
 merge_at_turn_back:                      0
 merge_final_helices:                        1

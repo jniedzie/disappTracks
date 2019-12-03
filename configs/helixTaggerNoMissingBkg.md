@@ -35,7 +35,7 @@ seed_last_hit_max_delta_phi:       0.5
 seed_last_hit_max_delta_z:          200
 
 ### Constrains on pion track parameters:
-track_max_chi2:                             0.0011
+track_max_chi2:                             0.011
 
 next_point_min_delta_phi:             -0.6
 next_point_max_delta_phi:             1.5
@@ -56,8 +56,8 @@ merge_at_turn_back:                      0
 merge_final_helices:                        1
 
 ### Max number of missing hits (total and in a row):
-max_n_missing_hits:                       1
-max_n_missing_hits_in_raw:           1
+max_n_missing_hits:                       0
+max_n_missing_hits_in_raw:           0
 
 ### Asymmetric hits constraints:
 do_asymmetric_constraints:           0
