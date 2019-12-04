@@ -5,8 +5,9 @@
 #include "Fitter.hpp"
 #include "Logger.hpp"
 
-Fitter::Fitter() :
-eventVertex(Point(0, 0, 0))
+Fitter::Fitter(double _maxExecTime) :
+eventVertex(Point(0, 0, 0)),
+maxExecTime(_maxExecTime)
 {
   chi2Function = [&](const double *par) {
     double L  = par[4];
@@ -80,6 +81,8 @@ Helices Fitter::FitHelices(const Points &_points,
                            const Point &_eventVertex,
                            int _nTrackerLayers)
 {
+  startTime = now();
+  
   points        = _points;
   pointsByLayer = pointsProcessor.SortByLayer(points);
   pointsByDisk  = pointsProcessor.SortByDisk(points);
@@ -91,11 +94,13 @@ Helices Fitter::FitHelices(const Points &_points,
   charge        = track.GetCharge();
 
   Helices fittedHelices = PerformFittingCycle();
+  if(ShouldStop()) return vector<Helix>();
   
   if(nTrackLayers < config.params["check_opposite_charge_below_Nlayers"]){
     Log(1)<<"Checking opposite charge for default n layers\n";
     charge = -charge;
     Helices fittedHelicesOpposite = PerformFittingCycle();
+    if(ShouldStop()) return vector<Helix>();
     fittedHelices.insert(fittedHelices.end(), fittedHelicesOpposite.begin(), fittedHelicesOpposite.end());
     charge = -charge;
   }
@@ -105,12 +110,14 @@ Helices Fitter::FitHelices(const Points &_points,
     nTrackLayers-=1;
     InitLparams();
     Helices fittedHelicesOneLess = PerformFittingCycle();
+    if(ShouldStop()) return vector<Helix>();
     fittedHelices.insert(fittedHelices.end(), fittedHelicesOneLess.begin(), fittedHelicesOneLess.end());
     
     if(nTrackLayers < config.params["check_opposite_charge_below_Nlayers"]){
       Log(1)<<"Checking opposite charge for one less layer\n";
       charge = -charge;
       Helices fittedHelicesOpposite = PerformFittingCycle();
+      if(ShouldStop()) return vector<Helix>();
       fittedHelices.insert(fittedHelices.end(), fittedHelicesOpposite.begin(), fittedHelicesOpposite.end());
       charge = -charge;
     }
@@ -122,12 +129,14 @@ Helices Fitter::FitHelices(const Points &_points,
     nTrackLayers+=1;
     InitLparams();
     Helices fittedHelicesOneMore = PerformFittingCycle();
+    if(ShouldStop()) return vector<Helix>();
     fittedHelices.insert(fittedHelices.end(), fittedHelicesOneMore.begin(), fittedHelicesOneMore.end());
     
     if(nTrackLayers < config.params["check_opposite_charge_below_Nlayers"]){
       Log(1)<<"Checking opposite charge for one more layer\n";
       charge = -charge;
       Helices fittedHelicesOpposite = PerformFittingCycle();
+      if(ShouldStop()) return vector<Helix>();
       fittedHelices.insert(fittedHelices.end(), fittedHelicesOpposite.begin(), fittedHelicesOpposite.end());
       charge = -charge;
     }
@@ -141,8 +150,20 @@ Helices Fitter::FitHelices(const Points &_points,
 Helices Fitter::PerformFittingCycle()
 {
   Helices fittedHelices = GetSeeds();
+  if(ShouldStop()){
+    cout<<"Execution stopped due to exceeded time"<<endl;
+    return vector<Helix>();
+  }
   ExtendSeeds(fittedHelices);
+  if(ShouldStop()){
+    cout<<"Execution stopped due to exceeded time"<<endl;
+    return vector<Helix>();
+  }
   if(config.params["merge_final_helices"]) MergeHelices(fittedHelices);
+  if(ShouldStop()){
+    cout<<"Execution stopped due to exceeded time"<<endl;
+    return vector<Helix>();
+  }
   RemoveShortHelices(fittedHelices);
   return fittedHelices;
 }
@@ -244,6 +265,8 @@ Helices Fitter::GetSeeds()
   Log(1)<<"Looking for seeds...\n";
   
   for(auto &middlePoints : middlePointsRegrouped){
+    if(ShouldStop()) return vector<Helix>();
+    
     auto goodMiddlePoints = pointsProcessor.GetGoodMiddleSeedHits(middlePoints,
                                                                   trackPointMid,
                                                                   eventVertex,
@@ -251,6 +274,7 @@ Helices Fitter::GetSeeds()
     if(goodMiddlePoints.size()==0) continue;
     
     for(auto &lastPoints : lastPointsRegrouped){
+      if(ShouldStop()) return vector<Helix>();
       
       auto goodLastPoints = pointsProcessor.GetGoodLastSeedHits(lastPoints,
                                                                 goodMiddlePoints,
@@ -473,6 +497,8 @@ void Fitter::ExtendSeeds(Helices &helices)
   Log(1)<<"Extending seeds...\n";
   
   do{
+    if(ShouldStop()) return;
+    
     Log(1)<<"Helices before "<<nSteps<<" step: "<<helices.size()<<"\n";
     
     finished = true;
@@ -480,6 +506,7 @@ void Fitter::ExtendSeeds(Helices &helices)
     
     // for all helices from previous step
     for(Helix &helix : helices){
+      if(ShouldStop()) return;
       
       if(helix.GetIsFinished()){
         nextStepHelices.push_back(helix);
@@ -506,6 +533,7 @@ void Fitter::ExtendSeeds(Helices &helices)
         
         // Find points that could extend this helix
         for(Points &points : possiblePointsRegrouped){
+          if(ShouldStop()) return;
           
           Points goodPoints = turnsBack ? GetGoodTurningBackPoints(helix, points) : GetGoodNextPoints(helix, points, nextPointLayers);
         
@@ -639,6 +667,8 @@ void Fitter::MergeHelices(Helices &helices)
   Helices tooShortToMerge;
   // Remove very short candidates which should not even be merged with others
   for(auto helix : helices){
+    if(ShouldStop()) return;
+    
     if(helix.GetNpoints() >= config.params["candidate_min_n_points"]) helicesToMerge.push_back(helix);
     else                                                              tooShortToMerge.push_back(helix);
   }
@@ -753,6 +783,8 @@ void Fitter::RemoveShortHelices(Helices &helices)
   Log(1)<<"Removing very short merged helices...";
   Helices longHelices;
   for(auto helix : helices){
+    if(ShouldStop()) return;
+    
     if(helix.GetNpoints() >= config.params["track_min_n_points"] &&
        helix.GetNlayers() >= config.params["track_min_n_layers"]){
       helix.SetNrecLayers((int)helix.GetNlayers());
@@ -891,4 +923,9 @@ void Fitter::InitLparams()
   }
   
   startL = (minL+maxL)/2.;
+}
+
+bool Fitter::ShouldStop()
+{
+  return duration(startTime, now()) > maxExecTime;
 }

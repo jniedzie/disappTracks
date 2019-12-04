@@ -10,8 +10,9 @@
 
 using namespace TMVA;
 
-const int nEvents = 5;
+const int nEvents = 10;
 const int eventOffset = 0;
+const double maxExecTimePerEvent = 1.0; // seconds
 
 /*
  mind: big population sizes will help in searching the domain space of the solution but you have to weight this
@@ -20,7 +21,7 @@ const int eventOffset = 0;
  */
 int populationSize = 1;
 
-auto helixFitter = make_unique<Fitter>();
+auto helixFitter = make_unique<Fitter>(maxExecTimePerEvent);
 
 vector<shared_ptr<Event>> loadedEvents;
 vector<Points> pointsNoEndcapsSignal;
@@ -183,7 +184,7 @@ public:
     }
     cout<<endl;
     
-    cout<<"Time: "<<duration(start, now())<<" s"<<endl;
+    cout<<"Time per event: "<<duration(start, now())/loadedEvents.size()<<" s"<<endl;
     
     // Get max distance to √fake curve
     monitor.CalcEfficiency();

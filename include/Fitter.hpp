@@ -17,7 +17,7 @@
 class Fitter {
 public:
   /// Default constructor
-  Fitter();
+  Fitter(double _maxExecTime = -1);
   
   /// Default destructor
   ~Fitter();
@@ -119,6 +119,12 @@ private:
                                   const Points &points);
   
   unique_ptr<Helix> TryToExtendHelix(const Helix &helix, const Points &points, bool turnsBack);
+  
+  double maxExecTime; ///< If set, execution will stop after desired time (s)
+  chrono::time_point<chrono::steady_clock> startTime; ///< Remembers when fitting process started
+  
+  /// Checks if execution time exceeded max time allowed
+  bool ShouldStop();
 };
 
 #endif /* Fitter_hpp */
