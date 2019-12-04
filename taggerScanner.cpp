@@ -9,7 +9,7 @@
 #include "PerformanceMonitor.hpp"
 #include "EventSet.hpp"
 
-string configPath = "configs/helixTagger.md";
+string configPath = "configs/helixTaggerTuning.md";
 
 const int nEvents = 50;
 const int eventOffset = 0;
@@ -52,14 +52,14 @@ map<string, map<string, map<string, double>>> bestParamValue; //[monitorType][op
 //           name     start    stop   step   log
 vector<tuple<string, double, double, double, bool>> paramsToTest = {
 //  {"double_hit_max_distance", 20, 0, -1},
-  {"seed_max_chi2", 0.00001, 0.010, 0.001, true},
+//  {"seed_max_chi2", 0.01, 1.0, 0.001, true},
   //  {"seed_middle_hit_min_delta_phi", 0, -0.9, -0.1},
-  {"seed_middle_hit_max_delta_phi", 0.1, 0.9, 0.2, false},
+  //{"seed_middle_hit_max_delta_phi", 0.1, 1.6, 0.2, false},
   {"seed_middle_hit_max_delta_z", 50, 300, 50, false},
   //  {"seed_last_hit_min_delta_phi", 0.0, -0.9, -0.1},
-  {"seed_last_hit_max_delta_phi", 0.1, 1.2, 0.3, false},
-  {"seed_last_hit_max_delta_z", 50, 300, 50, false},
-  {"track_max_chi2", 0.00001, 0.010, 0.001, true},
+//  {"seed_last_hit_max_delta_phi", 0.1, 1.2, 0.3, false},
+//  {"seed_last_hit_max_delta_z", 50, 300, 50, false},
+//  {"track_max_chi2", 0.00001, 1.00, 0.001, true},
 //  {"double_hit_max_distance", 0.0, 30.0, 5.0},
 //  {"next_point_min_delta_phi", 0.0, -0.9, -0.1},
 //  {"next_point_max_delta_phi", 0.0, 0.9, 0.1},
@@ -166,7 +166,9 @@ int main(int argc, char* argv[])
         step < 0 ? config.params[name] >= max : config.params[name] <= max;
         doLog ?  config.params[name] *= 10 : config.params[name] += step){
       cout<<"\t"<<config.params[name]<<endl;
+      
       CheckParamForCurrentConfig(name);
+      cout<<"Best monitor value at the moment: "<<bestMonitorValue[monitorTypes[0]][optimizationVars[0]]<<endl;
     }
     cout<<endl;
     

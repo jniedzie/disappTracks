@@ -42,4 +42,5 @@ condor/log/*
 condor/jniedzie.cc
 drawAdvancedTaggerPlots
 drawBasicTaggerPlots
+geneticOptimizer
 
