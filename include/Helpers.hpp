@@ -81,7 +81,7 @@ using namespace std;
 
 namespace xtracks {
 
-const bool lxplus = true;
+const bool lxplus = false;
 
 enum EHelixParams
 {
