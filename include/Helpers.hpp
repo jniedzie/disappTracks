@@ -552,8 +552,8 @@ const map<EData, map<int, pair<string, vector<string>>>> inFileNameData = {
       {"A_17Sep2018/", "B_17Sep2018/", "C_17Sep2018/", "D_PromptReco_v2_1/", "D_PromptReco_v2_2/", "D_PromptReco_v2_3/", "D_PromptReco_v2_4/"}}},
   }},
   { kControlRegion, {
-    { 2017, {"Data-CR/MET_Run2018",
-      {"A/"}}},
+    { 2017, {lxplus ? "CR2017/DATA/SingleMuon_Run2017" : "Data-CR/MET_Run2018",
+      {"B_31Mar2018/", "C_31Mar2018/", "D_31Mar2018/", "E_31Mar2018/", "F_31Mar2018/"}}},
     { 2018, {lxplus ? "7Sep2019/Calibrated-DATA-CR-2018-Hadded/SingleMuon_Run2018" : "Data-CR/MET_Run2018",
       {"A_17Sep2018/", "B_17Sep2018/", "C_17Sep2018/", "D_PromptReco_v2/"}}},
   }},

@@ -10,7 +10,13 @@
 
 using namespace TMVA;
 
-const int nEvents = 10;
+#define CONVSTEPS 20
+#define CONVCRIT 0.0001
+#define SCSTEPS 10
+#define SCRATE 5
+#define SCFACTOR 0.95
+
+const int nEvents = 50;
 const int eventOffset = 0;
 const double maxExecTimePerEvent = 1.0; // seconds
 
@@ -19,7 +25,7 @@ const double maxExecTimePerEvent = 1.0; // seconds
  out to the number of generations the extreme case of 1 generation and populationsize n is equal to a Monte Carlo
  calculation with n tries
  */
-int populationSize = 1;
+int populationSize = 40;
 
 auto helixFitter = make_unique<Fitter>(maxExecTimePerEvent);
 
@@ -32,20 +38,21 @@ map<string, double> bestParamValue; //[configParam]
 
 //           name     start    stop   nBins
 vector<tuple<string, double, double, int>> paramsToTest = {
-  {"double_hit_max_distance"      , 10   , 20  , 6  },
-  //  {"seed_max_chi2", 0.00001, 0.010, 0.001 },
-  //    {"seed_middle_hit_min_delta_phi", 0, -0.9, -0.1},
-  {"seed_middle_hit_max_delta_phi", 0.0 , 1.0 , 6   },
-  {"seed_middle_hit_max_delta_z"  , 50  , 300 , 6   },
-  //    {"seed_last_hit_min_delta_phi", 0.0, -0.9, -0.1},
-  {"seed_last_hit_max_delta_phi"  , 0.0 , 1.2 ,  7  },
-  {"seed_last_hit_max_delta_z"    , 50  , 300 , 6   },
-  {"track_max_chi2"               , 0.0 , 0.01 , 1e5},
-  //  {"double_hit_max_distance", 0.0, 30.0, 5.0},
-  //  {"next_point_min_delta_phi", 0.0, -0.9, -0.1},
-  {"next_point_max_delta_phi"     , 0.0 , 1.5 , 6   },
-  {"next_point_max_delta_z"       , 0   , 1000, 11  },
-  {"next_point_max_delta_xy"      , 50  , 400 , 8   },
+  {"double_hit_max_distance"      , 10    , 20  , 6   },
+  {"seed_max_chi2"                , 0.0   , 0.01, 1e5 },
+  {"seed_middle_hit_min_delta_phi", 0.0   ,-1.0 , 11  },
+  {"seed_middle_hit_max_delta_phi", 0.0   , 1.0 , 11  },
+  {"seed_middle_hit_max_delta_z"  , 50    , 300 , 6   },
+  {"seed_last_hit_min_delta_phi"  , 0.0   ,-1.0 , 11  },
+  {"seed_last_hit_max_delta_phi"  , 0.0   , 1.2 ,  7  },
+  {"seed_last_hit_max_delta_z"    , 50    , 300 , 6   },
+  {"track_max_chi2"               , 0.0   , 0.01 , 1e5},
+  {"next_point_min_delta_phi"     , 0.0   ,-1.0 , 11  },
+  {"next_point_max_delta_phi"     , 0.0   , 1.5 , 16  },
+  {"next_point_max_delta_z"       , 0     , 1000, 11  },
+  {"next_point_max_delta_xy"      , 50    , 400 , 8   },
+  {"next_point_max_delta_t"       , 0     , 3.0 , 31  },
+  {"do_asymmetric_constraints"    , 0     , 2.0 , 2   },
 };
 
 void loadEventsAndClusters()
@@ -68,6 +75,7 @@ void loadEventsAndClusters()
 
 void setDefaultConfigParams()
 {
+  // This are non-optmizable options:
   config.runSignal[kTaggerSignalNoPU] = true;
   config.params["verbosity_level"] = 0;
   config.params["max_N_events_signal"] = nEvents+eventOffset;
@@ -77,33 +85,41 @@ void setDefaultConfigParams()
   config.params["load_friend_tree"] = 1;
   config.params["load_hits"] = 1;
   
-  
-  config.params["cut_noise_hits"] = 1;
-  config.params["include_endcaps"] = 0;
+  // These will be optimized
   config.params["double_hit_max_distance"] = 20.0;
   config.params["seed_max_chi2"] = 0.002;
-  config.params["seed_middle_hit_min_delta_phi"] = -0.6;
   config.params["seed_middle_hit_max_delta_phi"] = 0.8;
   config.params["seed_middle_hit_max_delta_z"] = 150;
-  config.params["seed_last_hit_min_delta_phi"] = -0.6;
   config.params["seed_last_hit_max_delta_phi"] = 0.5;
   config.params["seed_last_hit_max_delta_z"] = 200;
   config.params["track_max_chi2"] = 0.011;
-  config.params["next_point_min_delta_phi"] = -0.6;
   config.params["next_point_max_delta_phi"] = 1.5;
   config.params["next_point_max_delta_z"] = 500;
   config.params["next_point_max_delta_xy"] = 50;
   config.params["next_point_max_delta_t"] = 1.5;
+  
+  config.params["do_asymmetric_constraints"] = 0;
+  config.params["seed_middle_hit_min_delta_phi"] = -0.6;
+  config.params["seed_last_hit_min_delta_phi"] = -0.6;
+  config.params["next_point_min_delta_phi"] = -0.6;
+  
+  // Not optimizing those:
+  config.params["cut_noise_hits"] = 1;
+  config.params["include_endcaps"] = 0;
+  
   config.params["track_min_n_points"] = 3;
   config.params["track_min_n_layers"] = 2;
   config.params["min_layers_for_delta_xy"] = 5;
+  
   config.params["merging_max_different_point"] = 2;
   config.params["candidate_min_n_points"] = 3;
   config.params["merge_at_turn_back"] = 0;
   config.params["merge_final_helices"] = 1;
+  
   config.params["max_n_missing_hits"] = 1;
   config.params["max_n_missing_hits_in_raw"] = 1;
-  config.params["do_asymmetric_constraints"] = 0;
+  
+  
   config.params["allow_turning_back"] = 1;
   config.params["require_good_starting_values"] = 1;
   config.params["exp_radius_function"] = 0;
@@ -156,11 +172,13 @@ public:
   double EstimatorFunction(vector<double> &factors){
     
     // Set values of parameters in the config
+    cout<<"\n----------------------------------------"<<endl;
     for(int iParam=0; iParam < factors.size(); iParam++){
       string name = get<0>(paramsToTest[iParam]);
       config.params[name] = factors.at(iParam);
       cout<<"Setting param: "<<name<<"\t to value: "<<factors.at(iParam)<<endl;
     }
+    cout<<"----------------------------------------\n"<<endl;
     
     // Create monitor
     int max = 20, nBins = 20;
@@ -184,12 +202,13 @@ public:
     }
     cout<<endl;
     
-    cout<<"Time per event: "<<duration(start, now())/loadedEvents.size()<<" s"<<endl;
+    cout<<"\nTime per event: "<<duration(start, now())/loadedEvents.size()<<" s"<<endl;
     
     // Get max distance to √fake curve
     monitor.CalcEfficiency();
     double value = monitor.GetValueByName("max_dist_fake");
     cout<<"Distance to √fake: "<<value<<endl;
+    cout<<endl;
     
     // return something that should be minimized
     return 1-value;
@@ -208,6 +227,11 @@ vector<Interval*> getRanges()
 
 int main(int argc, char* argv[])
 {
+  cout<<"Starting genetic optimizer with params:"<<endl;
+  cout<<"- N events: "<<nEvents<<endl;
+  cout<<"- max time per event: "<<maxExecTimePerEvent<<endl;
+  cout<<"- population size: "<<populationSize<<endl;
+  
   setDefaultConfigParams();
   loadEventsAndClusters();
   
@@ -215,16 +239,8 @@ int main(int argc, char* argv[])
   vector<Interval*> ranges = getRanges();
   
   GeneticAlgorithm geneticOptimizer(*myFitness, populationSize, ranges);
-  // geneticOptimizer.SetParameters( 4, 30, 200, 10,5, 0.95, 0.001 );
-  
-#define CONVSTEPS 20
-#define CONVCRIT 0.0001
-#define SCSTEPS 10
-#define SCRATE 5
-#define SCFACTOR 0.95
   
   int iIter=0;
-  
   
   do{
     cout<<"===================================================================="<<endl;
@@ -255,7 +271,8 @@ int main(int argc, char* argv[])
     printParams(gvec);
     
   }
-  while(!geneticOptimizer.HasConverged(CONVSTEPS, CONVCRIT));  // converged if: fitness-improvement < CONVCRIT within the last CONVSTEPS loops
+  while(!geneticOptimizer.HasConverged(CONVSTEPS, CONVCRIT));
+  // converged if: fitness-improvement < CONVCRIT within the last CONVSTEPS loops
   
   GeneticGenes* genes = geneticOptimizer.GetGeneticPopulation().GetGenes(0);
   vector<double> gvec = genes->GetFactors();

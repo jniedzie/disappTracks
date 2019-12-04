@@ -1,0 +1,9 @@
+executable 		= run_geneticOptimizer.sh
+arguments	        = $(ClusterId) $(ProcId)
+output                	= output/$(ClusterId).$(ProcId).out
+error                 	= error/$(ClusterId).$(ProcId).err
+log                   	= log/$(ClusterId).log
+stream_output		= True
+requirements 		= (OpSysAndVer =?= "CentOS7")
++JobFlavour = "testmatch"
+queue 1
