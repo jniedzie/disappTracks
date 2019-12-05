@@ -16,7 +16,7 @@ using namespace TMVA;
 #define SCRATE 5
 #define SCFACTOR 0.95
 
-const int nEvents = 50;
+const int nEvents = 5;
 const int eventOffset = 0;
 const double maxExecTimePerEvent = 1.0; // seconds
 
@@ -25,7 +25,7 @@ const double maxExecTimePerEvent = 1.0; // seconds
  out to the number of generations the extreme case of 1 generation and populationsize n is equal to a Monte Carlo
  calculation with n tries
  */
-int populationSize = 40;
+int populationSize = 20;
 
 auto helixFitter = make_unique<Fitter>(maxExecTimePerEvent);
 
@@ -150,7 +150,7 @@ void printParams(vector<double> &params)
   for(int iParam=0; iParam < params.size(); iParam++){
     string name = get<0>(paramsToTest[iParam]);
     double value = params.at(iParam);
-    cout<<"Setting param: "<<name<<"\t to value: "<<value<<endl;
+    cout<<name<<"\t to value: "<<value<<endl;
   }
 }
 

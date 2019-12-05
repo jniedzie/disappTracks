@@ -10,13 +10,14 @@
 #include "PerformanceMonitor.hpp"
 
 string configPath = "configs/taggerPlotting.md";
+string suffix = "";
 //string suffix = "_noHighPtHits";
 //string suffix = "_default";
 //string suffix = "_highMerging";
 //string suffix = "_lowSeedChi";
 //string suffix = "_noMissing";
 //string suffix = "_lowTrackChi";
-string suffix = "_removingPionHits";
+//string suffix = "_removingPionHits";
 
 ESignal signalDataset     = kTaggerSignalNoPU;
 ESignal backgroundDataset = kTaggerSignalNoPUpionRemoved;

@@ -927,5 +927,5 @@ void Fitter::InitLparams()
 
 bool Fitter::ShouldStop()
 {
-  return duration(startTime, now()) > maxExecTime;
+  return maxExecTime > 0 ? duration(startTime, now()) > maxExecTime : false;
 }
