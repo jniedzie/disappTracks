@@ -9,6 +9,7 @@
 
 string configPath = "configs/taggerPlotting.md";
 string cutLevel = "afterHelixTagging";
+//string suffix = "";
 string suffix = "_noHighPtHits";
 
 xtracks::EDataType dataType = xtracks::kSignal;
@@ -178,8 +179,10 @@ void FillMonitors(const EventSet &events)
   
   map<double, int> nEventsWithTrueHelix;
   map<double, int> nEventsWithTrueHelix2;
+  map<double, int> nEventsWithTrueHelixNhits;
   int nEvents = 0;
   vector<double> trueHelixThresholds = {0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
+  vector<double> trueHelixNhitsThresholds = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
   
   for(ESignal iSig : signals){
     if(!config.runSignal[iSig]) continue;
@@ -193,6 +196,7 @@ void FillMonitors(const EventSet &events)
       
         map<double, bool> trueHelixFound;
         map<double, bool> trueHelixFound2;
+        map<double, bool> trueHelixNhitsFound;
         
         
         Helix bestHelix(Point(), Point(), 0);
@@ -225,6 +229,14 @@ void FillMonitors(const EventSet &events)
               if(pionHitsFraction >= threshold){
                 nEventsWithTrueHelix2[threshold]++;
                 trueHelixFound2[threshold] = true;
+              }
+            }
+          }
+          for(double threshold : trueHelixNhitsThresholds){
+            if(!trueHelixNhitsFound[threshold]){
+              if(helix.GetNrecPionHits() >= threshold){
+                nEventsWithTrueHelixNhits[threshold]++;
+                trueHelixNhitsFound[threshold] = true;
               }
             }
           }
@@ -262,6 +274,13 @@ void FillMonitors(const EventSet &events)
         cout<<"+\-\t\t"<<nEventsWithTrueHelix2[threshold]/(double)nEvents*sqrt(1./nEventsWithTrueHelix2[threshold]+1/nEvents)<<endl;
         
       }
+      
+      for(double threshold : trueHelixNhitsThresholds){
+        //    cout<<"N events with true helix above "<<threshold<<": "<<nEventsWithTrueHelix[threshold]<<endl;
+        cout<<"Fraction of events with true helix above "<<threshold<<":\t"<<nEventsWithTrueHelixNhits[threshold]/(double)nEvents<<"\t\t";
+        cout<<"+\-\t\t"<<nEventsWithTrueHelixNhits[threshold]/(double)nEvents*sqrt(1./nEventsWithTrueHelixNhits[threshold]+1/nEvents)<<endl;
+      }
+      
     }
   }
   

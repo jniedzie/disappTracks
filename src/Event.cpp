@@ -20,6 +20,7 @@ Event::Event(const Event &e)
   for(auto j : e.jets){   jets.push_back(j);}
   for(auto l : e.leptons){leptons.push_back(l);}
   for(auto h : e.helices){helices.push_back(h);}
+  for(auto t : e.generalTracks){generalTracks.push_back(t);}
   
   dataType = e.dataType;
   setIter = e.setIter;
@@ -69,6 +70,7 @@ Event::Event(const Event &e)
   genPionHelices    = e.genPionHelices;
   genCharginoTrack  = e.genCharginoTrack;
   friendTree        = e.friendTree;
+  generalTracks     = e.generalTracks;
 }
 
 

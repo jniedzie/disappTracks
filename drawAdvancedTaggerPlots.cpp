@@ -12,9 +12,29 @@
 
 string configPath = "configs/taggerPlotting.md";
 string cutLevel = "afterHelixTagging";
-string suffix = "_noNoise";
+//string suffix = "";
+string suffix = "_paramSet3";
+//string suffix = "_noNoise";
 
 xtracks::EDataType dataType = xtracks::kSignal;
+ESignal signalDataset = kTaggerSignalNoPU;
+ESignal backgroundDataset = kTaggerSignalNoPUpionRemoved;
+
+/// Returns path prefix for cuts level and category selected in the config file
+string getPathPrefix()
+{
+  string prefix = "";
+   
+  if(config.secondaryCategory == "Zmumu") prefix += "Zmumu/";
+  if(config.secondaryCategory == "Wmunu") prefix += "Wmunu/";
+  
+  if(config.params["cuts_level"]==0) prefix += "after_L0/";
+  if(config.params["cuts_level"]==1) prefix += "after_L1/"+config.category+"/";
+  
+  prefix += "afterHelixTagging"+suffix+"/";
+  
+  return prefix;
+}
 
 enum ETestParams {
   kNoBins,
@@ -155,17 +175,10 @@ vector<Monitors> CreateMonitors(ETestParams param)
 /**
 Fills monitors with data found in events.
 \param isSignal If true, will use signal events, otherwise background
-\param withPU If true, will use event with pile-up
 */
-void FillMonitors(vector<Monitors> &monitors, const EventSet &events, bool isSignal, bool withPU, ETestParams param)
+void FillMonitors(vector<Monitors> &monitors, const EventSet &events, bool isSignal, ETestParams param)
 {
-  ESignal dataSet;
-  if(isSignal && withPU)        dataSet = kTaggerSignalWithPU;
-  else if(isSignal && !withPU)  dataSet = kTaggerSignalNoPU;
-  else if(!isSignal && withPU)  dataSet = kTaggerBackgroundWithPU;
-  else if(!isSignal && !withPU) dataSet = kTaggerBackgroundNoPU;
-  
-  
+  ESignal dataSet = isSignal ? signalDataset : backgroundDataset;
   
   for(int year : years){
     if(!config.params["load_"+to_string(year)]) continue;
@@ -274,8 +287,7 @@ int main(int argc, char* argv[])
   config = ConfigManager(configPath);
   auto helixProcessor = HelixProcessor();
   
-  EventSet events;
-  events.LoadEventsFromFiles(cutLevel+suffix+"/");
+  EventSet events; events.LoadEventsFromFiles(getPathPrefix());
   
   TCanvas *canvasPerformance  = new TCanvas("canvasPerformance", "canvasPerformance", 1000, 1500);
   canvasPerformance->Divide(2, 3);
@@ -285,8 +297,8 @@ int main(int argc, char* argv[])
     
     vector<Monitors> monitors = CreateMonitors((ETestParams)testParam);
     
-    FillMonitors(monitors, events, true, true, (ETestParams)testParam); // signal
-    FillMonitors(monitors, events, false, true, (ETestParams)testParam); // bkg
+    FillMonitors(monitors, events, true, (ETestParams)testParam); // signal
+    FillMonitors(monitors, events, false, (ETestParams)testParam); // bkg
     
     DrawMonitors(monitors, (ETestParams)testParam, testParam==1);
   }

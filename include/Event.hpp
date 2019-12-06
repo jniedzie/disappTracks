@@ -56,6 +56,7 @@ public:
   inline void AddJet(shared_ptr<Jet> jet){jets.push_back(jet);}
   inline void AddLepton(shared_ptr<Lepton> lepton){leptons.push_back(lepton);}
   inline void AddHelix(Helix helix){helices.push_back(helix);}
+  inline void AddGeneralTrack(Helix track){generalTracks.push_back(track);}
   
   inline void SetLumiSection(uint val){lumiSection = val;}
   inline void SetRunNumber(uint val){runNumber = val;}
@@ -164,6 +165,7 @@ public:
   inline vector<shared_ptr<Jet>>      GetJets() const {return jets;}
   inline vector<shared_ptr<Lepton>>   GetLeptons() const {return leptons;}
   inline Helices                      GetHelices() const {return helices;}
+  inline Helices                      GetGeneralTracks() const {return generalTracks;}
 
   /**
    Returns tracker clusters. End-caps are included or not based on `include_endcaps` option
@@ -176,7 +178,8 @@ private:
   vector<shared_ptr<Track>>  tracks;   ///< Vector of isolated tracks
   vector<shared_ptr<Jet>>    jets;     ///< Vector of jets
   vector<shared_ptr<Lepton>> leptons;  ///< Vector of leptons
-  Helices  helices;  ///< Parameters of the fitted helices (one per track)
+  Helices  helices;           ///< Parameters of the fitted helices (one per track)
+  Helices  generalTracks;     ///< Vector of general tracks
   
   xtracks::EDataType dataType;     ///< Type of the event (signal/background/data)
   int setIter;            ///< Iterator of the dataset (e.g. which type of background it is)

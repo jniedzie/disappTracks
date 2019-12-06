@@ -69,6 +69,10 @@
 #include <any>
 #include <sstream>
 #include <string>
+#include <thread>
+#include <future>
+#include <atomic>
+
 
 using namespace std;
 
@@ -511,7 +515,7 @@ const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
   }},
   { kChargino500_10, {
     { 2017, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/" : "SIG-SR/", {"Wino_500GeV10cm/"}}},
-    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_500GeV10cm/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/" : "SIG-SR/", {"Wino_500GeV10cm/"}}},
   }},
   { kChargino500_1, {
     { 2017, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_500GeV1cm/"}}},

@@ -59,7 +59,15 @@ EventProcessor::EventProcessor()
   arrayNamesFriendInt = {
     "pion_charge",
     "chargino_charge",
-    "chargino_nTrackerLayers"
+    "chargino_nTrackerLayers",
+    "pion_simHits_subDet",
+    "chargino_simHits_subDet",
+    "pixelCluster_subDet",
+    "stripCluster_subDet",
+    "pionCluster_subDet",
+    "generalTrack_nLoops",
+    "generalTrack_isLooper",
+    "generalTrack_nPionHits",
   };
   
   arrayNamesFriendFloat = {
@@ -71,49 +79,43 @@ EventProcessor::EventProcessor()
     "pion_pz",
     "chargino_eta",
     "chargino_phi",
-    "chargino_pt"
+    "chargino_pt",
+    "pion_simHits_x",
+    "pion_simHits_y",
+    "pion_simHits_z",
+    "pion_simHits_t",
+    "chargino_simHits_x",
+    "chargino_simHits_y",
+    "chargino_simHits_z",
+    "pixelCluster_x",
+    "pixelCluster_y",
+    "pixelCluster_z",
+    "stripCluster_x",
+    "stripCluster_y",
+    "stripCluster_z",
+    "stripCluster_ex",
+    "stripCluster_ey",
+    "stripCluster_ez",
+    "pionCluster_x",
+    "pionCluster_y",
+    "pionCluster_z",
+    "pionCluster_ex",
+    "pionCluster_ey",
+    "pionCluster_ez",
+    "pixelCluster_charge",
+    "stripCluster_charge",
+    "pionCluster_charge",
+    "generalTrack_px",
+    "generalTrack_py",
+    "generalTrack_pz",
+    "generalTrack_d0",
+    "generalTrack_charge",
+    "generalTrack_chi2",
+    "generalTrack_eta",
+    "generalTrack_phi",
+    "generalTrack_nHits",
+    "generalTrack_nMissingHits",
   };
-  
-//  if(config.params["load_hits"]){
-    vector<string> tmp = {
-      "pion_simHits_x",
-      "pion_simHits_y",
-      "pion_simHits_z",
-      "pion_simHits_t",
-      "chargino_simHits_x",
-      "chargino_simHits_y",
-      "chargino_simHits_z",
-      "pixelCluster_x",
-      "pixelCluster_y",
-      "pixelCluster_z",
-      "stripCluster_x",
-      "stripCluster_y",
-      "stripCluster_z",
-      "stripCluster_ex",
-      "stripCluster_ey",
-      "stripCluster_ez",
-      "pionCluster_x",
-      "pionCluster_y",
-      "pionCluster_z",
-      "pionCluster_ex",
-      "pionCluster_ey",
-      "pionCluster_ez",
-      "pixelCluster_charge",
-      "stripCluster_charge",
-      "pionCluster_charge",
-    };
-    arrayNamesFriendFloat.insert(arrayNamesFriendFloat.end(), tmp.begin(), tmp.end());
-    
-    vector<string> tmp2 = {
-      "pion_simHits_subDet",
-      "chargino_simHits_subDet",
-      "pixelCluster_subDet",
-      "stripCluster_subDet",
-      "pionCluster_subDet",
-    };
-    arrayNamesFriendInt.insert(arrayNamesFriendInt.end(), tmp2.begin(), tmp2.end());
-//  }
-  
 }
 
 EventProcessor::~EventProcessor()
@@ -506,6 +508,30 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
     {19, "TimingEndcap"},
     {20, "invalidDet"}
   };
+  
+  for(uint i=0;i<arrayValuesFriendFloat["generalTrack_px"]->size();i++){
+    Point origin(0,0,0);
+    Point momentum(arrayValuesFriendFloat["generalTrack_px"]->at(i),
+                   arrayValuesFriendFloat["generalTrack_py"]->at(i),
+                   arrayValuesFriendFloat["generalTrack_pz"]->at(i));
+                   
+    int charge = arrayValuesFriendFloat["generalTrack_charge"]->at(i);
+                   
+    
+    Helix generalTrack(origin, momentum, charge);
+    
+    generalTrack.nLoops = arrayValuesFriendInt["generalTrack_nLoops"]->at(i);
+    generalTrack.isLooper = arrayValuesFriendInt["generalTrack_isLooper"]->at(i);
+    generalTrack.nRecPionHits = arrayValuesFriendInt["generalTrack_nPionHits"]->at(i);
+    generalTrack.d0 = arrayValuesFriendFloat["generalTrack_d0"]->at(i);
+    generalTrack.chi2 = arrayValuesFriendFloat["generalTrack_chi2"]->at(i);
+    generalTrack.eta = arrayValuesFriendFloat["generalTrack_eta"]->at(i);
+    generalTrack.phi = arrayValuesFriendFloat["generalTrack_phi"]->at(i);
+    generalTrack.nRecHits = arrayValuesFriendFloat["generalTrack_nHits"]->at(i);
+    generalTrack.nMissingHits = arrayValuesFriendFloat["generalTrack_nMissingHits"]->at(i);
+    
+    event->AddGeneralTrack(generalTrack);
+   }
   
   for(uint i=0;i<arrayValuesFriendFloat["pion_vx"]->size();i++){
     // change units from cm to mm and from GeV to MeV

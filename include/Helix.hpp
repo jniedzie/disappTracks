@@ -175,12 +175,20 @@ private:
   int nRecHits;               ///< Total number of reconstructed hits (should be set when fitting is done)
   int nRecPionHits;           ///< Total number of reconstructed true pion hits
   
+  // general-track specific variables:
+  double d0;
+  double eta;
+  double phi;
+  bool isLooper;
+  int nLoops;
+  
   
   /// Sorts collection of all points by t param in increasing order (or decreasing
   /// if inverted==true).
   void SortPointsByT(bool inverted);
   
   friend class HelixProcessor;
+  friend class EventProcessor;
 };
 
 #endif /* Helix_hpp */

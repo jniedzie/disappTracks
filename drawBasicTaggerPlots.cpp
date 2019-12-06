@@ -10,7 +10,8 @@
 #include "PerformanceMonitor.hpp"
 
 string configPath = "configs/taggerPlotting.md";
-string suffix = "";
+//string suffix = "";
+string suffix = "_paramSet3";
 //string suffix = "_noHighPtHits";
 //string suffix = "_default";
 //string suffix = "_highMerging";
@@ -19,10 +20,9 @@ string suffix = "";
 //string suffix = "_lowTrackChi";
 //string suffix = "_removingPionHits";
 
+xtracks::EDataType dataType = xtracks::kSignal;
 ESignal signalDataset     = kTaggerSignalNoPU;
 ESignal backgroundDataset = kTaggerSignalNoPUpionRemoved;
-
-xtracks::EDataType dataType = xtracks::kSignal;
 
 
 /// Returns path prefix for cuts level and category selected in the config file

@@ -9,7 +9,7 @@
 #include "PerformanceMonitor.hpp"
 #include "EventSet.hpp"
 
-string configPath = "configs/helixTaggerTuning.md";
+string configPath = "configs/helixTagger.md";
 
 const int nEvents = 50;
 const int eventOffset = 0;
@@ -25,11 +25,12 @@ vector<shared_ptr<Event>> loadedEvents;
 vector<Points> pointsNoEndcapsSignal;
 vector<Points> pointsNoEndcapsBackground;
 
+
 vector<string> monitorTypes = {
-  "avg_hits",
+//  "avg_hits",
 //  "max_hits",
 //  "avg_layers",
-//  "max_layers",
+  "max_layers",
 //  "avg_length",
 //  "max_length",
 //  "n_helices"
@@ -52,19 +53,19 @@ map<string, map<string, map<string, double>>> bestParamValue; //[monitorType][op
 //           name     start    stop   step   log
 vector<tuple<string, double, double, double, bool>> paramsToTest = {
 //  {"double_hit_max_distance", 20, 0, -1},
-//  {"seed_max_chi2", 0.01, 1.0, 0.001, true},
+//  {"seed_max_chi2"                , 0.0002 , 0.0010, 0.0001 , false},
   //  {"seed_middle_hit_min_delta_phi", 0, -0.9, -0.1},
-  //{"seed_middle_hit_max_delta_phi", 0.1, 1.6, 0.2, false},
-  {"seed_middle_hit_max_delta_z", 50, 300, 50, false},
+//  {"seed_middle_hit_max_delta_phi", 0.0     , 1.5   , 0.1     , false},
+//  {"seed_middle_hit_max_delta_z", 310, 500, 10, false},
   //  {"seed_last_hit_min_delta_phi", 0.0, -0.9, -0.1},
-//  {"seed_last_hit_max_delta_phi", 0.1, 1.2, 0.3, false},
-//  {"seed_last_hit_max_delta_z", 50, 300, 50, false},
+//  {"seed_last_hit_max_delta_phi", 0.0, 1.5, 0.1, false},
+//  {"seed_last_hit_max_delta_z", 0, 350, 10, false},
 //  {"track_max_chi2", 0.00001, 1.00, 0.001, true},
 //  {"double_hit_max_distance", 0.0, 30.0, 5.0},
 //  {"next_point_min_delta_phi", 0.0, -0.9, -0.1},
-//  {"next_point_max_delta_phi", 0.0, 0.9, 0.1},
-//    {"next_point_max_delta_z", 50, 400, 50},
-//  {"next_point_max_delta_xy", 50, 400, 50},
+//  {"next_point_max_delta_phi", 0.0, 1.5, 0.1, false},
+//    {"next_point_max_delta_z", 0, 400, 10, false},
+  {"next_point_max_delta_xy", 0, 1000, 10, false},
 };
 
 /// Returns path prefix for cuts level and category selected in the config file
@@ -92,10 +93,10 @@ void CheckParamForCurrentConfig(string paramName)
     if(monitorType=="avg_length" || monitorType=="max_length"){ max = 10; nBins = 40; }
     monitors[monitorType] = PerformanceMonitor(monitorType, monitorType, nBins, 0, max);
   }
-
+  cout<<"Event: ";
   for(auto iEvent=0; iEvent<loadedEvents.size(); iEvent++){
     auto event = loadedEvents[iEvent];
-    cout<<"Event: "<<iEvent<<endl;
+    cout<<iEvent<<" ";
     
     for(auto &track : event->GetTracks()){
       Helices fittedHelicesSignal = helixFitter->FitHelices(pointsNoEndcapsSignal[iEvent], *track, *event->GetVertex());
@@ -107,6 +108,7 @@ void CheckParamForCurrentConfig(string paramName)
       }
     }
   }
+  cout<<endl;
   
   for(string monitorType : monitorTypes){
     monitors[monitorType].CalcEfficiency();
