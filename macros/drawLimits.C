@@ -8,13 +8,13 @@ double labelSize = 0.045;
 double titleSizeY = 0.12;
 double titleSizeX = 0.050;
 
-bool drawBySample      = false;
-const string binning   = "3x3";
-const string category  = "5-6-layers";
-const string sampleTag = "_LH_notag_";
+bool drawBySample      = true;
+const string binning   = "2x2";
+const string category  = "4-layers";
+const string sampleTag = "__Chargino_";
 
 bool drawByBinning = false;
-bool drawByCategory = true;
+bool drawByCategory = false;
 
 bool sortbysec(const tuple<double, double>& a, const tuple<double, double>& b){ return (get<1>(a) < get<1>(b)); }
 
@@ -105,17 +105,25 @@ vector<tuple<string, int, int, int, string>> graphParamsByCategory = { // best i
 };
 
 vector<tuple<string, int, int>> graphParamsBySample = {
-  {"300_3"      , kMagenta  , 1 },
-  {"300_10"     , kMagenta  , 2 },
-  {"300_30"     , kMagenta  , 3 },
-  {"500_10"     , kCyan     , 1 },
-  {"500_20"     , kCyan     , 2 },
-  {"650_10"     , kMagenta+2, 1 },
-  {"650_20"     , kMagenta+2, 2 },
-  {"800_10"     , kCyan+2   , 1 },
-  {"800_20"     , kCyan+2   , 2 },
-  {"1000_10"    , kOrange   , 1 },
-  {"1000_20"    , kOrange   , 2 },
+//  {"300_3"      , kMagenta  , 1 },
+//  {"300_10"     , kMagenta  , 2 },
+//  {"300_30"     , kMagenta  , 3 },
+//  {"500_10"     , kCyan     , 1 },
+//  {"500_20"     , kCyan     , 2 },
+//  {"650_10"     , kMagenta+2, 1 },
+//  {"650_20"     , kMagenta+2, 2 },
+//  {"800_10"     , kCyan+2   , 1 },
+//  {"800_20"     , kCyan+2   , 2 },
+//  {"1000_10"    , kOrange   , 1 },
+//  {"1000_20"    , kOrange   , 2 },
+  
+  {"400_1"      , kOrange   , 1 },
+  {"500_1"      , kMagenta  , 1 },
+  {"500_10"     , kMagenta  , 2 },
+  {"700_10"     , kCyan     , 1 },
+  {"700_30"     , kCyan     , 2 },
+  {"800_10"     , kMagenta+2, 1 },
+
 };
 
 void setFirstGraphOptions(TGraph *graph)

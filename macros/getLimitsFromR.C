@@ -8,7 +8,7 @@ const double massMin = 0;
 const double massMax = 1100;
 const double massStep = 1;
 
-bool doExtrapolation = true;
+bool doExtrapolation = false;
 
 map<int, map<int, double>> getTupleFromFile(string fileName){
   map<int, map<int, double>> rValues;
