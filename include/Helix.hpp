@@ -129,6 +129,12 @@ public:
   inline int  GetNmissingHitsInRow()  const {return nMissingHitsInRow;}
   inline bool IsPreviousHitMissing()  const {return isPreviousHitMissing;}
   
+  inline double GetD0() const {return d0;}
+  inline double GetEta() const {return eta;}
+  inline double GetPhi() const {return phi;}
+  inline bool IsLooper() const {return isLooper;}
+  inline int GetNloops() const {return nLoops;}
+  
   //------------------------------------------------//
   //                    Setters                     //
   //------------------------------------------------//

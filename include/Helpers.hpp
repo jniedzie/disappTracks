@@ -502,8 +502,8 @@ const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
       }}},
   }},
   { kChargino300_1, {
-    { 2017, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_300GeV1cm/"}}},
-    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_300GeV1cm/"}}},
+    { 2017, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/" : "SIG-SR/", {"Wino_300GeV1cm/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/" : "SIG-SR/", {"Wino_300GeV1cm/"}}},
   }},
   { kChargino300_10, {
     { 2017, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_300GeV10cm/"}}},

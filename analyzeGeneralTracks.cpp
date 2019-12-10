@@ -38,18 +38,29 @@ int main(int argc, char* argv[])
        
        for(int iEvent=0; iEvent<events.size(kSignal, iSig, year); iEvent++){
          auto event = events.At(kSignal, iSig, year, iEvent);
+         cout<<"iEvent: "<<iEvent<<endl;
          
          if(!event){
            cout<<"Event not found"<<endl;
            exit(0);
          }
          
-         cout<<"N general tracks: "<<event->GetGeneralTracks().size()<<endl;
+         for(auto track : event->GetTracks()){
+         
+           for(auto generalTrack : event->GetGeneralTracks()){
+             if(fabs(track->GetEta()-generalTrack.GetEta()) < 0.5 &&
+                fabs(track->GetPhi()-generalTrack.GetPhi()) < 0.5){
+               cout<<"Close track "<<generalTrack.GetD0()<<endl;
+             }
+           }
+         
+           
+         }
        }
      }
    }
   
   
-  theApp.Run();
+//  theApp.Run();
   return 0;
 }
