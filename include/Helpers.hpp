@@ -85,7 +85,7 @@ using namespace std;
 
 namespace xtracks {
 
-const bool lxplus = false;
+const bool lxplus = true;
 
 enum EHelixParams
 {
@@ -580,17 +580,17 @@ const map<ESignal, double> signalCrossSectionTwoTracks = { // (fb)
   { kTaggerBackgroundNoPU  , 190},
   { kTaggerSignalWithPU    , 190},
   { kTaggerBackgroundWithPU, 190},
-  { kChargino300_1 , 190   },
-  { kChargino300_10, 190   },
-  { kChargino400_1 , 59    },
-  { kChargino500_1 , 22    },
-  { kChargino500_10, 22    },
-  { kChargino600_10, 9.5   },
-  { kChargino700_10, 4.4   },
-  { kChargino700_30, 4.4   },
-  { kChargino800_10, 2.2   },
-  { kChargino800_30, 1.15  },
-  { kChargino900_30, 1.15  },
+  { kChargino300_1 , 190*0.104  }, // UPDATE!!
+  { kChargino300_10, 190*0.104  }, // UPDATE!!
+  { kChargino400_1 , 59*0.124   },
+  { kChargino500_1 , 22*0.135   }, // UPDATE!!
+  { kChargino500_10, 22*0.135   }, // includes MET cut efficiency
+  { kChargino600_10, 9.5*0.154  }, // UPDATE!!
+  { kChargino700_10, 4.4*0.165  },
+  { kChargino700_30, 4.4*0.165  }, // UPDATE!!
+  { kChargino800_10, 2.2*0.192  },
+  { kChargino800_30, 2.2*0.192  }, // UPDATE!!
+  { kChargino900_30, 1.15*0.204 }, // UPDATE!!
 };
 
 const map<ESignal, double> signalCrossSectionOneTrack = { // (fb)
@@ -610,17 +610,17 @@ const map<ESignal, double> signalCrossSectionOneTrack = { // (fb)
   { kTaggerBackgroundNoPU  , 380},
   { kTaggerSignalWithPU    , 380},
   { kTaggerBackgroundWithPU, 380},
-  { kChargino300_1 , 387  },
-  { kChargino300_10, 387  },
-  { kChargino400_1 , 121  },
-  { kChargino500_1 , 46   },
-  { kChargino500_10, 46   },
-  { kChargino600_10, 20   },
-  { kChargino700_10, 9.5  },
-  { kChargino700_30, 9.5  },
-  { kChargino800_10, 4.8  },
-  { kChargino800_30, 4.8  },
-  { kChargino900_30, 2.5  },
+  { kChargino300_1 , 387*0.104  }, // UPDATE!!
+  { kChargino300_10, 387*0.104  }, // UPDATE!!
+  { kChargino400_1 , 121*0.124  },
+  { kChargino500_1 , 46*0.135   }, // UPDATE!!
+  { kChargino500_10, 46*0.135   },
+  { kChargino600_10, 20*0.154   }, // UPDATE!!
+  { kChargino700_10, 9.5*0.165  },
+  { kChargino700_30, 9.5*0.165  }, // UPDATE!!
+  { kChargino800_10, 4.8*0.192  },
+  { kChargino800_30, 4.8*0.192  }, // UPDATE!!
+  { kChargino900_30, 2.5*0.204  }, // UPDATE!!
 };
 
 template <class T>
