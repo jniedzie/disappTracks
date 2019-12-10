@@ -18,7 +18,7 @@ using namespace TMVA;
 
 const int nEvents = 5;
 const int eventOffset = 0;
-const double maxExecTimePerEvent = 1.0; // seconds
+const double maxExecTimePerEvent = 2.0; // seconds
 
 /*
  mind: big population sizes will help in searching the domain space of the solution but you have to weight this
@@ -38,21 +38,21 @@ map<string, double> bestParamValue; //[configParam]
 
 //           name     start    stop   nBins
 vector<tuple<string, double, double, int>> paramsToTest = {
-  {"double_hit_max_distance"      , 10    , 20  , 6   },
+//  {"double_hit_max_distance"      , 10    , 20  , 6   },
   {"seed_max_chi2"                , 0.0   , 0.01, 1e5 },
-  {"seed_middle_hit_min_delta_phi",-1.0   , 0.0 , 11  },
-  {"seed_middle_hit_max_delta_phi", 0.0   , 1.0 , 11  },
-  {"seed_middle_hit_max_delta_z"  , 50    , 300 , 6   },
-  {"seed_last_hit_min_delta_phi"  ,-1.0   , 0.0 , 11  },
-  {"seed_last_hit_max_delta_phi"  , 0.0   , 1.2 ,  7  },
-  {"seed_last_hit_max_delta_z"    , 50    , 300 , 6   },
-  {"track_max_chi2"               , 0.0   , 0.01 , 1e5},
-  {"next_point_min_delta_phi"     ,-1.0   , 0.0 , 11  },
-  {"next_point_max_delta_phi"     , 0.0   , 1.5 , 16  },
-  {"next_point_max_delta_z"       , 0     , 1000, 11  },
-  {"next_point_max_delta_xy"      , 50    , 400 , 8   },
-  {"next_point_max_delta_t"       , 0     , 3.0 , 31  },
-  {"do_asymmetric_constraints"    , 0     , 2.0 , 2   },
+//  {"seed_middle_hit_min_delta_phi",-1.0   , 0.0 , 11  },
+  {"seed_middle_hit_max_delta_phi", 0.0   , 4.0 , 21  },
+  {"seed_middle_hit_max_delta_z"  , 00    , 500 , 21   },
+//  {"seed_last_hit_min_delta_phi"  ,-1.0   , 0.0 , 11  },
+  {"seed_last_hit_max_delta_phi"  , 0.0   , 4.0 , 21  },
+  {"seed_last_hit_max_delta_z"    , 00    , 500 , 21   },
+//  {"track_max_chi2"               , 0.0   , 0.01 , 1e5},
+//  {"next_point_min_delta_phi"     ,-1.0   , 0.0 , 11  },
+//  {"next_point_max_delta_phi"     , 0.0   , 1.5 , 16  },
+//  {"next_point_max_delta_z"       , 0     , 1000, 11  },
+//  {"next_point_max_delta_xy"      , 50    , 400 , 8   },
+//  {"next_point_max_delta_t"       , 0     , 3.0 , 31  },
+//  {"do_asymmetric_constraints"    , 0     , 2.0 , 2   },
 };
 
 void loadEventsAndClusters()
@@ -92,11 +92,13 @@ void setDefaultConfigParams()
   config.params["seed_middle_hit_max_delta_z"] = 150;
   config.params["seed_last_hit_max_delta_phi"] = 0.5;
   config.params["seed_last_hit_max_delta_z"] = 200;
-  config.params["track_max_chi2"] = 0.011;
-  config.params["next_point_max_delta_phi"] = 1.5;
-  config.params["next_point_max_delta_z"] = 500;
-  config.params["next_point_max_delta_xy"] = 50;
-  config.params["next_point_max_delta_t"] = 1.5;
+  
+  // Killing tracks (seed only)
+  config.params["track_max_chi2"] = 0.00000000000011;
+  config.params["next_point_max_delta_phi"] = 0;
+  config.params["next_point_max_delta_z"] = 0;
+  config.params["next_point_max_delta_xy"] = 0;
+  config.params["next_point_max_delta_t"] = 0;
   
   config.params["do_asymmetric_constraints"] = 0;
   config.params["seed_middle_hit_min_delta_phi"] = -0.6;
@@ -111,13 +113,13 @@ void setDefaultConfigParams()
   config.params["track_min_n_layers"] = 2;
   config.params["min_layers_for_delta_xy"] = 5;
   
-  config.params["merging_max_different_point"] = 2;
-  config.params["candidate_min_n_points"] = 3;
+  config.params["merging_max_different_point"] = 0;
+  config.params["candidate_min_n_points"] = 999;
   config.params["merge_at_turn_back"] = 0;
-  config.params["merge_final_helices"] = 1;
+  config.params["merge_final_helices"] = 0;
   
-  config.params["max_n_missing_hits"] = 1;
-  config.params["max_n_missing_hits_in_raw"] = 1;
+  config.params["max_n_missing_hits"] = 0;
+  config.params["max_n_missing_hits_in_raw"] = 0;
   
   
   config.params["allow_turning_back"] = 1;

@@ -4,6 +4,7 @@ output                	= output/$(ClusterId).$(ProcId).out
 error                 	= error/$(ClusterId).$(ProcId).err
 log                   	= log/$(ClusterId).log
 stream_output		= True
+stream_error		= True
 requirements 		= (OpSysAndVer =?= "CentOS7")
-+JobFlavour = "testmatch"
++JobFlavour = "tomorrow"
 queue 1
