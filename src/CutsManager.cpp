@@ -59,8 +59,10 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
   // Level 1 cuts
   //----------------------------------------------------------------------------
  
+  trackCut.SetCaloEmEnergy(range<double>(0.0, 10.0));
+  eventCut.SetNtracks(range<int>(1, 2));
+  trackCut.SetNlayers(range<int>(3, 6));
   
-  trackCut.SetCaloEmEnergy(range<double>(0.0, 2.0));
 //  trackCut.SetVetoCracks(true);
   
   if(config.category == "2-tracks"){
@@ -80,10 +82,13 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
     trackCut.SetNlayers(range<int>(5, 6));
   }
   else if(config.category == "all"){
-    eventCut.SetNtracks(range<int>(1, 2));
-    trackCut.SetNlayers(range<int>(3, 6));
+    // no additional cuts
   }
-  
+  else if(config.category == "ext"){
+    // extended E Ecal
+    trackCut.SetCaloEmEnergy(range<double>(2.0, 10.0));
+  }
+    
   if(config.params["cuts_level"] == 1) return;
   
   //----------------------------------------------------------------------------

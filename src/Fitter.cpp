@@ -151,17 +151,17 @@ Helices Fitter::PerformFittingCycle()
 {
   Helices fittedHelices = GetSeeds();
   if(ShouldStop()){
-    cout<<"Execution stopped due to exceeded time"<<endl;
+//    cout<<"Execution stopped due to exceeded time"<<endl;
     return vector<Helix>();
   }
   ExtendSeeds(fittedHelices);
   if(ShouldStop()){
-    cout<<"Execution stopped due to exceeded time"<<endl;
+//    cout<<"Execution stopped due to exceeded time"<<endl;
     return vector<Helix>();
   }
   if(config.params["merge_final_helices"]) MergeHelices(fittedHelices);
   if(ShouldStop()){
-    cout<<"Execution stopped due to exceeded time"<<endl;
+//    cout<<"Execution stopped due to exceeded time"<<endl;
     return vector<Helix>();
   }
   RemoveShortHelices(fittedHelices);

@@ -14,7 +14,7 @@
 typedef tuple<vector<double>, vector<double>> binning;
 
 // Desired number of MET and dE/dx bins and limits of those
-int nDedxBins = 3, nMetBins  = 3;
+int nDedxBins = 2, nMetBins  = 2;
 const double minMet  = 200 , maxMet  = 500 , stepMet  = 10;
 //const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1; // for min dE/dx
 const double minDedx = 2.5 , maxDedx = 11.0 , stepDedx = 0.1; // for dE/dx likelihood
@@ -35,10 +35,10 @@ double taggerFakeRate   = 0.23;
 
 
 const int ratioRebin = 2;
-string sampleTag = "_Wmunu";
-string backgroundHistNams = "background";
-string dataHistNams = "data";
-
+string sampleTag = "";
+string backgroundHistNames = "background";
+string dataHistNames = "data";
+string signalHistNames = "Chargino";
 
 //------------------------------------------------
 // 2x2, 3 layers
@@ -61,7 +61,7 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //------------------------------------------------
 // 2x2, 4 layers
 //------------------------------------------------
-/*
+
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_300_cTau_3    ,  {{400}, {3.8}}},
   { kWino_M_300_cTau_10   ,  {{320}, {2.1}}},
@@ -71,12 +71,18 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
   { kWino_M_650_cTau_10   ,  {{490}, {2.4}}},
   { kWino_M_650_cTau_20   ,  {{400}, {2.6}}},
   { kWino_M_800_cTau_10   ,  {{490}, {2.4}}},
-  { kWino_M_800_cTau_20   ,  {{440}, {2.5}}}, // BEST
+  { kWino_M_800_cTau_20   ,  {{440}, {2.5}}},
   { kWino_M_1000_cTau_10  ,  {{490}, {2.4}}},
   { kWino_M_1000_cTau_20  ,  {{490}, {2.4}}},
+  
+//  { kChargino300_1  ,  {{450}, {3.6}}},
+  { kChargino400_1   ,  {{340}, {3.0}}},
+  { kChargino500_1   ,  {{230}, {8.1}}},
+  { kChargino500_10  ,  {{440}, {4.0}}},
+  { kChargino700_10  ,  {{470}, {6.7}}},
+  { kChargino800_10  ,  {{440}, {3.6}}},
+  { kChargino700_30  ,  {{460}, {6.7}}},
 };
-*/
-
 
 //------------------------------------------------
 // 2x3, 3 layers
@@ -159,7 +165,7 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //------------------------------------------------
 // 3x3, 3 layers, likelihood
 //------------------------------------------------
-
+/*
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //  { kWino_M_300_cTau_3    , {{330, 440}, {4.6}}},
 //  { kWino_M_300_cTau_10   , {{300, 370}, {4.0}}},
@@ -173,7 +179,7 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //  { kWino_M_1000_cTau_10  , {{350, 450}, {4.0}}},
   { kWino_M_1000_cTau_20  , {{390, 490}, {4.6}}}, // BEST
 };
-
+*/
 //------------------------------------------------
 // 3x3, 4 layers, likelihood
 //------------------------------------------------
@@ -484,8 +490,8 @@ void drawAndSaveABCDplots(const TH2D *metVsDedxHistBackground,
     metVsDedxHistData->Write();
     TH2D *abcdPlotData = GetABCDplot(metVsDedxHistData, bins, kData);
     outFile->cd();
-    abcdPlotData->SetName(dataHistNams.c_str());
-    abcdPlotData->SetTitle(dataHistNams.c_str());
+    abcdPlotData->SetName(dataHistNames.c_str());
+    abcdPlotData->SetTitle(dataHistNames.c_str());
     abcdPlotData->Write();
   
     ratioCanvas->cd(1);
@@ -548,8 +554,8 @@ void drawAndSaveABCDplots(const TH2D *metVsDedxHistBackground,
   abcdPlotBackgrounds->Draw("colzText");
   
   outFile->cd();
-  abcdPlotBackgrounds->SetName(backgroundHistNams.c_str());
-  abcdPlotBackgrounds->SetTitle(backgroundHistNams.c_str());
+  abcdPlotBackgrounds->SetName(backgroundHistNames.c_str());
+  abcdPlotBackgrounds->SetTitle(backgroundHistNames.c_str());
   abcdPlotBackgrounds->Write();
   abcdBackgroundRatio->Write();
   
@@ -645,15 +651,19 @@ tuple<vector<double>,vector<double>> findBestBinning(const TH2D *metVsDedxHistBa
 /// Creates Combine datacard using Andrea's tool
 void createDatacard(string outFileName, string outputPath)
 {
-  string command = "/usr/local/bin/python3 ../DatacardCreatorABCD/mkDatacards.py  --inputHistoFile "+outputPath;
-  command += " --dataHistoName  "+backgroundHistNams;
-  command += " --sigHistoNameTemplate  Wino";
+  string pythonPath = lxplus ? "python" : "/usr/local/bin/python3";
+  
+  string command = pythonPath+" ../DatacardCreatorABCD/mkDatacards.py  --inputHistoFile "+outputPath;
+  command += " --dataHistoName  "+backgroundHistNames;
+  command += " --sigHistoNameTemplate  "+signalHistNames;
   command += " --nuisancesFile   test/nuisances.py";
   
   cout<<"Executing command:\n"<<command<<endl;
   
   string commandOutput = exec(command.c_str());
   cout<<commandOutput<<endl;
+  
+  exec("mkdir -p results/datacards");
   
   command = "cp test/datacard_mytest.txt ";
   command += "results/datacards/datacard_"+outFileName+".txt";
@@ -663,8 +673,16 @@ void createDatacard(string outFileName, string outputPath)
 /// Transfers datacard created by this app to a hardcoded lxplus location using scp
 void copyDatacardToLxplus(string outFileName)
 {
-  string command = "scp results/datacards/datacard_"+outFileName+".txt";
+  string command = "";
+  
+  if(!lxplus){
+  command += "scp results/datacards/datacard_"+outFileName+".txt";
   command += " jniedzie@lxplus.cern.ch:/afs/cern.ch/work/j/jniedzie/private/disapp_tracks/combine/datacards/andrea/";
+  }
+  else{
+    command += "cp results/datacards/datacard_"+outFileName+".txt";
+    command += " /afs/cern.ch/work/j/jniedzie/private/disapp_tracks/combine/datacards/andrea/";
+  }
   exec(command.c_str());
 }
 
@@ -677,12 +695,15 @@ void runCombine(string outFileName)
   
   command = "cp "+afsPath+"limits_datacard_"+outFileName+".txt";
   command += " macros/limitsData/combineOutput/";
+  
+  cout<<"Copying combine results:\n"<<command<<endl;
+  
   exec(command.c_str());
 }
 
 void convertRtoLimits(string outFileName)
 {
-  string command = "/usr/local/Cellar/root/6.18.04/bin/root -q -b -l ";
+  string command = lxplus ? "root -q -b -l " : "/usr/local/Cellar/root/6.18.04/bin/root -q -b -l ";
   command += "\"macros/getLimitsFromR.C(\\\"macros/limitsData/combineOutput/limits_datacard_"+outFileName+".txt\\\", ";
   command += "\\\"macros/limitsData/cms_short_disappearing_"+outFileName+".txt\\\")\"";
   exec(command.c_str());
@@ -735,13 +756,13 @@ void getLimitsForSignal(string outFileName, string outputPath)
 {
   cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Creating datacard"<<endl;
-  createDatacard(outFileName, outputPath);
+//  createDatacard(outFileName, outputPath);
   cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Transferring card to lxplus"<<endl;
-  copyDatacardToLxplus(outFileName);
+//  copyDatacardToLxplus(outFileName);
   cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Running Combine and copying results back to local machine"<<endl;
-  runCombine(outFileName);
+//  runCombine(outFileName);
   cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Converting signal strength R to limits in mass-ct"<<endl;
   convertRtoLimits(outFileName);
@@ -783,7 +804,6 @@ int main(int argc, char* argv[])
   }
   
   srand((uint)time(0));
-  
   cout.imbue(locale("de_DE"));
   
   config = ConfigManager(configPath);
@@ -815,15 +835,14 @@ int main(int argc, char* argv[])
   
 //  runBinningScan(metVsDedxHistBackground, metVsDedxHistsSignal);
   
-//  produceLimits(metVsDedxHistBackground, metVsDedxHistsSignal);
+  produceLimits(metVsDedxHistBackground, metVsDedxHistsSignal);
 
 //  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, {{400},{3.0, 3.1}} , "results/abcd_plots_debug.root");
   
   
-  TH2D *metVsDedxHistData = GetMetVsDedxHist(events, kData);
-  
-  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, {{250},{3.0}} ,
-                       "results/abcd_plots_Wmunu.root", metVsDedxHistData);
+//  TH2D *metVsDedxHistData = GetMetVsDedxHist(events, kData);
+//  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, {{250},{3.0}} ,
+//                       "results/abcd_plots_Wmunu.root", metVsDedxHistData);
   
   
   theApp->Run();
