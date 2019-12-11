@@ -6,15 +6,15 @@
 #include "EventSet.hpp"
 
 string configPath  = "configs/clusters.md";
-string outfileName = "results/clustersSignalWithPUfiltered.root";
+string sampleTag = "500_10_test";
 
 vector<tuple<string, int, double, double, string>> histOptions1D = {
 // title                        nBins  min     max    titleX
   {"lumi"                       , 300, 0      , 300   , "lumi block"              },
   {"pion_px"                    , 50 , 0      , 1000  , "|p_{x}| (MeV)"           },
   {"pion_py"                    , 50 , 0      , 1000  , "|p_{y}| (MeV)"           },
-  {"pion_pz"                    , 50 , 0      , 1500  , "|p_{z}| (MeV)"           },
-  {"pion_pt"                    , 50 , 0      , 1000  , " p_{t}  (MeV)"           },
+  {"pion_pz"                    , 50 , 0      , 1500  , "|p_{z}^{gen}| (MeV)"     },
+  {"pion_pt"                    , 50 , 0      , 1000  , "p_{t}^{gen}  (MeV)"      },
   {"pion_n_clusters"            , 50 , 0      , 100   , "# clusters"              },
   {"pion_n_clusters_TIB"        , 50 , 0      , 50    , "# clusters"              },
   {"pion_n_clusters_TOB"        , 50 , 0      , 50    , "# clusters"              },
@@ -28,10 +28,12 @@ vector<tuple<string, int, double, double, string>> histOptions1D = {
   {"pion_simhits_range_z"       , 100, 0      , 3500  , "Pion simHit range z (mm)"},
   {"pion_vertex_xy"             , 100, 0      , 500   , "v_{xy} (mm)"             },
   {"pion_vertex_z"              , 50 , -1000  , 1000  , "v_{z} (mm)"              },
-  {"delta_phi_pion_chargino"    , 50 , 0      , 3.2   , "#Delta #phi (#pi, #chi)" },
-  {"delta_theta_pion_chargino"  , 100, -6.3   , 6.3   , "#Delta #theta(#pi, #chi)"},
+  {"delta_phi_pion_chargino"    , 50 , 0      , 3.2   , "#Delta #phi^{gen} (#pi, #chi)"   },
+  {"delta_theta_pion_chargino"  , 100, -6.3   , 6.3   , "#Delta #theta^{gen} (#pi, #chi)" },
   {"pion_turning_layer"         , 20 , -1     , 19    , "Layer number"            },
-  {"chargino_abs_eta"           , 20 ,  0     , 4.0   , "#chi^{#pm} |#eta|"       },
+  {"chargino_abs_eta"           , 20 ,  0     , 4.0   , "#chi^{#pm} |#eta^{gen}|"     },
+  {"chargino_n_layers_rec"      , 20 ,  0     , 20    , "#chi^{#pm} N^{rec}_{layers}" },
+  {"chargino_n_layers_gen"      , 20 ,  0     , 20    , "#chi^{#pm} N^{gen}_{layers}" },
   
   {"next_point_delta_phi"       , 100, -3.2   , 3.2   , "#Delta #phi"             },
   {"next_point_delta_phi_plu"   , 100, -3.2   , 3.2   , "#Delta #phi"             },
@@ -170,8 +172,11 @@ void fillGenPionHists(const shared_ptr<Event> &event)
   if(event->GetNtracks() == 1){
     auto track = event->GetTrack(0);
     hists2D["pion_pt_vs_n_layers"]->Fill(pionHelix.GetMomentum().GetTransverse(), track->GetNtrackerLayers());
-    hists1D["delta_phi_pion_chargino"]->Fill(fabs(phiPion - track->GetPhi()));
-    hists1D["delta_theta_pion_chargino"]->Fill(track->GetTheta() - pionTheta);
+  }
+  if(event->GetGenCharginoTracks().size() == 1){
+    auto chargino = event->GetGenCharginoTracks()[0];
+    hists1D["delta_phi_pion_chargino"]->Fill(fabs(chargino.GetPhi() - phiPion));
+    hists1D["delta_theta_pion_chargino"]->Fill(chargino.GetTheta() - pionTheta);
   }
   
 }
@@ -184,6 +189,7 @@ void fillGenCharginoHists(const shared_ptr<Event> &event)
   
   hists1D["den_chargino_q_efficiency_vs_gen_pt"]->Fill(chargino.GetPt());
   hists1D["chargino_abs_eta"]->Fill(fabs(chargino.GetEta()));
+  hists1D["chargino_n_layers_gen"]->Fill(chargino.GetNtrackerLayers());
   
   int maxCharginoLayer = -1;
   for(auto &hits : charginoSimHitsByLayer){
@@ -214,6 +220,7 @@ void fillTrackHists(const shared_ptr<Event> &event)
   
   hists2D["eta_vs_n_layers"]->Fill(fabs(track->GetEta()), track->GetNtrackerLayers());
   hists1D["den_chargino_q_efficiency_vs_track_pt"]->Fill(track->GetPt());
+  hists1D["chargino_n_layers_rec"]->Fill(track->GetNtrackerLayers());
   
   double avgTrackDedxWithoutLast=0;
   
@@ -238,7 +245,7 @@ void fillClusterHists(const shared_ptr<Event> &event)
   auto pionClusters = event->GetPionClusters();
   auto pionSimHits  = event->GetPionSimHits();
   pointsProcessor.SetPointsLayers(pionSimHits);
-  sort(pionSimHits.begin(), pionSimHits.end(), PointsProcessor::ComparePointByZ());
+  sort(pionSimHits.begin(), pionSimHits.end(), PointsProcessor::ComparePointByTime());
   
   unsigned long nNoise = trackerClusters.size()-pionClusters.size();
   hists1D["noise_n_clusters"]->Fill(nNoise);
@@ -329,13 +336,22 @@ void fillPionPointHists(const shared_ptr<Event> &event)
   pointsProcessor.SetPointsLayers(pionSimHits);
   pointsProcessor.SetPointsLayers(pionClusters);
   
-  sort(pionSimHits.begin(), pionSimHits.end(), PointsProcessor::ComparePointByZ());
-  sort(pionClusters.begin(), pionClusters.end(), PointsProcessor::ComparePointByZ());
+  vector<Points> pionSimHitsRegrouped = pointsProcessor.RegroupNerbyPoints(pionSimHits);
   
-  for(int iHit=2; iHit<pionSimHits.size()-1; iHit++){
-    auto previousCluster = FindClusterForHit(*pionSimHits[iHit-1],  pionClusters);
-    auto thisCluster     = FindClusterForHit(*pionSimHits[iHit],    pionClusters);
-    auto nextCluster     = FindClusterForHit(*pionSimHits[iHit+1],  pionClusters);
+  Points pionSimHitsNoDouble;
+  
+  for(Points hits : pionSimHitsRegrouped) pionSimHitsNoDouble.push_back(hits.front());
+  
+//  sort(pionSimHits.begin(), pionSimHits.end(), PointsProcessor::ComparePointByZ());
+//  sort(pionClusters.begin(), pionClusters.end(), PointsProcessor::ComparePointByZ());
+  
+  sort(pionSimHitsNoDouble.begin(), pionSimHitsNoDouble.end(), PointsProcessor::ComparePointByTime());
+  sort(pionClusters.begin(), pionClusters.end(), PointsProcessor::ComparePointByTime());
+  
+  for(int iHit=2; iHit<pionSimHitsNoDouble.size()-1; iHit++){
+    auto previousCluster = FindClusterForHit(*pionSimHitsNoDouble[iHit-1],  pionClusters);
+    auto thisCluster     = FindClusterForHit(*pionSimHitsNoDouble[iHit],    pionClusters);
+    auto nextCluster     = FindClusterForHit(*pionSimHitsNoDouble[iHit+1],  pionClusters);
     
     if(!previousCluster || !thisCluster || !nextCluster) continue;
     
@@ -359,17 +375,17 @@ void fillPionPointHists(const shared_ptr<Event> &event)
     }
   }
   
-  for(auto &hit : pionSimHits){
+  for(auto &hit : pionSimHitsNoDouble){
     hists1D["pion_simhits_z"]->Fill(fabs(hit->GetZ()));
   }
   
   shared_ptr<Point> farthestPoint;
-  if(fabs(pionSimHits.front()->GetZ()) > fabs(pionSimHits.back()->GetZ()))  farthestPoint = pionSimHits.front();
-  else                                                                      farthestPoint = pionSimHits.back();
+  if(fabs(pionSimHitsNoDouble.front()->GetZ()) > fabs(pionSimHitsNoDouble.back()->GetZ()))  farthestPoint = pionSimHitsNoDouble.front();
+  else                                                                      farthestPoint = pionSimHitsNoDouble.back();
   
   hists1D["pion_simhits_range_z"]->Fill(fabs(farthestPoint->GetZ()));
   
-  range<double> pionRingSize = GetPointsRingSize(pionSimHits);
+  range<double> pionRingSize = GetPointsRingSize(pionSimHitsNoDouble);
   
   hists1D["pion_initial_radius"]->Fill(pionRingSize.GetMax());
   hists1D["pion_final_radius"]->Fill(pionRingSize.GetMin());
@@ -384,6 +400,7 @@ void fillPionPointHists(const shared_ptr<Event> &event)
     string title = "pion_cluster_charge_" + detName;
     if(hists1D.find(title) != hists1D.end()) hists1D[title]->Fill(cluster->GetValue());
 
+    nClustersInDet[detName]++;
     hists1D["pion_cluster_z"]->Fill(fabs(cluster->GetZ()));
   }
   
@@ -410,11 +427,23 @@ int main(int argc, char* argv[])
   TApplication theApp("App", &argc, argv);
   config = ConfigManager(configPath);
   
+  int part = 5;
+  int nEvents = 500;
+  
+  if(argc==3){
+    nEvents = atoi(argv[1]);
+    part = atoi(argv[2]);
+  }
+  cout<<"Running part "<<part<<" with "<<nEvents<<" events"<<endl;
+  
+  int eventOffset = part*nEvents;
+  string outfileName = "results/clusters_"+sampleTag+"_p"+to_string(part)+".root";
+  
   string cutLevel = "";
   if(config.params["cuts_level"]==0) cutLevel += "after_L0/";
   if(config.params["cuts_level"]==1) cutLevel += "after_L1/"+config.category+"/";
   
-  EventSet events; events.LoadEventsFromFiles(cutLevel);
+  EventSet events; //events.LoadEventsFromFiles(cutLevel);
   SetupHists();
   
   cout<<"Filling histograms"<<endl;
@@ -425,8 +454,13 @@ int main(int argc, char* argv[])
     for(ESignal iSig : signals){
       if(!config.runSignal[iSig]) continue;
       
-      for(int iEvent=0; iEvent<events.size(kSignal, iSig, year); iEvent++){
-        auto event = events.At(kSignal, iSig, year, iEvent);
+      for(auto iEvent=eventOffset; iEvent<nEvents+eventOffset; iEvent++){
+        if(iEvent%10==0) cout<<"\niEvent: "<<iEvent<<"\n"<<endl;
+        events.LoadEventsFromFiles(kSignal, iSig, cutLevel, iEvent);
+        auto event = events.At(kSignal, iSig, year, iEvent-eventOffset);
+        
+//      for(int iEvent=0; iEvent<events.size(kSignal, iSig, year); iEvent++){
+//        auto event = events.At(kSignal, iSig, year, iEvent);
         
         if(!event){
           cout<<"Event not found"<<endl;
@@ -446,103 +480,103 @@ int main(int argc, char* argv[])
     }
   }
   
-  TCanvas *genPionCanvas = new TCanvas("gen_pion", "gen_pion", 2880, 1800);
-  genPionCanvas->Divide(4,4);
+//  TCanvas *genPionCanvas = new TCanvas("gen_pion", "gen_pion", 2880, 1800);
+//  genPionCanvas->Divide(4,4);
+//
+//  genPionCanvas->cd(1);   hists1D["lumi"]->Draw();
+//  genPionCanvas->cd(2);   hists1D["pion_pz"]->Draw();
+//  genPionCanvas->cd(3);   hists1D["pion_px"]->Draw();
+//  genPionCanvas->cd(4);   hists1D["pion_py"]->Draw();
+//  genPionCanvas->cd(5);   hists1D["pion_pt"]->Draw();
+//  genPionCanvas->cd(6);   hists1D["pion_n_clusters"]->Draw();
+//  genPionCanvas->cd(7);   hists1D["pion_initial_radius"]->Draw();
+//  genPionCanvas->cd(8);   hists1D["pion_final_radius"]->Draw();
+//  genPionCanvas->cd(9);   hists1D["pion_simhits_range_z"]->Draw();
+//  genPionCanvas->cd(10);  hists1D["pion_simhits_z"]->Draw();
+//  genPionCanvas->cd(11);  hists1D["pion_vertex_z"]->Draw();
+//  genPionCanvas->cd(12);  hists1D["pion_vertex_xy"]->Draw();
+//  genPionCanvas->cd(13);  hists1D["delta_phi_pion_chargino"]->Draw();
+//  genPionCanvas->cd(14);  hists1D["delta_theta_pion_chargino"]->Draw();
+//  genPionCanvas->cd(15);  hists1D["pion_turning_layer"]->Draw();
+//
+//  TCanvas *trackingCanvas = new TCanvas("tracking", "tracking", 2880, 1800);
+//  trackingCanvas->Divide(4,4);
+//
+//  trackingCanvas->cd(1);  hists1D["middle_seed_hit_delta_phi"]->Draw();
+//  trackingCanvas->cd(2);  hists1D["middle_seed_hit_delta_z"]->Draw();
+//  trackingCanvas->cd(3);  hists1D["last_seed_hit_delta_phi"]->Draw();
+//  trackingCanvas->cd(4);  hists1D["last_seed_hit_delta_z"]->Draw();
+//  trackingCanvas->cd(5);  hists1D["next_point_delta_phi"]->Draw();
+//  trackingCanvas->cd(6);  hists2D["next_point_delta_phi_pion_pt"]->Draw("colz");
+//  trackingCanvas->cd(7);  hists1D["next_point_delta_z"]->Draw();
+//  trackingCanvas->cd(8);  hists2D["next_point_delta_z_pion_pz"]->Draw("colz");
+//  trackingCanvas->cd(9);  hists1D["next_point_delta_phi_plu"]->Draw();
+//  trackingCanvas->cd(10);  hists1D["next_point_delta_phi_min"]->Draw();
+//  trackingCanvas->cd(11);  hists1D["middle_seed_hit_delta_phi_plu"]->Draw();
+//  trackingCanvas->cd(12);  hists1D["middle_seed_hit_delta_phi_min"]->Draw();
+//  trackingCanvas->cd(13);  hists1D["last_seed_hit_delta_phi_plu"]->Draw();
+//  trackingCanvas->cd(14);  hists1D["last_seed_hit_delta_phi_min"]->Draw();
   
-  genPionCanvas->cd(1);   hists1D["lumi"]->Draw();
-  genPionCanvas->cd(2);   hists1D["pion_pz"]->Draw();
-  genPionCanvas->cd(3);   hists1D["pion_px"]->Draw();
-  genPionCanvas->cd(4);   hists1D["pion_py"]->Draw();
-  genPionCanvas->cd(5);   hists1D["pion_pt"]->Draw();
-  genPionCanvas->cd(6);   hists1D["pion_n_clusters"]->Draw();
-  genPionCanvas->cd(7);   hists1D["pion_initial_radius"]->Draw();
-  genPionCanvas->cd(8);   hists1D["pion_final_radius"]->Draw();
-  genPionCanvas->cd(9);   hists1D["pion_simhits_range_z"]->Draw();
-  genPionCanvas->cd(10);  hists1D["pion_simhits_z"]->Draw();
-  genPionCanvas->cd(11);  hists1D["pion_vertex_z"]->Draw();
-  genPionCanvas->cd(12);  hists1D["pion_vertex_xy"]->Draw();
-  genPionCanvas->cd(13);  hists1D["delta_phi_pion_chargino"]->Draw();
-  genPionCanvas->cd(14);  hists1D["delta_theta_pion_chargino"]->Draw();
-  genPionCanvas->cd(15);  hists1D["pion_turning_layer"]->Draw();
-  
-  TCanvas *trackingCanvas = new TCanvas("tracking", "tracking", 2880, 1800);
-  trackingCanvas->Divide(4,4);
-  
-  trackingCanvas->cd(1);  hists1D["middle_seed_hit_delta_phi"]->Draw();
-  trackingCanvas->cd(2);  hists1D["middle_seed_hit_delta_z"]->Draw();
-  trackingCanvas->cd(3);  hists1D["last_seed_hit_delta_phi"]->Draw();
-  trackingCanvas->cd(4);  hists1D["last_seed_hit_delta_z"]->Draw();
-  trackingCanvas->cd(5);  hists1D["next_point_delta_phi"]->Draw();
-  trackingCanvas->cd(6);  hists2D["next_point_delta_phi_pion_pt"]->Draw("colz");
-  trackingCanvas->cd(7);  hists1D["next_point_delta_z"]->Draw();
-  trackingCanvas->cd(8);  hists2D["next_point_delta_z_pion_pz"]->Draw("colz");
-  trackingCanvas->cd(9);  hists1D["next_point_delta_phi_plu"]->Draw();
-  trackingCanvas->cd(10);  hists1D["next_point_delta_phi_min"]->Draw();
-  trackingCanvas->cd(11);  hists1D["middle_seed_hit_delta_phi_plu"]->Draw();
-  trackingCanvas->cd(12);  hists1D["middle_seed_hit_delta_phi_min"]->Draw();
-  trackingCanvas->cd(13);  hists1D["last_seed_hit_delta_phi_plu"]->Draw();
-  trackingCanvas->cd(14);  hists1D["last_seed_hit_delta_phi_min"]->Draw();
-  
-  TCanvas *charginoCanvas = new TCanvas("chargino", "chargino", 2880, 1800);
-  charginoCanvas->Divide(3,3);
+//  TCanvas *charginoCanvas = new TCanvas("chargino", "chargino", 2880, 1800);
+//  charginoCanvas->Divide(3,3);
   hists2D["charge_gen_vs_rec"]->SetMarkerSize(3.0);
-  charginoCanvas->cd(1);  hists2D["charge_gen_vs_rec"]->DrawNormalized("text colz");
+//  charginoCanvas->cd(1);  hists2D["charge_gen_vs_rec"]->DrawNormalized("text colz");
   hists2D["layers_gen_vs_rec"]->SetMarkerSize(3.0);
-  charginoCanvas->cd(2);  hists2D["layers_gen_vs_rec"]->DrawNormalized("text colz");
+//  charginoCanvas->cd(2);  hists2D["layers_gen_vs_rec"]->DrawNormalized("text colz");
   
   hists1D["num_chargino_q_efficiency_vs_gen_pt"]->Divide(hists1D["den_chargino_q_efficiency_vs_gen_pt"]);
-  charginoCanvas->cd(3);  hists1D["num_chargino_q_efficiency_vs_gen_pt"]->Draw();
+//  charginoCanvas->cd(3);  hists1D["num_chargino_q_efficiency_vs_gen_pt"]->Draw();
   
   hists1D["num_chargino_q_efficiency_vs_track_pt"]->Divide(hists1D["den_chargino_q_efficiency_vs_track_pt"]);
-  charginoCanvas->cd(4);  hists1D["num_chargino_q_efficiency_vs_track_pt"]->Draw();
+//  charginoCanvas->cd(4);  hists1D["num_chargino_q_efficiency_vs_track_pt"]->Draw();
+//
+//  charginoCanvas->cd(5); hists2D["pt_gen_vs_rec"]->DrawNormalized("colz");
+//  charginoCanvas->cd(6); hists2D["pt_gen_vs_rec_good_charge"]->DrawNormalized("colz");
+//
+//  charginoCanvas->cd(7); hists2D["pion_pt_vs_n_layers"]->DrawNormalized("colz");
+//  charginoCanvas->cd(8); hists2D["eta_vs_n_layers"]->DrawNormalized("colz");
+//
+//  TCanvas *chargeCanvas   = new TCanvas("charge", "charge", 2880, 1800);
+//  TCanvas *clustersCanvas = new TCanvas("clusters", "clusters", 2880, 1800);
   
-  charginoCanvas->cd(5); hists2D["pt_gen_vs_rec"]->DrawNormalized("colz");
-  charginoCanvas->cd(6); hists2D["pt_gen_vs_rec_good_charge"]->DrawNormalized("colz");
-  
-  charginoCanvas->cd(7); hists2D["pion_pt_vs_n_layers"]->DrawNormalized("colz");
-  charginoCanvas->cd(8); hists2D["eta_vs_n_layers"]->DrawNormalized("colz");
-  
-  TCanvas *chargeCanvas   = new TCanvas("charge", "charge", 2880, 1800);
-  TCanvas *clustersCanvas = new TCanvas("clusters", "clusters", 2880, 1800);
-  
-  chargeCanvas->Divide(2,3);
-  clustersCanvas->Divide(2,3);
-  
-  vector<string> detNames = {"TIB", "TOB", "TID", "TEC", "P1PXB", "P1PXEC" };
-  
-  for(int i=0; i<detNames.size(); i++){
-    chargeCanvas->cd(i+1);
-    hists1D["pion_cluster_charge_"+detNames[i]]->SetLineColor(kRed);
-    hists1D["tracker_cluster_charge_"+detNames[i]]->SetLineColor(kBlue);
-    hists1D["pion_cluster_charge_"+detNames[i]]->DrawNormalized();
-    hists1D["tracker_cluster_charge_"+detNames[i]]->DrawNormalized("same");
-    
-    clustersCanvas->cd(i+1);
-    hists1D["pion_n_clusters_"+detNames[i]]->Draw();
-  }
-  
-  TCanvas *specialCanvas = new TCanvas("specialCanvas", "specialCanvas", 2880, 1800);
-  specialCanvas->Divide(3,4);
+//  chargeCanvas->Divide(2,3);
+//  clustersCanvas->Divide(2,3);
+//
+//  vector<string> detNames = {"TIB", "TOB", "TID", "TEC", "P1PXB", "P1PXEC" };
+//
+//  for(int i=0; i<detNames.size(); i++){
+//    chargeCanvas->cd(i+1);
+//    hists1D["pion_cluster_charge_"+detNames[i]]->SetLineColor(kRed);
+//    hists1D["tracker_cluster_charge_"+detNames[i]]->SetLineColor(kBlue);
+//    hists1D["pion_cluster_charge_"+detNames[i]]->DrawNormalized();
+//    hists1D["tracker_cluster_charge_"+detNames[i]]->DrawNormalized("same");
+//
+//    clustersCanvas->cd(i+1);
+//    hists1D["pion_n_clusters_"+detNames[i]]->Draw();
+//  }
+//
+//  TCanvas *specialCanvas = new TCanvas("specialCanvas", "specialCanvas", 2880, 1800);
+//  specialCanvas->Divide(3,4);
 
-  specialCanvas->cd(1);  hists1D["pion_pt_noTIB"]->Draw();
-  specialCanvas->cd(2);  hists1D["pion_pz_noTIB"]->Draw();
-  specialCanvas->cd(3);  hists1D["pion_vertex_xy_noTIB"]->Draw();
-  specialCanvas->cd(4);  hists1D["pion_vertex_z_noTIB"]->Draw();
-  specialCanvas->cd(5);  hists1D["noise_n_clusters"]->Draw();
-  specialCanvas->cd(6);  hists1D["tracker_clusters_r"]->Draw();
-  specialCanvas->cd(7);  hists1D["tracker_clusters_z_PXE"]->Draw();
-  specialCanvas->cd(8);  hists1D["tracker_clusters_z_TID"]->Draw();
-  specialCanvas->cd(9);  hists1D["tracker_clusters_z_TEC"]->Draw();
-  specialCanvas->cd(10);  hists1D["pion_cluster_z"]->Draw();
-  specialCanvas->cd(11);  hists1D["pion_cluster_range_z"]->Draw();
-//  specialCanvas->cd(8);  hists1D["last_to_avg_dedx_ratio"]->Draw();
-  
-  genPionCanvas->Update();
-  trackingCanvas->Update();
-  chargeCanvas->Update();
-  clustersCanvas->Update();
-  specialCanvas->Update();
-  charginoCanvas->Update();
+//  specialCanvas->cd(1);  hists1D["pion_pt_noTIB"]->Draw();
+//  specialCanvas->cd(2);  hists1D["pion_pz_noTIB"]->Draw();
+//  specialCanvas->cd(3);  hists1D["pion_vertex_xy_noTIB"]->Draw();
+//  specialCanvas->cd(4);  hists1D["pion_vertex_z_noTIB"]->Draw();
+//  specialCanvas->cd(5);  hists1D["noise_n_clusters"]->Draw();
+//  specialCanvas->cd(6);  hists1D["tracker_clusters_r"]->Draw();
+//  specialCanvas->cd(7);  hists1D["tracker_clusters_z_PXE"]->Draw();
+//  specialCanvas->cd(8);  hists1D["tracker_clusters_z_TID"]->Draw();
+//  specialCanvas->cd(9);  hists1D["tracker_clusters_z_TEC"]->Draw();
+//  specialCanvas->cd(10);  hists1D["pion_cluster_z"]->Draw();
+//  specialCanvas->cd(11);  hists1D["pion_cluster_range_z"]->Draw();
+////  specialCanvas->cd(8);  hists1D["last_to_avg_dedx_ratio"]->Draw();
+//
+//  genPionCanvas->Update();
+//  trackingCanvas->Update();
+//  chargeCanvas->Update();
+//  clustersCanvas->Update();
+//  specialCanvas->Update();
+//  charginoCanvas->Update();
   
   TFile *outFile = new TFile(outfileName.c_str(), "recreate");
   outFile->cd();
@@ -552,5 +586,5 @@ int main(int argc, char* argv[])
   
   outFile->Close();
   
-  theApp.Run();
+//  theApp.Run();
 }

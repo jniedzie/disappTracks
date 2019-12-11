@@ -1,0 +1,8 @@
+executable 		= run_analyzeClusters.sh
+arguments	        = 100 $(ProcId)
+output                	= output/$(ClusterId).$(ProcId).out
+error                 	= error/$(ClusterId).$(ProcId).err
+log                   	= log/$(ClusterId).log
+requirements 		= (OpSysAndVer =?= "CentOS7")
++JobFlavour = "espresso"
+queue 100
