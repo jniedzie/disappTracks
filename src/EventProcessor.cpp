@@ -509,30 +509,31 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
     {20, "invalidDet"}
   };
   
-  for(uint i=0;i<arrayValuesFriendFloat["generalTrack_px"]->size();i++){
-    Point origin(0,0,0);
-    Point momentum(arrayValuesFriendFloat["generalTrack_px"]->at(i),
-                   arrayValuesFriendFloat["generalTrack_py"]->at(i),
-                   arrayValuesFriendFloat["generalTrack_pz"]->at(i));
-                   
-    int charge = arrayValuesFriendFloat["generalTrack_charge"]->at(i);
-                   
-    
-    Helix generalTrack(origin, momentum, charge);
-    
-    generalTrack.nLoops = arrayValuesFriendInt["generalTrack_nLoops"]->at(i);
-    generalTrack.isLooper = arrayValuesFriendInt["generalTrack_isLooper"]->at(i);
-    generalTrack.nRecPionHits = arrayValuesFriendInt["generalTrack_nPionHits"]->at(i);
-    generalTrack.d0 = arrayValuesFriendFloat["generalTrack_d0"]->at(i);
-    generalTrack.chi2 = arrayValuesFriendFloat["generalTrack_chi2"]->at(i);
-    generalTrack.eta = arrayValuesFriendFloat["generalTrack_eta"]->at(i);
-    generalTrack.phi = arrayValuesFriendFloat["generalTrack_phi"]->at(i);
-    generalTrack.nRecHits = arrayValuesFriendFloat["generalTrack_nHits"]->at(i);
-    generalTrack.nMissingHits = arrayValuesFriendFloat["generalTrack_nMissingHits"]->at(i);
-    
-    event->AddGeneralTrack(generalTrack);
-   }
-  
+  if(friendTree->GetBranchStatus("generalTrack_px")){
+    for(uint i=0;i<arrayValuesFriendFloat["generalTrack_px"]->size();i++){
+      Point origin(0,0,0);
+      Point momentum(arrayValuesFriendFloat["generalTrack_px"]->at(i),
+                     arrayValuesFriendFloat["generalTrack_py"]->at(i),
+                     arrayValuesFriendFloat["generalTrack_pz"]->at(i));
+      
+      int charge = arrayValuesFriendFloat["generalTrack_charge"]->at(i);
+      
+      
+      Helix generalTrack(origin, momentum, charge);
+      
+      generalTrack.nLoops = arrayValuesFriendInt["generalTrack_nLoops"]->at(i);
+      generalTrack.isLooper = arrayValuesFriendInt["generalTrack_isLooper"]->at(i);
+      generalTrack.nRecPionHits = arrayValuesFriendInt["generalTrack_nPionHits"]->at(i);
+      generalTrack.d0 = arrayValuesFriendFloat["generalTrack_d0"]->at(i);
+      generalTrack.chi2 = arrayValuesFriendFloat["generalTrack_chi2"]->at(i);
+      generalTrack.eta = arrayValuesFriendFloat["generalTrack_eta"]->at(i);
+      generalTrack.phi = arrayValuesFriendFloat["generalTrack_phi"]->at(i);
+      generalTrack.nRecHits = arrayValuesFriendFloat["generalTrack_nHits"]->at(i);
+      generalTrack.nMissingHits = arrayValuesFriendFloat["generalTrack_nMissingHits"]->at(i);
+      
+      event->AddGeneralTrack(generalTrack);
+    }
+  }
   for(uint i=0;i<arrayValuesFriendFloat["pion_vx"]->size();i++){
     // change units from cm to mm and from GeV to MeV
     event->genPionHelices.emplace(event->genPionHelices.end(),

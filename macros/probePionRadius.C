@@ -1,13 +1,14 @@
-const double trackLengthStep = 1;
-const int nTrackSteps = 1000;
+string inPath = "../results/clusters_500_10.root";
 
-const int nPhiSteps = 10000;
+const double trackLengthStep = 10;
+const int nTrackSteps = 10000;
+
+const int nPhiSteps = 1000;
 const double zMax = 500;
 
-const double magField = 4;
+const double magField = 3.8;
 const double trackerRadius = 1080;
 const double trackLengthMax = 1080;
-
 
 const bool logZ = false;
 
@@ -50,32 +51,8 @@ pair<double, double> getMaxPionRadii(double trackLength, double phi){
 }
 
 TH1D* getCharginoNlayersHist(){
-//  TFile *inFile = TFile::Open("nCharginoLayers.root");
-//  TH1D *hist = (TH1D*)inFile->Get("nTrackerLayers");
-//  return hist;
-  
-  TFile *inFile = TFile::Open("/Users/Jeremi/Documents/Fellow/disappearingTracks/data/taggerStudy/signal/noPU/tree_friend.root");
-  
-  TTree *tree = (TTree*)inFile->Get("CharginoAnalyzer/tree");
-  if(!tree){
-    cout<<"no tree"<<endl;
-    exit(0);
-  }
-  vector<int> *nLayers = nullptr;
-  tree->SetBranchAddress("chargino_nTrackerLayers", &nLayers);
-  
-  TH1D *hist = new TH1D("nTrackerLayers", "nTrackerLayers",100, 0, 100);
-  
-  for(int i=0; i<10000; i++){
-    tree->GetEntry(i);
-    for(int n : *nLayers){
-      hist->Fill(n);
-    }
-  }
-  
-  hist->SaveAs("../results/nCharginoLayers.root");
-  
-  return hist;
+  TFile *inFile = TFile::Open(inPath.c_str());
+  return (TH1D*)inFile->Get("chargino_n_layers_gen");
 }
 
 const int nLayers = 14;
@@ -85,7 +62,7 @@ void probePionRadius()
 {
   gStyle->SetOptStat(0);
   
-  TFile *inFile = TFile::Open("/Users/Jeremi/Documents/Fellow/disappearingTracks/disappTracks/results/tmp.root");
+  TFile *inFile = TFile::Open(inPath.c_str());
   pionCharginoDeltaPhi = (TH1D*)inFile->Get("delta_phi_pion_chargino");
   pionCharginoDeltaPhi->Smooth(2);
   
@@ -111,24 +88,26 @@ void probePionRadius()
   TCanvas *canvasPassing = new TCanvas("canvasPassing", "canvasPassing", 800, 600);
   
   TH1D *passingHist = new TH1D("passingHist", "passingHist", trackLengthMax/trackLengthStep, 0, trackLengthMax);
+  TH1D *passingHistDen = new TH1D("passingHistDen", "passingHistDen", trackLengthMax/trackLengthStep, 0, trackLengthMax);
 
   TH1D *nLayersDist = getCharginoNlayersHist();
-  
-//  for(double trackLength=0; trackLength<trackLengthMax; trackLength+=trackLengthStep){
-  
+    
   double totalPassing = 0;
   double totalCount = 0;
   
   for(int trackStep=0; trackStep<nTrackSteps; trackStep++){
-    int iLayer = nLayersDist->GetRandom();
+    if(trackStep%10000==0) cout<<trackStep/(double)nTrackSteps<<endl;
     
-    double trackLength;
-    if(iLayer < nLayers-1){
-      trackLength = getUniformRand(layerR[iLayer],layerR[iLayer+1]);
+    double trackLength = getUniformRand(0, layerR[nLayers-1]);
+    int trackNlayers = 0;
+    
+    for(int iLayer=0; iLayer<nLayers; iLayer++){
+      if(trackLength > layerR[iLayer]) trackNlayers = iLayer+1;
     }
-    else{
-      trackLength = layerR[nLayers-1];
-    }
+    
+//    if(iLayer < nLayers)  trackLength = getUniformRand(layerR[iLayer],layerR[iLayer+1]);
+//    else                  trackLength = layerR[nLayers-1];
+
     
     double passing = 0;
     double counts = 0;
@@ -158,30 +137,44 @@ void probePionRadius()
       
       double pt = pionPt->GetRandom();
       
+      double trackLengthProb = nLayersDist->GetBinContent(nLayersDist->GetXaxis()->FindFixBin(trackNlayers));
+      
       if(pt < maxPt1){
         passing += 1;
-        totalPassing += 1;
+        totalPassing += trackLengthProb;
       }
       if(pt < maxPt2){
         passing += 1;
-        totalPassing += 1;
+        totalPassing += trackLengthProb;
       }
       counts += 2;
-      totalCount += 2;
+      totalCount += 2*trackLengthProb;
     }
-    passing /= counts;
     
     passingHist->Fill(trackLength, passing);
+    passingHistDen->Fill(trackLength, counts);
+    
+    passing /= counts;
+//    cout<<"\tpassing: "<<passing<<endl;
+    
+    if(passing > 1.0 || passing < 0.0){
+      cout<<"ERROR -- invalid probability: "<<passing<<endl;
+    }
+    
+    
   }
   totalPassing /= totalCount;
   cout<<"Total looper probability: "<<totalPassing<<endl;
   
   canvasPassing->cd();
+  
+  passingHist->Divide(passingHistDen);
+  
   passingHist->SetMarkerColor(kGreen+2);
   passingHist->SetMarkerSize(1.0);
   passingHist->SetMarkerStyle(20);
-  passingHist->Rebin(20);
-  passingHist->Scale(1/20.);
+//  passingHist->Rebin(8);
+//  passingHist->Scale(1/8.);
   passingHist->Sumw2(false);
   passingHist->GetXaxis()->SetTitle("#chi^{#pm} track length (mm)");
   passingHist->GetYaxis()->SetTitle("Looper probability (%)");
@@ -257,5 +250,5 @@ void probePionRadius()
   }
   
 //  canvas->SaveAs("max_pion_pt_vs_layer.pdf");
-//  canvasPassing->SaveAs("looper_probability.pdf");
+  canvasPassing->SaveAs("../plots/looper_probability.pdf");
 }

@@ -7,6 +7,8 @@
 
 string configPath = "configs/analysis.md";
 
+TH1D *generalPionHitsFraction, *taggerPionHitsFraction;
+
 /// Returns path prefix for cuts level and category selected in the config file
 string getPathPrefix()
 {
@@ -23,16 +25,11 @@ string getPathPrefix()
   return prefix;
 }
 
-int main(int argc, char* argv[])
+void fillHists(const EventSet &events)
 {
-  TApplication theApp("App", &argc, argv);
-  config = ConfigManager(configPath);
-  
-  EventSet events; events.LoadEventsFromFiles(getPathPrefix());
-  
-   for(int year : years){
+  for(int year : years){
      if(!config.params["load_"+to_string(year)]) continue;
-   
+     
      for(ESignal iSig : signals){
        if(!config.runSignal[iSig]) continue;
        
@@ -45,22 +42,41 @@ int main(int argc, char* argv[])
            exit(0);
          }
          
-         for(auto track : event->GetTracks()){
+         for(auto generalTrack : event->GetGeneralTracks()){
+           double trueHitsFraction = generalTrack.GetNrecPionHits()/(double)(generalTrack.GetNrecHits());
+           generalPionHitsFraction->Fill(trueHitsFraction);
+         }
          
-           for(auto generalTrack : event->GetGeneralTracks()){
-             if(fabs(track->GetEta()-generalTrack.GetEta()) < 0.5 &&
-                fabs(track->GetPhi()-generalTrack.GetPhi()) < 0.5){
-               cout<<"Close track "<<generalTrack.GetD0()<<endl;
-             }
-           }
-         
-           
+         for(auto taggerHelix : event->GetHelices()){
+           double trueHitsFraction = taggerHelix.GetNrecPionHits()/(double)(taggerHelix.GetNrecHits()-1);
+           taggerPionHitsFraction->Fill(trueHitsFraction);
          }
        }
      }
    }
+}
+
+int main(int argc, char* argv[])
+{
+  TApplication theApp("App", &argc, argv);
+  config = ConfigManager(configPath);
+  
+  EventSet events; events.LoadEventsFromFiles(getPathPrefix());
+  
+  generalPionHitsFraction = new TH1D("generalNpionHits", "generalNpionHits", 100, 0, 1);
+  taggerPionHitsFraction  = new TH1D("taggerNpionHits" , "taggerNpionHits" , 100, 0, 1);
+  
+  fillHists(events);
+  
+  TCanvas *c1 = new TCanvas("c1", "c1", 1200, 1000);
+  c1->Divide(2,2);
+  
+  c1->cd(1); generalPionHitsFraction->Draw();
+  c1->cd(2); taggerPionHitsFraction->Draw();
   
   
-//  theApp.Run();
+  
+  c1->Update();
+  theApp.Run();
   return 0;
 }
