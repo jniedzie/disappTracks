@@ -636,12 +636,13 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
     }
   }
   int nCharginoLayers = maxCharginoLayer+1;
+  int nCharginos = (int)arrayValuesFriendFloat["chargino_eta"]->size();
   
-  for(uint i=0;i<arrayValuesFriendFloat["chargino_eta"]->size();i++){
+  for(uint i=0;i<nCharginos;i++){
     event->genCharginoTrack.push_back(Track(arrayValuesFriendFloat["chargino_eta"]->at(i),
                                             arrayValuesFriendFloat["chargino_phi"]->at(i),
                                             arrayValuesFriendInt["chargino_charge"]->at(i),
-                                            nCharginoLayers, // works only if there's one chargino in the event!!
+                                            nCharginos==1 ? nCharginoLayers : -1, // works only if there's one chargino in the event!!
                                             /*arrayValuesFriendInt["chargino_nTrackerLayers"]->at(i),*/
                                             arrayValuesFriendFloat["chargino_pt"]->at(i)));
     
