@@ -11,18 +11,18 @@
 
 string configPath = "configs/taggerPlotting.md";
 //string suffix = "";
-string suffix = "_paramSet3";
+//string suffix = "_paramSet3";
 //string suffix = "_noHighPtHits";
 //string suffix = "_default";
 //string suffix = "_highMerging";
 //string suffix = "_lowSeedChi";
 //string suffix = "_noMissing";
-//string suffix = "_lowTrackChi";
+string suffix = "_lowTrackChi";
 //string suffix = "_removingPionHits";
 
 xtracks::EDataType dataType = xtracks::kSignal;
-ESignal signalDataset     = kTaggerSignalNoPU;
-ESignal backgroundDataset = kTaggerSignalNoPUpionRemoved;
+ESignal signalDataset     = kChargino500_10;
+ESignal backgroundDataset = kTaggerBackgroundWithPU;
 
 
 /// Returns path prefix for cuts level and category selected in the config file
@@ -82,6 +82,20 @@ void FillMonitors(Monitors &monitors, const EventSet &events, bool isSignal)
     for(int iEvent=0; iEvent<events.size(dataType, dataSet, year); iEvent++){
       auto event = events.At(dataType, dataSet, year, iEvent);
       
+      if(isSignal){
+        bool hasHighMomnetumPion = false;
+        
+        for(Helix pion : event->GetGenPionHelices()){
+          double pt = sqrt(pow(pion.GetMomentum().GetX(), 2) + pow(pion.GetMomentum().GetY(), 2));
+          if(pt > 400){
+            hasHighMomnetumPion = true;
+            break;
+          }
+        }
+        
+        if(!hasHighMomnetumPion) continue;
+      }
+        
       bool hasLowMomentumLepton = false;
       
       for(int iLepton=0; iLepton<event->GetNleptons(); iLepton++){
