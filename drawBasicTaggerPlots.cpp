@@ -10,7 +10,11 @@
 #include "PerformanceMonitor.hpp"
 
 string configPath = "configs/taggerPlotting.md";
+<<<<<<< HEAD
 //string suffix = "";
+=======
+string suffix = "";
+>>>>>>> Updating event display
 //string suffix = "_paramSet3";
 //string suffix = "_noHighPtHits";
 //string suffix = "_default";
@@ -171,8 +175,7 @@ int main(int argc, char* argv[])
   config = ConfigManager(configPath);
   auto helixProcessor = HelixProcessor();
   
-  EventSet events;
-  events.LoadEventsFromFiles(getPathPrefix());
+  EventSet events; events.LoadEventsFromFiles(getPathPrefix());
   
   Monitors monitors = CreateMonitors();
   

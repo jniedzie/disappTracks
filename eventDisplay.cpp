@@ -11,8 +11,8 @@ string configPath = "configs/eventDisplay.md";
 string cutLevel = "after_L1/all/";//after_L1/";
 
 xtracks::EDataType dataType = xtracks::kSignal;
-int setIter = kWino_M_300_cTau_10;
-int iEvent = 13;
+int setIter = kTaggerSignalNoPU;
+int iEvent = 6;
 
 // endcap track: 7, 18, 25, 40
 // endcap hits: 11, 24, 25, 36, 40
@@ -60,10 +60,8 @@ map<int, string> subDetMap = {
  */
 shared_ptr<Event> GetEvent()
 {
-  EventSet events;
-  events.LoadEventFromFiles(dataType, setIter, iEvent, cutLevel);
-  
-  auto event = events.At(dataType, setIter, 0);
+  EventSet events; events.LoadEventsFromFiles(dataType, setIter, cutLevel, iEvent);
+  auto event = events.At(dataType, setIter, 2017, 0);
   
   if(!event){
     cout<<"eventDisplay -- event not found"<<endl;

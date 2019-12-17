@@ -10,7 +10,7 @@ draw_jets:                          1
 
 draw_tracker_clusters:      0
 draw_pion_simhits:           0
-draw_pion_clusters:          0
+draw_pion_clusters:          1
 draw_chargino_simhits:    0
 
 draw_true_helices:                    1
@@ -33,7 +33,7 @@ do_Wmv:         0
 do_Zvv:           0
 
 do_300_3:       0
-do_300_10:     1
+do_300_10:     0
 do_300_30:     0
 do_500_10:     0
 do_500_20:     0
@@ -43,6 +43,10 @@ do_800_10:     0
 do_800_20:     0
 do_1000_10:   0
 do_1000_20:   0
+
+do_chargino_500_10: 1
+
+load_2017: 1
 
 do_SR:         0
 do_CR:         0
