@@ -636,7 +636,7 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
       if(hit->GetLayer() > maxCharginoLayer) maxCharginoLayer = hit->GetLayer();
     }
   }
-  int nCharginoLayers = maxCharginoLayer+1;
+  int nCharginoLayers = event->charginoSimHits.size()==0 ? 0 : maxCharginoLayer+1;
   int nCharginos = (int)arrayValuesFriendFloat["chargino_eta"]->size();
   
   for(uint i=0;i<nCharginos;i++){
