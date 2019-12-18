@@ -704,7 +704,24 @@ void EventSet::AddEventsFromFile(string fileName, xtracks::EDataType dataType, i
     if(!treeFriend) cout<<"ERROR -- Could not find friend tree in the friend file!"<<endl;
   }
   
-  eventProcessor.SetupBranchesForReading(tree, treeFriend);
+  TTree *prefireTree = nullptr;
+  if(year == 2017 && dataType==kSignal){
+    cout<<"Opening prefire file"<<endl;
+    string prefirePath = basePath + "/" + commonDataSuffix + "/tree_prefire.root";
+    TFile *inFilePrefire = TFile::Open(prefirePath.c_str());
+    
+    if(!inFilePrefire){
+      cout<<"WARNING -- no prefire file was found in path: "<<prefirePath<<endl;
+    }
+    else{
+      cout<<"Reading prefire tree...";
+      prefireTree = (TTree*)inFilePrefire->Get("tree");
+      if(!prefireTree)  cout<<"ERROR -- Could not find prefire tree in the prefire file!"<<endl;
+      else              cout<<" done"<<endl;
+    }
+  }
+  
+  eventProcessor.SetupBranchesForReading(tree, treeFriend, prefireTree);
   trackProcessor.SetupBranchesForReading(tree);
   jetProcessor.SetupBranchesForReading(tree);
   leptonProcessor.SetupBranchesForReading(tree);
@@ -719,10 +736,10 @@ void EventSet::AddEventsFromFile(string fileName, xtracks::EDataType dataType, i
       if(maxNevents>0 && iEntry>=maxNevents) break;
       tree->GetEntry(iEntry);
     }
-    if(iEvent%100000 == 0) Log(1)<<"Events loaded: "<<iEvent<<"\n";
-    if(iEntry%10 == 0) Log(2)<<"Events loaded: "<<iEntry<<"\n";
+    if(iEvent%100000 == 0)  Log(1)<<"Events loaded: "<<iEvent<<"\n";
+    if(iEntry%100 == 0)     Log(2)<<"Events loaded: "<<iEntry<<"\n";
 
-    auto event = eventProcessor.GetEventFromTree(dataType, setIter, year, treeFriend);
+    auto event = eventProcessor.GetEventFromTree(dataType, setIter, year, treeFriend, prefireTree);
     
     vector<shared_ptr<Track>> tracks = trackProcessor.GetTracksFromTree();
     

@@ -415,7 +415,7 @@ const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
     { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"300_cTau_3/"}}},
   }},
   { kWino_M_300_cTau_10, {
-    { 2017, {lxplus ? "SIG-SR-old-Hadded/" : "SIG-SR/Wino_M_", {"300GeV10cm/"}}},
+    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"300_cTau_10/"}}},
     { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"300_cTau_10/"}}},
   }},
   { kWino_M_300_cTau_30, {

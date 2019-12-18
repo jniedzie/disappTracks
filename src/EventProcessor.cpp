@@ -376,7 +376,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
   return true;
 }
 
-shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, int setIter, int year, TTree *friendTree)
+shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, int setIter, int year, TTree *friendTree, TTree *prefireTree)
 {
   for(auto &name_val : singleValuesInt ){
     if(name_val.second < -999999){
@@ -405,7 +405,6 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
     // cross section for given signal (stored in fb, here transformed to pb to match background units
     weight *= 0.001 * (signalCrossSectionOneTrack.at((ESignal)setIter) +
                        signalCrossSectionTwoTracks.at((ESignal)setIter));
-    
     //      if(*_nGenChargino == 1){
     //        weight *= 0.001 * signalCrossSectionOneTrack[iSig]; // cross section for given signal (stored in fb, here transformed to pb to match background units
     //      }
@@ -418,6 +417,27 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   }
   else if(dataType == xtracks::kData){
     weight = 1;
+  }
+  
+  if(prefireTree){
+    // uberhack to select needed entry directly...
+    prefireTree->Draw("Entry$>>hist(Entries$,0,Entries$)",
+                      ("lumi=="+to_string(singleValuesUint["lumi"])+
+                       "&&run=="+to_string(singleValuesUint["run"])+
+                       "&&evt=="+to_string(singleValuesUlonglong["evt"])).c_str(),
+                      "goff");
+    
+    TH1I *hist = (TH1I*)gDirectory->Get("hist");
+    Long64_t iEntry = hist->GetBinLowEdge(hist->FindFirstBinAbove(0));
+    if(hist) delete hist;
+    
+    if(iEntry==0){
+      Log(0)<<"Event with run: "<<singleValuesUint["run"]<<"\tlumi: "<<singleValuesUint["lumi"]<<"\tevNumber: "<<to_string(singleValuesUlonglong["evt"])<<" not found in prefire tree!!\n";
+    }
+    else{
+      prefireTree->GetEntry(iEntry);
+      weight *= prefireWeight;
+    }
   }
   event->weight   = weight;
   event->dataType = dataType;
@@ -692,7 +712,7 @@ void EventProcessor::SaveEventToTree(shared_ptr<Event> event)
   singleValuesFloat["metNoMu_eta"]  = event->metNoMuEta;
 }
 
-void EventProcessor::SetupBranchesForReading(TTree *tree, TTree *friendTree)
+void EventProcessor::SetupBranchesForReading(TTree *tree, TTree *friendTree, TTree *prefireTree)
 {
   for(string name : singleNamesFloat){
     if(!tree->GetBranchStatus(name.c_str())){
@@ -728,6 +748,16 @@ void EventProcessor::SetupBranchesForReading(TTree *tree, TTree *friendTree)
       continue;
     }
     tree->SetBranchAddress(name.c_str(), &singleValuesUlonglong[name]);
+  }
+  
+  if(prefireTree){
+    if(!prefireTree->GetBranchStatus("prefiringweight")){
+      cout<<"WARNING -- no branch named prefiringweight"<<endl;
+      prefireWeight = 1.0;
+    }
+    else{
+      prefireTree->SetBranchAddress("prefiringweight", &prefireWeight);
+    }
   }
   
   if(!friendTree) return;
