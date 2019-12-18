@@ -52,6 +52,10 @@ elif [ $2 -eq 10 ];
 then
   configPath="configs/helixTaggerNoPionHits.md"
   outputPath="after_L1/all/afterHelixTagging_noPionHits"
+elif [ $2 -eq 11 ];
+then
+  configPath="configs/helixTaggerTunedOnTruth.md"
+  outputPath="after_L1/all/afterHelixTagging_tunedOnTruth"
 else
   echo "Unkown option!!"
 fi

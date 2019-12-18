@@ -7,6 +7,7 @@
 
 string configPath = "configs/analysis.md";
 string outPath = "results/plots_general_vs_tagger_test";
+string taggingSuffix = "_tunedOnTruth";
 
 int nEvents;
 int eventOffset;
@@ -87,7 +88,7 @@ string getPathPrefix()
   
   if(config.params["cuts_level"]==0) prefix += "after_L0/";
   if(config.params["cuts_level"]==1) prefix += "after_L1/"+config.category+"/";
-  if(config.params["cuts_level"]==2) prefix += "after_L1/"+config.category+"/afterHelixTagging/";
+  if(config.params["cuts_level"]==2) prefix += "after_L1/"+config.category+"/afterHelixTagging"+taggingSuffix+"/";
   
   return prefix;
 }
