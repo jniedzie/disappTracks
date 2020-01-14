@@ -32,6 +32,8 @@ EventProcessor::EventProcessor()
     "met_phi",
     "met_eta",
     "metNoMu_pt",
+    "metNoMu_jecUp_pt",
+    "met_jecDown_pt",
     "metNoMu_mass",
     "metNoMu_phi",
     "metNoMu_eta"
@@ -477,7 +479,9 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   event->metMass     = singleValuesFloat["met_mass"];
   event->metPhi      = singleValuesFloat["met_phi"];
   event->metEta      = singleValuesFloat["met_eta"];
-  event->metNoMuPt   = singleValuesFloat["metNoMu_pt"];
+  event->metNoMuPt          = singleValuesFloat["metNoMu_pt"];
+  event->metNoMuPtJecUp     = singleValuesFloat["metNoMu_jecUp_pt"];
+  event->metNoMuPtJecDown   = singleValuesFloat["met_jecDown_pt"];
   event->metNoMuMass = singleValuesFloat["metNoMu_mass"];
   event->metNoMuPhi  = singleValuesFloat["metNoMu_phi"];
   event->metNoMuEta  = singleValuesFloat["metNoMu_eta"];
@@ -706,7 +710,9 @@ void EventProcessor::SaveEventToTree(shared_ptr<Event> event)
   singleValuesFloat["met_mass"]     = event->metMass;
   singleValuesFloat["met_phi"]      = event->metPhi;
   singleValuesFloat["met_eta"]      = event->metEta;
-  singleValuesFloat["metNoMu_pt"]   = event->metNoMuPt;
+  singleValuesFloat["metNoMu_pt"]         = event->metNoMuPt;
+  singleValuesFloat["metNoMu_jecUp_pt"]   = event->metNoMuPtJecUp;
+  singleValuesFloat["met_jecDown_pt"]     = event->metNoMuPtJecDown;
   singleValuesFloat["metNoMu_mass"] = event->metNoMuMass;
   singleValuesFloat["metNoMu_phi"]  = event->metNoMuPhi;
   singleValuesFloat["metNoMu_eta"]  = event->metNoMuEta;

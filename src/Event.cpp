@@ -41,6 +41,8 @@ Event::Event(const Event &e)
   SetMetEta(e.metEta);
   
   SetMetNoMuPt(e.metNoMuPt);
+  SetMetNoMuPtJecUp(e.metNoMuPtJecUp);
+  SetMetNoMuPtJecDown(e.metNoMuPtJecDown);
   SetMetNoMuMass(e.metNoMuMass);
   SetMetNoMuPhi(e.metNoMuPhi);
   SetMetNoMuEta(e.metNoMuEta);

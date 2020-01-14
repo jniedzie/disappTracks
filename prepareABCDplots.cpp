@@ -33,6 +33,13 @@ bool simulateTagger = false;
 double taggerEfficiency = 0.852; // with PU
 double taggerFakeRate   = 0.23;
 
+enum EBound {
+  kNormal,
+  kUpper,
+  kLower
+};
+
+EBound jetScaleType = kNormal;
 
 const int ratioRebin = 2;
 string sampleTag = "";
@@ -358,7 +365,16 @@ TH2D* GetMetVsDedxHist(const EventSet &events, xtracks::EDataType dataType, int 
           for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
             auto track = event->GetTrack(iTrack);
             //          hist->Fill(track->GetMinDedx(), event->GetMetNoMuPt(), event->GetWeight());
-            hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPt(), event->GetWeight());
+            
+            if(jetScaleType == kNormal){
+              hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPt(), event->GetWeight());
+            }
+            else if(jetScaleType == kUpper){
+              hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPtJecUp(), event->GetWeight());
+            }
+            else if(jetScaleType == kLower){
+              hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPtJecDown(), event->GetWeight());
+            }
           }
         }
       }
@@ -374,7 +390,15 @@ TH2D* GetMetVsDedxHist(const EventSet &events, xtracks::EDataType dataType, int 
           for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
             auto track = event->GetTrack(iTrack);
             //          hist->Fill(track->GetMinDedx(), event->GetMetNoMuPt(), event->GetWeight());
-            hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPt(), event->GetWeight());
+            if(jetScaleType == kNormal){
+              hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPt(), event->GetWeight());
+            }
+            else if(jetScaleType == kUpper){
+              hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPtJecUp(), event->GetWeight());
+            }
+            else if(jetScaleType == kLower){
+              hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPtJecDown(), event->GetWeight());
+            }
           }
         }
       }
@@ -386,7 +410,15 @@ TH2D* GetMetVsDedxHist(const EventSet &events, xtracks::EDataType dataType, int 
         for(int iTrack=0;iTrack<event->GetNtracks();iTrack++){
           auto track = event->GetTrack(iTrack);
           //        hist->Fill(track->GetMinDedx(), event->GetMetNoMuPt(), event->GetWeight());
-          hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPt(), event->GetWeight());
+          if(jetScaleType == kNormal){
+            hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPt(), event->GetWeight());
+          }
+          else if(jetScaleType == kUpper){
+            hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPtJecUp(), event->GetWeight());
+          }
+          else if(jetScaleType == kLower){
+            hist->Fill(track->GetDedxLikelihood(), event->GetMetNoMuPtJecDown(), event->GetWeight());
+          }
         }
       }
       

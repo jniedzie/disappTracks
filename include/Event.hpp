@@ -77,6 +77,8 @@ public:
   inline void SetMetEta(double val){metEta = val;}
   
   inline void SetMetNoMuPt(double val){metNoMuPt = val;}
+  inline void SetMetNoMuPtJecUp(double val){metNoMuPtJecUp = val;}
+  inline void SetMetNoMuPtJecDown(double val){metNoMuPtJecDown = val;}
   inline void SetMetNoMuMass(double val){metNoMuMass = val;}
   inline void SetMetNoMuPhi(double val){metNoMuPhi = val;}
   inline void SetMetNoMuEta(double val){metNoMuEta = val;}
@@ -133,6 +135,8 @@ public:
   inline double GetMetEta() const {return metEta;}
   
   inline double GetMetNoMuPt() const {return metNoMuPt;}
+  inline double GetMetNoMuPtJecUp() const {return metNoMuPtJecUp;}
+  inline double GetMetNoMuPtJecDown() const {return metNoMuPtJecDown;}
   inline double GetMetNoMuMass() const {return metNoMuMass;}
   inline double GetMetNoMuPhi() const {return metNoMuPhi;}
   inline double GetMetNoMuEta() const {return metNoMuEta;}
@@ -204,6 +208,8 @@ private:
   
   bool    metNoMuTrigger; ///< Did HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight trigger fired for this event?
   double  metNoMuPt;      ///< MET transverse momentum (calculated without muons)
+  double  metNoMuPtJecUp;   ///< MET transverse momentum (calculated without muons) - upper bound
+  double  metNoMuPtJecDown; ///< MET transverse momentum (calculated without muons) - lower bound
   double  metNoMuEta;     ///< MET pseudorapidity (calculated without muons)
   double  metNoMuPhi;     ///< MET polar angle (calculated without muons)
   double  metNoMuMass;    ///< MET mass (calculated without muons)
