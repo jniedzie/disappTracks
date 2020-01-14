@@ -9,7 +9,8 @@
 #include "PerformanceMonitor.hpp"
 #include "EventSet.hpp"
 
-string configPath = "configs/helixTagger.md";
+//string configPath = "configs/helixTagger.md";
+string configPath = "configs/helixTaggerTunedOnTruth.md";
 
 const int nEvents = 50;
 const int eventOffset = 0;
@@ -17,7 +18,6 @@ const int eventOffset = 0;
 string suffix = "";
 
 xtracks::EDataType dataType = kSignal;
-int setIter = kTaggerSignalNoPU;
 
 auto helixFitter = make_unique<Fitter>();
 
@@ -51,28 +51,32 @@ map<string, map<string, double>> bestMonitorValue; //[monitorType][optimizeFor]
 map<string, map<string, map<string, double>>> bestParamValue; //[monitorType][optimizeFor][configParam]
 double bestAvgByFraction = 0;
 double bestMaxByFraction = 0;
+double bestPionFraction = 0;
 double latestAvgByFraction = 0;
+double latestPionFraction = 0;
 double latestMaxByFraction = 0;
 double bestParamValueForAvg = -inf;
 double bestParamValueForMax = -inf;
+double bestParamValueForPionFraction = -inf;
 
 //           name     start    stop   step   log
 vector<tuple<string, double, double, double, bool>> paramsToTest = {
-//  {"double_hit_max_distance", 20, 0, -1},
-//  {"seed_max_chi2"                , 0.009 , 0.1, 0.001 , false},
-  //  {"seed_middle_hit_min_delta_phi", 0, -0.9, -0.1},
-//  {"seed_middle_hit_max_delta_phi", 0.1     , 1.5   , 0.1     , false},
-//  {"seed_middle_hit_max_delta_z", 30, 250, 10, false},
-  //  {"seed_last_hit_min_delta_phi", 0.0, -0.9, -0.1},
-//  {"seed_last_hit_max_delta_phi", 0.0, 1.5, 0.1, false},
-//  {"seed_last_hit_max_delta_z", 150, 150, 10, false},
-//  {"track_max_chi2", 1E-8, 1.00, 0.001, true},
-//  {"double_hit_max_distance", 0.0, 30.0, 5.0},
-//  {"next_point_min_delta_phi", 0.0, -1.0, -0.1, false},
-//  {"next_point_max_delta_phi", -0.4, 0.2, 0.1, false},
-//    {"next_point_max_delta_z", 0, 400, 10, false},
-  {"next_point_max_delta_xy", 0, 150, 5, false},
-//  {"next_point_max_delta_t", 0, 2.0, 0.1, false},
+//  {"double_hit_max_distance"      , 20    , 20    , -1    , false },
+  
+//  {"seed_max_chi2"                , 1E-7  , 0.1   , 0.01  , true  },
+//  {"seed_middle_hit_min_delta_phi", 0     , -1.0  , -0.1  , false },
+//  {"seed_middle_hit_max_delta_phi", 0.0   , 1.0   , 0.1   , false },
+//  {"seed_middle_hit_max_delta_z"  , 0     , 250   , 10    , false },
+//  {"seed_last_hit_min_delta_phi"  , 0.0   , -1.0  , -0.1  , false },
+  {"seed_last_hit_max_delta_phi"  , -0.3   , 0.5   , 0.1   , false },
+//  {"seed_last_hit_max_delta_z"    , 0     , 200   , 10    , false },
+  
+//  {"track_max_chi2"               , 1E-8  , 1.00  , 0.001 , true  },
+//  {"next_point_min_delta_phi"     , 0.0   , -1.0  , -0.1  , false },
+//  {"next_point_max_delta_phi"     , -0.4  , 0.2   , 0.1   , false },
+//  {"next_point_max_delta_z"       , 0     , 400   , 10    , false },
+//  {"next_point_max_delta_xy"      , 150   , 150   , 5     , false },
+//  {"next_point_max_delta_t"       , 0     , 2.0   , 0.1   , false },
 };
 
 /// Returns path prefix for cuts level and category selected in the config file
@@ -105,6 +109,9 @@ void CheckParamForCurrentConfig(string paramName)
   double avgOfAvgByFraction=0;
   double avgOfMaxByFraction=0;
   
+  double totalPionHitsOnHelix=0;
+  double totalHitsOnHelix=0;
+  
   for(auto iEvent=0; iEvent<loadedEvents.size(); iEvent++){
     auto event = loadedEvents[iEvent];
     if(iEvent%5==0) cout<<iEvent<<endl;
@@ -126,6 +133,9 @@ void CheckParamForCurrentConfig(string paramName)
         double byFraction = helix.GetNtruePionHits()/((double)helix.GetNrecHits());
         avgByFraction += byFraction;
         if(byFraction > maxByFraction) maxByFraction = byFraction;
+        
+        totalHitsOnHelix      += helix.GetNrecHits();
+        totalPionHitsOnHelix  += helix.GetNtruePionHits();
       }
       nHelices += fittedHelicesSignal.size();
       
@@ -136,6 +146,9 @@ void CheckParamForCurrentConfig(string paramName)
     avgOfAvgByFraction += avgByFraction;
     avgOfMaxByFraction += maxByFraction;
   }
+  
+  double pionHitsFraction = totalPionHitsOnHelix/totalHitsOnHelix;
+  
   avgOfAvgByFraction /= loadedEvents.size();
   avgOfMaxByFraction /= loadedEvents.size();
   
@@ -147,9 +160,13 @@ void CheckParamForCurrentConfig(string paramName)
     bestMaxByFraction = avgOfMaxByFraction;
     bestParamValueForMax = config.params[paramName];
   }
+  if(pionHitsFraction > bestPionFraction){
+    bestPionFraction = pionHitsFraction;
+    bestParamValueForPionFraction = config.params[paramName];
+  }
   latestAvgByFraction = avgOfAvgByFraction;
   latestMaxByFraction = avgOfMaxByFraction;
-  
+  latestPionFraction = pionHitsFraction;
   
   cout<<endl;
   
@@ -173,13 +190,17 @@ void loadEventsAndClusters()
   for(int year : years){
     if(!config.params["load_"+to_string(year)]) continue;
     
-    for(auto iEvent=eventOffset; iEvent<eventOffset+nEvents; iEvent++){
-      auto event = events.At(dataType, setIter, year, iEvent);
-      loadedEvents.push_back(event);
-      config.params["fit_noise_clusters_only"] = false;
-      pointsNoEndcapsSignal.push_back(event->GetClusters());
-      config.params["fit_noise_clusters_only"] = true;
-      pointsNoEndcapsBackground.push_back(event->GetClusters());
+    for(ESignal iSig : signals){
+      if(!config.runSignal[iSig]) continue;
+      
+      for(auto iEvent=eventOffset; iEvent<eventOffset+nEvents; iEvent++){
+        auto event = events.At(dataType, iSig, year, iEvent);
+        loadedEvents.push_back(event);
+        config.params["fit_noise_clusters_only"] = false;
+        pointsNoEndcapsSignal.push_back(event->GetClusters());
+        config.params["fit_noise_clusters_only"] = true;
+        pointsNoEndcapsBackground.push_back(event->GetClusters());
+      }
     }
   }
 }
@@ -216,8 +237,10 @@ int main(int argc, char* argv[])
 //      cout<<"Best monitor value at the moment: "<<bestMonitorValue[monitorTypes[0]][optimizationVars[0]]<<endl;
       cout<<"latest avg: "<<latestAvgByFraction<<endl;
       cout<<"latest max: "<<latestMaxByFraction<<endl;
+      cout<<"latest pion fraction: "<<latestPionFraction<<endl;
       cout<<"Best avg so far: "<<bestAvgByFraction<<endl;
       cout<<"Best max so far: "<<bestMaxByFraction<<endl;
+      cout<<"Best pion fraction so far: "<<bestPionFraction<<endl;
     }
     cout<<endl;
     
@@ -225,14 +248,16 @@ int main(int argc, char* argv[])
 //      config.params[name] = bestParamValue[monitorTypes[0]][optimizationVars[0]][name];
 //    }
     
-    if(bestParamValueForAvg > -9999){
-      config.params[name] = bestParamValueForAvg;
+    if(bestParamValueForPionFraction > -9999){
+      config.params[name] = bestParamValueForPionFraction;
     }
     
     cout<<"Best avg: "<<bestAvgByFraction<<endl;
     cout<<"Best max: "<<bestMaxByFraction<<endl;
+    cout<<"Best pion fraction: "<<bestPionFraction<<endl;
     cout<<"Best param value (avg): "<<bestParamValueForAvg<<endl;
     cout<<"Best param value (max): "<<bestParamValueForMax<<endl;
+    cout<<"Best param value (pion fraction): "<<bestParamValueForPionFraction<<endl;
     
 //    cout<<"Best monitor value:"<<bestMonitorValue[monitorTypes[0]][optimizationVars[0]]<<endl;
 //    cout<<"Best param value "<<name<<": "<<bestParamValue[monitorTypes[0]][optimizationVars[0]][name]<<endl;
