@@ -39,8 +39,6 @@ enum EBound {
   kLower
 };
 
-EBound jetScaleType = kNormal;
-
 const int ratioRebin = 2;
 string sampleTag = "";
 string backgroundHistNames = "background";
@@ -348,7 +346,7 @@ double GetSignificance(const TH2D *metVsDedxHistBackground, const TH2D *metVsDed
 }
 
 /// Fills correlation histograms from background events
-TH2D* GetMetVsDedxHist(const EventSet &events, xtracks::EDataType dataType, int setIter=0)
+TH2D* GetMetVsDedxHist(const EventSet &events, xtracks::EDataType dataType, int setIter=0, EBound jetScaleType = kNormal)
 {
   TH2D *hist = new TH2D("metVsDedx","metVsDedx",1000, 0.0, 100.0, 1000, 0, 10000);
   
@@ -500,12 +498,16 @@ TGraphErrors* GetRatioGraph(const TH2D *metVsDedxHistBackground, const binning b
  */
 void drawAndSaveABCDplots(const TH2D *metVsDedxHistBackground,
                           const map<int, TH2D*> &metVsDedxHistsSignal,
-                          const binning bins, string outputPath,
+                          const map<int, TH2D*> &metVsDedxHistsSignalJecUp,
+                          const map<int, TH2D*> &metVsDedxHistsSignalJecDown,
+                          const binning bins, string outputPath, string outputPathJecUp, string outputPathJecDown,
                           const TH2D *metVsDedxHistData = nullptr)
 {
   TCanvas *abcdCanvas = new TCanvas("ABCD", "ABCD", 1000, 1500);
   abcdCanvas->Divide(4,3);
-  TFile *outFile = new TFile(outputPath.c_str(),"recreate");
+  TFile *outFile          = new TFile(outputPath.c_str(),"recreate");
+  TFile *outFileJecUp     = new TFile(outputPathJecUp.c_str(),"recreate");
+  TFile *outFileJecDown   = new TFile(outputPathJecDown.c_str(),"recreate");
   
   gStyle->SetOptStat(0);
   gStyle->SetPaintTextFormat(".1f");
@@ -594,7 +596,9 @@ void drawAndSaveABCDplots(const TH2D *metVsDedxHistBackground,
   for(ESignal iSig : signals){
     if(!config.runSignal[iSig]) continue;
     cout<<"Plotting "<<signalTitle.at(iSig)<<" ABCD"<<endl;
-    TH2D *abcdPlot = GetABCDplot(metVsDedxHistsSignal.at((ESignal)iSig), bins, xtracks::kSignal, iSig);
+    TH2D *abcdPlot        = GetABCDplot(metVsDedxHistsSignal.at((ESignal)iSig), bins, xtracks::kSignal, iSig);
+    TH2D *abcdPlotJecUp   = GetABCDplot(metVsDedxHistsSignalJecUp.at((ESignal)iSig), bins, xtracks::kSignal, iSig);
+    TH2D *abcdPlotJecDown = GetABCDplot(metVsDedxHistsSignalJecDown.at((ESignal)iSig), bins, xtracks::kSignal, iSig);
     abcdCanvas->cd(iPad++);
     abcdPlot->SetMarkerSize(3.0);
     abcdPlot->Draw("colzText");
@@ -602,12 +606,24 @@ void drawAndSaveABCDplots(const TH2D *metVsDedxHistBackground,
     abcdPlot->SetName(signalName.at(iSig).c_str());
     abcdPlot->SetTitle(signalName.at(iSig).c_str());
     abcdPlot->Write();
+    
+    outFileJecUp->cd();
+    abcdPlotJecUp->SetName(signalName.at(iSig).c_str());
+    abcdPlotJecUp->SetTitle(signalName.at(iSig).c_str());
+    abcdPlotJecUp->Write();
+    
+    outFileJecDown->cd();
+    abcdPlotJecDown->SetName(signalName.at(iSig).c_str());
+    abcdPlotJecDown->SetTitle(signalName.at(iSig).c_str());
+    abcdPlotJecDown->Write();
   }
   
   abcdCanvas->Update();
   abcdCanvas->Write();
   abcdCanvas->SaveAs("plots/abcd.pdf");
   outFile->Close();
+  outFileJecUp->Close();
+  outFileJecDown->Close();
 }
 
 /**
@@ -741,12 +757,12 @@ void convertRtoLimits(string outFileName)
   exec(command.c_str());
 }
 
-map<int, TH2D*> loadSignalHists(const EventSet &events)
+map<int, TH2D*> loadSignalHists(const EventSet &events, EBound jetScaleType)
 {
   map<int, TH2D*> metVsDedxHistsSignal;
   for(ESignal iSig : signals){
     if(!config.runSignal[iSig]) continue;
-    metVsDedxHistsSignal[iSig] = GetMetVsDedxHist(events, xtracks::kSignal, iSig);
+    metVsDedxHistsSignal[iSig] = GetMetVsDedxHist(events, xtracks::kSignal, iSig, jetScaleType);
   }
   return metVsDedxHistsSignal;
 }
@@ -802,7 +818,10 @@ void getLimitsForSignal(string outFileName, string outputPath)
   cout<<"Done"<<endl;
 }
 
-void produceLimits(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &metVsDedxHistsSignal)
+void produceLimits(const TH2D *metVsDedxHistBackground,
+                   const map<int, TH2D*> &metVsDedxHistsSignal,
+                   const map<int, TH2D*> &metVsDedxHistsSignalJecUp,
+                   const map<int, TH2D*> &metVsDedxHistsSignalJecDown)
 {
   vector<string> producedLimits;
   
@@ -810,13 +829,15 @@ void produceLimits(const TH2D *metVsDedxHistBackground, const map<int, TH2D*> &m
     if(!config.runSignal[iSig]) continue;
     if(bestValues.find((ESignal)iSig) == bestValues.end()) continue;
     
-    string outFileName = to_string_with_precision(nDedxBins, 0)+"x"+to_string_with_precision(nMetBins, 0)+"_"+config.category+"_"+sampleTag+"_"+signalShortName.at(iSig);
-    string outputPath = "results/abcd_plots_"+outFileName+".root";
+    string outFileName = to_string_with_precision(nDedxBins, 0)+"x"+to_string_with_precision(nMetBins, 0)+"_"+config.category+sampleTag+"_"+signalShortName.at(iSig);
+    string outputPath         = "results/abcd_plots_"+outFileName+".root";
+    string outputPathJecUp    = "results/abcd_plots_"+outFileName+"_jec_up.root";
+    string outputPathJecDown  = "results/abcd_plots_"+outFileName+"_jec_down.root";
     
     cout<<"\n\n--------------------------------------------------------"<<endl;
     cout<<"Drawing plots"<<endl;
-    drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal,
-                         bestValues.at((ESignal)iSig), outputPath);
+    drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, metVsDedxHistsSignalJecUp, metVsDedxHistsSignalJecDown,
+                         bestValues.at((ESignal)iSig), outputPath, outputPathJecUp, outputPathJecDown);
     getLimitsForSignal(outFileName, outputPath);
     
     producedLimits.push_back("cms_short_disappearing_"+outFileName+".txt");
@@ -863,11 +884,13 @@ int main(int argc, char* argv[])
   
   // Create histograms with number of events for each MET-dE/dx bin
   TH2D *metVsDedxHistBackground = GetMetVsDedxHist(events, xtracks::kBackground);
-  map<int, TH2D*> metVsDedxHistsSignal = loadSignalHists(events);
+  map<int, TH2D*> metVsDedxHistsSignal          = loadSignalHists(events, kNormal);
+  map<int, TH2D*> metVsDedxHistsSignalJecUp     = loadSignalHists(events, kUpper);
+  map<int, TH2D*> metVsDedxHistsSignalJecDown   = loadSignalHists(events, kLower);
   
 //  runBinningScan(metVsDedxHistBackground, metVsDedxHistsSignal);
   
-  produceLimits(metVsDedxHistBackground, metVsDedxHistsSignal);
+  produceLimits(metVsDedxHistBackground, metVsDedxHistsSignal, metVsDedxHistsSignalJecUp, metVsDedxHistsSignalJecDown);
 
 //  drawAndSaveABCDplots(metVsDedxHistBackground, metVsDedxHistsSignal, {{400},{3.0, 3.1}} , "results/abcd_plots_debug.root");
   
