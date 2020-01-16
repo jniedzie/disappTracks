@@ -378,7 +378,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
   return true;
 }
 
-shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, int setIter, int year, TTree *friendTree, TTree *prefireTree)
+shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, int setIter, int year, TTree *friendTree, TTree *prefireTree, TH1D *metWeights)
 {
   for(auto &name_val : singleValuesInt ){
     if(name_val.second < -999999){
@@ -441,6 +441,12 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
       weight *= prefireWeight;
     }
   }
+  if(metWeights){
+    double metNoMu = singleValuesFloat["metNoMu_pt"];
+    double scale = metWeights->GetBinContent(metWeights->GetXaxis()->FindFixBin(metNoMu));
+    weight *= scale;
+  }
+  
   event->weight   = weight;
   event->dataType = dataType;
   event->setIter  = setIter;

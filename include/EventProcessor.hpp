@@ -40,7 +40,7 @@ public:
   
   /// Returns an event with parameters and objects read from tree previously set with SetupBranchesForReading(..)
   shared_ptr<Event> GetEventFromTree(xtracks::EDataType dataType, int setIter, int year,
-                                     TTree *friendTree=nullptr, TTree *prefireTree=nullptr);
+                                     TTree *friendTree=nullptr, TTree *prefireTree=nullptr, TH1D *metWeights=nullptr);
   
   /// Link class variables to branches of a specified tree
   /// \param tree Tree to which evnet parameters and objects will be saved

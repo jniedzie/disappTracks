@@ -720,6 +720,18 @@ void EventSet::AddEventsFromFile(string fileName, xtracks::EDataType dataType, i
       else              cout<<" done"<<endl;
     }
   }
+  TH1D *metWeights = nullptr;
+  if(setIter == kChargino300_1  || setIter == kChargino300_10 ||
+     setIter == kChargino400_1  ||
+     setIter == kChargino500_1  || setIter == kChargino500_10 ||
+     setIter == kChargino600_10 ||
+     setIter == kChargino700_10 || setIter == kChargino700_30 ||
+     setIter == kChargino800_10 || setIter == kChargino800_30 ||
+     setIter == kChargino900_30){
+    
+    TFile *metFile = TFile::Open((basePath+"../metWeights.root").c_str());
+    metWeights = (TH1D*)metFile->Get("metRatio");
+  }
   
   eventProcessor.SetupBranchesForReading(tree, treeFriend, prefireTree);
   trackProcessor.SetupBranchesForReading(tree);
@@ -739,7 +751,7 @@ void EventSet::AddEventsFromFile(string fileName, xtracks::EDataType dataType, i
     if(iEvent%100000 == 0)  Log(1)<<"Events loaded: "<<iEvent<<"\n";
     if(iEntry%100 == 0)     Log(2)<<"Events loaded: "<<iEntry<<"\n";
 
-    auto event = eventProcessor.GetEventFromTree(dataType, setIter, year, treeFriend, prefireTree);
+    auto event = eventProcessor.GetEventFromTree(dataType, setIter, year, treeFriend, prefireTree, metWeights);
     
     vector<shared_ptr<Track>> tracks = trackProcessor.GetTracksFromTree();
     
