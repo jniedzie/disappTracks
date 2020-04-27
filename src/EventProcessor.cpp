@@ -125,8 +125,10 @@ EventProcessor::~EventProcessor()
   
 }
 
-void EventProcessor::ApplyTrackCut(shared_ptr<Event> event, const TrackCut &cut)
+void EventProcessor::ApplyTrackCut(shared_ptr<Event> event, const TrackCut &cut, vector<int> *trackCutReasons)
 {
+  
+  
   for(auto track = event->tracks.begin(); track != event->tracks.end();){
     bool passesGenCuts = true;
     
@@ -155,7 +157,7 @@ void EventProcessor::ApplyTrackCut(shared_ptr<Event> event, const TrackCut &cut)
       }
     }
     
-    if(!trackProcessor.IsPassingCut(*track,cut) || !passesGenCuts) track = event->tracks.erase(track);
+    if(!trackProcessor.IsPassingCut(*track,cut, trackCutReasons) || !passesGenCuts) track = event->tracks.erase(track);
     else                                                           track++;
   }
 }
@@ -204,6 +206,8 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
   
   // check number of objects
   if(cut.nGenPions.IsOutside((uint)event->genPionHelices.size())) return false;
+  
+  if(cut.nGenCharginos.IsOutside(event->nGenChargino)) return false;
   if(cut.nLeptons.IsOutside(event->GetNleptons()))                return false;
   if(cutReasons) cutReasons->at(cutThroughIter++)++;
   

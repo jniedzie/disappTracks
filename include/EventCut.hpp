@@ -27,6 +27,7 @@ public:
   inline void SetNmuons(range<int> val){nMuons=val;}
   inline void SetNtaus(range<int> val){nTaus=val;}
   inline void SetNgenPions(range<int> val){nGenPions=val;}
+  inline void SetNgenCharginos(range<int> val){nGenCharginos=val;}
   
   inline void SetMetPt(range<double> val){metPt=val;}
   inline void SetMetNoMuPt(range<double> val){metNoMuPt=val;}
@@ -54,6 +55,7 @@ private:
   range<int> nMuons;    ///< allowed number if muons
   range<int> nTaus;     ///< allowed number of taus
   range<int> nGenPions; ///< allowed number of gen-level pions
+  range<int> nGenCharginos; ///< allowed number of gen-level charginos
   
   range<double> metPt;              ///< allowed MET transverse momentum
   range<double> metNoMuPt;          ///< allowed MET no mu transverse momentum

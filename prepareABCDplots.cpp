@@ -68,25 +68,25 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //------------------------------------------------
 
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
-  { kWino_M_300_cTau_3    ,  {{400}, {3.8}}},
-  { kWino_M_300_cTau_10   ,  {{320}, {2.1}}},
-  { kWino_M_300_cTau_30   ,  {{320}, {2.1}}},
-  { kWino_M_500_cTau_10   ,  {{410}, {2.6}}},
-  { kWino_M_500_cTau_20   ,  {{400}, {2.8}}},
-  { kWino_M_650_cTau_10   ,  {{490}, {2.4}}},
-  { kWino_M_650_cTau_20   ,  {{400}, {2.6}}},
-  { kWino_M_800_cTau_10   ,  {{490}, {2.4}}},
-  { kWino_M_800_cTau_20   ,  {{440}, {2.5}}},
-  { kWino_M_1000_cTau_10  ,  {{490}, {2.4}}},
-  { kWino_M_1000_cTau_20  ,  {{490}, {2.4}}},
+//  { kWino_M_300_cTau_3    ,  {{400}, {3.8}}},
+//  { kWino_M_300_cTau_10   ,  {{320}, {2.1}}},
+//  { kWino_M_300_cTau_30   ,  {{320}, {2.1}}},
+//  { kWino_M_500_cTau_10   ,  {{410}, {2.6}}},
+//  { kWino_M_500_cTau_20   ,  {{400}, {2.8}}},
+//  { kWino_M_650_cTau_10   ,  {{490}, {2.4}}},
+//  { kWino_M_650_cTau_20   ,  {{400}, {2.6}}},
+//  { kWino_M_800_cTau_10   ,  {{490}, {2.4}}},
+//  { kWino_M_800_cTau_20   ,  {{440}, {2.5}}},
+//  { kWino_M_1000_cTau_10  ,  {{490}, {2.4}}},
+//  { kWino_M_1000_cTau_20  ,  {{490}, {2.4}}},
   
 //  { kChargino300_1  ,  {{450}, {3.6}}},
-  { kChargino400_1   ,  {{340}, {3.0}}},
-  { kChargino500_1   ,  {{230}, {8.1}}},
-  { kChargino500_10  ,  {{440}, {4.0}}},
-  { kChargino700_10  ,  {{470}, {6.7}}},
+//  { kChargino400_1   ,  {{340}, {3.0}}},
+//  { kChargino500_1   ,  {{230}, {8.1}}},
+//  { kChargino500_10  ,  {{440}, {4.0}}},
+//  { kChargino700_10  ,  {{470}, {6.7}}},
   { kChargino800_10  ,  {{440}, {3.6}}},
-  { kChargino700_30  ,  {{460}, {6.7}}},
+//  { kChargino700_30  ,  {{460}, {6.7}}},
 };
 
 //------------------------------------------------
@@ -804,13 +804,13 @@ void getLimitsForSignal(string outFileName, string outputPath)
 {
   cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Creating datacard"<<endl;
-//  createDatacard(outFileName, outputPath);
+  createDatacard(outFileName, outputPath);
   cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Transferring card to lxplus"<<endl;
-//  copyDatacardToLxplus(outFileName);
+  copyDatacardToLxplus(outFileName);
   cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Running Combine and copying results back to local machine"<<endl;
-//  runCombine(outFileName);
+  runCombine(outFileName);
   cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Converting signal strength R to limits in mass-ct"<<endl;
   convertRtoLimits(outFileName);

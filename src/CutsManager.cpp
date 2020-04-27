@@ -53,6 +53,8 @@ void CutsManager::GetCuts(EventCut &eventCut, TrackCut &trackCut, JetCut &jetCut
   eventCut.SetNtaus(range<int>(0,0));
   eventCut.SetNleptons(range<int>(0,0));
   
+//  eventCut.SetNgenCharginos(range<int>(2, 2));
+  
   if(config.params["cuts_level"] == 0) return;
   
   //----------------------------------------------------------------------------

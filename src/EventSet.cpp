@@ -316,10 +316,11 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
       if(!config.runSignal[iSig]) continue;
       
       vector<int> *cutReasons = new vector<int>(100);
+      vector<int> *trackCutReasons = new vector<int>(100);
       
       for(int iEvent=0;iEvent<(int)eventsSignal[iSig][year].size();){
         
-        eventProcessor.ApplyTrackCut(eventsSignal[iSig][year][iEvent], trackCut);
+        eventProcessor.ApplyTrackCut(eventsSignal[iSig][year][iEvent], trackCut, trackCutReasons);
         eventProcessor.ApplyJetCut(eventsSignal[iSig][year][iEvent], jetCut);
         eventProcessor.ApplyLeptonCut(eventsSignal[iSig][year][iEvent], leptonCut);
         
@@ -336,6 +337,12 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
       for(int nEventsPassing : *cutReasons){
         if(nEventsPassing!=0) Log(1)<<nEventsPassing<<" events passing cut "<<iter++<<"\n";
       }
+      Log(1)<<"Cut-through for tracks in signal sample: "<<signalTitle.at(iSig)<<"\n";
+      iter=0;
+      for(int nEventsPassing : *trackCutReasons){
+        if(nEventsPassing!=0) Log(1)<<nEventsPassing<<" events passing cut "<<iter++<<"\n";
+      }
+      
       
     }
     
@@ -343,10 +350,11 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
       if(!config.runBackground[iBck]) continue;
       
       vector<int> *cutReasons = new vector<int>(100);
+      vector<int> *trackCutReasons = new vector<int>(100);
       
       for(int iEvent=0;iEvent<(int)eventsBackground[iBck][year].size();){
         
-        eventProcessor.ApplyTrackCut(eventsBackground[iBck][year][iEvent], trackCut);
+        eventProcessor.ApplyTrackCut(eventsBackground[iBck][year][iEvent], trackCut, trackCutReasons);
         eventProcessor.ApplyJetCut(eventsBackground[iBck][year][iEvent], jetCut);
         eventProcessor.ApplyLeptonCut(eventsBackground[iBck][year][iEvent], leptonCut);
         
@@ -361,6 +369,11 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
       Log(1)<<"Cut-through for background sample: "<<backgroundTitle.at(iBck)<<"\n";
       int iter=0;
       for(int nEventsPassing : *cutReasons){
+        if(nEventsPassing!=0) Log(1)<<nEventsPassing<<" events passing cut "<<iter++<<"\n";
+      }
+      Log(1)<<"Cut-through for tracks in background sample: "<<backgroundTitle.at(iBck)<<"\n";
+      iter=0;
+      for(int nEventsPassing : *trackCutReasons){
         if(nEventsPassing!=0) Log(1)<<nEventsPassing<<" events passing cut "<<iter++<<"\n";
       }
       
@@ -383,10 +396,11 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
       if(!config.runData[iData]) continue;
       
       vector<int> *cutReasons = new vector<int>(100);
+      vector<int> *trackCutReasons = new vector<int>(100);
       
       for(int iEvent=0;iEvent<(int)eventsData[iData][year].size();){
         
-        eventProcessor.ApplyTrackCut(eventsData[iData][year][iEvent], trackCut);
+        eventProcessor.ApplyTrackCut(eventsData[iData][year][iEvent], trackCut, trackCutReasons);
         eventProcessor.ApplyJetCut(eventsData[iData][year][iEvent], jetCut);
         eventProcessor.ApplyLeptonCut(eventsData[iData][year][iEvent], leptonCut);
         
@@ -403,7 +417,11 @@ void EventSet::ApplyCuts(const EventCut   &eventCut,
       for(int nEventsPassing : *cutReasons){
         if(nEventsPassing!=0) Log(1)<<nEventsPassing<<" events passing cut "<<iter++<<"\n";
       }
-      
+      Log(1)<<"Cut-through for tracks in data sample: "<<dataTitle.at(iData)<<"\n";
+      iter=0;
+      for(int nEventsPassing : *trackCutReasons){
+        if(nEventsPassing!=0) Log(1)<<nEventsPassing<<" events passing cut "<<iter++<<"\n";
+      }
     }
   }
 }
@@ -711,7 +729,7 @@ void EventSet::AddEventsFromFile(string fileName, xtracks::EDataType dataType, i
     TFile *inFilePrefire = TFile::Open(prefirePath.c_str());
     
     if(!inFilePrefire){
-      cout<<"WARNING -- no prefire file was found in path: "<<prefirePath<<endl;
+      cout<<"\n\nWARNING -- no prefire file was found in path: "<<prefirePath<<"\n\n"<<endl;
     }
     else{
       cout<<"Reading prefire tree...";
@@ -727,10 +745,17 @@ void EventSet::AddEventsFromFile(string fileName, xtracks::EDataType dataType, i
      setIter == kChargino600_10 ||
      setIter == kChargino700_10 || setIter == kChargino700_30 ||
      setIter == kChargino800_10 || setIter == kChargino800_30 ||
-     setIter == kChargino900_30){
+     setIter == kChargino900_30
+     || setIter == kChargino500_10_noMETfilter
+     || setIter == kChargino500_10_newGT){
+  
+    cout<<"\n\nMET weights will be applied\n\n"<<endl;
     
-    TFile *metFile = TFile::Open((basePath+"../metWeights.root").c_str());
-    metWeights = (TH1D*)metFile->Get("metRatio");
+    TFile *metFile = TFile::Open(metWeightsPath.c_str());
+    metWeights = (TH1D*)metFile->Get("h_1");
+  }
+  else{
+    cout<<"\n\nMET weights will NOT be applied!!\n\n"<<endl;
   }
   
   eventProcessor.SetupBranchesForReading(tree, treeFriend, prefireTree);

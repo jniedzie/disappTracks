@@ -23,7 +23,7 @@ public:
   ~EventProcessor();
   
   /// Removes tracks that don't pass the cut from the tracks collection
-  void ApplyTrackCut(shared_ptr<Event> event, const TrackCut &cut);
+  void ApplyTrackCut(shared_ptr<Event> event, const TrackCut &cut, vector<int> *trackCutReasons=nullptr);
   
   /// Removes jets that don't pass the cut from the jets collection
   void ApplyJetCut(shared_ptr<Event> event, const JetCut &cut);

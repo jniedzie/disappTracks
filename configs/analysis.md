@@ -4,7 +4,7 @@
 cuts_level: 1
 
 ### Analysis category ( 2-tracks | 3-layers | 4-layers | 5-6-layers | all ):
-analysis_category: all
+analysis_category: 5-6-layers
 
 ### Secondary category ( Zmumu | Wmunu | LowMET | none ):
 secondary_category:  none
@@ -16,15 +16,15 @@ save_events:  1
 load_friend_tree: 0
 load_hits:             0
 
-verbosity_level: 0
+verbosity_level: 1
 
 ### turn on/off different backgrounds, signals and data samples
-do_QCD:         0
-do_Zmm:         0
-do_tops:          0
-do_dibosons:   0
-do_Wmv:         0
-do_Zvv:           0
+do_QCD:         1
+do_Zmm:         1
+do_tops:          1
+do_dibosons:   1
+do_Wmv:         1
+do_Zvv:           1
 
 do_300_3:       0
 do_300_10:     0
@@ -42,14 +42,19 @@ do_tagger_background_noPU:      0
 do_tagger_signal_withPU:             0
 do_tagger_background_withPU:   0
 
-do_chargino_300_1:   0
-do_chargino_400_1:   0
+do_chargino_300_1:   1
+do_chargino_400_1:   1
 do_chargino_300_10: 0
-do_chargino_500_10: 0
-do_chargino_500_1:   0
-do_chargino_700_10: 0
-do_chargino_700_30: 0
-do_chargino_800_10: 0
+do_chargino_500_10: 1
+do_chargino_500_10_noMETfilter: 0
+do_chargino_500_10_newGT: 0
+do_chargino_500_1:   1
+do_chargino_700_10: 1
+do_chargino_700_30: 1
+do_chargino_800_10: 1
+do_chargino_800_30: 0
+do_chargino_900_30: 0
+
 
 do_SR: 0
 do_CR: 0
@@ -92,7 +97,6 @@ max_N_events_signal: -1
 max_N_events_data:  -1
 
 
-
 ### Luminosity (in fb^-1):
 
 total_luminosity_2015: 3.81
@@ -101,3 +105,4 @@ total_luminosity_2017: 41.37
 total_luminosity_2018: 63.97
 
 total_luminosity_run2: 146.91
+

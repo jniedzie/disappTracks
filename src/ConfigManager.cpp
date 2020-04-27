@@ -64,6 +64,8 @@ ConfigManager::ConfigManager(string path)
     else if(key == "do_chargino_400_1")           runSignal[kChargino400_1]           = stoi(value);
     else if(key == "do_chargino_500_1")           runSignal[kChargino500_1]           = stoi(value);
     else if(key == "do_chargino_500_10")          runSignal[kChargino500_10]          = stoi(value);
+    else if(key == "do_chargino_500_10_noMETfilter") runSignal[kChargino500_10_noMETfilter]          = stoi(value);
+    else if(key == "do_chargino_500_10_newGT") runSignal[kChargino500_10_newGT]          = stoi(value);
     else if(key == "do_chargino_600_10")          runSignal[kChargino600_10]          = stoi(value);
     else if(key == "do_chargino_700_10")          runSignal[kChargino700_10]          = stoi(value);
     else if(key == "do_chargino_700_30")          runSignal[kChargino700_30]          = stoi(value);

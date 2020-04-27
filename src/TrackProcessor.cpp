@@ -86,40 +86,69 @@ shared_ptr<Track> TrackProcessor::GetRandomTrack(int nLayers, double maxEta)
 }
 
 bool TrackProcessor::IsPassingCut(const shared_ptr<Track> track,
-                                  const TrackCut &cut)
+                                  const TrackCut &cut,
+                                  vector<int> *cutReasons)
 {
-  if(cut.requiresMcMatch && track->mcMatch == 0) return false;
+  int cutThroughIter=0;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 0
   
+  if(cut.requiresMcMatch && track->mcMatch == 0) return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 1
   
   if(cut.nPixelHits.IsOutside(track->nPixelHits))  return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 2
+  
   if(cut.nPixelLayers.IsOutside(track->nPixelLayers)) return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 3
+  
   if(cut.nLayers.IsOutside(track->GetNtrackerLayers())) return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 4
+  
   if(cut.nMissingInnerPixel.IsOutside(track->nMissingInnerPixelHits)) return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 5
+  
   if(cut.nMissingMiddleTracker.IsOutside(track->nMissingMiddleTrackerHits)) return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 6
+  
   if(cut.nMissingOuterTracker.IsOutside(track->nMissingOuterTrackerHits))  return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 7
   
   // check number of dedx, number of detectors, number of clusters
   if(cut.nDedxClusters.IsOutside(track->nDedxClusters)) return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 8
+  
   if(cut.nDetIDs.IsOutside(track->nDetIDs))  return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 9
   
   
   if(cut.totalDeDx.IsOutside(track->GetTotalDedx())) return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 10
   
   for(int iCluster=0;iCluster<track->nDedxClusters;iCluster++){
     if(cut.dedxPerCluster.IsOutside(track->dedx[iCluster])) return false;
   }
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 11
   
   // check basic kinematical variables
   if(cut.pt.IsOutside(track->pt)) return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 12
+  
   if(cut.eta.IsOutside(track->eta)) return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 13
+  
   if(cut.vetoCracks && fabs(track->eta) > 1.442 && fabs(track->eta) < 1.566) return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 14
   
   // check calo energy
   if(cut.caloEmEnergy.IsOutside(track->caloEmEnergy))  return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 15
+  
   if(cut.caloHadEnergy.IsOutside(track->caloHadEnergy))  return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 16
   
   // check isolation
   if(cut.relativeIsolation.IsOutside(track->relativeIsolation))  return false;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 17
   
   // Check track-met ΔΦ
   if(cut.trackMetDeltaPhi.GetMin() > -inf){
@@ -129,6 +158,7 @@ bool TrackProcessor::IsPassingCut(const shared_ptr<Track> track,
     
     if(cut.trackMetDeltaPhi.IsOutside(metVector.DeltaPhi(trackVector))) return false;
   }
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 18
   
   return true;
 }
@@ -273,5 +303,3 @@ void TrackProcessor::SetupBranchesForWriting(TTree *tree)
       tree->Branch(name.c_str(), &arrayValuesInt[name], Form("%s[nIsoTrack]/I", name.c_str()));
   }
 }
-
-
