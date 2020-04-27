@@ -23,6 +23,52 @@ string getPathPrefix()
   return prefix;
 }
 
+void fillHistogram(EventSet &events, TH1D *hist, ESignal iSig, string mode)
+{
+  double sumW = 0;
+  
+  for(int year : years){
+    if(!config.params["load_"+to_string(year)]) continue;
+    
+    for(int iEvent=0; iEvent<events.size(kSignal, iSig, year); iEvent++){
+      auto event = events.At(kSignal, iSig, year, iEvent);
+      
+      if(mode == "charginos"){
+        
+      }
+      else if(mode == "gen_met") hist->Fill(event->GetMetGenPt(), event->GetWeight());
+      else if(mode == "met")     hist->Fill(event->GetMetNoMuPt(), event->GetWeight());
+      else{
+        cout<<"ERROR -- unknown mode: "<<mode<<endl;
+        return;
+      }
+      
+      sumW += event->GetWeight();
+    }
+  }
+  hist->Scale(1./sumW);
+}
+
+void reweightHistogram(EventSet &events, TH1D *hist, TH1D *ratio, ESignal iSig)
+{
+  double sumW = 0;
+  
+  for(int year : years){
+    if(!config.params["load_"+to_string(year)]) continue;
+    
+    for(int iEvent=0; iEvent<events.size(kSignal, iSig, year); iEvent++){
+      auto event = events.At(kSignal, iSig, year, iEvent);
+      
+      double met = event->GetMetNoMuPt();
+      double scale = ratio->GetBinContent(ratio->GetXaxis()->FindFixBin(met));
+      
+      hist->Fill(event->GetMetNoMuPt(), event->GetWeight()*scale);
+      sumW += event->GetWeight()*scale;
+    }
+  }
+  hist->Scale(1./sumW);
+}
+
 int main(int argc, char* argv[])
 {
   TApplication theApp("App", &argc, argv);
@@ -33,91 +79,108 @@ int main(int argc, char* argv[])
   config = ConfigManager(configPath);
   EventSet events; events.LoadEventsFromFiles(getPathPrefix());
   
-  TH1D *metGiovanni = new TH1D("metGiovanni", "metGiovanni", 100, 0, 1000);
-  TH1D *metFilip    = new TH1D("metFilip", "metFilip", 100, 0, 1000);
+  const int nBins = 50;
+  
+  TH1D *charginosPtGiovanni = new TH1D("charginos' pt" , "charginos' pt"  , nBins, 0, 1000);
+  TH1D *charginosPtFilip    = new TH1D("charginos' pt ", "charginos' pt " , nBins, 0, 1000);
+  TH1D *genMetGiovanni      = new TH1D("gen-MET"       , "gen-MET"        , nBins, 0, 1000);
+  TH1D *genMetFilip         = new TH1D("gen-Met "      , "gen-Met "       , nBins, 0, 1000);
+  TH1D *metGiovanni         = new TH1D("MET"           , "MET"            , nBins, 0, 1000);
+  TH1D *metFilip            = new TH1D("Met "          , "Met "           , nBins, 0, 1000);
+  
+  charginosPtGiovanni->SetLineColor(kBlack);
+  genMetGiovanni->SetLineColor(kBlack);
+  metGiovanni->SetLineColor(kBlack);
+  charginosPtFilip->SetLineColor(kRed);
+  genMetFilip->SetLineColor(kRed);
   metFilip->SetLineColor(kRed);
   
-  double sumWgiovanni = 0;
-  double sumWfilip = 0;
-  
-  for(int year : years){
-    if(!config.params["load_"+to_string(year)]) continue;
-    cout<<"Year: "<<year<<endl;
-    
-    ESignal iSigGiovanni = kWino_M_500_cTau_10;
-    ESignal iSigFilip = kChargino500_10;
-    
-    for(int iEvent=0; iEvent<events.size(kSignal, iSigGiovanni, year); iEvent++){
-      auto event = events.At(kSignal, iSigGiovanni, year, iEvent);
-      metGiovanni->Fill(event->GetMetNoMuPt(), event->GetWeight());
-      sumWgiovanni += event->GetWeight();
-    }
-    
-    for(int iEvent=0; iEvent<events.size(kSignal, iSigFilip, year); iEvent++){
-      auto event = events.At(kSignal, iSigFilip, year, iEvent);
-      metFilip->Fill(event->GetMetNoMuPt(), event->GetWeight());
-      sumWfilip += event->GetWeight();
-    }
-  }
-  cout<<"Done"<<endl;
-  
-  metGiovanni->Scale(1./sumWgiovanni);
-  metFilip->Scale(1./sumWfilip);
-  
+  fillHistogram(events, charginosPtGiovanni , kWino_M_500_cTau_10 , "charginos" );
+  fillHistogram(events, charginosPtFilip    , kChargino500_10     , "charginos" );
+  fillHistogram(events, genMetGiovanni      , kWino_M_500_cTau_10 , "gen_met"   );
+  fillHistogram(events, genMetFilip         , kChargino500_10     , "gen_met"   );
+  fillHistogram(events, metGiovanni         , kWino_M_500_cTau_10 , "met"       );
+  fillHistogram(events, metFilip            , kChargino500_10     , "met"       );
+
   TCanvas *c1 = new TCanvas("c1", "c1", 2880, 1800);
-  c1->Divide(2,2);
+  c1->Divide(3,2);
+  
+  
+  //
+  //  Charginos' pt
+  //
   
   TLegend *leg = new TLegend(0.85, 1.0, 0.85, 1.0);
-  leg->AddEntry(metGiovanni, "MET Giovanni", "epl");
-  leg->AddEntry(metFilip, "MET Filip", "epl");
+  leg->AddEntry(charginosPtGiovanni , "charginos' pt MadGraph"  , "epl");
+  leg->AddEntry(charginosPtFilip    , "charignos' pt Pythia"    , "epl");
   
   c1->cd(1);
-  
-  metGiovanni->Draw();
-  metFilip->Draw("same");
+  charginosPtGiovanni->Draw();
+  charginosPtFilip->Draw("same");
   leg->Draw();
   
+  c1->cd(4);
+  TH1D *charginosPtRatio = new TH1D(*charginosPtGiovanni);
+  charginosPtRatio->SetTitle("charginos' pt ratio");
+  charginosPtRatio->SetLineColor(kBlue);
+  charginosPtRatio->Sumw2();
+  charginosPtRatio->Divide(charginosPtFilip);
+  charginosPtRatio->Draw();
+  
+  //
+  //  gen-MET
+  //
   
   
-  TH1D *metRatio = new TH1D(*metGiovanni);
-  metRatio->Sumw2();
-  metRatio->Divide(metFilip);
-  c1->cd(3); metRatio->Draw();
-  
-  TH1D *metFilipReweighted = new TH1D("metFilipReweighted", "metFilipReweighted", 100, 0, 1000);
-  metFilipReweighted->SetLineColor(kRed);
-  
-  double sumWfilipReweighted = 0;
-  
-  for(int year : years){
-    if(!config.params["load_"+to_string(year)]) continue;
-    cout<<"Year: "<<year<<endl;
-    
-    ESignal iSigFilip = kChargino500_10;
-    
-    for(int iEvent=0; iEvent<events.size(kSignal, iSigFilip, year); iEvent++){
-      auto event = events.At(kSignal, iSigFilip, year, iEvent);
-      
-      double met = event->GetMetNoMuPt();
-      double scale = metRatio->GetBinContent(metRatio->GetXaxis()->FindFixBin(met));
-      
-      metFilipReweighted->Fill(event->GetMetNoMuPt(), event->GetWeight()*scale);
-      sumWfilipReweighted += event->GetWeight()*scale;
-    }
-  }
-  metFilipReweighted->Scale(1./sumWfilipReweighted);
+  TLegend *leg3 = new TLegend(0.85, 1.0, 0.85, 1.0);
+  leg3->AddEntry(genMetGiovanni      , "gen MET MadGraph"        , "epl");
+  leg3->AddEntry(genMetFilip         , "gen MET Pythia"          , "epl");
   
   c1->cd(2);
+  genMetGiovanni->Draw();
+  genMetFilip->Draw("same");
+  leg3->Draw();
+  
+  c1->cd(5);
+  TH1D *genMetRatio = new TH1D(*genMetGiovanni);
+  genMetRatio->SetTitle("gen-MET ratio");
+  genMetRatio->SetLineColor(kBlue);
+  genMetRatio->Sumw2();
+  genMetRatio->Divide(genMetFilip);
+  genMetRatio->Draw();
+  
+  
+  //
+  // MET
+  //
+  
+
+  c1->cd(3);
+  TH1D *metFilipReweighted = new TH1D(*metFilip);
+  reweightHistogram(events, metFilipReweighted, genMetRatio, kChargino500_10);
   metGiovanni->Draw();
   metFilipReweighted->Draw("same");
   
-  TH1D *metRatioReweighted = new TH1D(*metGiovanni);
-  metRatioReweighted->Sumw2();
-  metRatioReweighted->Divide(metFilipReweighted);
-  c1->cd(4); metRatioReweighted->Draw();
+  TLegend *leg2 = new TLegend(0.85, 1.0, 0.85, 1.0);
+  leg2->AddEntry(metFilipReweighted , "reweighted MET Pythia", "epl");
+  leg2->AddEntry(metGiovanni        , "MET MadGraph"        , "epl");
   
-  metRatio->SetTitle("metRatio");
-  metRatio->SetName("metRatio");
+  leg2->Draw();
+  
+  c1->cd(6);
+  TH1D *metReweightedRatio = new TH1D(*metGiovanni);
+  metReweightedRatio->SetLineColor(kBlue);
+  metReweightedRatio->Sumw2();
+  metReweightedRatio->Divide(metFilipReweighted);
+  metReweightedRatio->Draw();
+  
+  
+  //
+  // Save to file
+  //
+  
+//  charginosPtRatio->SetTitle("metRatio");
+//  charginosPtRatio->SetName("metRatio");
 //  metRatio->SaveAs("../data/SIG-SR/metWeights.root");
   
   c1->Update();

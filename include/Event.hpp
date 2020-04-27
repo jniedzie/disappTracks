@@ -72,6 +72,7 @@ public:
   
   inline void SetMetSumEt(double val){metSumEt = val;}
   inline void SetMetPt(double val){metPt = val;}
+  inline void SetMetGenPt(double val){metGenPt = val;}
   inline void SetMetMass(double val){metMass = val;}
   inline void SetMetPhi(double val){metPhi = val;}
   inline void SetMetEta(double val){metEta = val;}
@@ -130,6 +131,7 @@ public:
   
   inline double GetMetSumEt() const {return metSumEt;}
   inline double GetMetPt() const {return metPt;}
+  inline double GetMetGenPt() const {return metGenPt;}
   inline double GetMetMass() const {return metMass;}
   inline double GetMetPhi() const {return metPhi;}
   inline double GetMetEta() const {return metEta;}
@@ -170,6 +172,7 @@ public:
   inline vector<shared_ptr<Lepton>>   GetLeptons() const {return leptons;}
   inline Helices                      GetHelices() const {return helices;}
   inline Helices                      GetGeneralTracks() const {return generalTracks;}
+  inline vector<Track>                GetGenCharginos() const {return genCharginos;}
 
   /**
    Returns tracker clusters. End-caps are included or not based on `include_endcaps` option
@@ -184,6 +187,7 @@ private:
   vector<shared_ptr<Lepton>> leptons;  ///< Vector of leptons
   Helices  helices;           ///< Parameters of the fitted helices (one per track)
   Helices  generalTracks;     ///< Vector of general tracks
+  vector<Track> genCharginos; ///< Gen-level information about charginos (from ntuples)
   
   xtracks::EDataType dataType;     ///< Type of the event (signal/background/data)
   int setIter;            ///< Iterator of the dataset (e.g. which type of background it is)
@@ -205,6 +209,8 @@ private:
   double  metEta;         ///< MET pseudorapidity
   double  metPhi;         ///< MET polar angle
   double  metMass;        ///< MET mass
+  
+  double  metGenPt;          ///< MET transverse momentum
   
   bool    metNoMuTrigger; ///< Did HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight trigger fired for this event?
   double  metNoMuPt;      ///< MET transverse momentum (calculated without muons)
@@ -239,7 +245,7 @@ private:
   Points charginoSimHits;   ///< Sim hits associated with generated chargino(s)
   Helices genPionHelices;   ///< Helix representing gen-level pion(s)
   
-  vector<Track> genCharginoTrack; ///< Gen-level information about charginos
+  vector<Track> genCharginoTrack; ///< Gen-level information about charginos (from friend trees)
   
   TTree *friendTree;
   

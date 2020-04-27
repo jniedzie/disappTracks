@@ -28,6 +28,7 @@ EventProcessor::EventProcessor()
     "genWeight",
     "met_sumEt",
     "met_pt",
+    "met_genPt",
     "met_mass",
     "met_phi",
     "met_eta",
@@ -36,7 +37,15 @@ EventProcessor::EventProcessor()
     "met_jecDown_pt",
     "metNoMu_mass",
     "metNoMu_phi",
-    "metNoMu_eta"
+    "metNoMu_eta",
+  };
+  
+  arrayNamesFloat = {
+    "GenChargino_pt",
+    "GenChargino_eta",
+    "GenChargino_phi",
+    "GenChargino_mass",
+    "GenChargino_charge",
   };
   
   singleNamesInt = {
@@ -82,6 +91,7 @@ EventProcessor::EventProcessor()
     "chargino_eta",
     "chargino_phi",
     "chargino_pt",
+    "chargino_mass",
     "pion_simHits_x",
     "pion_simHits_y",
     "pion_simHits_z",
@@ -465,6 +475,17 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   event->nJet30a                  = singleValuesInt["nJet30a"];
   event->nTau                     = singleValuesInt["nTauGood"];
   event->nGenChargino             = singleValuesInt["nGenChargino"];
+  
+  for(uint i=0;i<event->nGenChargino;i++){
+    event->genCharginos.push_back(Track(arrayValuesFloat["GenChargino_eta"][i],
+                                        arrayValuesFloat["GenChargino_phi"][i],
+                                        arrayValuesFloat["GenChargino_charge"][i],
+                                        -1,
+                                        arrayValuesFloat["GenChargino_pt"][i],
+                                        arrayValuesFloat["GenChargino_mass"][i]));
+  }
+  
+  
   event->metNoMuTrigger           = singleValuesInt["HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight"]
                                  || singleValuesInt["HLT_BIT_HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v"];
   event->flag_goodVertices        = singleValuesInt["Flag_goodVertices"];
@@ -486,6 +507,7 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   event->genWeight   = singleValuesFloat["genWeight"];
   event->metSumEt    = singleValuesFloat["met_sumEt"];
   event->metPt       = singleValuesFloat["met_pt"];
+  event->metGenPt    = singleValuesFloat["met_genPt"];
   event->metMass     = singleValuesFloat["met_mass"];
   event->metPhi      = singleValuesFloat["met_phi"];
   event->metEta      = singleValuesFloat["met_eta"];
@@ -679,7 +701,8 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
                                             arrayValuesFriendInt["chargino_charge"]->at(i),
                                             nCharginos==1 ? nCharginoLayers : -1, // works only if there's one chargino in the event!!
                                             /*arrayValuesFriendInt["chargino_nTrackerLayers"]->at(i),*/
-                                            arrayValuesFriendFloat["chargino_pt"]->at(i)));
+                                            arrayValuesFriendFloat["chargino_pt"]->at(i),
+                                            arrayValuesFriendFloat["chargino_mass"]->at(i)));
     
   }
   
@@ -717,6 +740,7 @@ void EventProcessor::SaveEventToTree(shared_ptr<Event> event)
   singleValuesFloat["genWeight"]    = event->genWeight;
   singleValuesFloat["met_sumEt"]    = event->metSumEt;
   singleValuesFloat["met_pt"]       = event->metPt;
+  singleValuesFloat["met_GenPt"]    = event->metGenPt;
   singleValuesFloat["met_mass"]     = event->metMass;
   singleValuesFloat["met_phi"]      = event->metPhi;
   singleValuesFloat["met_eta"]      = event->metEta;
@@ -737,6 +761,16 @@ void EventProcessor::SetupBranchesForReading(TTree *tree, TTree *friendTree, TTr
       continue;
     }
     tree->SetBranchAddress(name.c_str(), &singleValuesFloat[name]);
+  }
+  
+  for(string name : arrayNamesFloat){
+//    arrayValuesFloat[name] = nullptr;
+    
+    if(!tree->GetBranchStatus(name.c_str())){
+      cout<<"WARNING -- no branch named "<<name<<"!!"<<endl;
+      continue;
+    }
+    tree->SetBranchAddress(name.c_str(), &arrayValuesFloat[name]);
   }
   
   for(string name : singleNamesInt){

@@ -21,6 +21,7 @@ Event::Event(const Event &e)
   for(auto l : e.leptons){leptons.push_back(l);}
   for(auto h : e.helices){helices.push_back(h);}
   for(auto t : e.generalTracks){generalTracks.push_back(t);}
+  for(auto c : e.genCharginos){genCharginos.push_back(c);}
   
   dataType = e.dataType;
   setIter = e.setIter;
@@ -36,6 +37,7 @@ Event::Event(const Event &e)
   
   SetMetSumEt(e.metSumEt);
   SetMetPt(e.metPt);
+  SetMetGenPt(e.metGenPt);
   SetMetMass(e.metMass);
   SetMetPhi(e.metPhi);
   SetMetEta(e.metEta);

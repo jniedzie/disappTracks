@@ -59,17 +59,22 @@ public:
 private:
   
   map<string, float>                singleValuesFloat;  ///< Float per-event variables in the current entry
+  
+  static const int nMax = 10000;   ///< Maximum supported number of tracks per event
+  map<string, float[nMax]>       arrayValuesFloat;  ///< Float per-event variables in the current entry
+  
   map<string, int>                  singleValuesInt;     ///< Int per-event variables in the current entry
   map<string, uint>                 singleValuesUint;    ///< uint per-event variables in the current entry
   map<string, unsigned long long>   singleValuesUlonglong;///<long per-event variables in the current entry
   
   vector<string> singleNamesFloat;      ///< Names or float per-event variables
+  vector<string> arrayNamesFloat;      ///< Names or float per-event variables
   vector<string> singleNamesInt;        ///< Names or int per-event variables
   vector<string> singleNamesUint;       ///< Names or uint per-event variables
   vector<string> singleNamesUlongLong;  ///< Names or long per-event variables
   
   
-  static const int nMax = 10000;   ///< Maximum supported number of tracks per event
+  
   
   map<string, vector<double>* > arrayValuesFriendFloat;  ///< Float variables in the current entry
   map<string, vector<int>* >   arrayValuesFriendInt;    ///< Int variables in the current entry
