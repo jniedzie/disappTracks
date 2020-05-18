@@ -82,6 +82,7 @@ private:
   vector<string> arrayNamesFriendFloat;     ///< Names or float variables
   vector<string> arrayNamesFriendInt;       ///< Names or int variables
   
+  int nGenChargino;
   float prefireWeight;
 };
 

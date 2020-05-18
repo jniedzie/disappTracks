@@ -191,6 +191,7 @@ enum ESignal{
   kTaggerBackgroundWithPU,
   kChargino300_1,
   kChargino300_10,
+  kChargino300_30,
   kChargino400_1,
   kChargino500_1,
   kChargino500_10,
@@ -201,6 +202,7 @@ enum ESignal{
   kChargino700_30,
   kChargino800_10,
   kChargino800_30,
+  kChargino900_1 ,
   kChargino900_30,
 };
 
@@ -223,6 +225,7 @@ constexpr initializer_list<ESignal> signals = {
   kTaggerBackgroundWithPU,
   kChargino300_1,
   kChargino300_10,
+  kChargino300_30,
   kChargino400_1,
   kChargino500_1,
   kChargino500_10,
@@ -233,7 +236,8 @@ constexpr initializer_list<ESignal> signals = {
   kChargino700_30,
   kChargino800_10,
   kChargino800_30,
-  kChargino900_30,
+  kChargino900_1  ,
+  kChargino900_30 ,
 };
 
 // Names of background, signal and data samples
@@ -274,6 +278,7 @@ const map<ESignal, string> signalTitle = {
   {kTaggerBackgroundWithPU, "Tagger background with PU" },
   {kChargino300_1,  "Chargino, 300 GeV, 1 cm"   },
   {kChargino300_10, "Chargino, 300 GeV, 10 cm"  },
+  {kChargino300_30, "Chargino, 300 GeV, 30 cm"  },
   {kChargino400_1,  "Chargino, 400 GeV, 1 cm"   },
   {kChargino500_1,  "Chargino, 500 GeV, 1 cm"   },
   {kChargino500_10, "Chargino, 500 GeV, 10 cm"  },
@@ -284,6 +289,7 @@ const map<ESignal, string> signalTitle = {
   {kChargino700_30, "Chargino, 700 GeV, 30 cm"  },
   {kChargino800_10, "Chargino, 800 GeV, 10 cm"  },
   {kChargino800_30, "Chargino, 800 GeV, 30 cm"  },
+  {kChargino900_1 , "Chargino, 900 GeV, 1  cm"  },
   {kChargino900_30, "Chargino, 900 GeV, 30 cm"  },
   
 };
@@ -307,6 +313,7 @@ const map<ESignal, string> signalName = {
   {kTaggerBackgroundWithPU, "Tagger_background_with_PU" },
   {kChargino300_1,  "Chargino_300_1"   },
   {kChargino300_10, "Chargino_300_10"  },
+  {kChargino300_30, "Chargino_300_30"  },
   {kChargino400_1,  "Chargino_400_1"   },
   {kChargino500_1,  "Chargino_500_1"   },
   {kChargino500_10, "Chargino_500_10"  },
@@ -317,6 +324,7 @@ const map<ESignal, string> signalName = {
   {kChargino700_30, "Chargino_700_30"  },
   {kChargino800_10, "Chargino_800_10"  },
   {kChargino800_30, "Chargino_800_30"  },
+  {kChargino900_1 , "Chargino_900_1"  },
   {kChargino900_30, "Chargino_900_30"  },
 };
 
@@ -339,6 +347,7 @@ const map<ESignal, string> signalShortName = {
   {kTaggerBackgroundWithPU, "Tagger_background_with_PU" },
   {kChargino300_1,  "Chargino_300_1"   },
   {kChargino300_10, "Chargino_300_10"  },
+  {kChargino300_30, "Chargino_300_30"  },
   {kChargino400_1,  "Chargino_400_1"   },
   {kChargino500_1,  "Chargino_500_1"   },
   {kChargino500_10, "Chargino_500_10"  },
@@ -349,6 +358,7 @@ const map<ESignal, string> signalShortName = {
   {kChargino700_30, "Chargino_700_30"  },
   {kChargino800_10, "Chargino_800_10"  },
   {kChargino800_30, "Chargino_800_30"  },
+  {kChargino900_1 , "Chargino_900_1"  },
   {kChargino900_30, "Chargino_900_30"  },
 };
 
@@ -515,16 +525,25 @@ const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
       }}},
   }},
   { kChargino300_1, {
-    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/" : "SIG-SR/", {"Wino_300GeV1cm/"}}},
+//    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/" : "SIG-SR/", {"Wino_300GeV1cm/"}}},
+    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/", {"Wino_300GeV1cm_2017_GTv11_METcut/"}}},
     { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/" : "SIG-SR/", {"Wino_300GeV1cm/"}}},
   }},
   { kChargino300_10, {
     { 2017, {"6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/", {"Wino_300GeV10cm/"}}},
     { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_300GeV10cm/"}}},
   }},
+  { kChargino300_30, {
+    { 2017, {"6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/", {"Wino_300GeV30cm_2017_GTv11_METcut/"}}},
+//    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_300GeV10cm/"}}},
+  }},
   { kChargino400_1, {
     { 2017, {"6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/", {"Wino_400GeV1cm/"}}},
     { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_400GeV1cm/"}}},
+  }},
+  { kChargino500_1, {
+    { 2017, {"6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/", {"Wino_500GeV1cm_2017_GTv11_METcut/"}}},
+    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_500GeV1cm/"}}},
   }},
   { kChargino500_10, {
     { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/", {"Wino_500GeV10cm_GTv11_METcut/"}}},
@@ -540,10 +559,7 @@ const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
     { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-newGT-2017-Hadded/" : "SIG-SR/", {"Wino_500GeV10cm_GTv11/"}}},
     { 2018, {lxplus ? "6Mar2019/Calibrated-SIG-SR-newGT-2017-Hadded/" : "SIG-SR/", {"Wino_500GeV10cm_GTv11/"}}},
   }},
-  { kChargino500_1, {
-    { 2017, {"6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/", {"Wino_500GeV1cm/"}}},
-    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_500GeV1cm/"}}},
-  }},
+
   { kChargino600_10, {
     { 2017, {"6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/", {"Wino_600GeV10cm/"}}},
     { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_600GeV10cm/"}}},
@@ -564,8 +580,12 @@ const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
     { 2017, {"6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/", {"Wino_800GeV30cm/"}}},
     { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_800GeV30cm/"}}},
   }},
+  { kChargino900_1, {
+    { 2017, {"6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/", {"Wino_900GeV1cm_2017_GTv11_METcut/"}}},
+    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_900GeV30cm/"}}},
+  }},
   { kChargino900_30, {
-    { 2017, {"6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/", {"Wino_900GeV30cm/"}}},
+    { 2017, {"6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/", {"Wino_900GeV30cm_2017_GTv11_METcut/"}}},
     { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_900GeV30cm/"}}},
   }},
 };
@@ -603,19 +623,23 @@ const map<ESignal, double> signalCrossSectionTwoTracks = { // (fb)
   { kTaggerBackgroundNoPU  , 190},
   { kTaggerSignalWithPU    , 190},
   { kTaggerBackgroundWithPU, 190},
-  { kChargino300_1 , 190*0.104  }, // UPDATE!!
-  { kChargino300_10, 190*0.104  }, // UPDATE!!
-  { kChargino400_1 , 59*0.124   },
-  { kChargino500_1 , 22*0.135   }, // UPDATE!!
-  { kChargino500_10, 22*0.13157895   }, // includes MET cut efficiency
-  { kChargino500_10_noMETfilter, 22   }, // includes MET cut efficiency
-  { kChargino500_10_newGT, 22   }, // includes MET cut efficiency
-  { kChargino600_10, 9.5*0.154  }, // UPDATE!!
-  { kChargino700_10, 4.4*0.165  },
-  { kChargino700_30, 4.4*0.165  }, // UPDATE!!
-  { kChargino800_10, 2.2*0.192  },
-  { kChargino800_30, 2.2*0.192  }, // UPDATE!!
-  { kChargino900_30, 1.15*0.204 }, // UPDATE!!
+  { kChargino500_10_noMETfilter, 22 },
+  { kChargino500_10_newGT, 22       },
+
+  //                xsec    met eff
+  { kChargino300_1 , 190  * 0.104   }, // UPDATE!!
+  { kChargino300_10, 190  * 0.104   }, // UPDATE!!
+  { kChargino300_30, 190  * 0.104   }, // UPDATE!!
+  { kChargino400_1 , 59   * 0.124   },
+  { kChargino500_1 , 22   * 0.135   }, // UPDATE!!
+  { kChargino500_10, 22   * 0.132   }, // includes MET cut efficiency
+  { kChargino600_10, 9.5  * 0.154   }, // UPDATE!!
+  { kChargino700_10, 4.4  * 0.165   },
+  { kChargino700_30, 4.4  * 0.165   }, // UPDATE!!
+  { kChargino800_10, 2.2  * 0.192   },
+  { kChargino800_30, 2.2  * 0.192   }, // UPDATE!!
+  { kChargino900_1 , 1.15 * 0.204   }, // UPDATE!!
+  { kChargino900_30, 1.15 * 0.204   }, // UPDATE!!
 };
 
 const map<ESignal, double> signalCrossSectionOneTrack = { // (fb)
@@ -635,19 +659,23 @@ const map<ESignal, double> signalCrossSectionOneTrack = { // (fb)
   { kTaggerBackgroundNoPU  , 380},
   { kTaggerSignalWithPU    , 380},
   { kTaggerBackgroundWithPU, 380},
-  { kChargino300_1 , 387*0.104  }, // UPDATE!!
-  { kChargino300_10, 387*0.104  }, // UPDATE!!
-  { kChargino400_1 , 121*0.124  },
-  { kChargino500_1 , 46*0.135   }, // UPDATE!!
-  { kChargino500_10, 46*0.13157895   },
   { kChargino500_10_noMETfilter, 46   },
   { kChargino500_10_newGT, 46   },
-  { kChargino600_10, 20*0.154   }, // UPDATE!!
-  { kChargino700_10, 9.5*0.165  },
-  { kChargino700_30, 9.5*0.165  }, // UPDATE!!
-  { kChargino800_10, 4.8*0.192  },
-  { kChargino800_30, 4.8*0.192  }, // UPDATE!!
-  { kChargino900_30, 2.5*0.204  }, // UPDATE!!
+  
+  //                xsec    met eff
+  { kChargino300_1 , 387  * 0.104  }, // UPDATE!!
+  { kChargino300_10, 387  * 0.104  }, // UPDATE!!
+  { kChargino300_30, 387  * 0.104  }, // UPDATE!!
+  { kChargino400_1 , 121  * 0.124  },
+  { kChargino500_1 , 46   * 0.135  }, // UPDATE!!
+  { kChargino500_10, 46   * 0.132  },
+  { kChargino600_10, 20   * 0.154  }, // UPDATE!!
+  { kChargino700_10, 9.5  * 0.165  },
+  { kChargino700_30, 9.5  * 0.165  }, // UPDATE!!
+  { kChargino800_10, 4.8  * 0.192  },
+  { kChargino800_30, 4.8  * 0.192  }, // UPDATE!!
+  { kChargino900_1 , 2.5  * 0.204  }, // UPDATE!!
+  { kChargino900_30, 2.5  * 0.204  }, // UPDATE!!
 };
 
 template <class T>

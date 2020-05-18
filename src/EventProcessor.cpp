@@ -474,7 +474,7 @@ shared_ptr<Event> EventProcessor::GetEventFromTree(xtracks::EDataType dataType, 
   event->nJet30                   = singleValuesInt["nJet30"];
   event->nJet30a                  = singleValuesInt["nJet30a"];
   event->nTau                     = singleValuesInt["nTauGood"];
-  event->nGenChargino             = singleValuesInt["nGenChargino"];
+  event->nGenChargino = nGenChargino = singleValuesInt["nGenChargino"];
   
   for(uint i=0;i<event->nGenChargino;i++){
     event->genCharginos.push_back(Track(arrayValuesFloat["GenChargino_eta"][i],
@@ -750,6 +750,15 @@ void EventProcessor::SaveEventToTree(shared_ptr<Event> event)
   singleValuesFloat["metNoMu_mass"] = event->metNoMuMass;
   singleValuesFloat["metNoMu_phi"]  = event->metNoMuPhi;
   singleValuesFloat["metNoMu_eta"]  = event->metNoMuEta;
+  
+  for(uint i=0;i<event->nGenChargino;i++){
+    arrayValuesFloat["GenChargino_eta"][i]    = event->genCharginos[i].GetEta();
+    arrayValuesFloat["GenChargino_phi"][i]    = event->genCharginos[i].GetPhi();
+    arrayValuesFloat["GenChargino_charge"][i] = event->genCharginos[i].GetCharge();
+    arrayValuesFloat["GenChargino_pt"][i]     = event->genCharginos[i].GetPt();
+    arrayValuesFloat["GenChargino_mass"][i]   = event->genCharginos[i].GetMass();
+   }
+  
 }
 
 void EventProcessor::SetupBranchesForReading(TTree *tree, TTree *friendTree, TTree *prefireTree)
@@ -850,4 +859,8 @@ void EventProcessor::SetupBranchesForWriting(TTree *tree)
   for(string name : singleNamesUlongLong){
     tree->Branch(name.c_str(), &singleValuesUlonglong[name], Form("%s/l", name.c_str()));
   }
+  
+  for(string name : arrayNamesFloat){
+     tree->Branch(name.c_str(), &arrayValuesFloat[name], Form("%s[nGenChargino]/F", name.c_str()));
+   }
 }

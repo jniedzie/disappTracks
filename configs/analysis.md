@@ -19,12 +19,12 @@ load_hits:             0
 verbosity_level: 1
 
 ### turn on/off different backgrounds, signals and data samples
-do_QCD:         1
-do_Zmm:         1
-do_tops:          1
-do_dibosons:   1
-do_Wmv:         1
-do_Zvv:           1
+do_QCD:         0
+do_Zmm:         0
+do_tops:          0
+do_dibosons:   0
+do_Wmv:         0
+do_Zvv:           0
 
 do_300_3:       0
 do_300_10:     0
@@ -42,18 +42,20 @@ do_tagger_background_noPU:      0
 do_tagger_signal_withPU:             0
 do_tagger_background_withPU:   0
 
-do_chargino_300_1:   1
-do_chargino_400_1:   1
+do_chargino_300_1:    1
+do_chargino_300_30:  1
+do_chargino_400_1:   0
 do_chargino_300_10: 0
+do_chargino_500_1:   1
 do_chargino_500_10: 1
 do_chargino_500_10_noMETfilter: 0
 do_chargino_500_10_newGT: 0
-do_chargino_500_1:   1
-do_chargino_700_10: 1
-do_chargino_700_30: 1
-do_chargino_800_10: 1
+do_chargino_700_10: 0
+do_chargino_700_30: 0
+do_chargino_800_10: 0
 do_chargino_800_30: 0
-do_chargino_900_30: 0
+do_chargino_900_1:   1
+do_chargino_900_30: 1
 
 
 do_SR: 0
@@ -67,8 +69,8 @@ load_single_subpath: 0
 subpath_index: 0
 
 ### Select for which years to run:
-load_2017: 0
-load_2018: 1
+load_2017: 1
+load_2018: 0
 
 **Printing & plotting options**
 
