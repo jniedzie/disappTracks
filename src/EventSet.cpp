@@ -752,7 +752,7 @@ void EventSet::AddEventsFromFile(string fileName, xtracks::EDataType dataType, i
     cout<<"\n\nMET weights will be applied\n\n"<<endl;
     
     TFile *metFile = TFile::Open(metWeightsPath.c_str());
-    metWeights = (TH1D*)metFile->Get("h_1");
+    metWeights = (TH1D*)metFile->Get(metWeightsHistName.c_str());
   }
   else{
     cout<<"\n\nMET weights will NOT be applied!!\n\n"<<endl;

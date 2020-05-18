@@ -85,10 +85,15 @@ using namespace std;
 
 namespace xtracks {
 
-const bool lxplus = true;
+const bool lxplus = false;
 
 //const string metWeightsPath = "/eos/cms/store/group/phys_exotica/xtracks/metWeights/hratio.root";
-const string metWeightsPath = "/eos/cms/store/group/phys_exotica/xtracks/metWeights/hratio_cmg.root";
+//const string metWeightsPath = "/eos/cms/store/group/phys_exotica/xtracks/metWeights/hratio_cmg.root";
+
+const string metWeightsPath = "../data/metWeights.root";
+const string metWeightsHistName = "h_1";
+
+
 
 enum EHelixParams
 {
@@ -397,85 +402,85 @@ const map<EBackground, map<int, pair<string, vector<string>>>> inFileNameBackgro
   { kQCD, {
       { 2017, {lxplus ? "6Mar2019-Hadded/QCD_HT" : "MC-SR/QCD_HT",
         {"100to200/", "200to300/", "300to500/", "500to700/", "700to1000/", "1000to1500/", "1500to2000/", "2000toInf/"}}},
-      { 2018, {"7Sep2019/Calibrated-MC-SR-2018-Hadded-2/QCD_HT",
+      { 2018, {lxplus ? "7Sep2019/Calibrated-MC-SR-2018-Hadded-2/QCD_HT" : "MC-SR/2018/QCD_HT",
         {"100to200/", "200to300/", "300to500/", "500to700/", "700to1000/", "1000to1500/", "1500to2000/", "2000toInf/"}}},
   }},
   { kZmumuJets, {
     { 2017, {lxplus ? "6Mar2019-Hadded/DYJetsM50_HT" : "MC-SR/DYJetsM50_HT",
       {"100to200/", "100to200e/", "200to400/", "200to400e/", "400to600/", "400to600e/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
-    { 2018, {"7Sep2019/Calibrated-MC-SR-2018-Hadded-2/DYJetsToLL_M50_HT", // on lxplus
+    { 2018, {lxplus ? "7Sep2019/Calibrated-MC-SR-2018-Hadded-2/DYJetsToLL_M50_HT" : "MC-SR/2018/DYJetsToLL_M50_HT",
       {"100to200/", "200to400/", "400to600/", "400to600_ext2/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
   }},
   { kTT, {
     { 2017, {lxplus ? "6Mar2019-Hadded/" : "MC-SR/",
       {"TTHad/", "TTLep/", "TTSemi/", "T_tch/", "T_tWch/", "TBar_tch/", "TBar_tWch/"}}},
-    { 2018, {"7Sep2019/Calibrated-MC-SR-2018-Hadded-2/",
+    { 2018, {lxplus ? "7Sep2019/Calibrated-MC-SR-2018-Hadded-2/" : "MC-SR/2018/",
       {"TTHad_pow/", "TTLep_pow/", "TTSemi_pow/", "T_tch/", "T_tWch_noFullyHad/", "TBar_tch/", "TBar_tWch_noFullyHad/", "T_sch_lep/" }}},
   }},
   { kVV, {
     { 2017, {lxplus ? "6Mar2019-Hadded/" : "MC-SR/",
       {"WW/", "WZ/", "ZZ/"}}},
-    { 2018, {"7Sep2019/Calibrated-MC-SR-2018-Hadded-2/",
+    { 2018, {lxplus ? "7Sep2019/Calibrated-MC-SR-2018-Hadded-2/" : "MC-SR/2018/",
       {"WW/", "WZ/", "ZZ/"}}},
   }},
   { kWmunuJets, {
     { 2017, {lxplus ? "6Mar2019-Hadded/WJets_HT" : "MC-SR/WJets_HT",
       {"100to200/", "200to400/", "400to600/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
-    { 2018, {"7Sep2019/Calibrated-MC-SR-2018-Hadded-2/WJetsToLNu_HT",
+    { 2018, {lxplus ? "7Sep2019/Calibrated-MC-SR-2018-Hadded-2/WJetsToLNu_HT" : "MC-SR/2018/WJetsToLNu_HT",
       {"100to200/", "200to400/", "400to600/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
   }},
   { kZnunuJets, {
     { 2017, {lxplus ? "6Mar2019-Hadded/ZvvJets_HT" : "MC-SR/ZvvJets_HT",
       {"100to200/", "200to400/", "400to600/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
-    { 2018, {"7Sep2019/Calibrated-MC-SR-2018-Hadded-2/ZvvJets_HT",
+    { 2018, {lxplus ? "7Sep2019/Calibrated-MC-SR-2018-Hadded-2/ZvvJets_HT" : "MC-SR/2018/ZvvJets_HT",
       {"100to200/", "200to400/", "400to600/", "600to800/", "800to1200/", "1200to2500/", "2500toInf/"}}},
   }},
 };
 
 const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
   { kWino_M_300_cTau_3, {
-    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"300_cTau_3/"}}},
-    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"300_cTau_3/"}}},
+    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_"                         : "SIG-SR/2017/Wino_M_", {"300_cTau_3/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_"  : "SIG-SR/2018/Wino_M_", {"300_cTau_3/"}}},
   }},
   { kWino_M_300_cTau_10, {
-    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"300_cTau_10/"}}},
-    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"300_cTau_10/"}}},
+    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_"                         : "SIG-SR/2017/Wino_M_", {"300_cTau_10/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_"  : "SIG-SR/2018/Wino_M_", {"300_cTau_10/"}}},
   }},
   { kWino_M_300_cTau_30, {
-    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"300_cTau_30/"}}},
-    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"300_cTau_30/"}}},
+    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_"                         : "SIG-SR/2017/Wino_M_", {"300_cTau_30/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_"  : "SIG-SR/2018/Wino_M_", {"300_cTau_30/"}}},
   }},
   { kWino_M_500_cTau_10, {
-    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"500_cTau_10/"}}},
-    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"500_cTau_10/"}}},
+    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_"                         : "SIG-SR/2017/Wino_M_", {"500_cTau_10/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_"  : "SIG-SR/2018/Wino_M_", {"500_cTau_10/"}}},
   }},
   { kWino_M_500_cTau_20, {
-    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"500_cTau_20/"}}},
-    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"500_cTau_20/"}}},
+    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_"                         : "SIG-SR/2017/Wino_M_", {"500_cTau_20/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_"  : "SIG-SR/2018/Wino_M_", {"500_cTau_20/"}}},
   }},
   { kWino_M_650_cTau_10, {
-    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"650_cTau_10/"}}},
-    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"650_cTau_10/"}}},
+    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_"                         : "SIG-SR/2017/Wino_M_", {"650_cTau_10/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_"  : "SIG-SR/2018/Wino_M_", {"650_cTau_10/"}}},
   }},
   { kWino_M_650_cTau_20, {
-    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"650_cTau_20/"}}},
-    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"650_cTau_20/"}}},
+    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_"                         : "SIG-SR/2017/Wino_M_", {"650_cTau_20/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_"  : "SIG-SR/2018/Wino_M_", {"650_cTau_20/"}}},
   }},
   { kWino_M_800_cTau_10, {
-    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"800_cTau_10/"}}},
-    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"800_cTau_10/"}}},
+    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_"                         : "SIG-SR/2017/Wino_M_", {"800_cTau_10/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_"  : "SIG-SR/2018/Wino_M_", {"800_cTau_10/"}}},
   }},
   { kWino_M_800_cTau_20, {
-    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"800_cTau_20/"}}},
-    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"800_cTau_20/"}}},
+    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_"                         : "SIG-SR/2017/Wino_M_", {"800_cTau_20/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_"  : "SIG-SR/2018/Wino_M_", {"800_cTau_20/"}}},
   }},
   { kWino_M_1000_cTau_10, {
-    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"1000_cTau_10/"}}},
-    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"1000_cTau_10/"}}},
+    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_"                         : "SIG-SR/2017/Wino_M_", {"1000_cTau_10/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_"  : "SIG-SR/2018/Wino_M_", {"1000_cTau_10/"}}},
   }},
   { kWino_M_1000_cTau_20, {
-    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"1000_cTau_20/"}}},
-    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_" : "SIG-SR/Wino_M_", {"1000_cTau_20/"}}},
+    { 2017, {lxplus ? "6Mar2019-Hadded/Wino_M_"                         : "SIG-SR/2017/Wino_M_", {"1000_cTau_20/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-2018-Hadded/Wino_M_"  : "SIG-SR/2018/Wino_M_", {"1000_cTau_20/"}}},
   }},
   { kTaggerSignalNoPU, {
     { 2017, {"taggerStudy/", {"signal/noPU/"}}},
@@ -526,27 +531,27 @@ const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
   }},
   { kChargino300_1, {
 //    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/" : "SIG-SR/", {"Wino_300GeV1cm/"}}},
-    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/", {"Wino_300GeV1cm_2017_GTv11_METcut/"}}},
+    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/2017/", {lxplus ? "Wino_300GeV1cm_2017_GTv11_METcut/" : "Chargino_300_1/"}}},
     { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/" : "SIG-SR/", {"Wino_300GeV1cm/"}}},
   }},
   { kChargino300_10, {
-    { 2017, {"6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/", {"Wino_300GeV10cm/"}}},
-    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_300GeV10cm/"}}},
+    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/"  : "SIG-SR/", {"Wino_300GeV10cm/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"       : "SIG-SR/", {"Wino_300GeV10cm/"}}},
   }},
   { kChargino300_30, {
-    { 2017, {"6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/", {"Wino_300GeV30cm_2017_GTv11_METcut/"}}},
+    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/2017/", {lxplus ? "Wino_300GeV30cm_2017_GTv11_METcut/" : "Chargino_300_30/"}}},
 //    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_300GeV10cm/"}}},
   }},
   { kChargino400_1, {
-    { 2017, {"6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/", {"Wino_400GeV1cm/"}}},
-    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_400GeV1cm/"}}},
+    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/"  : "SIG-SR/", {"Wino_400GeV1cm/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"       : "SIG-SR/", {"Wino_400GeV1cm/"}}},
   }},
   { kChargino500_1, {
-    { 2017, {"6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/", {"Wino_500GeV1cm_2017_GTv11_METcut/"}}},
+    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/2017/", {lxplus ? "Wino_500GeV1cm_2017_GTv11_METcut/" : "Chargino_500_1/"}}},
     { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_500GeV1cm/"}}},
   }},
   { kChargino500_10, {
-    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/", {"Wino_500GeV10cm_GTv11_METcut/"}}},
+    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/2017", {lxplus ? "Wino_500GeV10cm_GTv11_METcut/" : "Chargino_500_10/"}}},
     { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"             : "SIG-SR/", {"Wino_500GeV10cm/"}}},
   }},
   { kChargino500_10_noMETfilter, {
@@ -559,33 +564,32 @@ const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
     { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-newGT-2017-Hadded/" : "SIG-SR/", {"Wino_500GeV10cm_GTv11/"}}},
     { 2018, {lxplus ? "6Mar2019/Calibrated-SIG-SR-newGT-2017-Hadded/" : "SIG-SR/", {"Wino_500GeV10cm_GTv11/"}}},
   }},
-
   { kChargino600_10, {
-    { 2017, {"6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/", {"Wino_600GeV10cm/"}}},
-    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_600GeV10cm/"}}},
+    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/"  : "SIG-SR/", {"Wino_600GeV10cm/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"       : "SIG-SR/", {"Wino_600GeV10cm/"}}},
   }},
   { kChargino700_10, {
-    { 2017, {"6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/", {"Wino_700GeV10cm/"}}},
-    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_700GeV10cm/"}}},
+    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/"  : "SIG-SR/", {"Wino_700GeV10cm/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"       : "SIG-SR/", {"Wino_700GeV10cm/"}}},
   }},
   { kChargino700_30, {
-    { 2017, {"6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/", {"Wino_700GeV30cm/"}}},
-    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_700GeV30cm/"}}},
+    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/"  : "SIG-SR/", {"Wino_700GeV30cm/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"       : "SIG-SR/", {"Wino_700GeV30cm/"}}},
   }},
   { kChargino800_10, {
-    { 2017, {"6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/", {"Wino_800GeV10cm/"}}},
-    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_800GeV10cm/"}}},
+    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/"  : "SIG-SR/", {"Wino_800GeV10cm/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"       : "SIG-SR/", {"Wino_800GeV10cm/"}}},
   }},
   { kChargino800_30, {
-    { 2017, {"6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/", {"Wino_800GeV30cm/"}}},
-    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_800GeV30cm/"}}},
+    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/"  : "SIG-SR/", {"Wino_800GeV30cm/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"       : "SIG-SR/", {"Wino_800GeV30cm/"}}},
   }},
   { kChargino900_1, {
-    { 2017, {"6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/", {"Wino_900GeV1cm_2017_GTv11_METcut/"}}},
+    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/2017/", {lxplus ? "Wino_900GeV1cm_2017_GTv11_METcut/" : "Chargino_900_1/"}}},
     { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_900GeV30cm/"}}},
   }},
   { kChargino900_30, {
-    { 2017, {"6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/", {"Wino_900GeV30cm_2017_GTv11_METcut/"}}},
+    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/2017/", {lxplus ? "Wino_900GeV30cm_2017_GTv11_METcut/" : "Chargino_900_30/"}}},
     { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_900GeV30cm/"}}},
   }},
 };

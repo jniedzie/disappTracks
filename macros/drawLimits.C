@@ -1,20 +1,20 @@
 const double yAxisMin = 8E-2;
-const double yAxisMax = 0.66;
+const double yAxisMax = 3.3;
 const double xAxisMin = 300;
-const double xAxisMax = 900;
+const double xAxisMax = 1000;
 
 double logLabelSize = 0.10;
 double labelSize = 0.045;
 double titleSizeY = 0.12;
 double titleSizeX = 0.050;
 
-bool drawBySample      = true;
+bool drawBySample      = false;
 const string binning   = "2x2";
 const string category  = "4-layers";
 const string sampleTag = "__Chargino_";
 
 bool drawByBinning = false;
-bool drawByCategory = false;
+bool drawByCategory = true;
 
 bool sortbysec(const tuple<double, double>& a, const tuple<double, double>& b){ return (get<1>(a) < get<1>(b)); }
 
@@ -69,20 +69,37 @@ vector<tuple<string, int, int, int, string>> graphParamsByCategory = { // best i
 //  {"allcategories_notag"          , kCyan+1    , 2, 1, "all categories, no tagger"  },
 //  {"allcategories_notag_run2" , kBlue     , 3, 2, "3x3, 3+4 layers, no tagger, Run 2" },
   
-  {"3x3_3-layers_noTag_1000_20_ext"   , kGreen     , 2, 1, "3x3, 3 layers, no tagger" },
-  {"3x3_4-layers_noTag_800_20_ext"    , kMagenta+2 , 2, 1, "3x3, 4 layers, no tagger"   },
-  {"3x3_5-6-layers_noTag_800_10_ext"  , kOrange+2  , 2, 1, "3x3, 5-6 layers, no tagger" },
-  {"3x3_noTag_ext"                    , kCyan+1    , 2, 1, "all categories, no tagger"  },
+  
+  
+  
+//  {"2x2_4-layers_300_3"             , kGreen   , 2, 2, "2x2, 4 layers, new limits, 300, 3" },
+//  {"2x2_4-layers_300_10"            , kBlue    , 2, 2, "2x2, 4 layers, new limits, 300, 10" },
+//  {"2x2_4-layers_300_30"            , kRed     , 2, 2, "2x2, 4 layers, new limits, 300, 30" },
+//  {"2x2_4-layers_800_20"            , kMagenta , 2, 2, "2x2, 4 layers, new limits, 800, 20" },
+//  {"2x2_4-layers_1000_10"           , kCyan    , 2, 2, "2x2, 4 layers, new limits, 1000, 10" },
+//  {"2x2_4-layers_1000_20"           , kOrange  , 2, 2, "2x2, 4 layers, new limits, 1000, 20" },
+  {"2x2_4-layers_Chargino_300_1"    , kGreen   , 2, 1, "2x2, 4 layers, new limits, 300, 1" },
+  {"2x2_4-layers_Chargino_400_1"    , kBlue    , 2, 1, "2x2, 4 layers, new limits, 400, 1" },
+  {"2x2_4-layers_Chargino_500_10"   , kRed     , 2, 1, "2x2, 4 layers, new limits, 500, 10" },
+  {"2x2_4-layers_Chargino_700_10"   , kMagenta , 2, 1, "2x2, 4 layers, new limits, 700, 10" },
+  {"2x2_4-layers_Chargino_700_30"   , kCyan    , 2, 1, "2x2, 4 layers, new limits, 700, 30" },
+  {"2x2_4-layers_Chargino_800_10"   , kOrange  , 2, 1, "2x2, 4 layers, new limits, 800, 10" },
+  
+  
+//  {"3x3_3-layers_noTag_1000_20_ext"   , kGreen     , 2, 1, "3x3, 3 layers, no tagger" },
+//  {"3x3_4-layers_noTag_800_20_ext"    , kMagenta+2 , 2, 1, "3x3, 4 layers, no tagger"   },
+//  {"3x3_5-6-layers_noTag_800_10_ext"  , kOrange+2  , 2, 1, "3x3, 5-6 layers, no tagger" },
+//  {"3x3_noTag_ext"                    , kCyan+1    , 2, 1, "all categories, no tagger"  },
   
 //  {"3x3_3-layers_noTag_1000_20"   , kGreen     , 2, 2, "3x3, 3 layers, no tagger" },
 //  {"3x3_4-layers_noTag_800_20"    , kMagenta+2 , 2, 2, "3x3, 4 layers, no tagger"   },
 //  {"3x3_5-6-layers_noTag_800_10"  , kOrange+2  , 2, 2, "3x3, 5-6 layers, no tagger" },
 //  {"3x3_noTag"                    , kCyan+1    , 2, 2, "all categories, no tagger"  },
   
-  {"3x3_3-layers_tagSim_1000_20"   , kGreen     , 2, 2, "3x3, 3 layers, tagSim" },
-  {"3x3_4-layers_tagSim_800_20"    , kMagenta+2 , 2, 2, "3x3, 4 layers, tagSim"   },
-  {"3x3_5-6-layers_tagSim_800_10"  , kOrange+2  , 2, 2, "3x3, 5-6 layers, tagSim" },
-  {"3x3_tagSim"                    , kCyan+1    , 2, 2, "all categories, tagSim"  },
+//  {"3x3_3-layers_tagSim_1000_20"   , kGreen     , 2, 2, "3x3, 3 layers, tagSim" },
+//  {"3x3_4-layers_tagSim_800_20"    , kMagenta+2 , 2, 2, "3x3, 4 layers, tagSim"   },
+//  {"3x3_5-6-layers_tagSim_800_10"  , kOrange+2  , 2, 2, "3x3, 5-6 layers, tagSim" },
+//  {"3x3_tagSim"                    , kCyan+1    , 2, 2, "all categories, tagSim"  },
   
   
 //  {"3x3_4-layers_LH_noTag_fix_800_20", kMagenta+2 , 2, 2, "3x3, 4 layers, no tagger, LH, fixed"},

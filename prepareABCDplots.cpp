@@ -68,25 +68,25 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //------------------------------------------------
 
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
-//  { kWino_M_300_cTau_3    ,  {{400}, {3.8}}},
-//  { kWino_M_300_cTau_10   ,  {{320}, {2.1}}},
-//  { kWino_M_300_cTau_30   ,  {{320}, {2.1}}},
+  { kWino_M_300_cTau_3    ,  {{400}, {3.8}}},
+  { kWino_M_300_cTau_10   ,  {{320}, {2.1}}},
+  { kWino_M_300_cTau_30   ,  {{320}, {2.1}}},
 //  { kWino_M_500_cTau_10   ,  {{410}, {2.6}}},
 //  { kWino_M_500_cTau_20   ,  {{400}, {2.8}}},
 //  { kWino_M_650_cTau_10   ,  {{490}, {2.4}}},
 //  { kWino_M_650_cTau_20   ,  {{400}, {2.6}}},
 //  { kWino_M_800_cTau_10   ,  {{490}, {2.4}}},
-//  { kWino_M_800_cTau_20   ,  {{440}, {2.5}}},
-//  { kWino_M_1000_cTau_10  ,  {{490}, {2.4}}},
-//  { kWino_M_1000_cTau_20  ,  {{490}, {2.4}}},
+  { kWino_M_800_cTau_20   ,  {{440}, {2.5}}},
+  { kWino_M_1000_cTau_10  ,  {{490}, {2.4}}},
+  { kWino_M_1000_cTau_20  ,  {{490}, {2.4}}},
   
-//  { kChargino300_1  ,  {{450}, {3.6}}},
-//  { kChargino400_1   ,  {{340}, {3.0}}},
-//  { kChargino500_1   ,  {{230}, {8.1}}},
-//  { kChargino500_10  ,  {{440}, {4.0}}},
-//  { kChargino700_10  ,  {{470}, {6.7}}},
+  { kChargino300_1  ,  {{450}, {3.6}}},
+  { kChargino400_1   ,  {{340}, {3.0}}},
+  { kChargino500_1   ,  {{230}, {8.1}}},
+  { kChargino500_10  ,  {{440}, {4.0}}},
+  { kChargino700_10  ,  {{470}, {6.7}}},
   { kChargino800_10  ,  {{440}, {3.6}}},
-//  { kChargino700_30  ,  {{460}, {6.7}}},
+  { kChargino700_30  ,  {{460}, {6.7}}},
 };
 
 //------------------------------------------------
@@ -603,18 +603,28 @@ void drawAndSaveABCDplots(const TH2D *metVsDedxHistBackground,
     abcdPlot->SetMarkerSize(3.0);
     abcdPlot->Draw("colzText");
     outFile->cd();
-    abcdPlot->SetName(signalName.at(iSig).c_str());
-    abcdPlot->SetTitle(signalName.at(iSig).c_str());
+    
+    string histName = signalName.at(iSig);
+    
+    if(histName == "Wino_m300_ct3")   histName = "Chargino_300_3";
+    if(histName == "Wino_m300_ct10")  histName = "Chargino_300_10";
+    if(histName == "Wino_m300_ct30")  histName = "Chargino_300_30";
+    if(histName == "Wino_m800_ct20")  histName = "Chargino_800_20";
+    if(histName == "Wino_m1000_ct10") histName = "Chargino_1000_10";
+    if(histName == "Wino_m1000_ct20") histName = "Chargino_1000_20";
+    
+    abcdPlot->SetName(histName.c_str());
+    abcdPlot->SetTitle(histName.c_str());
     abcdPlot->Write();
     
     outFileJecUp->cd();
-    abcdPlotJecUp->SetName(signalName.at(iSig).c_str());
-    abcdPlotJecUp->SetTitle(signalName.at(iSig).c_str());
+    abcdPlotJecUp->SetName(histName.c_str());
+    abcdPlotJecUp->SetTitle(histName.c_str());
     abcdPlotJecUp->Write();
     
     outFileJecDown->cd();
-    abcdPlotJecDown->SetName(signalName.at(iSig).c_str());
-    abcdPlotJecDown->SetTitle(signalName.at(iSig).c_str());
+    abcdPlotJecDown->SetName(histName.c_str());
+    abcdPlotJecDown->SetTitle(histName.c_str());
     abcdPlotJecDown->Write();
   }
   
