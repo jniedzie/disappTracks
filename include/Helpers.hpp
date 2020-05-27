@@ -85,11 +85,11 @@ using namespace std;
 
 namespace xtracks {
 
-const bool lxplus = true;
+const bool lxplus = false;
 
 //const string metWeightsPath = "/eos/cms/store/group/phys_exotica/xtracks/metWeights/hratio.root";
-const string metWeightsPath = "/eos/cms/store/group/phys_exotica/xtracks/metWeights/hratio_cmg.root";
-//const string metWeightsPath = "../data/metWeights.root";
+//const string metWeightsPath = "/eos/cms/store/group/phys_exotica/xtracks/metWeights/hratio_cmg.root";
+const string metWeightsPath = "../data/metWeights.root";
 
 const string metWeightsHistName = "h_1";
 
@@ -545,12 +545,12 @@ const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
     { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"             : "SIG-SR/2017/", {lxplus ? "Wino_300GeV1cm_2017_GTv11_METcut/" : "Chargino_300_1/"}}},
   }},
   { kChargino300_10, {
-    { 2017, {"6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/", {"Wino_300GeV10cm_2017_GTv11_METcut/"}}},
-    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_300GeV10cm/"}}},
+    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/2017/", {lxplus ? "Wino_300GeV10cm_2017_GTv11_METcut/": "Chargino_300_10/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"             : "SIG-SR/2017/", {lxplus ? "Wino_300GeV10cm/"                  : "Chargino_300_10/"}}},
   }},
   { kChargino300_30, {
-    { 2017, {"6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/", {"Wino_300GeV30cm_2017_GTv11_METcut_150GeVgenmet/"}}},
-//    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_300GeV10cm/"}}},
+    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/2017/", {lxplus ? "Wino_300GeV30cm_2017_GTv11_METcut_150GeVgenmet/" : "Chargino_300_30/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"             : "SIG-SR/2017/", {lxplus ? "Wino_300GeV10cm/"                  : "Chargino_300_30/"}}},
   }},
   { kChargino400_1, {
     { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/"  : "SIG-SR/", {"Wino_400GeV1cm/"}}},
@@ -565,8 +565,8 @@ const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
     { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"             : "SIG-SR/2017/", {lxplus ? "Wino_500GeV10cm_GTv11_METcut/" : "Chargino_500_10/"}}},
   }},
   { kChargino500_30, {
-    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/", {"Wino_500GeV30cm_2017_GTv11_METcut/"}}},
-    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"             : "SIG-SR/", {"Wino_500GeV10cm/"}}},
+    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/2017/", {lxplus ? "Wino_500GeV30cm_2017_GTv11_METcut/" : "Chargino_500_30/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"             : "SIG-SR/2017/", {lxplus ? "Wino_500GeV10cm/"                   : "Chargino_500_30/"}}},
   }},
   { kChargino500_10_noMETfilter, {
     { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-supernew-nometfilter-2017-Hadded/" : "SIG-SR/", {"Wino_500GeV10cm_noFilter/"}}},
@@ -603,8 +603,8 @@ const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
     { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"             : "SIG-SR/2017/", {lxplus ? "Wino_900GeV1cm_2017_GTv11_METcut/" : "Chargino_900_1/"}}},
   }},
   { kChargino900_10, {
-    { 2017, {"6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/", {"Wino_900GeV10cm_2017_GTv11_METcut/"}}},
-    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_900GeV30cm/"}}},
+    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/2017/", {lxplus ? "Wino_900GeV10cm_2017_GTv11_METcut/": "Chargino_900_10/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"             : "SIG-SR/2017/", {lxplus ? "Wino_900GeV30cm/"                  : "Chargino_900_10/"}}},
   }},
   { kChargino900_30, {
     { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/2017/", {lxplus ? "Wino_900GeV30cm_2017_GTv11_METcut/" : "Chargino_900_30/"}}},

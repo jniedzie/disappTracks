@@ -4,7 +4,7 @@
 cuts_level: 1
 
 ### Analysis category ( 2-tracks | 3-layers | 4-layers | 5-6-layers | all ):
-analysis_category: 5-6-layers
+analysis_category: 4-layers
 
 ### Secondary category ( Zmumu | Wmunu | LowMET | none ):
 secondary_category:  none
@@ -19,12 +19,12 @@ load_hits:             0
 verbosity_level: 1
 
 ### turn on/off different backgrounds, signals and data samples
-do_QCD:         0
-do_Zmm:         0
-do_tops:          0
-do_dibosons:   0
-do_Wmv:         0
-do_Zvv:           0
+do_QCD:         1
+do_Zmm:         1
+do_tops:          1
+do_dibosons:   1
+do_Wmv:         1
+do_Zvv:           1
 
 do_300_3:       0
 do_300_10:     0
@@ -76,7 +76,7 @@ subpath_index: 0
 
 ### Select for which years to run:
 load_2017: 1
-load_2018: 0
+load_2018: 1
 
 **Printing & plotting options**
 

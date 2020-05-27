@@ -42,7 +42,7 @@ void getLimitsFromR(string inputPath, string outPath)
   auto rValues3x3 = getTupleFromFile(inputPath);
   ofstream outFile(outPath);
   
-  
+  /*
   TCanvas *canvas = new TCanvas("canvas", "canvas", 2000, 1000);
   canvas->Divide(2, 2);
   
@@ -221,7 +221,7 @@ void getLimitsFromR(string inputPath, string outPath)
   limits->Draw("psame");
   
   return;
-  
+  */
   if(doExtrapolation){
     for(int ct : {3, 30}){
       for(int mass : {500, 650, 800, 1000}){
@@ -263,7 +263,7 @@ void getLimitsFromR(string inputPath, string outPath)
     }
   }
   else{
-    /*
+    
     TGraph2D *rGraph = new TGraph2D();
     
     int iPoint=0;
@@ -273,10 +273,10 @@ void getLimitsFromR(string inputPath, string outPath)
         rGraph->SetPoint(iPoint++, mass, ct, r);
       }
     }
-      */
+    
     TGraph *limitGraph    = new TGraph();
     TGraph *badLimitGraph = new TGraph();
-    int iPoint=0;
+    iPoint=0;
     int iPointBad=0;
     
     for(double ct=ctMin; ct<=ctMax; ct+=ctStep){
@@ -305,7 +305,7 @@ void getLimitsFromR(string inputPath, string outPath)
       outFile<<bestMassForCt<<"\t"<<tau<<endl;
     }
 
-    rGraph->Draw("colz");
+    rGraph->Draw("surf1");
     rGraph->GetXaxis()->SetRangeUser(massMin, massMax);
     rGraph->GetYaxis()->SetRangeUser(ctMin, ctMax);
 

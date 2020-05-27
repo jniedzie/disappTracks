@@ -20,7 +20,7 @@
 typedef tuple<vector<double>, vector<double>> binning;
 
 // Desired number of MET and dE/dx bins and limits of those
-int nDedxBins = 2, nMetBins  = 2;
+int nDedxBins = 3, nMetBins  = 3;
 const double minMet  = 200 , maxMet  = 500 , stepMet  = 10;
 //const double minDedx = 2.0 , maxDedx = 5.1 , stepDedx = 0.1; // for min dE/dx
 const double minDedx = 2.5 , maxDedx = 11.0 , stepDedx = 0.1; // for dE/dx likelihood
@@ -53,12 +53,14 @@ string signalHistNames = "Chargino";
 
 map<ESignal, double> signalScales = {
   { kChargino300_1  , 1000  },
+  { kChargino300_10 , 1     },
   { kChargino300_30 , 1     },
   { kChargino500_1  , 1000  },
   { kChargino500_10 , 1     },
+  { kChargino500_30 , 1     },
   { kChargino900_1  , 1000  },
+  { kChargino900_10 , 1     },
   { kChargino900_30 , 1     },
-  
 };
 
 //------------------------------------------------
@@ -83,6 +85,7 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 // 2x2, 4 layers
 //------------------------------------------------
 
+/*
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //  { kWino_M_300_cTau_3    ,  {{400}, {3.8}}},
 //  { kWino_M_300_cTau_10   ,  {{320}, {2.1}}},
@@ -96,8 +99,8 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //  { kWino_M_1000_cTau_10  ,  {{490}, {2.4}}},
 //  { kWino_M_1000_cTau_20  ,  {{490}, {2.4}}},
   
-  { kChargino300_1   ,  {{470}, {4.1}}},
-  { kChargino300_30  ,  {{350}, {4.0}}},
+//  { kChargino300_1   ,  {{470}, {4.1}}},
+//  { kChargino300_30  ,  {{350}, {4.0}}},
 //  { kChargino400_1   ,  {{340}, {3.0}}},
   { kChargino500_1   ,  {{490}, {9.8}}},
   { kChargino500_10  ,  {{440}, {4.1}}},
@@ -107,6 +110,7 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //  { kChargino900_1   ,  {{410}, {9.6}}},
 //  { kChargino900_30  ,  {{440}, {4.1}}},
 };
+ */
 
 //------------------------------------------------
 // 2x3, 3 layers
@@ -207,7 +211,7 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //------------------------------------------------
 // 3x3, 4 layers, likelihood
 //------------------------------------------------
-/*
+
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //  { kWino_M_300_cTau_3    , {{300, 470}, {3.9, 5.3}}},
 //  { kWino_M_300_cTau_10   , {{320, 400}, {4.0}}},
@@ -217,11 +221,11 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //  { kWino_M_650_cTau_10   , {{310, 490}, {4.0}}},
 //  { kWino_M_650_cTau_20   , {{320, 490}, {4.0}}},
 //  { kWino_M_800_cTau_10   , {{320, 410}, {3.7, 6.3}}},
-  { kWino_M_800_cTau_20   , {{320, 470}, {4.1, 7.1}}},  // BEST
+  { kChargino500_10   , {{320, 470}, {4.1, 7.1}}},
 //  { kWino_M_1000_cTau_10  , {{310, 350}, {4.1, 6.9}}},
 //  { kWino_M_1000_cTau_20  , {{320, 490}, {5.0}}},
 };
-*/
+
 //------------------------------------------------
 // 3x3, 5-6 layers, likelihood
 //------------------------------------------------
