@@ -11,6 +11,12 @@
 #include "CutsManager.hpp"
 #include "Logger.hpp"
 
+// IMPORTANT!!
+//
+// Remember to set correct samples in /afs/cern.ch/work/j/jniedzie/private/disapp_tracks/combine/CMSSW_10_2_13/src/getLimits.C
+// then cmvenv and recompile with: g++ getLimits.C -o getLimits `root-config --libs` `root-config --cflags`
+
+
 typedef tuple<vector<double>, vector<double>> binning;
 
 // Desired number of MET and dE/dx bins and limits of those
@@ -45,6 +51,16 @@ string backgroundHistNames = "background";
 string dataHistNames = "data";
 string signalHistNames = "Chargino";
 
+map<ESignal, double> signalScales = {
+  { kChargino300_1  , 1000  },
+  { kChargino300_30 , 1     },
+  { kChargino500_1  , 1000  },
+  { kChargino500_10 , 1     },
+  { kChargino900_1  , 1000  },
+  { kChargino900_30 , 1     },
+  
+};
+
 //------------------------------------------------
 // 2x2, 3 layers
 //------------------------------------------------
@@ -68,25 +84,28 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //------------------------------------------------
 
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
-  { kWino_M_300_cTau_3    ,  {{400}, {3.8}}},
-  { kWino_M_300_cTau_10   ,  {{320}, {2.1}}},
-  { kWino_M_300_cTau_30   ,  {{320}, {2.1}}},
+//  { kWino_M_300_cTau_3    ,  {{400}, {3.8}}},
+//  { kWino_M_300_cTau_10   ,  {{320}, {2.1}}},
+//  { kWino_M_300_cTau_30   ,  {{320}, {2.1}}},
 //  { kWino_M_500_cTau_10   ,  {{410}, {2.6}}},
 //  { kWino_M_500_cTau_20   ,  {{400}, {2.8}}},
 //  { kWino_M_650_cTau_10   ,  {{490}, {2.4}}},
 //  { kWino_M_650_cTau_20   ,  {{400}, {2.6}}},
 //  { kWino_M_800_cTau_10   ,  {{490}, {2.4}}},
-  { kWino_M_800_cTau_20   ,  {{440}, {2.5}}},
-  { kWino_M_1000_cTau_10  ,  {{490}, {2.4}}},
-  { kWino_M_1000_cTau_20  ,  {{490}, {2.4}}},
+//  { kWino_M_800_cTau_20   ,  {{440}, {2.5}}},
+//  { kWino_M_1000_cTau_10  ,  {{490}, {2.4}}},
+//  { kWino_M_1000_cTau_20  ,  {{490}, {2.4}}},
   
-  { kChargino300_1  ,  {{450}, {3.6}}},
-  { kChargino400_1   ,  {{340}, {3.0}}},
-  { kChargino500_1   ,  {{230}, {8.1}}},
-  { kChargino500_10  ,  {{440}, {4.0}}},
-  { kChargino700_10  ,  {{470}, {6.7}}},
-  { kChargino800_10  ,  {{440}, {3.6}}},
-  { kChargino700_30  ,  {{460}, {6.7}}},
+  { kChargino300_1   ,  {{470}, {4.1}}},
+  { kChargino300_30  ,  {{350}, {4.0}}},
+//  { kChargino400_1   ,  {{340}, {3.0}}},
+  { kChargino500_1   ,  {{490}, {9.8}}},
+  { kChargino500_10  ,  {{440}, {4.1}}},
+//  { kChargino700_10  ,  {{470}, {6.7}}},
+//  { kChargino800_10  ,  {{440}, {3.6}}},
+//  { kChargino700_30  ,  {{460}, {6.7}}},
+//  { kChargino900_1   ,  {{410}, {9.6}}},
+//  { kChargino900_30  ,  {{440}, {4.1}}},
 };
 
 //------------------------------------------------
@@ -269,7 +288,7 @@ TH2D* GetABCDplot(const TH2D* metVsDedxHist, const binning bestValues,
 {
   auto &[criticalMet, criticalDedx] = bestValues;
   if(criticalMet.size()==0 || criticalDedx.size()==0){
-    cout<<"No critical MET or dE/dx value were privided!"<<endl;
+    cout<<"\nERROR -- No critical MET or dE/dx value were privided!\n"<<endl;
     return nullptr;
   }
   
@@ -615,16 +634,25 @@ void drawAndSaveABCDplots(const TH2D *metVsDedxHistBackground,
     
     abcdPlot->SetName(histName.c_str());
     abcdPlot->SetTitle(histName.c_str());
+    //
+    abcdPlot->Scale(signalScales.at(iSig));
+    //
     abcdPlot->Write();
     
     outFileJecUp->cd();
     abcdPlotJecUp->SetName(histName.c_str());
     abcdPlotJecUp->SetTitle(histName.c_str());
+    //
+    abcdPlotJecUp->Scale(signalScales.at(iSig));
+    //
     abcdPlotJecUp->Write();
     
     outFileJecDown->cd();
     abcdPlotJecDown->SetName(histName.c_str());
     abcdPlotJecDown->SetTitle(histName.c_str());
+    //
+    abcdPlotJecDown->Scale(signalScales.at(iSig));
+    //
     abcdPlotJecDown->Write();
   }
   
@@ -634,6 +662,9 @@ void drawAndSaveABCDplots(const TH2D *metVsDedxHistBackground,
   outFile->Close();
   outFileJecUp->Close();
   outFileJecDown->Close();
+  
+  
+  Log(0)<<"INFO -- storing histograms in file: "<<outputPath<<"\n";
 }
 
 /**
@@ -836,10 +867,10 @@ void produceLimits(const TH2D *metVsDedxHistBackground,
   vector<string> producedLimits;
   
   for(ESignal iSig : signals){
-    if(!config.runSignal[iSig]) continue;
     if(bestValues.find((ESignal)iSig) == bestValues.end()) continue;
     
     string outFileName = to_string_with_precision(nDedxBins, 0)+"x"+to_string_with_precision(nMetBins, 0)+"_"+config.category+sampleTag+"_"+signalShortName.at(iSig);
+    
     string outputPath         = "results/abcd_plots_"+outFileName+".root";
     string outputPathJecUp    = "results/abcd_plots_"+outFileName+"_jec_up.root";
     string outputPathJecDown  = "results/abcd_plots_"+outFileName+"_jec_down.root";
@@ -883,7 +914,7 @@ int main(int argc, char* argv[])
   
   TApplication *theApp = new TApplication("App", &argc, argv);
   
-  // Load sll events with initial cuts only
+  // Load all events with initial cuts only
   EventSet events;
   string prefix = "";
   if(config.secondaryCategory == "Wmunu") prefix += "Wmunu/";

@@ -78,13 +78,13 @@ vector<tuple<string, int, int, int, string>> graphParamsByCategory = { // best i
 //  {"2x2_4-layers_800_20"            , kMagenta , 2, 2, "2x2, 4 layers, new limits, 800, 20" },
 //  {"2x2_4-layers_1000_10"           , kCyan    , 2, 2, "2x2, 4 layers, new limits, 1000, 10" },
 //  {"2x2_4-layers_1000_20"           , kOrange  , 2, 2, "2x2, 4 layers, new limits, 1000, 20" },
-  {"2x2_4-layers_Chargino_300_1"    , kGreen   , 2, 1, "2x2, 4 layers, new limits, 300, 1" },
-  {"2x2_4-layers_Chargino_400_1"    , kBlue    , 2, 1, "2x2, 4 layers, new limits, 400, 1" },
-  {"2x2_4-layers_Chargino_500_10"   , kRed     , 2, 1, "2x2, 4 layers, new limits, 500, 10" },
-  {"2x2_4-layers_Chargino_700_10"   , kMagenta , 2, 1, "2x2, 4 layers, new limits, 700, 10" },
-  {"2x2_4-layers_Chargino_700_30"   , kCyan    , 2, 1, "2x2, 4 layers, new limits, 700, 30" },
-  {"2x2_4-layers_Chargino_800_10"   , kOrange  , 2, 1, "2x2, 4 layers, new limits, 800, 10" },
-  
+  {"2x2_4-layers_Chargino_300_1"    , kGreen   , 2, 1, "2x2, 4 layers, new limits, 300, 1"  },
+  {"2x2_4-layers_Chargino_300_30"   , kBlue    , 2, 1, "2x2, 4 layers, new limits, 300, 30" },
+  {"2x2_4-layers_Chargino_500_1"    , kRed     , 2, 1, "2x2, 4 layers, new limits, 500, 1"  },
+  {"2x2_4-layers_Chargino_500_10"   , kMagenta , 2, 1, "2x2, 4 layers, new limits, 500, 10" },
+  {"2x2_4-layers_Chargino_900_1"    , kCyan    , 2, 1, "2x2, 4 layers, new limits, 900, 1"  },
+  {"2x2_4-layers_Chargino_900_30"   , kOrange  , 2, 1, "2x2, 4 layers, new limits, 900, 30" },
+
   
 //  {"3x3_3-layers_noTag_1000_20_ext"   , kGreen     , 2, 1, "3x3, 3 layers, no tagger" },
 //  {"3x3_4-layers_noTag_800_20_ext"    , kMagenta+2 , 2, 1, "3x3, 4 layers, no tagger"   },
