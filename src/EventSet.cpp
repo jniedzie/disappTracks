@@ -741,11 +741,11 @@ void EventSet::AddEventsFromFile(string fileName, xtracks::EDataType dataType, i
   TH1D *metWeights = nullptr;
   if(setIter == kChargino300_1  || setIter == kChargino300_10 || setIter == kChargino300_30 ||
      setIter == kChargino400_1  ||
-     setIter == kChargino500_1  || setIter == kChargino500_10 ||
+     setIter == kChargino500_1  || setIter == kChargino500_10 || setIter == kChargino500_30 ||
      setIter == kChargino600_10 ||
      setIter == kChargino700_10 || setIter == kChargino700_30 ||
      setIter == kChargino800_10 || setIter == kChargino800_30 ||
-     setIter == kChargino900_1  || setIter == kChargino900_30
+     setIter == kChargino900_1  || setIter == kChargino900_10 || setIter == kChargino900_30
      || setIter == kChargino500_10_noMETfilter
      || setIter == kChargino500_10_newGT){
   

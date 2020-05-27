@@ -85,12 +85,12 @@ using namespace std;
 
 namespace xtracks {
 
-const bool lxplus = false;
+const bool lxplus = true;
 
 //const string metWeightsPath = "/eos/cms/store/group/phys_exotica/xtracks/metWeights/hratio.root";
-//const string metWeightsPath = "/eos/cms/store/group/phys_exotica/xtracks/metWeights/hratio_cmg.root";
+const string metWeightsPath = "/eos/cms/store/group/phys_exotica/xtracks/metWeights/hratio_cmg.root";
+//const string metWeightsPath = "../data/metWeights.root";
 
-const string metWeightsPath = "../data/metWeights.root";
 const string metWeightsHistName = "h_1";
 
 
@@ -200,6 +200,7 @@ enum ESignal{
   kChargino400_1,
   kChargino500_1,
   kChargino500_10,
+  kChargino500_30,
   kChargino500_10_noMETfilter,
   kChargino500_10_newGT,
   kChargino600_10,
@@ -208,6 +209,7 @@ enum ESignal{
   kChargino800_10,
   kChargino800_30,
   kChargino900_1 ,
+  kChargino900_10,
   kChargino900_30,
 };
 
@@ -234,6 +236,7 @@ constexpr initializer_list<ESignal> signals = {
   kChargino400_1,
   kChargino500_1,
   kChargino500_10,
+  kChargino500_30,
   kChargino500_10_noMETfilter,
   kChargino500_10_newGT,
   kChargino600_10,
@@ -241,8 +244,9 @@ constexpr initializer_list<ESignal> signals = {
   kChargino700_30,
   kChargino800_10,
   kChargino800_30,
-  kChargino900_1  ,
-  kChargino900_30 ,
+  kChargino900_1 ,
+  kChargino900_10,
+  kChargino900_30,
 };
 
 // Names of background, signal and data samples
@@ -287,6 +291,7 @@ const map<ESignal, string> signalTitle = {
   {kChargino400_1,  "Chargino, 400 GeV, 1 cm"   },
   {kChargino500_1,  "Chargino, 500 GeV, 1 cm"   },
   {kChargino500_10, "Chargino, 500 GeV, 10 cm"  },
+  {kChargino500_30, "Chargino, 500 GeV, 30 cm"  },
   {kChargino500_10_noMETfilter, "Chargino, 500 GeV, 10 cm, no MET filter"  },
   {kChargino500_10_newGT      , "Chargino, 500 GeV, 10 cm, new GT"  },
   {kChargino600_10, "Chargino, 600 GeV, 10 cm"  },
@@ -295,6 +300,7 @@ const map<ESignal, string> signalTitle = {
   {kChargino800_10, "Chargino, 800 GeV, 10 cm"  },
   {kChargino800_30, "Chargino, 800 GeV, 30 cm"  },
   {kChargino900_1 , "Chargino, 900 GeV, 1  cm"  },
+  {kChargino900_10, "Chargino, 900 GeV, 10 cm"  },
   {kChargino900_30, "Chargino, 900 GeV, 30 cm"  },
   
 };
@@ -322,6 +328,7 @@ const map<ESignal, string> signalName = {
   {kChargino400_1,  "Chargino_400_1"   },
   {kChargino500_1,  "Chargino_500_1"   },
   {kChargino500_10, "Chargino_500_10"  },
+  {kChargino500_30, "Chargino_500_30"  },
   {kChargino500_10_noMETfilter, "Chargino_500_10, no MET filter"  },
   {kChargino500_10_newGT      , "Chargino_500_10, new GT"  },
   {kChargino600_10, "Chargino_600_10"  },
@@ -329,7 +336,8 @@ const map<ESignal, string> signalName = {
   {kChargino700_30, "Chargino_700_30"  },
   {kChargino800_10, "Chargino_800_10"  },
   {kChargino800_30, "Chargino_800_30"  },
-  {kChargino900_1 , "Chargino_900_1"  },
+  {kChargino900_1 , "Chargino_900_1 "  },
+  {kChargino900_10, "Chargino_900_10"  },
   {kChargino900_30, "Chargino_900_30"  },
 };
 
@@ -356,6 +364,7 @@ const map<ESignal, string> signalShortName = {
   {kChargino400_1,  "Chargino_400_1"   },
   {kChargino500_1,  "Chargino_500_1"   },
   {kChargino500_10, "Chargino_500_10"  },
+  {kChargino500_30, "Chargino_500_30"  },
   {kChargino500_10_noMETfilter, "Chargino_500_10_noMETfilter"  },
   {kChargino500_10_newGT, "Chargino_500_10_newGT"  },
   {kChargino600_10, "Chargino_600_10"  },
@@ -363,7 +372,8 @@ const map<ESignal, string> signalShortName = {
   {kChargino700_30, "Chargino_700_30"  },
   {kChargino800_10, "Chargino_800_10"  },
   {kChargino800_30, "Chargino_800_30"  },
-  {kChargino900_1 , "Chargino_900_1"  },
+  {kChargino900_1 , "Chargino_900_1 "  },
+  {kChargino900_10, "Chargino_900_10"  },
   {kChargino900_30, "Chargino_900_30"  },
 };
 
@@ -535,12 +545,12 @@ const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
     { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"             : "SIG-SR/2017/", {lxplus ? "Wino_300GeV1cm_2017_GTv11_METcut/" : "Chargino_300_1/"}}},
   }},
   { kChargino300_10, {
-    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/"  : "SIG-SR/", {"Wino_300GeV10cm/"}}},
-    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"       : "SIG-SR/", {"Wino_300GeV10cm/"}}},
+    { 2017, {"6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/", {"Wino_300GeV10cm_2017_GTv11_METcut/"}}},
+    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_300GeV10cm/"}}},
   }},
   { kChargino300_30, {
-    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/2017/", {lxplus ? "Wino_300GeV30cm_2017_GTv11_METcut/" : "Chargino_300_30/"}}},
-    { 2018, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/2017/", {lxplus ? "Wino_300GeV30cm_2017_GTv11_METcut/" : "Chargino_300_30/"}}},
+    { 2017, {"6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/", {"Wino_300GeV30cm_2017_GTv11_METcut_150GeVgenmet/"}}},
+//    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_300GeV10cm/"}}},
   }},
   { kChargino400_1, {
     { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-supernew-2017-Hadded/"  : "SIG-SR/", {"Wino_400GeV1cm/"}}},
@@ -553,6 +563,10 @@ const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
   { kChargino500_10, {
     { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/2017/", {lxplus ? "Wino_500GeV10cm_GTv11_METcut/" : "Chargino_500_10/"}}},
     { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"             : "SIG-SR/2017/", {lxplus ? "Wino_500GeV10cm_GTv11_METcut/" : "Chargino_500_10/"}}},
+  }},
+  { kChargino500_30, {
+    { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/", {"Wino_500GeV30cm_2017_GTv11_METcut/"}}},
+    { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"             : "SIG-SR/", {"Wino_500GeV10cm/"}}},
   }},
   { kChargino500_10_noMETfilter, {
     { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-supernew-nometfilter-2017-Hadded/" : "SIG-SR/", {"Wino_500GeV10cm_noFilter/"}}},
@@ -587,6 +601,10 @@ const map<ESignal, map<int, pair<string, vector<string>>>> inFileNameSignal = {
   { kChargino900_1, {
     { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/2017/", {lxplus ? "Wino_900GeV1cm_2017_GTv11_METcut/" : "Chargino_900_1/"}}},
     { 2018, {lxplus ? "7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/"             : "SIG-SR/2017/", {lxplus ? "Wino_900GeV1cm_2017_GTv11_METcut/" : "Chargino_900_1/"}}},
+  }},
+  { kChargino900_10, {
+    { 2017, {"6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/", {"Wino_900GeV10cm_2017_GTv11_METcut/"}}},
+    { 2018, {"7Sep2019/Calibrated-SIG-SR-new-2018-Hadded/", {"Wino_900GeV30cm/"}}},
   }},
   { kChargino900_30, {
     { 2017, {lxplus ? "6Mar2019/Calibrated-SIG-SR-metfilter-newGT-2017-Hadded/" : "SIG-SR/2017/", {lxplus ? "Wino_900GeV30cm_2017_GTv11_METcut/" : "Chargino_900_30/"}}},
@@ -637,12 +655,14 @@ const map<ESignal, double> signalCrossSectionTwoTracks = { // (fb)
   { kChargino400_1 , 59   * 0.124         }, // UPDATE!!
   { kChargino500_1 , 22   * 0.13114376    },
   { kChargino500_10, 22   * 0.13114376    },
+  { kChargino500_30, 22   * 0.13114376    },
   { kChargino600_10, 9.5  * 0.154         }, // UPDATE!!
   { kChargino700_10, 4.4  * 0.165         }, // UPDATE!!
   { kChargino700_30, 4.4  * 0.165         }, // UPDATE!!
   { kChargino800_10, 2.2  * 0.192         }, // UPDATE!!
   { kChargino800_30, 2.2  * 0.192         }, // UPDATE!!
   { kChargino900_1 , 1.15 * 0.204         }, // UPDATE!!
+  { kChargino900_10, 1.15 * 0.204         }, // UPDATE!!
   { kChargino900_30, 1.15 * 0.204         }, // UPDATE!!
 };
 
@@ -673,12 +693,14 @@ const map<ESignal, double> signalCrossSectionOneTrack = { // (fb)
   { kChargino400_1 , 121  * 0.124         }, // UPDATE!!
   { kChargino500_1 , 46   * 0.13114376    },
   { kChargino500_10, 46   * 0.13114376    },
+  { kChargino500_30, 46   * 0.13114376    },
   { kChargino600_10, 20   * 0.154         }, // UPDATE!!
   { kChargino700_10, 9.5  * 0.165         }, // UPDATE!!
   { kChargino700_30, 9.5  * 0.165         }, // UPDATE!!
   { kChargino800_10, 4.8  * 0.192         }, // UPDATE!!
   { kChargino800_30, 4.8  * 0.192         }, // UPDATE!!
   { kChargino900_1 , 2.5  * 0.204         }, // UPDATE!!
+  { kChargino900_10, 2.5  * 0.204         }, // UPDATE!!
   { kChargino900_30, 2.5  * 0.204         }, // UPDATE!!
 };
 
