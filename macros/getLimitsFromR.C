@@ -8,7 +8,7 @@ const double massMin = 300;
 const double massMax = 900;
 const double massStep = 1;
 
-bool doExtrapolation = false;
+bool doExtrapolation = true;
 
 map<int, map<int, double>> getTupleFromFile(string fileName){
   map<int, map<int, double>> rValues;
@@ -25,17 +25,25 @@ map<int, map<int, double>> getTupleFromFile(string fileName){
   return rValues;
 }
 
-// (fb), two track (for one track, multiply by 2)
+
 map<int, double> crossSection = {
-// mass x-sec
-  {300  , 190   },
-  {500  , 22    },
-  {650  , 6.4   },
-  {700  , 4.4   },
-  {800  , 2.2   },
-  {900  , 1.15  },
-  {1000 , 0.62  },
+// mass x-sec (fb)
+  {300  , 387  },
+  {400  , 121  },
+  {500  , 46   },
+  {600  , 20   },
+  {650  , 13   },
+  {700  , 9.5  },
+  {800  , 4.8  },
+  {900  , 2.5  },
+  {1000 , 1.3  },
 };
+
+map<int, int> colors = {
+   {1  , kRed    },
+   {10 , kGreen  },
+   {30 , kBlue   },
+ };
 
 void getLimitsFromR(string inputPath, string outPath)
 {
@@ -223,44 +231,79 @@ void getLimitsFromR(string inputPath, string outPath)
   return;
   */
   if(doExtrapolation){
-    for(int ct : {3, 30}){
-      for(int mass : {500, 650, 800, 1000}){
-        rValues3x3[mass][ct] = rValues3x3[300][ct] * crossSection[300]/crossSection[mass];
+  
+    TCanvas *canvas = new TCanvas("canvas", "canvas", 1000, 500);
+    canvas->Divide(2, 1);
+    
+    TLegend *legend = new TLegend(0.1, 0.7, 0.5, 0.9);
+    
+    map<int, TGraph*> graphs;
+    map<int, TGraph*> rPoints;
+    
+    canvas->cd(1);
+    
+    TGraph *xSecVsMass = new TGraph();
+    int iPoint=0;
+    for(auto &[mass, xsec] : crossSection) xSecVsMass->SetPoint(iPoint++, mass, xsec);
+    
+    xSecVsMass->SetMarkerSize(1.0);
+    xSecVsMass->SetMarkerStyle(20);
+    xSecVsMass->SetMarkerColor(kRed);
+    
+    TF1 *fun = new TF1("fun", "[0]*exp([1]*x)", 0, 1000);
+    fun->SetParameter(0, 14000);
+    fun->SetParameter(1, -0.012);
+    xSecVsMass->Fit(fun);
+    
+    xSecVsMass->Draw("AP");
+    
+    canvas->cd(2);
+    for(int ct : {1, 10, 30}){
+      graphs[ct] = new TGraph();
+      iPoint=0;
+      for(auto &[mass, xsec] : crossSection){
+        graphs[ct]->SetPoint(iPoint++, mass, rValues3x3[300][ct] * crossSection[300]/xsec);
       }
-    }
-    bool first = true;
-    for(int ct : {3, 10, 20, 30}){
-      cout<<"ct: "<<ct<<endl;
       
-      TGraph *rVsMassCt = new TGraph();
-      rVsMassCt->SetMarkerStyle(20);
-      rVsMassCt->Draw(first ? "AP" : "Psame");
-      first = false;
+      double xSecLimit = rValues3x3[300][ct] * crossSection[300];
+      double massLimit = fun->GetX(xSecLimit);
       
-      int iPoint=0;
-      for(int mass : {300, 500, 650, 800, 1000}){
-        rVsMassCt->SetPoint(iPoint++, mass, rValues3x3[mass][ct]);
-      }
+      if(!isnormal(massLimit)) massLimit = 0;
       
-      TF1 *fun3 = new TF1("fun3","[0]*exp([1]*x)",0, 1000);
-      fun3->SetParameter(0, 1);
-      fun3->SetParameter(1, -0.01);
-      rVsMassCt->Fit(fun3);
+      double tau = ct * 0.0333333;
       
-      double minDiff = 9999;
-      int bestMass = 0;
-      for(int mass = 300; mass < 1000; mass++){
-        double diff = fabs(1-fun3->Eval(mass));
-        if(diff < minDiff){
-          minDiff = diff;
-          bestMass = mass;
+      cout<<"ct: "<<ct<<"\tr=1 for x-sec: "<<xSecLimit<<endl;
+      cout<<"corresponding mass: "<<massLimit<<endl;
+      
+      outFile<<massLimit<<"\t"<<tau<<endl;
+      
+      rPoints[ct] = new TGraph();
+      iPoint=0;
+      
+      for(auto &[mass, ctAndR] : rValues3x3){
+        for(auto &[ctt, r] : ctAndR){
+          if(ctt != ct) continue;
+          rPoints[ct]->SetPoint(iPoint++, mass, r);
         }
       }
       
-      double tau = ct * 0.0333333;
-      outFile<<bestMass<<"\t"<<tau<<endl;
-      cout<<"Best mass: "<<bestMass<<endl;
+      graphs[ct]->SetLineColor(colors[ct]);
+      graphs[ct]->SetLineWidth(2);
+      graphs[ct]->Draw(ct==1 ? "AL" : "Lsame");
+      legend->AddEntry(graphs[ct], ("extrapolation c#tau="+to_string(ct)+" cm").c_str(), "L");
+      gPad->SetLogy();
+      
+      
+      rPoints[ct]->SetMarkerStyle(20);
+      rPoints[ct]->SetMarkerSize(0.5);
+      rPoints[ct]->SetMarkerColor(colors[ct]);
+      rPoints[ct]->Draw("Psame");
+      legend->AddEntry(rPoints[ct], ("r value c#tau="+to_string(ct)+" cm").c_str(), "P");
     }
+    graphs[1]->GetYaxis()->SetRangeUser(1e-2, 1e6);
+    graphs[1]->GetXaxis()->SetTitle("m (GeV)");
+    graphs[1]->GetYaxis()->SetTitle("r");
+    legend->Draw();
   }
   else{
     
@@ -283,7 +326,7 @@ void getLimitsFromR(string inputPath, string outPath)
 
       double bestMassForCt = 0;
       double closestValue = 999999;
-      double tau = ct * 0.0333333;
+      double tau = ct * =;
       
       for(double mass=massMin; mass<=massMax; mass+=massStep){
 
@@ -305,7 +348,7 @@ void getLimitsFromR(string inputPath, string outPath)
       outFile<<bestMassForCt<<"\t"<<tau<<endl;
     }
 
-    rGraph->Draw("surf1");
+    rGraph->Draw("colz");
     rGraph->GetXaxis()->SetRangeUser(massMin, massMax);
     rGraph->GetYaxis()->SetRangeUser(ctMin, ctMax);
 

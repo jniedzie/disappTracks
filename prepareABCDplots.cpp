@@ -14,6 +14,11 @@
 // IMPORTANT!!
 //
 // Remember to set correct samples in /afs/cern.ch/work/j/jniedzie/private/disapp_tracks/combine/CMSSW_10_2_13/src/getLimits.C
+//
+// also imporatant - if name of samples changes (e.g. Wino -> Chargino), this also has to be updated in this macro!
+//
+// another important thing - verify that combine command is setting correct parameters. Only those with 1.00 can be set.
+//
 // then cmvenv and recompile with: g++ getLimits.C -o getLimits `root-config --libs` `root-config --cflags`
 
 
@@ -52,7 +57,7 @@ string dataHistNames = "data";
 string signalHistNames = "Chargino";
 
 map<ESignal, double> signalScales = {
-  { kChargino300_1  , 1000  },
+  { kChargino300_1  , 100   },
   { kChargino300_10 , 1     },
   { kChargino300_30 , 1     },
   { kChargino500_1  , 1000  },
@@ -102,13 +107,28 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //  { kChargino300_1   ,  {{470}, {4.1}}},
 //  { kChargino300_30  ,  {{350}, {4.0}}},
 //  { kChargino400_1   ,  {{340}, {3.0}}},
-  { kChargino500_1   ,  {{490}, {9.8}}},
-  { kChargino500_10  ,  {{440}, {4.1}}},
+//  { kChargino500_1   ,  {{490}, {9.8}}},
+//  { kChargino500_10  ,  {{440}, {4.1}}},
 //  { kChargino700_10  ,  {{470}, {6.7}}},
 //  { kChargino800_10  ,  {{440}, {3.6}}},
 //  { kChargino700_30  ,  {{460}, {6.7}}},
 //  { kChargino900_1   ,  {{410}, {9.6}}},
-//  { kChargino900_30  ,  {{440}, {4.1}}},
+//  { kChargino900_30  ,  {{440}, {4.1}}},]
+ 
+  
+  // re-optimized with new samples
+  { kChargino300_1   ,  {{470}, {3.8}}},
+  { kChargino300_10  ,  {{390}, {4.9}}},
+  { kChargino300_30  ,  {{350}, {4.9}}},
+  
+  { kChargino500_1   ,  {{490}, {5.8}}},
+  { kChargino500_10  ,  {{390}, {4.7}}},
+  { kChargino500_30  ,  {{460}, {6.7}}},
+  
+  { kChargino900_1   ,  {{410}, {5.3}}},
+  { kChargino900_10  ,  {{470}, {6.7}}},
+  { kChargino900_30  ,  {{470}, {7.2}}},
+  
 };
  */
 
@@ -193,7 +213,7 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //------------------------------------------------
 // 3x3, 3 layers, likelihood
 //------------------------------------------------
-/*
+
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //  { kWino_M_300_cTau_3    , {{330, 440}, {4.6}}},
 //  { kWino_M_300_cTau_10   , {{300, 370}, {4.0}}},
@@ -207,11 +227,11 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //  { kWino_M_1000_cTau_10  , {{350, 450}, {4.0}}},
   { kWino_M_1000_cTau_20  , {{390, 490}, {4.6}}}, // BEST
 };
-*/
+
 //------------------------------------------------
 // 3x3, 4 layers, likelihood
 //------------------------------------------------
-
+/*
 map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //  { kWino_M_300_cTau_3    , {{300, 470}, {3.9, 5.3}}},
 //  { kWino_M_300_cTau_10   , {{320, 400}, {4.0}}},
@@ -221,10 +241,22 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //  { kWino_M_650_cTau_10   , {{310, 490}, {4.0}}},
 //  { kWino_M_650_cTau_20   , {{320, 490}, {4.0}}},
 //  { kWino_M_800_cTau_10   , {{320, 410}, {3.7, 6.3}}},
-  { kChargino500_10   , {{320, 470}, {4.1, 7.1}}},
+  { kWino_M_800_cTau_20   , {{320, 470}, {4.1, 7.1}}},  // BEST
 //  { kWino_M_1000_cTau_10  , {{310, 350}, {4.1, 6.9}}},
 //  { kWino_M_1000_cTau_20  , {{320, 490}, {5.0}}},
+
+// re-optimized for new samples
+//  { kChargino300_1    , {{340, 440}, {3.3, 4.1}}},
+//  { kChargino300_10   , {{340, 440}, {3.6, 4.7}}},
+//  { kChargino300_30   , {{300, 460}, {3.9, 4.1}}},
+//  { kChargino500_1    , {{360, 480}, {5.5, 6.1}}},
+//  { kChargino500_10   , {{340, 440}, {4.5, 4.7}}},
+//  { kChargino500_30   , {{300, 440}, {3.9, 4.1}}},
+//  { kChargino900_1    , {{400, 440}, {5.1, 5.5}}},
+//  { kChargino900_10   , {{300, 460}, {3.1, 3.7}}},
+//  { kChargino900_30   , {{300, 480}, {3.9, 4.1}}},
 };
+*/
 
 //------------------------------------------------
 // 3x3, 5-6 layers, likelihood
@@ -242,9 +274,20 @@ map<ESignal, binning> bestValues = { // best MET and dE/dx bins for each signal
 //  { kWino_M_800_cTau_20   , {{340, 470}, {4.0}}},
 //  { kWino_M_1000_cTau_10  , {{300, 360}, {4.3, 5.3}}},
 //  { kWino_M_1000_cTau_20  , {{300, 350}, {4.3, 5.3}}},
+  
+// re-optimized for new samples
+//  { kChargino300_1    , {{220, 340}, {3.5, 3.7}}},
+//  { kChargino300_10   , {{280, 480}, {3.9, 4.1}}},
+//  { kChargino300_30   , {{260, 440}, {3.9, 4.1}}},
+//  { kChargino500_1    , {{360, 400}, {8.5, 8.7}}},
+//  { kChargino500_10   , {{320, 480}, {3.9, 4.1}}},
+//  { kChargino500_30   , {{260, 440}, {3.9, 4.1}}},
+//  { kChargino900_1    , {{220, 480}, {9.3, 10.3}}},
+//  { kChargino900_10   , {{320, 480}, {3.9, 4.1}}},
+//  { kChargino900_30   , {{320, 440}, {3.9, 4.1}}},
 };
 */
-
+ 
 /**
  Returns number of counts in ABCD... regions determined by criticalMet and criticalDedx values.
  \param metVsDedxHist Histogram containing number of events for each MET-dE/dx bin
@@ -797,7 +840,8 @@ void runCombine(string outFileName)
 void convertRtoLimits(string outFileName)
 {
   string command = lxplus ? "root -q -b -l " : "/usr/local/Cellar/root/6.18.04/bin/root -q -b -l ";
-  command += "\"macros/getLimitsFromR.C(\\\"macros/limitsData/combineOutput/limits_datacard_"+outFileName+".txt\\\", ";
+//  command += "\"macros/getLimitsFromR.C(\\\"macros/limitsData/combineOutput/limits_datacard_"+outFileName+".txt\\\", ";
+  command += "\"macros/getLimitsExtrapolate.C(\\\"macros/limitsData/combineOutput/limits_datacard_"+outFileName+".txt\\\", ";
   command += "\\\"macros/limitsData/cms_short_disappearing_"+outFileName+".txt\\\")\"";
   exec(command.c_str());
 }

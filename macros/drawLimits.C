@@ -9,9 +9,9 @@ double titleSizeY = 0.12;
 double titleSizeX = 0.050;
 
 bool drawBySample      = false;
-const string binning   = "2x2";
+const string binning   = "3x3";
 const string category  = "4-layers";
-const string sampleTag = "__Chargino_";
+const string sampleTag = "_Chargino_";
 
 bool drawByBinning = false;
 bool drawByCategory = true;
@@ -63,34 +63,32 @@ vector<tuple<string, int, int, int, string>> graphParamsByCategory = { // best i
 //  {"2-tracks_extended", kBlue      , 2, 1, "2 tracks"  },
 //  {"2-tracks_with2016", kBlue      , 2, 2, "2 tracks, with 2016"  },
   
-//  {"3x3_3-layers_notag_500_10"    , kGreen     , 2, 1, "3x3, 3 layers, no tagger"   },
-//  {"3x3_4-layers_notag_1000_10"   , kMagenta+2 , 2, 1, "3x3, 4 layers, no tagger"   },
-//  {"3x3_5-6-layers_notag_650_10"  , kOrange+2  , 2, 1, "3x3, 5-6 layers, no tagger" },
+//  {"3x3_3-layers_notag_500_10"    , kGreen  , 2, 1, "3x3, 3 layers (old)"   },
+//  {"3x3_4-layers_notag_1000_10"   , kRed    , 2, 1, "3x3, 4 layers (old)"   },
+//  {"3x3_5-6-layers_notag_650_10"  , kBlue   , 2, 1, "3x3, 5-6 layers (old)" },
 //  {"allcategories_notag"          , kCyan+1    , 2, 1, "all categories, no tagger"  },
 //  {"allcategories_notag_run2" , kBlue     , 3, 2, "3x3, 3+4 layers, no tagger, Run 2" },
   
   
+  {"new_interpolated"    , kGreen     , 2, 1, "most recent (exponential fit)"   },
+  {"new_extrapolated"    , kGreen     , 2, 2, "most recent (x-sec extrrapolation)"   },
   
+//  {"3x3_3-layers_1000_20"    , kGreen     , 2, 1, "3x3, 3 layers, (new, int)"   },
+//  {"3x3_4-layers_Chargino_500_1"    , kMagenta+2 , 2, 1, "3x3, 4 layers (new)"   },
+//  {"3x3_4-layers_interpolated"      , kViolet+2  , 2, 1, "3x3, 4 layers (new, int)"   },
+//  {"3x3_4-layers_extrapolated"      , kViolet+2  , 2, 2, "3x3, 4 layers (new, ext)"   },
+//  {"3x3_5-6-layers_Chargino_900_10" , kOrange+2  , 2, 1, "3x3, 5-6 layers (new)" },
+//  {"3x3_5-6-layers_interpolated"    , kCyan+2    , 2, 1, "3x3, 5-6 layers (new, int)" },
+//  {"3x3_5-6-layers_extrapolated"    , kCyan+2    , 2, 2, "3x3, 5-6 layers (new, ext)" },
+  {"allcategories_notag"          , kCyan+1    , 2, 1, "old"  },
+//  {"allcategories_notag_run2" , kBlue     , 3, 2, "3x3, 3+4 layers, no tagger, Run 2" },
   
-//  {"2x2_4-layers_300_3"             , kGreen   , 2, 2, "2x2, 4 layers, new limits, 300, 3" },
-//  {"2x2_4-layers_300_10"            , kBlue    , 2, 2, "2x2, 4 layers, new limits, 300, 10" },
-//  {"2x2_4-layers_300_30"            , kRed     , 2, 2, "2x2, 4 layers, new limits, 300, 30" },
-//  {"2x2_4-layers_800_20"            , kMagenta , 2, 2, "2x2, 4 layers, new limits, 800, 20" },
-//  {"2x2_4-layers_1000_10"           , kCyan    , 2, 2, "2x2, 4 layers, new limits, 1000, 10" },
-//  {"2x2_4-layers_1000_20"           , kOrange  , 2, 2, "2x2, 4 layers, new limits, 1000, 20" },
-  {"2x2_4-layers_Chargino_300_1"    , kGreen   , 2, 1, "2x2, 4 layers, new limits, 300, 1"  },
-  {"2x2_4-layers_Chargino_300_30"   , kBlue    , 2, 1, "2x2, 4 layers, new limits, 300, 30" },
-  {"2x2_4-layers_Chargino_500_1"    , kRed     , 2, 1, "2x2, 4 layers, new limits, 500, 1"  },
-  {"2x2_4-layers_Chargino_500_10"   , kMagenta , 2, 1, "2x2, 4 layers, new limits, 500, 10" },
-  {"2x2_4-layers_Chargino_900_1"    , kCyan    , 2, 1, "2x2, 4 layers, new limits, 900, 1"  },
-  {"2x2_4-layers_Chargino_900_30"   , kOrange  , 2, 1, "2x2, 4 layers, new limits, 900, 30" },
-
   
 //  {"3x3_3-layers_noTag_1000_20_ext"   , kGreen     , 2, 1, "3x3, 3 layers, no tagger" },
 //  {"3x3_4-layers_noTag_800_20_ext"    , kMagenta+2 , 2, 1, "3x3, 4 layers, no tagger"   },
 //  {"3x3_5-6-layers_noTag_800_10_ext"  , kOrange+2  , 2, 1, "3x3, 5-6 layers, no tagger" },
 //  {"3x3_noTag_ext"                    , kCyan+1    , 2, 1, "all categories, no tagger"  },
-  
+//
 //  {"3x3_3-layers_noTag_1000_20"   , kGreen     , 2, 2, "3x3, 3 layers, no tagger" },
 //  {"3x3_4-layers_noTag_800_20"    , kMagenta+2 , 2, 2, "3x3, 4 layers, no tagger"   },
 //  {"3x3_5-6-layers_noTag_800_10"  , kOrange+2  , 2, 2, "3x3, 5-6 layers, no tagger" },
@@ -105,9 +103,9 @@ vector<tuple<string, int, int, int, string>> graphParamsByCategory = { // best i
 //  {"3x3_4-layers_LH_noTag_fix_800_20", kMagenta+2 , 2, 2, "3x3, 4 layers, no tagger, LH, fixed"},
   
   
-//  {"3x3_3-layers_LH_notag_fix_1000_20_extended"   , kGreen     , 2, 2, "3x3, 3 layers, no tagger"   },
-//  {"3x3_4-layers_LH_notag_fix_800_20_extended"    , kMagenta+2 , 2, 2, "3x3, 4 layers, no tagger "  },
-//  {"3x3_5-6-layers_LH_notag_fix_800_10_extended"  , kOrange+2  , 2, 2, "3x3, 5-6 layers, no tagger" },
+//  {"3x3_3-layers_LH_notag_fix_1000_20_extended"   , kGreen  , 2, 1, "3x3, 3 layers (old)"   },
+//  {"3x3_4-layers_LH_notag_fix_800_20_extended"    , kRed    , 2, 1, "3x3, 4 layers (old)"   },
+//  {"3x3_5-6-layers_LH_notag_fix_800_10_extended"  , kBlue   , 2, 1, "3x3, 5-6 layers (old)" },
 //  {"3x3_LH_notag_fix_extended"                    , kCyan+1    , 2, 2, "all categories, no tagger"  },
 //
 //  {"3x3_3-layers_LH_tagSimPU_fix_1000_20_extended"  , kGreen     , 2, 1, "3x3, 3 layers, tagSim PU"   },
@@ -134,12 +132,15 @@ vector<tuple<string, int, int>> graphParamsBySample = {
 //  {"1000_10"    , kOrange   , 1 },
 //  {"1000_20"    , kOrange   , 2 },
   
-  {"400_1"      , kOrange   , 1 },
-  {"500_1"      , kMagenta  , 1 },
-  {"500_10"     , kMagenta  , 2 },
-  {"700_10"     , kCyan     , 1 },
-  {"700_30"     , kCyan     , 2 },
-  {"800_10"     , kMagenta+2, 1 },
+  {"300_1"      , kMagenta  , 1 },
+  {"300_10"     , kMagenta+2, 1 },
+  {"300_30"     , kMagenta+2, 2 },
+  {"500_1"      , kCyan     , 1 },
+  {"500_10"     , kCyan+2   , 1 },
+  {"500_30"     , kCyan+2   , 2 },
+  {"900_1"      , kGreen    , 1 },
+  {"900_10"     , kGreen+2  , 1 },
+  {"900_30"     , kGreen+2  , 2 },
 
 };
 
