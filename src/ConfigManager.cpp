@@ -60,10 +60,12 @@ ConfigManager::ConfigManager(string path)
     else if(key == "do_tagger_signal_withPU")     runSignal[kTaggerSignalWithPU]      = stoi(value);
     else if(key == "do_tagger_background_withPU") runSignal[kTaggerBackgroundWithPU]  = stoi(value);
     else if(key == "do_chargino_300_1")           runSignal[kChargino300_1]           = stoi(value);
+    else if(key == "do_chargino_300_3")           runSignal[kChargino300_3]           = stoi(value);
     else if(key == "do_chargino_300_10")          runSignal[kChargino300_10]          = stoi(value);
     else if(key == "do_chargino_300_30")          runSignal[kChargino300_30]          = stoi(value);
     else if(key == "do_chargino_400_1")           runSignal[kChargino400_1]           = stoi(value);
     else if(key == "do_chargino_500_1")           runSignal[kChargino500_1]           = stoi(value);
+    else if(key == "do_chargino_500_3")           runSignal[kChargino500_3]           = stoi(value);
     else if(key == "do_chargino_500_10")          runSignal[kChargino500_10]          = stoi(value);
     else if(key == "do_chargino_500_30")          runSignal[kChargino500_30]          = stoi(value);
     else if(key == "do_chargino_500_10_noMETfilter") runSignal[kChargino500_10_noMETfilter]          = stoi(value);
@@ -74,6 +76,7 @@ ConfigManager::ConfigManager(string path)
     else if(key == "do_chargino_800_10")          runSignal[kChargino800_10]          = stoi(value);
     else if(key == "do_chargino_800_30")          runSignal[kChargino800_30]          = stoi(value);
     else if(key == "do_chargino_900_1")           runSignal[kChargino900_1]           = stoi(value);
+    else if(key == "do_chargino_900_3")           runSignal[kChargino900_3]           = stoi(value);
     else if(key == "do_chargino_900_10")          runSignal[kChargino900_10]          = stoi(value);
     else if(key == "do_chargino_900_30")          runSignal[kChargino900_30]          = stoi(value);
     

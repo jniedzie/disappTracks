@@ -192,11 +192,11 @@ void EventProcessor::ApplyLeptonCut(shared_ptr<Event> event, const LeptonCut &cu
 bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut &cut, vector<int> *cutReasons)
 {
   int cutThroughIter=0;
-  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 0
   
   // check the trigger
   if(cut.requiresMetNoMuTrigger && !event->metNoMuTrigger) return false;
-  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 1
   
   // check MET filters
   if(cut.requiresPassingAllFilters){
@@ -212,17 +212,17 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
       return false;
     }
   }
-  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 2
   
   // check number of objects
   if(cut.nGenPions.IsOutside((uint)event->genPionHelices.size())) return false;
   
   if(cut.nGenCharginos.IsOutside(event->nGenChargino)) return false;
   if(cut.nLeptons.IsOutside(event->GetNleptons()))                return false;
-  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 3
   
   if(cut.nTaus.IsOutside(event->nTau))  return false;
-  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 4
   
   vector<shared_ptr<Lepton>> muons;
   for(auto l : event->leptons){
@@ -231,14 +231,14 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
   
   // check number of muons
   if(cut.nMuons.IsOutside((int)muons.size())) return false;
-  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 5
   
   // make sure they have an opposite sign
   if(cut.requiresTwoOpositeMuons){
     if(muons.size() != 2) return false;
     if(muons[0]->GetPid() != -muons[1]->GetPid()) return false;
   }
-  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 6
   
   // apply tight muon cuts (tightID flag, pt > 20 GeV, isolation < 0.15
   if(cut.requiresTightMuon){
@@ -253,7 +253,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
     }
     if(!atLeastOneTightMuon) return false;
   }
-  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 7
   
   // check that invariant mass of muons is close to Z mass
   if(cut.requiresMuonsFromZ){
@@ -262,7 +262,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
     if(muons.size() != 2){
       cout<<"ERROR -- requested muons to come from Z decay, but there is "<<muons.size()<<" muons in the event!!"<<endl;
       cout<<"This event will be discarded!! Maybe you should require exactly two muons in the event?"<<endl;
-      if(cutReasons) cutReasons->at(cutThroughIter++)++;
+      if(cutReasons) cutReasons->at(cutThroughIter++)++; // 7
       return false;
     }
     
@@ -274,13 +274,13 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
     
     if(muonVectorSum.M() < 60. || muonVectorSum.M() > 120.) return false;
   }
-  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 8
   
   if(cut.metPt.IsOutside(event->metPt)) return false;
-  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 9
   
   if(cut.metNoMuPt.IsOutside(event->metNoMuPt)) return false;
-  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 10
   
   // Check if jets are not too close to muons
   if(cut.jetMuonDeltaPhi.GetMin() > 0.0){
@@ -305,7 +305,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
       }
     }
   }
-  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 11
   
   // Check if iso tracks are not too close to muons
   if(cut.trackMuonDeltaPhi.GetMin() > 0.0){
@@ -329,14 +329,14 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
       }
     }
   }
-  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 12
   
   // check number of tracks and jets after removing those that are too close to muons
   if(cut.nJets.IsOutside(event->GetNcentralJets())) return false;
-  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 13
   
   if(cut.nTracks.IsOutside(event->GetNtracks())) return false;
-  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 14
   
   // find the jet with the highest pt meeting leading jet criteria
   shared_ptr<Jet> leadingJet = nullptr;
@@ -350,7 +350,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
   }
   
   if(!leadingJet) return false;
-  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 15
   
   if(cut.leadingJetPt.IsOutside(leadingJet->GetPt())        ||
      cut.leadingJetEta.IsOutside(leadingJet->GetEta())      ||
@@ -361,7 +361,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
   
   // check if there is a leading jet in the event
   if(!leadingJet) return false;
-  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 16
 
   if(cut.jetMetDeltaPhi.GetMin() > 0.0){
     TLorentzVector metVector, jetVector;
@@ -372,7 +372,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
       if(cut.jetMetDeltaPhi.IsOutside(fabs(metVector.DeltaPhi(jetVector)) )) return false;
     }
   }
-  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 17
   
   bool pionPassed = false;
   
@@ -386,7 +386,7 @@ bool EventProcessor::IsPassingCut(const shared_ptr<Event> event, const EventCut 
     }
   }
   if(!pionPassed) return false;
-  if(cutReasons) cutReasons->at(cutThroughIter++)++;
+  if(cutReasons) cutReasons->at(cutThroughIter++)++; // 18
   
   survivingEvents.push_back(event);
   return true;
