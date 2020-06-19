@@ -43,14 +43,14 @@ do_tagger_signal_withPU:             0
 do_tagger_background_withPU:   0
 
 do_chargino_300_1:    0
-do_chargino_300_3:    1
+do_chargino_300_3:    0
 do_chargino_300_10:  0
 do_chargino_300_30:  0
 
 do_chargino_400_1:   0
 
 do_chargino_500_1:   0
-do_chargino_500_3:   1
+do_chargino_500_3:   0
 do_chargino_500_10: 0
 do_chargino_500_30: 0
 
@@ -59,10 +59,12 @@ do_chargino_500_10_newGT: 0
 do_chargino_700_10: 0
 do_chargino_700_30: 0
 do_chargino_800_10: 0
-do_chargino_800_30: 0
+
+do_chargino_600_10: 1
+do_chargino_800_30: 1
 
 do_chargino_900_1:  0
-do_chargino_900_3:  1
+do_chargino_900_3:  0
 do_chargino_900_10: 0
 do_chargino_900_30: 0
 
