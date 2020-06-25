@@ -70,10 +70,22 @@ vector<tuple<string, int, int, int, string>> graphParamsByCategory = { // best i
 //  {"allcategories_notag_run2" , kBlue     , 3, 2, "3x3, 3+4 layers, no tagger, Run 2" },
   
   
-  {"new_interpolated"    , kGreen     , 2, 1, "most recent (exponential fit)"   },
-  {"new_extrapolated"    , kGreen     , 2, 2, "most recent (x-sec extrrapolation)"   },
+  {"new_interpolated"           , kGreen      , 2, 2, "CMG weights, exponential fit"      },
+  {"new_extrapolated"           , kRed        , 2, 2, "CMG weights, x-sec extrapolation"  },
   
-//  {"3x3_3-layers_1000_20"    , kGreen     , 2, 1, "3x3, 3 layers, (new, int)"   },
+  {"new_interpolated_ohio"      , kGreen      , 2, 1, "EXO-19-010 weights, added ct=3 cm, exponential fit"      },
+  {"new_interpolated_ohio"      , kGreen+2    , 2, 1, "EXO-19-010 weights, added ct=3 cm, added 600-10 and 800-30, exponential fit"      },
+  {"new_extrapolated_ohio"      , kRed        , 2, 1, "EXO-19-010 weights, added ct=3 cm, x-sec extrapolation"  },
+  {"new_root_interpolated_ohio" , kBlue       , 2, 1, "EXO-19-010 weights, added ct=3 cm, root interpolate"     },
+  
+  {"new_interpolate_ohio_fullRun2"  , kGreen  , 4, 3, "EXO-19-010 weights, added ct=3 cm, exponential fit, full Run 2" },
+  {"extrapolated_ohio_fullRun2"     , kRed    , 4, 3, "EXO-19-010 weights, added ct=3 cm, x-sec extrapolation, full Run 2" },
+  {"root_interpolate_ohio_fullRun2" , kBlue   , 4, 3, "EXO-19-010 weights, added ct=3 cm, root interpolate, full Run 2"     },
+  
+  
+//  {"3x3_5-6-layers_800_10"      , kBlue    , 2, 1, "3x3, 5-6 layers, (new, int)"   },
+//  {"3x3_4-layers_800_20"      , kRed     , 2, 1, "3x3, 4 layers, (new, int)"   },
+//  {"3x3_3-layers_1000_20"     , kGreen   , 2, 1, "3x3, 3 layers, (new, int)"   },
 //  {"3x3_4-layers_Chargino_500_1"    , kMagenta+2 , 2, 1, "3x3, 4 layers (new)"   },
 //  {"3x3_4-layers_interpolated"      , kViolet+2  , 2, 1, "3x3, 4 layers (new, int)"   },
 //  {"3x3_4-layers_extrapolated"      , kViolet+2  , 2, 2, "3x3, 4 layers (new, ext)"   },

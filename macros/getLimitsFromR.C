@@ -18,7 +18,12 @@ map<int, map<int, double>> getTupleFromFile(string fileName){
   ifstream inFile(fileName);
   while(inFile >> mass >> ct >> r){
     if(r==0) continue;
-    rValues[mass][ct] = (ct==1 ? 1000 : 1)*r;
+    rValues[mass][ct] = r;
+    
+    if(ct==1)                 rValues[mass][ct] *= 1000;
+    if(mass == 900 && ct==3)  rValues[mass][ct] *= 1000;
+    
+    
   }
   inFile.close();
   
@@ -40,10 +45,11 @@ map<int, double> crossSection = {
 };
 
 map<int, int> colors = {
-   {1  , kRed    },
-   {10 , kGreen  },
-   {30 , kBlue   },
- };
+  {1  , kRed    },
+  {3  , kBlack  },
+  {10 , kGreen  },
+  {30 , kBlue   },
+};
 
 void getLimitsFromR(string inputPath, string outPath)
 {
@@ -258,7 +264,7 @@ void getLimitsFromR(string inputPath, string outPath)
     xSecVsMass->Draw("AP");
     
     canvas->cd(2);
-    for(int ct : {1, 10, 30}){
+    for(int ct : {1, 3, 10, 30}){
       graphs[ct] = new TGraph();
       iPoint=0;
       for(auto &[mass, xsec] : crossSection){
@@ -326,7 +332,7 @@ void getLimitsFromR(string inputPath, string outPath)
 
       double bestMassForCt = 0;
       double closestValue = 999999;
-      double tau = ct * =;
+      double tau = ct * 0.0333333;
       
       for(double mass=massMin; mass<=massMax; mass+=massStep){
 

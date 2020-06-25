@@ -51,19 +51,24 @@ enum EBound {
 };
 
 const int ratioRebin = 2;
-string sampleTag = "";
+string sampleTag = "_fullRun2";
 string backgroundHistNames = "background";
 string dataHistNames = "data";
 string signalHistNames = "Chargino";
 
 map<ESignal, double> signalScales = {
-  { kChargino300_1  , 100   },
+  { kChargino300_1  , 1000  },
+  { kChargino300_3  , 1     },
   { kChargino300_10 , 1     },
   { kChargino300_30 , 1     },
   { kChargino500_1  , 1000  },
+  { kChargino500_3  , 1     },
   { kChargino500_10 , 1     },
   { kChargino500_30 , 1     },
+  { kChargino600_10 , 1     },
+  { kChargino800_30 , 1     },
   { kChargino900_1  , 1000  },
+  { kChargino900_3  , 1000  },
   { kChargino900_10 , 1     },
   { kChargino900_30 , 1     },
 };
@@ -899,10 +904,10 @@ void getLimitsForSignal(string outFileName, string outputPath)
   copyDatacardToLxplus(outFileName);
   cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Running Combine and copying results back to local machine"<<endl;
-  runCombine(outFileName);
+//  runCombine(outFileName);
   cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Converting signal strength R to limits in mass-ct"<<endl;
-  convertRtoLimits(outFileName);
+//  convertRtoLimits(outFileName);
   cout<<"\n\n--------------------------------------------------------"<<endl;
   cout<<"Done"<<endl;
 }

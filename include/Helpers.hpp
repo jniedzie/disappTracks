@@ -85,11 +85,12 @@ using namespace std;
 
 namespace xtracks {
 
-const bool lxplus = true;
+const bool lxplus = false;
 
-const string metWeightsPath = "/eos/cms/store/group/phys_exotica/xtracks/metWeights/hratio.root";
+//const string metWeightsPath = "/eos/cms/store/group/phys_exotica/xtracks/metWeights/hratio.root";
 //const string metWeightsPath = "/eos/cms/store/group/phys_exotica/xtracks/metWeights/hratio_cmg.root";
-//const string metWeightsPath = "../data/metWeights.root";
+const string metWeightsPath = "../data/metWeightsOhio.root";
+//const string metWeightsPath = "../data/metWeightsCMG.root";
 
 const string metWeightsHistName = "h_1";
 

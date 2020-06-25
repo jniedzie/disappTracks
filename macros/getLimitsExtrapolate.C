@@ -18,7 +18,11 @@ vector<tuple<int, int, double>> getRvalues(string fileName){
   ifstream inFile(fileName);
   while(inFile >> mass >> ct >> r){
     if(r==0) continue;
-    rValues.push_back({mass, ct, (ct==1 ? 1000 : 1)*r});
+    
+    if(ct==1) r *= 1000;
+    if(mass == 900 && ct==3) r *= 1000;
+    
+    rValues.push_back({mass, ct, r});
   }
   inFile.close();
   
@@ -52,6 +56,7 @@ void getLimitsExtrapolate(string inputPath, string outPath)
   
   map<int, int> colors = {
     {1  , kRed    },
+    {3  , kBlack  },
     {10 , kGreen  },
     {30 , kBlue   },
   };
@@ -86,7 +91,7 @@ void getLimitsExtrapolate(string inputPath, string outPath)
   
   canvas->cd(1);
   
-  for(int ct : {1, 10, 30}){
+  for(int ct : {1, 3, 10, 30}){
     if(ct==1){
       graphs[ct]->Draw("AP");
       gPad->SetLogy();
